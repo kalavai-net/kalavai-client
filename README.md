@@ -4,8 +4,9 @@ Public repository for the kalavai-client installer.
 
 ## Connect to Kalavai
 
-curl -sfL https://raw.githubusercontent.com/kalavai-net/kalavai-client/main/binary/connect.sh | sh -
-
+```bash
+curl -sfL https://raw.githubusercontent.com/kalavai-net/kalavai-client/main/scripts/apt_connect.sh | sh -
+```
 
 ## Go client
 
