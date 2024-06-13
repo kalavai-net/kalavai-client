@@ -52,8 +52,7 @@ verify_system() {
 # --- validate user ---
 validate_user() {
     # validate user-password
-    $SUDO apt install -y curl jq
-    read -p "Login email: " USEREMAIL
+    read -p "Kalavai Login. Please enter your registered email: " USEREMAIL
     stty -echo
     read -p "Password: " PASSWORD
     stty echo
@@ -63,10 +62,7 @@ validate_user() {
 
 # --- install dependencies ---
 install_core_dependencies() {
-    # echo "Installing package dependencies..."
-    # # wireguard, open iscsi
-    $SUDO apt update && apt install -y wireguard open-iscsi nfs-common
-    $SUDO systemctl enable --now iscsid
+    info "Installing package dependencies..."
 
     # docker
     # Add Docker's official GPG key:
@@ -95,7 +91,8 @@ install_core_dependencies() {
         sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
         $SUDO tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
     $SUDO apt-get update
-    $SUDO apt-get install -y nvidia-container-toolkit
+    $SUDO apt-get install -y nvidia-container-toolkit wireguard open-iscsi nfs-common curl jq
+    $SUDO systemctl enable --now iscsid
 }
 # --- install kalavai client and connect
 install_client() {
@@ -110,8 +107,9 @@ install_client() {
     else
         LABELS="gpu=false"
     fi
-    echo $LABELS
-    curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="agent --node-label $LABELS" K3S_URL=$KALAVAI_SERVER_URL K3S_TOKEN=$SERVER_TOKEN K3S_NODE_NAME=$USER_NAME-$(hostname) sh -
+    NODE_NAME=$USER_NAME-$(hostname)
+    echo "Node name: "$NODE_NAME
+    curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="agent --node-label $LABELS --token $SERVER_TOKEN --server $KALAVAI_SERVER_URL --node-name $NODE_NAME" sh -
     info "Kalavai-client has been successfully installed on your computer!"
 }
 
