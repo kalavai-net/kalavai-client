@@ -1,16 +1,12 @@
 #!/bin/bash
 
+# Connect to kalavai server via k3d
 # TODO
-# fetch address values dynamically from the server?
-# get linux distro and package installer programmatically. See https://get.k3s.io/
-# use kalavai-cli instead of k3s connect
-# error catching with fatal
-# create uninstall script
 set -e
 
 BACKEND_ENDPOINT="https://kubeapi.test.k8s.mvp.kalavai.net"
 KALAVAI_SERVER_URL="https://206.189.118.193:6443"
-SERVER_TOKEN="K103ccc259b3e9bc39e56ffc92e1c1f401f5a831b8f68989c612f4e7a251561f537::server:138d51e2e6fc9971596a1a58a9517551"
+SERVER_TOKEN="K10fb2a18ef7a57b5222ecd43adff3834cf758120055b89e82e730878cdf891ca15::server:088a4cc9ef82e2942a2b7d16aebb048d"
 
 # elevate to sudo if not already
 SUDO=sudo
@@ -65,8 +61,7 @@ validate_user() {
 install_core_dependencies() {
     # echo "Installing package dependencies..."
     # # wireguard, open iscsi
-    $SUDO apt update && apt install -y wireguard open-iscsi nfs-common
-    $SUDO systemctl enable --now iscsid
+    $SUDO apt install -y wireguard open-iscsi
 
     # docker
     # Add Docker's official GPG key:
@@ -85,7 +80,7 @@ install_core_dependencies() {
     $SUDO apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
     $SUDO groupadd docker
     $SUDO usermod -aG docker $USER
-    #newgrp docker
+    newgrp docker
     $SUDO nvidia-ctk runtime configure --runtime=docker
     $SUDO systemctl restart docker
 
@@ -111,7 +106,8 @@ install_client() {
         LABELS="gpu=false"
     fi
     echo $LABELS
-    curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="agent --node-label $LABELS" K3S_URL=$KALAVAI_SERVER_URL K3S_TOKEN=$SERVER_TOKEN K3S_NODE_NAME=$USER_NAME-$(hostname) sh -
+    # K3D_FIX_MOUNTS required to solve shared mounts https://github.com/k3d-io/k3d/pull/1268
+    K3D_FIX_MOUNTS=1 k3d node create $USER_NAME-$(hostname) --token $SERVER_TOKEN --role agent  --cluster $KALAVAI_SERVER_URL --image docker.io/bundenth/k3s_cuda:v7 --k3s-node-label "$LABELS"
     info "Kalavai-client has been successfully installed on your computer!"
 }
 
@@ -119,7 +115,7 @@ install_client() {
 # --- run the install process --
 {
     intro
-    verify_system
-    install_core_dependencies
+    #verify_system
+    #install_core_dependencies
     install_client
 }
