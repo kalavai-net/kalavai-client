@@ -97,8 +97,9 @@ install_core_dependencies() {
 # --- install kalavai client and connect
 install_client() {
     # TODO: move it to an installable, so users can "kalavai start" / "kalavai stop"
-    info "Connecting $HOSTNAME to Kalavai..."
     USER_NAME=$(validate_user)
+    NODE_NAME=$USER_NAME-$(hostname)
+    info "Connecting $NODE_NAME to Kalavai..."
     # nodes must be labelled for nvidia daemon (gpu=true) only if nvidia GPU is present
     gpu=$(lspci | grep -i '.* vga .* nvidia .*')
     shopt -s nocasematch
@@ -107,7 +108,7 @@ install_client() {
     else
         LABELS="gpu=false"
     fi
-    NODE_NAME=$USER_NAME-$(hostname)
+    
     echo "Node name: "$NODE_NAME
     curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="agent --node-label $LABELS --token $SERVER_TOKEN --server $KALAVAI_SERVER_URL --node-name $NODE_NAME" sh -
     info "Kalavai-client has been successfully installed on your computer!"
