@@ -2,6 +2,18 @@
 
 Public repository for the kalavai-client installer.
 
+## Requirements
+
+The kalavai client app currently supports the following architectures:
+- amd64
+- x86_64
+
+The following OS are supported:
+- Linux (Debian, RedHat, Ubuntu, Fedora... basically anything that can run deb and rpm packages).
+
+If your system is not currently supported, open an issue and request it. We are expanding this list constantly.
+
+
 ## Install
 
 To install the kalavai client app that allows you to share your device and earn, use the following installer:
@@ -44,4 +56,5 @@ kalavai start
 ```
 
 This will start the sharing loop. Head over to your [online account](http://platform.kalavai.net) to see the status.
+
 
