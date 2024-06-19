@@ -1,5 +1,7 @@
 set -e
 
+VERSION="0.1.2"
+
 # elevate to sudo if not already
 SUDO=sudo
 if [ $(id -u) -eq 0 ]; then
@@ -48,15 +50,15 @@ fi
 
 if [ "$package_manager" == "apt-get" ]; then
     # Debian installers (deb) - apt-get
-    wget https://github.com/kalavai-net/kalavai-client/releases/download/v0.1.1/kalavai_0.1.1_amd64.deb -O kalavai_0.1.1_amd64.deb
-    $SUDO dpkg -i ./kalavai_0.1.1_amd64.deb
+    wget https://github.com/kalavai-net/kalavai-client/releases/download/v${VERSION}/kalavai_${VERSION}_amd64.deb -O kalavai_${VERSION}_amd64.deb
+    $SUDO dpkg -i ./kalavai_${VERSION}_amd64.deb
     $SUDO apt-get install -f
-    $SUDO rm kalavai_0.1.1_amd64.deb
+    $SUDO rm kalavai_${VERSION}_amd64.deb
 else
     # RedHat installers (rpm) - yum dnf apk
-    wget https://github.com/kalavai-net/kalavai-client/releases/download/v0.1.1/kalavai-0.1.1-1.x86_64.rpm -O kalavai-0.1.1-1.x86_64.rpm
-    $SUDO rpm -ivh ./kalavai-0.1.1-1.x86_64.rpm
-    $SUDO rm kalavai-0.1.1-1.x86_64.rpm
+    wget https://github.com/kalavai-net/kalavai-client/releases/download/v${VERSION}/kalavai-${VERSION}-1.x86_64.rpm -O kalavai-${VERSION}-1.x86_64.rpm
+    $SUDO rpm -ivh ./kalavai-${VERSION}-1.x86_64.rpm
+    $SUDO rm kalavai-${VERSION}-1.x86_64.rpm
 fi
 
 echo "Run Kalavai client and start sharing and earning with 'kalavai start'"
