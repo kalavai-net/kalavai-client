@@ -7,7 +7,31 @@ SUDO=sudo
 if [ $(id -u) -eq 0 ]; then
     SUDO=
 fi
+# get package installer
+declare -A osInfo;
+osInfo[/etc/debian_version]="apt-get"
+#osInfo[/etc/alpine-release]="apk"
+osInfo[/etc/centos-release]="yum"
+osInfo[/etc/fedora-release]="dnf"
+osInfo[/etc/SuSE-release]="zypper"
 
+for f in ${!osInfo[@]}
+do
+    if [[ -f $f ]];then
+        package_manager=${osInfo[$f]}
+    fi
+done
+
+# --- helper functions for logs ---
+info()
+{
+    echo '[INFO] ' "$@"
+}
+fatal()
+{
+    echo '[ERROR] ' "$@" >&2
+    exit 1
+}
 # --- set arch and suffix, fatal if architecture not supported ---
 setup_verify_arch() {
     if [ -z "$ARCH" ]; then
@@ -26,43 +50,94 @@ setup_verify_arch() {
             fatal "Unsupported architecture $ARCH"
     esac
 }
+# --- install dependencies ---
+install_core_dependencies() {
+    info "Installing package dependencies..."
+    info "Installing nvidia runtime..."
+    # nvidia-container-runtime, wireguard, open-iscsi, containerd
+    $SUDO $package_manager install -y curl jq wget
+    if [ "$package_manager" == "apt-get" ]; then
+        curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | $SUDO gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
+        && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+            sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+            $SUDO tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+        $SUDO $package_manager update
+        $SUDO $package_manager install -y nvidia-container-toolkit wireguard open-iscsi nfs-common
 
-# get package installer
-declare -A osInfo;
-osInfo[/etc/debian_version]="apt-get"
-osInfo[/etc/alpine-release]="apk"
-osInfo[/etc/centos-release]="yum"
-osInfo[/etc/fedora-release]="dnf"
+    elif [ "$package_manager" == "yum" ]; then
+        curl -s -L https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo | \
+            $SUDO tee /etc/yum.repos.d/nvidia-container-toolkit.repo
+        $SUDO $package_manager install -y nvidia-container-toolkit iscsi-initiator-utils nfs-utils
+        $SUDO $package_manager install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm https://www.elrepo.org/elrepo-release-8.el8.elrepo.noarch.rpm
+        $SUDO $package_manager install -y kmod-wireguard wireguard-tools
 
-for f in ${!osInfo[@]}
-do
-    if [[ -f $f ]];then
-        package_manager=${osInfo[$f]}
+    elif [ "$package_manager" == "dnf" ]; then
+        curl -s -L https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo | \
+            $SUDO tee /etc/yum.repos.d/nvidia-container-toolkit.repo
+        $SUDO $package_manager install -y nvidia-container-toolkit wireguard-tools iscsi-initiator-utils nfs-utils
+
+    elif [ "$package_manager" == "zypper" ]; then
+        $SUDO $package_manager ar https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo
+        $SUDO $package_manager --gpg-auto-import-keys install -y nvidia-container-toolkit
+        $SUDO $package_manager install -y wireguard-tools open-iscsi
+
+    else
+        fatal "Package manager is not recognised"
     fi
-done
+    
+    # enable Open ISCSI
+    $SUDO systemctl enable --now iscsid
+    info "System is ready"
 
-if [ "$package_manager" == "apk" ]; then
-    $SUDO $package_manager add -y wget rpm wireguard
-else
-    $SUDO $package_manager install -y wget wireguard
-fi
+    # install containerd
+    wget https://github.com/containerd/containerd/releases/download/v1.7.18/containerd-1.7.18-linux-amd64.tar.gz -O containerd-1.7.18-linux-amd64.tar.gz
+    $SUDO tar Cxzvf /usr/local containerd-1.7.18-linux-amd64.tar.gz
+    wget https://raw.githubusercontent.com/containerd/containerd/main/containerd.service -O containerd.service
+    $SUDO mkdir -p /usr/local/lib/systemd/system/
+    $SUDO mv containerd.service /usr/local/lib/systemd/system/
+    $SUDO systemctl daemon-reload
+    $SUDO systemctl enable --now containerd
+    wget https://github.com/opencontainers/runc/releases/download/v1.1.13/runc.amd64 -O runc.amd64
+    $SUDO install -m 755 runc.amd64 /usr/local/sbin/runc
+    wget https://github.com/containernetworking/plugins/releases/download/v1.5.1/cni-plugins-linux-amd64-v1.5.1.tgz -O cni-plugins-linux-amd64-v1.5.1.tgz
+    $SUDO mkdir -p /opt/cni/bin
+    $SUDO tar Cxzvf /opt/cni/bin cni-plugins-linux-amd64-v1.5.1.tgz
+
+    # cleanup
+    rm containerd-1.7.18-linux-amd64.tar.gz
+    rm cni-plugins-linux-amd64-v1.5.1.tgz
+    rm runc.amd64
+
+    # configure containerd for nvidia
+    $SUDO nvidia-ctk runtime configure --runtime=containerd
+    $SUDO systemctl restart containerd
+}
+install_kalavai_app() {
+    if [ "$package_manager" == "apt-get" ]; then
+        # Debian installers (deb) - apt-get
+        wget https://github.com/kalavai-net/kalavai-client/releases/download/v${VERSION}/kalavai_${VERSION}_amd64.deb -O kalavai_${VERSION}_amd64.deb
+        $SUDO dpkg -i ./kalavai_${VERSION}_amd64.deb
+        $SUDO apt-get install -f
+        $SUDO rm kalavai_${VERSION}_amd64.deb
+    else
+        # RedHat installers (rpm) - yum dnf apk
+        wget https://github.com/kalavai-net/kalavai-client/releases/download/v${VERSION}/kalavai-${VERSION}-1.x86_64.rpm -O kalavai-${VERSION}-1.x86_64.rpm
+        $SUDO rpm -ivh ./kalavai-${VERSION}-1.x86_64.rpm
+        $SUDO rm kalavai-${VERSION}-1.x86_64.rpm
+    fi
+}
+success() {
+    info "*** Kalavai app has been successfully installed! ***"
+    info "*** Start sharing and earning with 'kalavai start' ***"
+}
 
 
-if [ "$package_manager" == "apt-get" ]; then
-    # Debian installers (deb) - apt-get
-    wget https://github.com/kalavai-net/kalavai-client/releases/download/v${VERSION}/kalavai_${VERSION}_amd64.deb -O kalavai_${VERSION}_amd64.deb
-    $SUDO dpkg -i ./kalavai_${VERSION}_amd64.deb
-    $SUDO apt-get install -f
-    $SUDO rm kalavai_${VERSION}_amd64.deb
-else
-    # RedHat installers (rpm) - yum dnf apk
-    wget https://github.com/kalavai-net/kalavai-client/releases/download/v${VERSION}/kalavai-${VERSION}-1.x86_64.rpm -O kalavai-${VERSION}-1.x86_64.rpm
-    $SUDO rpm -ivh ./kalavai-${VERSION}-1.x86_64.rpm
-    $SUDO rm kalavai-${VERSION}-1.x86_64.rpm
-fi
-
-echo "Run Kalavai client and start sharing and earning with 'kalavai start'"
-
+{
+    setup_verify_arch
+    install_core_dependencies
+    install_kalavai_app
+    success
+}
 
 
 
