@@ -40,9 +40,9 @@ do
 done
 
 if [ "$package_manager" == "apk" ]; then
-    $SUDO $package_manager add -y wget rpm
+    $SUDO $package_manager add -y wget rpm wireguard
 else
-    $SUDO $package_manager install -y wget
+    $SUDO $package_manager install -y wget wireguard
 fi
 
 
