@@ -14,12 +14,17 @@ The following OS are supported:
 If your system is not currently supported, open an issue and request it. We are expanding this list constantly.
 
 
+## Documentation
+
+See our full documentation in https://kalavai-net.github.io/kalavai-client/
+
+
 ## Install
 
 To install the kalavai client app that allows you to share your device and earn, use the following installer:
 
 ```bash
-curl -sfL https://raw.githubusercontent.com/kalavai-net/kalavai-client/main/scripts/install_client.sh | bash -
+curl -sfL https://raw.githubusercontent.com/kalavai-net/kalavai-client/main/installer/install_client.sh | bash -
 ```
 
 ## Use kalavai-client
