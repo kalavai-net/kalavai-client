@@ -1,0 +1,4 @@
+mkdocs
+mkdocs-material
+mkdocs-dracula-theme
+mkdocs-windmill-dark
