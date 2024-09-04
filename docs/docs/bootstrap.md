@@ -1,10 +1,26 @@
 ---
 tags:
-  - kalavai-client
-  - share
-  - install
-  - requirements
+  - create
+  - bootstrap
+  - AI cluster
+  - master node
 ---
+
+# Bootstrap a new AI cluster
+
+Intro
+
+## Requirements
+
+Public IP (or all nodes within the same private network)
+Unique hostnames
+
+
+## Install the Kalavai client app
+
+See [how to install kalavai client app](install.md)
+
+
 
 # Share your device
 

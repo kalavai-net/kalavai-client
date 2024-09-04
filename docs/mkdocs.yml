@@ -1,9 +1,19 @@
-site_name: Kalavai Docs
+site_name: Kalavai Documentation
 nav:
-  - Home: index.md
-  - Develop: developers.md
-  - Share your device: hosts.md
-  - FAQs: faqs.md
+  - Getting started:
+    - Welcome to Kalavai: index.md
+    - Concepts: concepts.md
+    - Install Kalavai app: install.md
+  - Create AI clusters:
+    - Bootstrap an AI cluster: bootstrap.md
+    - Join an existing AI cluster: join.md
+  - Configure applications: 
+    - Install: install_apps.md
+  - Tutorials:
+    - End 2 end example: end2end.md
+  - More:
+    - FAQs: faqs.md
+    - Enterprise: enterprise.md
 
 theme:
   name: material
@@ -11,6 +21,7 @@ theme:
   logo: assets/icons/logo_no_background.png
   favicon: assets/icons/favicon.png
   features:
+    - navigation.sections
     - navigation.instant
     - navigation.instant.progress
   palette:
