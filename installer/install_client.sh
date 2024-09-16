@@ -108,6 +108,11 @@ install_core_dependencies() {
     rm cni-plugins-linux-amd64-v1.5.1.tgz
     rm runc.amd64
 
+    # install helmfile
+    wget https://github.com/helmfile/helmfile/releases/download/v0.167.1/helmfile_0.167.1_linux_amd64.tar.gz
+    unzip
+    $SUDO mv helmfile /usr/local/bin/
+
     # configure containerd for nvidia
     $SUDO nvidia-ctk runtime configure --runtime=containerd
     $SUDO systemctl restart containerd
