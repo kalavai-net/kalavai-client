@@ -1,6 +1,6 @@
 set -e
 
-VERSION="0.1.4"
+VERSION="0.1.5"
 
 # elevate to sudo if not already
 SUDO=sudo
@@ -87,7 +87,6 @@ install_core_dependencies() {
     
     # enable Open ISCSI
     $SUDO systemctl enable --now iscsid
-    info "System is ready"
 
     # install containerd
     wget https://github.com/containerd/containerd/releases/download/v1.7.18/containerd-1.7.18-linux-amd64.tar.gz -O containerd-1.7.18-linux-amd64.tar.gz
@@ -116,8 +115,9 @@ install_core_dependencies() {
     $SUDO rm helmfile_0.167.1_linux_amd64.tar.gz
 
     # configure containerd for nvidia
-    $SUDO nvidia-ctk runtime configure --runtime=containerd
-    $SUDO systemctl restart containerd
+    # PRODUCES ERRO[0000] unrecognized runtime 'containerd'
+    #$SUDO nvidia-ctk runtime configure --runtime=containerd
+    #$SUDO systemctl restart containerd
 
     echo "# TACKLE "too many files open" in kubernetes pods
 fs.inotify.max_user_watches = 655360
@@ -139,8 +139,10 @@ install_kalavai_app() {
     fi
 }
 success() {
+    info "----------------------------------------------------"
     info "*** Kalavai app has been successfully installed! ***"
     info "*** Start sharing and earning with 'kalavai start' ***"
+    info "----------------------------------------------------"
 }
 
 
