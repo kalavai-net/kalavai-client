@@ -12,4 +12,21 @@ tags:
 
 ## Install Kalavai client app
 
-See [how to install kalavai client app](install.md)
+See [how to install kalavai client app](install_client.md)
+
+## Join the cluster
+
+Fetch the joining token from the master node:
+```bash
+kalavai generate-token
+```
+
+And then join!
+Create cluster:
+```bash
+kalavai join ---
+```
+
+## What's next?
+
+Your cluster will now be able to schedule workloads on the new node. Check out the [app integrations](install_apps.md) for more info.

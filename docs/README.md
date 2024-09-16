@@ -28,4 +28,3 @@ mkdocs gh-deploy
 This will push a PR to the gh-pages branch, which can be approved / merged. Once it is, the new changes will be published at https://kalavai-net.github.io/kalavai-client/
 
 
-

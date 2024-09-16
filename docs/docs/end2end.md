@@ -1,3 +1,10 @@
+---
+tags:
+  - tutorial
+  - end to end
+  - VPN
+---
+
 # End to end walkthrough: how to boostrap a multi-node AI cluster
 
 ## Setting up the environment

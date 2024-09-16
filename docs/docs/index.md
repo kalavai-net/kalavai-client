@@ -5,7 +5,7 @@
 ---
 **Want to be notified of the latest features?** 
 
-[Join our mailing list](https://platform.kalavai.net){ .md-button .md-button--primary}
+[Join our mailing list](http://eepurl.com/iC89hk){:target="_blank" .md-button .md-button--primary}
 
 ---
 

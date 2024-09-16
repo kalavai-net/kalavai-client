@@ -3,7 +3,7 @@ nav:
   - Getting started:
     - Welcome to Kalavai: index.md
     - Concepts: concepts.md
-    - Install Kalavai app: install.md
+    - Install Kalavai client: install_client.md
   - Create AI clusters:
     - Bootstrap an AI cluster: bootstrap.md
     - Join an existing AI cluster: join.md
@@ -19,7 +19,7 @@ theme:
   name: material
   navigation_depth: 3
   logo: assets/icons/logo_no_background.png
-  favicon: assets/icons/favicon.png
+  favicon: assets/icons/browser.png
   features:
     - navigation.sections
     - navigation.instant

@@ -1,7 +1,9 @@
-# Kalavai: a marketplace for computation to make AI accessible
+---
+tags:
+  - concepts
+  - architecture
+---
 
+# Kalavai
 
-## Accessible AI for all
-
-
-## A community-owned cloud
+A platform to turn everyday devices into a powerful AI cloud

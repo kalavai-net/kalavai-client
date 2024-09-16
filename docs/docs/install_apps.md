@@ -1,3 +1,11 @@
+---
+tags:
+  - integrations
+  - install apps
+  - ray
+  - dask
+  - vcluster
+---
 # Develop with Kalavai
 
 [Coming soon...]
@@ -15,4 +23,4 @@
 
 If your preferred distributed ML application is not yet supported, let us know!
 
-[Contact us](mailto:info@kalavai.net){ .md-button .md-button--secondary}
+[Contact us](mailto:info@kalavai.net?subject=Application-request){ .md-button .md-button--primary}
