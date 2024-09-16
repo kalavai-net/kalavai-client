@@ -110,8 +110,10 @@ install_core_dependencies() {
 
     # install helmfile
     wget https://github.com/helmfile/helmfile/releases/download/v0.167.1/helmfile_0.167.1_linux_amd64.tar.gz
-    unzip
-    $SUDO mv helmfile /usr/local/bin/
+    mkdir helmfile && tar -xvzf helmfile_0.167.1_linux_amd64.tar.gz -C helmfile
+    $SUDO mv helmfile/helmfile /usr/local/bin/
+    $SUDO rm -r helmfile
+    $SUDO rm helmfile_0.167.1_linux_amd64.tar.gz
 
     # configure containerd for nvidia
     $SUDO nvidia-ctk runtime configure --runtime=containerd
