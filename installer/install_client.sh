@@ -1,6 +1,6 @@
 set -e
 
-VERSION="0.1.5"
+VERSION="0.1.6"
 
 # elevate to sudo if not already
 SUDO=sudo
