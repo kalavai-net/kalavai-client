@@ -1,0 +1,37 @@
+template_values:
+- name: deployment_name
+  value: vllm-deployment-1
+  default: vllm-deployment-1
+  description: "Name of the deployment job"
+- name: replicas
+  value: "1"
+  default: "1"
+  description: "How many replicas to deploy for the model"
+- name: num_workers
+  value: "1"
+  default: "1"
+  description: "Workers per deployment (for tensor parallelism)"
+- name: model_id
+  value: facebook/opt-350m
+  default: null
+  description: "Huggingface model id to load"
+- name: hf_token
+  value: <yout token>
+  default: null
+  description: "Huggingface token, required to load model weights"
+- name: cpus
+  value: "4"
+  default: "4"
+  description: "CPUs per single worker (final one = cpus * num_workers)"
+- name: gpus
+  value: "1"
+  default: "1"
+  description: "GPUs per single worker (final one = gpus * num_workers)"
+- name: memory
+  value: "4Gi"
+  default: "4Gi"
+  description: "RAM memory per single worker (final one = memory * num_workers)"
+- name: dtype
+  value: float16
+  default: float16
+  description: "dtype to load the model with"
