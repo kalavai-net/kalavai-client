@@ -121,8 +121,8 @@ install_core_dependencies() {
 
     # configure containerd for nvidia
     # PRODUCES ERRO[0000] unrecognized runtime 'containerd'
-    #$SUDO nvidia-ctk runtime configure --runtime=containerd
-    #$SUDO systemctl restart containerd
+    $SUDO nvidia-ctk runtime configure --runtime=containerd
+    $SUDO systemctl restart containerd
 
     echo "# TACKLE "too many files open" in kubernetes pods
 fs.inotify.max_user_watches = 655360
