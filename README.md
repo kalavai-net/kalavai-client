@@ -192,6 +192,7 @@ Currently not compatible:
 
 ## Contribute
 
+- [Join in](https://github.com/kalavai-net/kalavai-client/discussions/1) and share ideas!
 - Report [bugs, issues and new features](https://github.com/kalavai-net/kalavai-client/issues).
 - Help improve our [compatibility matrix](#compatibility-matrix) by testing on different operative systems.
 - Develop and contribute new [templates](templates/README.md)
