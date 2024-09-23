@@ -1,8 +1,8 @@
 # Welcome to Kalavai
 
-`Kalavai` is a platform that turns everyday devices into powerful AI clusters. You can use your computer to bootstrap a cluster and invite colleagues to join to increase computing capacity.
+> Kalavai is a self-hosted platform that turns **everyday devices** into your very own AI cluster. Do you have an old desktop or a gaming laptop gathering dust? Aggregate resources from multiple machines and **say goodbye to CUDA out of memory errors**. Deploy your favourite open source LLM, fine tune it with your own data, or simply run your distributed work, zero-devops. **Simple. Private. Yours.**
 
----
+
 **Want to be notified of the latest features?** 
 
 [Join our mailing list](http://eepurl.com/iC89hk){:target="_blank" .md-button .md-button--primary}
@@ -23,15 +23,5 @@ Despite the hype of new models, **AI remains hard to leverage in real world scen
 
 ## Getting started
 
-* Create your very own [AI cluster](bootstrap.md) from your device.
-* [Invite others](join.md) to join in.
-* Use Kalavai to support your [AI work](install_apps.md)
-* See an [end to end example](end2end.md) of how to setup a multi-node AI cluster
-* Have a question? Check the answers to [commonly asked questions](faqs.md)
+Check out our [quick start guide](getting_started.md) to get you going!
 
-### Want to know more?
-
-We get it, you are curious. Check out our [full write up](concepts.md) for more details on Kalavai's vision.
-
-
----

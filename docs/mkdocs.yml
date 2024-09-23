@@ -3,17 +3,17 @@ nav:
   - Getting started:
     - Welcome to Kalavai: index.md
     - Concepts: concepts.md
-    - Install Kalavai client: install_client.md
-  - Create AI clusters:
-    - Bootstrap an AI cluster: bootstrap.md
-    - Join an existing AI cluster: join.md
-  - Configure applications: 
-    - Install: install_apps.md
-  - Tutorials:
-    - End 2 end example: end2end.md
-  - More:
-    - FAQs: faqs.md
-    - Enterprise: enterprise.md
+    - Getting started: getting_started.md
+  # - Create AI clusters:
+  #   - Bootstrap an AI cluster: bootstrap.md
+  #   - Join an existing AI cluster: join.md
+  # - Configure applications: 
+  #   - Install: install_apps.md
+  # - Tutorials:
+  #   - End 2 end example: end2end.md
+  # - More:
+  #   - FAQs: faqs.md
+  #   - Managed: enterprise.md
 
 theme:
   name: material

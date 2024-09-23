@@ -34,6 +34,8 @@ Kalavai has considerable tailwinds that will work to minimise the impact of dist
 
 ##### Can I limit what I share with Kalavai?
 
+##### Can I run the kalavai app within a VM?
+
 ##### Why does it require sudo privileges?
 
 
