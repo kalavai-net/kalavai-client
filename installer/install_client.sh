@@ -1,6 +1,12 @@
 set -e
 
-VERSION="0.1.6"
+# get version (if set)
+if [[ -z "${KALAVAI_VERSION}" ]]; then
+    # set to latest
+    KALAVAI_VERSION="v0.1.7"
+else
+    KALAVAI_VERSION="${KALAVAI_VERSION}"
+fi
 
 # elevate to sudo if not already
 SUDO=sudo
@@ -10,7 +16,6 @@ fi
 # get package installer
 declare -A osInfo;
 osInfo[/etc/debian_version]="apt-get"
-#osInfo[/etc/alpine-release]="apk"
 osInfo[/etc/centos-release]="yum"
 osInfo[/etc/fedora-release]="dnf"
 osInfo[/etc/SuSE-release]="zypper"
@@ -127,15 +132,15 @@ fs.inotify.max_user_instances = 1280"  | sudo tee -a /etc/sysctl.conf
 install_kalavai_app() {
     if [ "$package_manager" == "apt-get" ]; then
         # Debian installers (deb) - apt-get
-        wget https://github.com/kalavai-net/kalavai-client/releases/download/v${VERSION}/kalavai_${VERSION}_amd64.deb -O kalavai_${VERSION}_amd64.deb
-        $SUDO dpkg -i ./kalavai_${VERSION}_amd64.deb
+        wget https://github.com/kalavai-net/kalavai-client/releases/download/${KALAVAI_VERSION}/kalavai_${KALAVAI_VERSION}_amd64.deb -O kalavai_${KALAVAI_VERSION}_amd64.deb
+        $SUDO dpkg -i ./kalavai_${KALAVAI_VERSION}_amd64.deb
         $SUDO apt-get install -f
-        $SUDO rm kalavai_${VERSION}_amd64.deb
+        $SUDO rm kalavai_${KALAVAI_VERSION}_amd64.deb
     else
         # RedHat installers (rpm) - yum dnf apk
-        wget https://github.com/kalavai-net/kalavai-client/releases/download/v${VERSION}/kalavai-${VERSION}-1.x86_64.rpm -O kalavai-${VERSION}-1.x86_64.rpm
-        $SUDO rpm -ivh ./kalavai-${VERSION}-1.x86_64.rpm
-        $SUDO rm kalavai-${VERSION}-1.x86_64.rpm
+        wget https://github.com/kalavai-net/kalavai-client/releases/download/${KALAVAI_VERSION}/kalavai-${KALAVAI_VERSION}-1.x86_64.rpm -O kalavai-${KALAVAI_VERSION}-1.x86_64.rpm
+        $SUDO rpm -ivh ./kalavai-${KALAVAI_VERSION}-1.x86_64.rpm
+        $SUDO rm kalavai-${KALAVAI_VERSION}-1.x86_64.rpm
     fi
 }
 success() {
