@@ -1,65 +1,198 @@
-# kalavai-client
+![alt text](docs/docs/assets/icons/logo_no_background.png)
 
-Public repository for the kalavai-client installer.
+# Turn everyday devices into your own AI cluster
 
-## Requirements
+> Kalavai is a self-hosted platform that turns **everyday devices** into your very own AI cluster. Do you have an old desktop or a gaming laptop gathering dust? Aggregate resources from multiple machines and **say goodbye to CUDA out of memory errors**. Deploy your favourite open source LLM, fine tune it with your own data, or simply run your distributed work, zero-devops. **Simple. Private. Yours.**
 
-The kalavai client app currently supports the following architectures:
-- amd64
-- x86_64
+This repository contains:
+- Releases of our [free CLI](#install): turn your devices into AI-capable servers.
+- [Community integrations](templates/README.md): template jobs built by Kalavai and the community that makes deploying distributed workflows easy for users.
+- Full [documentation](https://kalavai-net.github.io/kalavai-client/) (WIP) for the project.
 
-The following OS are supported:
-- Linux (Debian, RedHat, Ubuntu, Fedora... basically anything that can run deb and rpm packages).
-
-If your system is not currently supported, open an issue and request it. We are expanding this list constantly.
-
-
-## Documentation
-
-See our full documentation in https://kalavai-net.github.io/kalavai-client/
+[Join our mailing list](http://eepurl.com/iC89hk) for release updates and priority access to new features!
 
 
 ## Install
 
-To install the kalavai client app that allows you to share your device and earn, use the following installer:
+### Requirements
+
+- A laptop, desktop or Virtual Machine
+- Fast internet connection (50+ Mbps recommended, but can run on slower connections).
+- Admin / privileged access (eg. `sudo` access in linux)
+- Runining a compatible Operative system (see [compatibility matrix](#compatibility-matrix))
+
+
+### One-line installer
+
+To install the kalavai CLI, run the following command:
 
 ```bash
 curl -sfL https://raw.githubusercontent.com/kalavai-net/kalavai-client/main/installer/install_client.sh | bash -
 ```
 
-## Use kalavai-client
+#### `kalavai` CLI
 
-Once it's installed, run the CLI app with:
+Manage your AI cluster or deploy and monitor jobs with the `kalavai` CLI:
 
 ```bash
-kalavai --help
+$ kalavai --help
 
-usage: kalavai [-h] command ...
+usage: cli.py [-h] command ...
 
 positional arguments:
   command
-    login     Login with your Kalavai user email and password. Get an account from https://platform.kalavai.net
-    logout    Logout from your kalavai user account.
-    start     Join Kalavai cluster and start/resume sharing resources.
-    status    Check the current status of your device.
-    stop      Stop sharing your device and clean up. DO THIS ONLY IF YOU WANT TO REMOVE KALAVAI-CLIENT from your device.
-    pause     Pause sharing your device and make your device unavailable for kalavai scheduling.
+    start        Start Kalavai cluster and start/resume sharing resources.
+    token        Generate a join token for others to connect to your cluster
+    join         Join Kalavai cluster and start/resume sharing resources.
+    stop         Stop sharing your device and clean up. DO THIS ONLY IF YOU WANT TO REMOVE KALAVAI-CLIENT from your
+                 device.
+    pause        Pause sharing your device and make your device unavailable for kalavai scheduling.
+    resume       Resume sharing your device and make device available for kalavai scheduling.
+    resources    Display information about resources on the cluster
+    nodes        Display information about nodes connected
+    diagnostics  Run diagnostics on a local installation of kalavai, and stores in log file
+    job
 
 options:
   -h, --help  show this help message and exit
 ```
 
-To start sharing your device, make sure to create an account at http://platform.kalavai.net and then log in with the client:
+To get started, check our [quick start](#quick-start) guide.
 
-```bash
-kalavai login --useremail your@email.address --password your-password
-```
 
-Once authenticated, you are ready to share with:
+## How it works?
+
+To create an AI cluster, you need a **seed node** which acts as a control plane. It handles bookkeeping for the cluster. With a seed node, you can generate join tokens, which you can share with other machines --**worker nodes**.
+
+The more worker nodes you have in a cluster, the bigger workloads it can run. _Note that the only requirement for a fully functioning cluster is a single seed node._
+
+Once you have a cluster running, you can easily deploy workloads using [template jobs](templates/README.md). These are community integrations that let users deploy jobs, such as LLM deployments or LLM fine tuning. A template makes using Kalavai really easy for end users, with a parameterised interface, and it also makes the **platform infinitely expandable**.
+
+## Quick start
+
+Kalavai is **free to use, no caps, for both commercial and non-commercial purposes**. All you need to get started is one or more computers that can see each other (i.e. within the same network), and you are good to go. If you wish to join computers in different locations / networks, check our [managed kalavai](#managed-kalavai) offering.
+
+### Create a seed node
+
+#### Self-hosted Kalavai
+
+Simply use the CLI to start your seed node:
+
 ```bash
 kalavai start
 ```
 
-This will start the sharing loop. Head over to your [online account](http://platform.kalavai.net) to see the status.
+Note that it will take a few minutes to setup and download all dependencies. Check the status of your cluster with:
+
+```bash
+kalavai diagnostics
+```
 
 
+#### Managed Kalavai
+
+> Interested in a fully managed, hosted Kalavai server? [Register your interest](http://eepurl.com/iC89hk) and get on top of the list. _Note: the first 100 to register will get a massive discount!_
+
+_Wait, isn't Kalavai free and runs on my computer? Why would I need a hosted solution?_ Kalavai offers a <ins>fully managed, hosted seed node(s)</ins>, so you can overcome some of the limitations of running it yourself. Use managed Kalavai if:
+- Your devices are not in the same local network
+- You want to access your cluster remotely
+- You want a high availability cluster --no downtime!
+
+
+### Add a worker node
+
+In the seed node, generate a join token:
+```bash
+kalavai token
+```
+
+Copy the displayed token. On the worker node, run:
+
+```bash
+kalavai join <token>
+```
+
+After some time, you should be able to see the new node:
+
+```bash
+kalavai nodes
+```
+
+You can also see the total resources available:
+
+```bash
+kalavai resources
+```
+
+### Enough already, let's run stuff!
+
+In short, run a template job:
+
+```bash
+kalavai run <template name> --values-path <values file>
+```
+
+Each job requires two values:
+- Name of the template --get a list of available integrations with `kalavai templates`
+- Parameter values for the template.
+
+Here we will use the example of deploying a LLM (vllm template). To generate default values file:
+```bash
+kalavai job defaults vllm > values.yaml
+```
+
+This will create a `values.yaml` file that contains the default values for a vllm job, such as the model id, the number of workers, etc.
+
+Then you can use the newly created values to run the job:
+```bash
+kalavai job run vllm --values-path values.yaml
+```
+
+In this case, the job also deploys a service that can be accessible via an endpoint. Find out the url with:
+
+```bash
+kalavai job list 
+```
+
+Job monitoring and lifecycle:
+```bash
+# provide the logs of a specific job
+kalavai job logs <name of the job> 
+# delete a job
+kalavai job delete <name of the job>
+```
+
+To find out more about templates, check out our [documentation](templates/README.md).
+
+
+## Compatibility matrix
+
+If your system is not currently supported, [open an issue](https://github.com/kalavai-net/kalavai-client/issues) and request it. We are expanding this list constantly.
+
+### OS compatibility
+
+Currently compatible and tested OS:
+- Debian-based linux (such as Ubuntu)
+
+Currently compatible (untested. [Interested in testing them?](mailto:info@kalavai.net)):
+- Fedora
+- RedHat
+- Any distro capable of installing `.deb` and `.rpm` packages.
+
+Coming soon:
+- Windows 10+ with WSL
+
+Currently not compatible:
+- MacOS
+
+### Hardware compatibility:
+- `amd64` or `x86_64` CPU architecture
+- (optional) NVIDIA GPU
+- AMD and Intel GPUs are currently not supported (yet!)
+
+## Contribute
+
+- Report [bugs, issues and new features](https://github.com/kalavai-net/kalavai-client/issues).
+- Help improve our [compatibility matrix](#compatibility-matrix) by testing on different operative systems.
+- Develop and contribute new [templates](templates/README.md)
+- [Join our mailing list](http://eepurl.com/iC89hk) for release updates and priority access to new features!
