@@ -160,7 +160,7 @@ $ kalavai job list
 └───────────────────┴───────────────────────────────────┴────────────────────────┘
 ```
 
-Kalavai creates an endpoint for each deployed job, which is displayed above. In the case of vLLM jobs, this is a model endpoint that can be interacted as you would any [LLM server](https://docs.vllm.ai/en/latest/getting_started/quickstart.html#using-openai-completions-api-with-vllm). For example:
+Kalavai creates an endpoint for each deployed job, which is displayed above. In the case of vLLM jobs, this is a model endpoint that can be interacted as you would any [LLM server](https://docs.vllm.ai/en/latest/getting_started/quickstart.html#using-openai-completions-api-with-vllm). See the [vLLM template documentation](templates/vllm/README.md) for info on how to interact with the model, but as a quick go:
 ```bash
 curl http://100.8.0.2:31992/v1/completions \
     -H "Content-Type: application/json" \
@@ -170,22 +170,6 @@ curl http://100.8.0.2:31992/v1/completions \
         "max_tokens": 7,
         "temperature": 0
     }'
-```
-
-Also from python:
-```python
-from openai import OpenAI
-
-# Modify OpenAI's API key and API base to use vLLM's API server.
-openai_api_key = "EMPTY"
-openai_api_base = "http://100.8.0.2:31992/v1"
-client = OpenAI(
-    api_key=openai_api_key,
-    base_url=openai_api_base,
-)
-completion = client.completions.create(model="facebook/opt-350m",
-                                      prompt="San Francisco is a")
-print("Completion result:", completion)
 ```
 
 For more information on what a template can do:
