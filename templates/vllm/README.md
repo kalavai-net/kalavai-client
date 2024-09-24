@@ -11,7 +11,7 @@ This template makes heavy use of the [vLLM library](https://docs.vllm.ai/en/late
 - `num_workers`: Number of workers per deployment (for tensor parallelism, i.e. how many pieces to divide the model into)
 - `model_id`: Huggingface model id to load from [Huggingface](https://huggingface.co/models)
 - `hf_token`: Huggingface token, required to load licensed model weights
-
+- `gpus`: GPUs per single worker (final one = gpus * num_workers)
 
 ## How to use
 
