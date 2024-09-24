@@ -3,6 +3,7 @@ kind: LeaderWorkerSet
 metadata:
   name: $deployment_name
   labels:
+    # must have this label
     kalavai.lws.name: $deployment_name
 spec:
   replicas: $replicas
@@ -12,7 +13,6 @@ spec:
     leaderTemplate:
       metadata:
         labels:
-          # must have these labels
           role: leader
           kalavai.lws.name: $deployment_name
       spec:

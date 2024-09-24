@@ -1,0 +1,6 @@
+template_values:
+# place all your template variables under here
+- name: deployment_name
+  value: kalavai-dummy-template
+  default: kalavai-dummy-template
+  description: "Name of the deployment job"
