@@ -72,7 +72,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#kalavai" class="md-skip">
+        <a href="#core-concepts" class="md-skip">
           Skip to content
         </a>
       
@@ -297,6 +297,17 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Concepts
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -306,6 +317,34 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      How it works?
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -360,6 +399,23 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      How it works?
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -390,8 +446,13 @@
 
 
 
-<h1 id="kalavai">Kalavai</h1>
+<h1 id="core-concepts">Core concepts</h1>
+<p><strong>Under construction</strong>. Come back soon!</p>
 <p>A platform to turn everyday devices into a powerful AI cloud</p>
+<h2 id="how-it-works">How it works?</h2>
+<p>To create an AI cluster, you need a <strong>seed node</strong> which acts as a control plane. It handles bookkeeping for the cluster. With a seed node, you can generate join tokens, which you can share with other machines --<strong>worker nodes</strong>.</p>
+<p>The more worker nodes you have in a cluster, the bigger workloads it can run. <em>Note that the only requirement for a fully functioning cluster is a single seed node.</em></p>
+<p>Once you have a cluster running, you can easily deploy workloads using <a href="https://github.com/kalavai-net/kalavai-client/blob/main/templates/README.md">template jobs</a>. These are community integrations that let users deploy jobs, such as LLM deployments or LLM fine tuning. A template makes using Kalavai really easy for end users, with a parameterised interface, and it also makes the <strong>platform infinitely expandable</strong>.</p>
 
 
 
