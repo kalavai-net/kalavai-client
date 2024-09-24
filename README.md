@@ -234,10 +234,10 @@ Currently not compatible:
 
 - [x] Kalavai client on Linux
 - [x] [TEMPLATE] Distributed LLM deployment
-- [] [TEMPLATE] Distributed LLM fine tuning
-- [] Automagic scale resources from public cloud
-- [] Kalavai client on Windows
-- [] Ray cluster support
+- [ ] [TEMPLATE] Distributed LLM fine tuning
+- [ ] Automagic scale resources from public cloud
+- [ ] Kalavai client on Windows
+- [ ] Ray cluster support
 
 Anything missing here? Give us a shout in the [discussion board](https://github.com/kalavai-net/kalavai-client/discussions)
 
