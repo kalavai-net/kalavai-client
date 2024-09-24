@@ -151,15 +151,70 @@ kalavai job run vllm --values-path values.yaml
 In this case, the job also deploys a service that can be accessible via an endpoint. Find out the url with:
 
 ```bash
-kalavai job list 
+$ kalavai job list 
+
+┏━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Deployment        ┃ Status                            ┃ Endpoint               ┃
+┡━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ vllm-deployment-1 │ Available: All replicas are ready │ http://100.8.0.2:31992 │
+└───────────────────┴───────────────────────────────────┴────────────────────────┘
 ```
 
-Job monitoring and lifecycle:
+Kalavai creates an endpoint for each deployed job, which is displayed above. In the case of vLLM jobs, this is a model endpoint that can be interacted as you would any [LLM server](https://docs.vllm.ai/en/latest/getting_started/quickstart.html#using-openai-completions-api-with-vllm). For example:
+```bash
+curl http://100.8.0.2:31992/v1/completions \
+    -H "Content-Type: application/json" \
+    -d '{
+        "model": "facebook/opt-350m",
+        "prompt": "San Francisco is a",
+        "max_tokens": 7,
+        "temperature": 0
+    }'
+```
+
+Also from python:
+```python
+from openai import OpenAI
+
+# Modify OpenAI's API key and API base to use vLLM's API server.
+openai_api_key = "EMPTY"
+openai_api_base = "http://100.8.0.2:31992/v1"
+client = OpenAI(
+    api_key=openai_api_key,
+    base_url=openai_api_base,
+)
+completion = client.completions.create(model="facebook/opt-350m",
+                                      prompt="San Francisco is a")
+print("Completion result:", completion)
+```
+
+For more information on what a template can do:
+```bash
+kalavai job describe vllm
+```
+
+Job monitoring and lifecycle using the name of the deployment above:
 ```bash
 # provide the logs of a specific job
-kalavai job logs <name of the job> 
+$ kalavai job logs vllm-deployment-1
+
+Loading pt checkpoint shards: 100% Completed | 1/1 [00:00<00:00,  2.77it/s]                           
+           Loading pt checkpoint shards: 100% Completed | 1/1 [00:00<00:00,  2.77it/s]                           
+
+           INFO 09-24 01:01:10 model_runner.py:1008] Loading model weights took 0.6178 GB
+           ...
+           INFO:     Started server process [548]                                                            
+           INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)                               
+           INFO 09-24 01:01:21 metrics.py:351] Avg prompt throughput: 0.0 tokens/s, Avg generation               
+           throughput: 0.0 tokens/s, Running: 0 reqs, Swapped: 0 reqs, Pending: 0 reqs, GPU KV cache             
+           usage: 0.0%, CPU KV cache usage: 0.0%.
+```
+
+Once you no longer need the job, you can delete it:
+
+```bash
 # delete a job
-kalavai job delete <name of the job>
+kalavai job delete vllm-deployment-1
 ```
 
 To find out more about templates, check out our [documentation](templates/README.md).
