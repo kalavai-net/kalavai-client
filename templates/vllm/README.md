@@ -6,7 +6,21 @@ Deploy LLM models across multiple worker nodes using the vLLM library.
 
 This template makes heavy use of the [vLLM library](https://docs.vllm.ai/en/latest/index.html).
 
+## Key template variables
+
+- `num_workers`: Number of workers per deployment (for tensor parallelism, i.e. how many pieces to divide the model into)
+- `model_id`: Huggingface model id to load from [Huggingface](https://huggingface.co/models)
+- `hf_token`: Huggingface token, required to load licensed model weights
+
+
 ## How to use
+
+Get default values, edit them and deploy:
+```bash
+kalavai job defaults vllm > values.yaml
+# edit values.yaml as required
+kalavai job run vllm --values-path values.yaml
+```
 
 Find out the url endpoint of the model with:
 

@@ -6,6 +6,10 @@ This is an example implementation of a Kalavai template. Use it to bootstrap the
 
 None
 
+## Key template variables
+
+- `deployment_name`: Name of the deployment job
+
 ## How to use
 
 ```bash
