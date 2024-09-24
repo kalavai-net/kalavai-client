@@ -230,6 +230,18 @@ Currently not compatible:
 - (optional) NVIDIA GPU
 - AMD and Intel GPUs are currently not supported (yet!)
 
+## Roadmap
+
+- [x] Kalavai client on Linux
+- [x] [TEMPLATE] Distributed LLM deployment
+- [] [TEMPLATE] Distributed LLM fine tuning
+- [] Automagic scale resources from public cloud
+- [] Kalavai client on Windows
+- [] Ray cluster support
+
+Anything missing here? Give us a shout in the [discussion board](https://github.com/kalavai-net/kalavai-client/discussions)
+
+
 ## Contribute
 
 - [Join the community](https://github.com/kalavai-net/kalavai-client/) and share ideas!
