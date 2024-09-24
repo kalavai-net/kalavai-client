@@ -41,9 +41,10 @@ cp -r templates/dummy templates/new_template
 
 5. Templatise your job with variables. Whenever you want a placeholder value, insert `$name_of_the_variable` in your `template.yaml`, and list your new variable under `values.yaml`.
 
-6. Test your template with the `kalavai` cli when ready!
+6. Test your template with the `kalavai` cli when ready! For that, make sure kalavai points to your dev `templates/` folder first with `$LOCAL_TEMPLATES_DIR`
 ```bash
-kalavai job run --template templates/new_template/templates.yaml --values-path templates/new_template/values.yaml
+
+LOCAL_TEMPLATES_DIR=./templates/ kalavai job run new_template--values-path templates/new_template/values.yaml
 ```
 
 7. (Optional) If you want to contribute your template to the community so others can use it, push a PR to the kalavai-client repository containing your `templates/new_template` folder

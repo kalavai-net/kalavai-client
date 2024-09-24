@@ -9,7 +9,7 @@ None
 ## How to use
 
 ```bash
-kalavai job defaults dummy --value-path values.yaml
+kalavai job defaults dummy > values.yaml
 kalavai job run dummy --value-path values.yam
 ```
 
