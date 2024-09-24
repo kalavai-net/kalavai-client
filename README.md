@@ -8,6 +8,7 @@ This repository contains:
 - Releases of our [free CLI](#install): turn your devices into AI-capable servers.
 - [Community integrations](templates/README.md): template jobs built by Kalavai and the community that makes deploying distributed workflows easy for users.
 - Full [documentation](https://kalavai-net.github.io/kalavai-client/) (WIP) for the project.
+- Our [community discussions](https://github.com/kalavai-net/kalavai-client/discussions) hub.
 
 [Join our mailing list](http://eepurl.com/iC89hk) for release updates and priority access to new features!
 
@@ -231,7 +232,7 @@ Currently not compatible:
 
 ## Contribute
 
-- [Join in](https://github.com/kalavai-net/kalavai-client/discussions/1) and share ideas!
+- [Join the community](https://github.com/kalavai-net/kalavai-client/) and share ideas!
 - Report [bugs, issues and new features](https://github.com/kalavai-net/kalavai-client/issues).
 - Help improve our [compatibility matrix](#compatibility-matrix) by testing on different operative systems.
 - Develop and contribute new [templates](templates/README.md)
