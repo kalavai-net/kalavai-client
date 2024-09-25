@@ -12,7 +12,7 @@ template_values:
   default: "1"
   description: "Workers per deployment (for tensor parallelism)"
 - name: model_id
-  value: null
+  value: facebook/opt-350m
   default: null
   description: "Huggingface model id to load"
 - name: hf_token
@@ -32,6 +32,6 @@ template_values:
   default: "4Gi"
   description: "RAM memory per single worker (final one = memory * num_workers)"
 - name: extra
-  value: ""
-  default: --dtype float16
+  value: "--dtype float16"
+  default: ""
   description: "Extra parameters to pass to the vLLM server. See https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html#command-line-arguments-for-the-server"

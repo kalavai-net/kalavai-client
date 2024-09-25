@@ -30,10 +30,7 @@ spec:
                   --tensor-parallel-size $num_workers \
                   --host 0.0.0.0 --port 8080 \
                   --model $model_id \
-                  --dtype $dtype \
-                  --gpu-memory-utilization 0.9 \
-                  --enforce-eager \
-                  --swap-space 1"
+                  $extra"
           resources:
             requests:
               cpu: "$cpus"
