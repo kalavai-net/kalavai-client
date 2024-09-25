@@ -146,7 +146,7 @@ install_kalavai_app() {
 success() {
     info "----------------------------------------------------"
     info "*** Kalavai app has been successfully installed! ***"
-    info "*** Start sharing and earning with 'kalavai start' ***"
+    info "*** Start sharing with 'kalavai start' ***"
     info "----------------------------------------------------"
 }
 
