@@ -3,7 +3,7 @@ set -e
 # get version (if set)
 if [[ -z "${KALAVAI_VERSION}" ]]; then
     # set to latest
-    KALAVAI_VERSION="v0.1.8"
+    KALAVAI_VERSION="v0.1.9"
 else
     KALAVAI_VERSION="${KALAVAI_VERSION}"
 fi
