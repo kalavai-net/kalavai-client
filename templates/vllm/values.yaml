@@ -33,5 +33,5 @@ template_values:
   description: "RAM memory per single worker (final one = memory * num_workers)"
 - name: extra
   value: ""
-  default: --dtype float16
+  default: --dtype float16 --enforce-eager
   description: "Extra parameters to pass to the vLLM server. See https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html#command-line-arguments-for-the-server"

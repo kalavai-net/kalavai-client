@@ -32,6 +32,6 @@ template_values:
   default: "4Gi"
   description: "RAM memory per single worker (final one = memory * num_workers)"
 - name: extra
-  value: "--dtype float16"
+  value: "--dtype float16 --enforce-eager --swap-space 1 --gpu-memory-utilization 0.9"
   default: ""
   description: "Extra parameters to pass to the vLLM server. See https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html#command-line-arguments-for-the-server"
