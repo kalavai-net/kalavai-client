@@ -61,3 +61,8 @@ completion = client.completions.create(model="facebook/opt-350m",
                                       prompt="San Francisco is a")
 print("Completion result:", completion)
 ```
+
+## Examples
+
+Check out [example](examples/) `values.yaml` ready for deployment
+- [facebook/OPT-350m](examples/opt-350m.yaml)
