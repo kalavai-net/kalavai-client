@@ -12,6 +12,12 @@ This repository contains:
 
 [Join our mailing list](http://eepurl.com/iC89hk) for release updates and priority access to new features!
 
+## What can Kalavai do?
+
+Kalavai is a platform for distributed computing, and thus it supports a wide range of tasks. Here is a growing list of examples:
+- [Multi node GPU LLM deployment](examples/multinode_gpu_vllm.md)
+
+
 
 ## Install
 
@@ -69,7 +75,7 @@ The more worker nodes you have in a cluster, the bigger workloads it can run. _N
 
 Once you have a cluster running, you can easily deploy workloads using [template jobs](templates/README.md). These are community integrations that let users deploy jobs, such as LLM deployments or LLM fine tuning. A template makes using Kalavai really easy for end users, with a parameterised interface, and it also makes the **platform infinitely expandable**.
 
-## Quick start
+## Cluster quick start
 
 Kalavai is **free to use, no caps, for both commercial and non-commercial purposes**. All you need to get started is one or more computers that can see each other (i.e. within the same network), and you are good to go. If you wish to join computers in different locations / networks, check our [managed kalavai](#managed-kalavai) offering.
 
