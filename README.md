@@ -26,7 +26,7 @@ Kalavai is a platform for distributed computing, and thus it supports a wide ran
 - A laptop, desktop or Virtual Machine
 - Fast internet connection (50+ Mbps recommended, but can run on slower connections).
 - Admin / privileged access (eg. `sudo` access in linux)
-- Runining a compatible Operative system (see [compatibility matrix](#compatibility-matrix))
+- Running a compatible Operative system (see [compatibility matrix](#compatibility-matrix))
 
 
 ### One-line installer
