@@ -24,7 +24,6 @@ Kalavai is a platform for distributed computing, and thus it supports a wide ran
 ### Requirements
 
 - A laptop, desktop or Virtual Machine
-- Fast internet connection (50+ Mbps recommended, but can run on slower connections).
 - Admin / privileged access (eg. `sudo` access in linux)
 - Running a compatible Operative system (see [compatibility matrix](#compatibility-matrix))
 
@@ -119,7 +118,7 @@ Copy the displayed token. On the worker node, run:
 kalavai join <token>
 ```
 
-After some time, you should be able to see the new node:
+Note that **worker nodes must be able to see the seed node**; this could be achieved using a public IP on the seed node or by having both computers on the same local network. After some time, you should be able to see the new node:
 
 ```bash
 kalavai nodes
