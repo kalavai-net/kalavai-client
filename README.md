@@ -120,7 +120,7 @@ kalavai join <token>
 Note that **worker nodes must be able to see the seed node**; this could be achieved using a public IP on the seed node or by having both computers on the same local network. After some time, you should be able to see the new node:
 
 ```bash
-kalavai nodes
+kalavai nodes list
 ```
 
 You can also see the total resources available:
