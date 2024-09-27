@@ -10,7 +10,7 @@
 
 # Turn everyday devices into your own AI cluster
 
-> Kalavai is a self-hosted platform that turns **everyday devices** into your very own AI cluster. Do you have an old desktop or a gaming laptop gathering dust? Aggregate resources from multiple machines and **say goodbye to CUDA out of memory errors**. Deploy your favourite open source LLM, fine tune it with your own data, or simply run your distributed work, zero-devops. **Simple. Private. Yours.**
+> Kalavai is a **self-hosted** platform that turns **everyday devices** into your very own AI cluster. Home desktops, gaming laptops, work computers, cloud VMs...Aggregate resources from multiple machines and **say goodbye to CUDA out of memory errors**. Deploy your favourite open source LLM, fine tune it with your own data, or simply run your distributed work, zero-devops. **Simple. Private. Yours.**
 
 This repository contains:
 - Releases of our [free CLI](#install): turn your devices into AI-capable servers.
@@ -174,6 +174,7 @@ Currently not compatible:
 - [ ] [TEMPLATE] Distributed LLM fine tuning
 - [ ] Automagic scale resources from public cloud
 - [ ] Kalavai client on Windows
+- [ ] Kalavai client on Mac
 - [ ] Ray cluster support
 
 Anything missing here? Give us a shout in the [discussion board](https://github.com/kalavai-net/kalavai-client/discussions)
