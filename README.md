@@ -1,7 +1,12 @@
 ![alt text](docs/docs/assets/icons/logo_no_background.png)
 
-![GitHub Tag](https://img.shields.io/github/v/tag/kalavai-net/kalavai-client) ![GitHub download count](https://img.shields.io/github/downloads/kalavai-net/kalavai-client/total
-) [![Visitors](https://api.visitorbadge.io/api/visitors?path=kalavai-net%2Fkalavai-client&countColor=%23263759&style=flat)](https://visitorbadge.io/status?path=kalavai-net%2Fkalavai-client)
+<div align="center">
+
+![GitHub Release](https://img.shields.io/github/v/release/kalavai-net/kalavai-client) ![GitHub download count](https://img.shields.io/github/downloads/kalavai-net/kalavai-client/total
+) ![GitHub contributors](https://img.shields.io/github/contributors/kalavai-net/kalavai-client)
+ ![Visitors](https://api.visitorbadge.io/api/visitors?path=kalavai-net%2Fkalavai-client&countColor=%23263759&style=flat) ![GitHub Repo stars](https://img.shields.io/github/stars/kalavai-net/kalavai-client)
+
+</div>
 
 # Turn everyday devices into your own AI cluster
 
