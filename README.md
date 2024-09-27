@@ -1,5 +1,8 @@
 ![alt text](docs/docs/assets/icons/logo_no_background.png)
 
+![GitHub Tag](https://img.shields.io/github/v/tag/kalavai-net/kalavai-client) ![GitHub download count](https://img.shields.io/github/downloads/kalavai-net/kalavai-client/total
+) [![Visitors](https://api.visitorbadge.io/api/visitors?path=kalavai-net%2Fkalavai-client&countColor=%23263759&style=flat)](https://visitorbadge.io/status?path=kalavai-net%2Fkalavai-client)
+
 # Turn everyday devices into your own AI cluster
 
 > Kalavai is a self-hosted platform that turns **everyday devices** into your very own AI cluster. Do you have an old desktop or a gaming laptop gathering dust? Aggregate resources from multiple machines and **say goodbye to CUDA out of memory errors**. Deploy your favourite open source LLM, fine tune it with your own data, or simply run your distributed work, zero-devops. **Simple. Private. Yours.**
