@@ -1,46 +1,43 @@
-# Multi node GPU LLM deployment with Kalavai
+# Single node GPU LLM deployment with Kalavai
 
 ## Example card
 
 **Template**: [vLLM](../templates/vllm/README.md)
 
-**Goal**: deploy a single Large Language Model across multiple machines and expose it via an OpenAI compatible API.
+**Goal**: deploy a Large Language Model in your local machine and expose it via an OpenAI compatible API.
 
 
 ## Pre-requisites
 
 - Install [kalavai cli](../README.md#install)
 - Setup a [kalavai cluster](../README.md#cluster-quick-start) with 2 machines.
-- Each machine should have at least 1 NVIDIA GPU.
-- You have a HuggingFace account and a HF token
-- You have been granted access to google's [gemma-2-2b](https://huggingface.co/google/gemma-2-2b) model.
+- Your machine should have:
+    * 1 NVIDIA GPU with at least 6GB vRAM
+    * 6 GB of RAM (configurable below)
+    * 4 CPUs (configurable below)
 
 ## Getting started
 
-We wish to deploy [gemma-2-2b](google/gemma-2-2b) across two GPUs, located in two different nodes.
+We wish to deploy [Phi 1_5](https://huggingface.co/microsoft/phi-1_5) on a single GPU.
 
-1. (optional) On any node, fetch the default configuration for vLLM templates:
-```bash
-kalavai job defaults vllm > values.yaml
-```
 
-2. Edit the values.yaml file with the following:
+1. Create `values.yaml` file and paste the following:
 ```yaml
 template_values:
 - name: deployment_name
-  value: vllm-gemma-1
-  default: vllm-gemma-1
+  value: vllm-phi-1
+  default: vllm-phi-1
   description: "Name of the deployment job"
 - name: replicas
   value: "1"
   default: "1"
   description: "How many replicas to deploy for the model"
 - name: num_workers
-  value: "2"
-  default: "2"
+  value: "1"
+  default: "1"
   description: "Workers per deployment (for tensor parallelism)"
 - name: model_id
-  value: google/gemma-2-2b
+  value: microsoft/phi-1_5
   default: null
   description: "Huggingface model id to load"
 - name: hf_token
@@ -56,8 +53,8 @@ template_values:
   default: "1"
   description: "GPUs per single worker (final one = gpus * num_workers)"
 - name: memory
-  value: "4Gi"
-  default: "4Gi"
+  value: "6Gi"
+  default: "6Gi"
   description: "RAM memory per single worker (final one = memory * num_workers)"
 - name: extra
   value: "--dtype float16 --enforce-eager --swap-space 0"
@@ -65,56 +62,49 @@ template_values:
   description: "Extra parameters to pass to the vLLM server. See https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html#command-line-arguments-for-the-server"
 ```
 
-3. Make sure you add your own HuggingFace token, e.g.:
-
-```yaml
-- name: hf_token
-  value: <yout token>
-```
-
-4. Deploy your vLLM template:
+3. Deploy your vLLM template:
 ```bash
 kalavai jobs run vllm --values-path values.yaml
 ```
 
-5. Wait until it is ready; it may take a few minutes depending on your internet connection. Monitor the deployment until status is `Available`:
+4. Wait until it is ready; it may take a few minutes depending on your internet connection. Monitor the deployment until status is `Available`:
 ```bash
 $ kalavai jobs list
 
 ┏━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃ Deployment        ┃ Status                            ┃ Endpoint               ┃
 ┡━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━┩
-│ vllm-gemma-1      │ Available: All replicas are ready │ http://100.8.0.2:31992 │
+│ vllm-phi-1_5      │ Available: All replicas are ready │ http://100.8.0.2:31947 │
 └───────────────────┴───────────────────────────────────┴────────────────────────┘
 ```
 
-6. Now you are ready to do inference with the model! Substitute the URL below with the endpoint indicated above:
+5. Now you are ready to do inference with the model! Substitute the URL below with the endpoint indicated above:
 
 ```bash
-curl http://100.8.0.2:31992/v1/completions \
+curl http://100.8.0.2:31947/v1/completions \
     -H "Content-Type: application/json" \
     -d '{
-        "model": "google/gemma-2-2b",
+        "model": "microsoft/phi-1_5",
         "prompt": "I would walk 500",
         "max_tokens": 50,
         "temperature": 0
     }'
 ```
 
-7. Alternatively, you can do inference in Python:
+6. Alternatively, you can do inference in Python:
 
 ```python
 from openai import OpenAI
 
 # Modify OpenAI's API key and API base to use vLLM's API server.
 openai_api_key = "EMPTY"
-openai_api_base = "http://100.8.0.2:31992/v1"
+openai_api_base = "http://100.8.0.2:31947/v1"
 client = OpenAI(
     api_key=openai_api_key,
     base_url=openai_api_base,
 )
 completion = client.completions.create(
-    model="google/gemma-2-2b",
+    model="microsoft/phi-1_5",
     prompt="I would walk 500")
 print("Completion result:", completion)
 ```
@@ -123,12 +113,13 @@ print("Completion result:", completion)
 
 If you want to inspect what's going on with the openAI server, you can access the full logs of the job (on each node) with:
 ```bash
-kalavai jobs logs vllm-gemma-1
+kalavai jobs logs vllm-phi-1
 ```
+
 
 ## Delete deployment
 
 Once you are done with your model, you can delete the deployment with
 ```bash
-kalavai jobs delete vllm-gemma-1
+kalavai jobs delete vllm-phi-1
 ```

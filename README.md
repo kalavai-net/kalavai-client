@@ -23,6 +23,7 @@ This repository contains:
 ## What can Kalavai do?
 
 Kalavai is a platform for distributed computing, and thus it supports a wide range of tasks. Here is a growing list of examples:
+- [Single node GPU LLM deployment](examples/singlenode_gpu_vllm.md)
 - [Multi node GPU LLM deployment](examples/multinode_gpu_vllm.md)
 
 
