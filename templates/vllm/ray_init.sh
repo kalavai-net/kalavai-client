@@ -4,7 +4,7 @@ subcommand=$1
 shift
 
 ray_port=6379
-ray_init_timeout=300
+ray_init_timeout=3000
 
 case "$subcommand" in
   worker)

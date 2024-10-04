@@ -19,7 +19,7 @@ spec:
         runtimeClassName: nvidia
         containers:
         - name: vllm-leader
-          image: bundenth/ray-vllm:v1_1
+          image: bundenth/ray-vllm:v1.0.2
           env:
           - name: HUGGING_FACE_HUB_TOKEN
             value: $hf_token
@@ -28,18 +28,19 @@ spec:
             - -c
             - "/vllm-workspace/ray_init.sh leader --ray_cluster_size=$num_workers; 
                  python3 -m vllm.entrypoints.openai.api_server \
-                  --tensor-parallel-size $num_workers \
                   --host 0.0.0.0 --port 8080 \
+                  --tensor-parallel-size $tensor_parallel_size \
+                  --pipeline-parallel-size $pipeline_parallel_size \
                   --model $model_id \
                   $extra"
           resources:
             requests:
               cpu: "$cpus"
-              memory: "$memory"
+              memory: $memory
               nvidia.com/gpu: "$gpus"
             limits:
               cpu: "$cpus"
-              memory: "$memory"
+              memory: $memory
               nvidia.com/gpu: "$gpus"
           ports:
           # if use 8080 as exposed port (if required)
@@ -49,12 +50,20 @@ spec:
               port: 8080
             initialDelaySeconds: 90
             periodSeconds: 30
+          volumeMounts:
+            - mountPath: /dev/shm
+              name: dshm
+        volumes:
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: $shmem_size
     workerTemplate:
       spec:
         runtimeClassName: nvidia
         containers:
         - name: vllm-worker
-          image: bundenth/ray-vllm:v1_1
+          image: bundenth/ray-vllm:v1.0.2
           env:
             - name: HUGGING_FACE_HUB_TOKEN
               value: $hf_token
@@ -65,9 +74,17 @@ spec:
           resources:
             requests:
               cpu: "$cpus"
-              memory: "$memory"
+              memory: $memory
               nvidia.com/gpu: "$gpus"
             limits:
               cpu: "$cpus"
-              memory: "$memory"
+              memory: $memory
               nvidia.com/gpu: "$gpus"
+          volumeMounts:
+            - mountPath: /dev/shm
+              name: dshm   
+        volumes:
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: $shmem_size
