@@ -56,6 +56,18 @@ template_values:
   value: "6Gi"
   default: "6Gi"
   description: "RAM memory per single worker (final one = memory * num_workers)"
+- name: tensor_parallel_size
+  value: "1"
+  default: "1"
+  description: "Tensor parallelism (use the number of GPUs per node)"
+- name: pipeline_parallel_size
+  value: "1"
+  default: "1"
+  description: "Pipeline parallelism (use the number of nodes)"
+- name: shmem_size
+  value: "4Gi"
+  default: "4Gi"
+  description: "Size of the shared memory volume"
 - name: extra
   value: "--dtype float16 --enforce-eager --swap-space 0"
   default: ""
