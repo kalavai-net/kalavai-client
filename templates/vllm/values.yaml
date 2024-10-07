@@ -55,6 +55,6 @@ template_values:
   description: "Size of the shared memory volume"
 
 - name: extra
-  value: ""
-  default: --dtype float16 --enforce-eager
+  value: "--dtype float16 --enforce-eager --swap-space 0"
+  default: --dtype float16 --enforce-eager --swap-space 0
   description: "Extra parameters to pass to the vLLM server. See https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html#command-line-arguments-for-the-server"

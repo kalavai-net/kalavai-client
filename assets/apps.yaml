@@ -1,0 +1,41 @@
+---
+repositories:
+  - name: kuberay
+    url: https://ray-project.github.io/kuberay-helm/
+  - name: nvidia
+    url: https://helm.ngc.nvidia.com/nvidia
+  - name: kalavai
+    url: https://kalavai-net.github.io/helm-charts/
+
+releases:
+  - name: kuberay
+    namespace: kuberay
+    chart: kuberay/kuberay-operator
+    installed: false
+  - name: kuberay-apiserver
+    namespace: kuberay
+    chart: kuberay/kuberay-apiserver
+    installed: false
+  - name: lws
+    namespace: kalavai
+    chart: kalavai/lws
+    installed: true
+  - name: kalavai-watcher
+    namespace: kalavai
+    chart: kalavai/kalavai-watcher
+    installed: true
+    set:
+    - name: namespace
+      value: kalavai
+    - name: deployment.in_cluster
+      value: "True"
+    - name: deployment.use_auth_key
+      value: "True"
+    - name: deployment.auth_key
+      value: "$auth_key"
+    - name: service.nodePort
+      value: $watcher_port
+  - name: nvidia-gpu-operator
+    namespace: gpu-operator
+    chart: nvidia/gpu-operator
+    installed: true
