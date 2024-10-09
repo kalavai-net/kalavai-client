@@ -39,6 +39,7 @@ from kalavai_client.cluster import (
 LOCAL_TEMPLATES_DIR = os.getenv("LOCAL_TEMPLATES_DIR", None)
 VERSION = 1
 RESOURCE_EXCLUDE = ["ephemeral-storage", "hugepages-1Gi", "hugepages-2Mi", "pods"]
+CORE_NAMESPACES = ["lws-system", "kube-system", "gpu-operator", "kalavai"]
 TEMPLATE_LABEL = "kalavai.lws.name"
 KUBE_VERSION = os.getenv("KALAVAI_KUBE_VERSION", "v1.31.1+k3s1")
 FLANNEL_IFACE = os.getenv("KALAVAI_FLANNEL_IFACE", None)
@@ -183,8 +184,7 @@ def start(cluster_name, *others,  ip_address: str=None):
     console.log("Installing cluster seed")
     CLUSTER.start_seed_node(
         ip_address=ip_address,
-        cluster_config_file=USER_LOCAL_CONFIG_FILE,
-        kubeconfig_file=USER_KUBECONFIG_FILE)
+        cluster_config_file=USER_LOCAL_CONFIG_FILE)
 
     watcher_service = f"{ip_address}:{watcher_port}"
     store_server_info(
@@ -208,8 +208,7 @@ def start(cluster_name, *others,  ip_address: str=None):
     with open(USER_HELM_APPS_FILE, "w") as f:
         f.write(config)
     CLUSTER.install_dependencies(
-        dependencies_file=USER_HELM_APPS_FILE,
-        kubeconfig_file=USER_KUBECONFIG_FILE
+        dependencies_file=USER_HELM_APPS_FILE
     )
     
     console.log("[green]Your cluster is ready! Grow your cluster by sharing your joining token with others. Run [yellow]kalavai token[green] to generate one.")
@@ -430,6 +429,67 @@ def resources(*others):
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
 
 @arguably.command
+def status(*others):
+    """
+    Check the status of the kalavai cluster
+    """
+    try:
+        response = request_to_server(
+            method="POST",
+            endpoint="/v1/get_deployments",
+            data={"namespaces": CORE_NAMESPACES},
+            server_creds=USER_LOCAL_SERVER_FILE
+        )
+        global_status = True
+        for _, deployments in response.items():
+            for key, values in deployments.items():
+                state = values["available_replicas"] == values["ready_replicas"]
+                console.log(f"{key} status: {state}")
+                global_status &= state
+        console.log("---------------------------------")
+        console.log(f"--> Cluster status: {global_status}")
+    except Exception as e:
+        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
+
+
+@arguably.command
+def diagnostics(*others, log_file=None):
+    """
+    Run diagnostics on a local installation of kalavai, and stores in log file
+    * is k0s installed
+    * is agent running
+    * is kube-watcher running
+    * is lws running
+    """
+    logs = []
+
+    logs.append(f"App installed: {CLUSTER.is_cluster_init()}")
+
+    logs.append(f"Agent running: {CLUSTER.is_agent_running()}")
+
+    logs.append(f"Containerd running: {is_service_running(service='containerd.service')}")
+
+    logs.append("Getting deployment status...")
+
+    if CLUSTER.is_seed_node():
+        # seed node
+        data = CLUSTER.diagnostics()
+        logs.append(data)
+    else:
+        # worker node
+        logs.append("Could not access node info. This info is only available to seed nodes. Ignore if you are on a worker node.")
+
+    if log_file is not None:
+        with open(log_file, "w") as f:
+            for log in logs:
+                f.write(log)
+                f.write("\n")
+        console.log(f"[green]Logs written to {log_file}")
+    else:
+        for log in logs:
+            console.log(f"{log}\n")
+
+@arguably.command
 def nodes__list(*others):
     """
     Display information about nodes connected
@@ -500,44 +560,6 @@ def nodes__uncordon(node_name, *others):
     Uncordon a particular node to allow more work to be scheduled on it
     """
     set_schedulable(schedulable=True, node_name=node_name)
-
-
-@arguably.command
-def diagnostics(*others, log_file=None):
-    """
-    Run diagnostics on a local installation of kalavai, and stores in log file
-    * is k0s installed
-    * is agent running
-    * is kube-watcher running
-    * is lws running
-    """
-    logs = []
-
-    logs.append(f"App installed: {CLUSTER.is_cluster_init()}")
-
-    logs.append(f"Agent running: {CLUSTER.is_agent_running()}")
-
-    logs.append(f"Containerd running: {is_service_running(service='containerd.service')}")
-
-    logs.append("Getting deployment status...")
-
-    if CLUSTER.is_seed_node():
-        # seed node
-        data = CLUSTER.diagnostics()
-        logs.append(data)
-    else:
-        # worker node
-        logs.append("Could not access node info. This info is only available to seed nodes. Ignore if you are on a worker node.")
-
-    if log_file is not None:
-        with open(log_file, "w") as f:
-            for log in logs:
-                f.write(log)
-                f.write("\n")
-        console.log(f"[green]Logs written to {log_file}")
-    else:
-        for log in logs:
-            console.log(f"{log}\n")
 
 
 @arguably.command
