@@ -133,15 +133,15 @@ install_kalavai_app() {
 
     if [ "$package_manager" == "apt-get" ]; then
         # Debian installers (deb) - apt-get
-        wget https://github.com/kalavai-net/kalavai-client/releases/download/v${KALAVAI_VERSION}/kalavai_cli_amd64.deb -O kalavai_cli_amd64.deb
-        $SUDO dpkg -i ./kalavai_cli_amd64.deb
+        wget https://github.com/kalavai-net/kalavai-client/releases/download/v${KALAVAI_VERSION}/kalavai_1_amd64.deb -O kalavai_1_amd64.deb
+        $SUDO dpkg -i ./kalavai_1_amd64.deb
         $SUDO apt-get install -f
-        $SUDO rm kalavai_cli_amd64.deb
+        $SUDO rm kalavai_1_amd64.deb
     else
         # RedHat installers (rpm) - yum dnf apk
-        wget https://github.com/kalavai-net/kalavai-client/releases/download/v${KALAVAI_VERSION}/kalavai-cli-1.x86_64.rpm -O kalavai-cli-1.x86_64.rpm
-        $SUDO rpm -ivh ./kalavai-cli-1.x86_64.rpm
-        $SUDO rm kalavai-cli-1.x86_64.rpm
+        wget https://github.com/kalavai-net/kalavai-client/releases/download/v${KALAVAI_VERSION}/kalavai-1-1.x86_64.rpm -O kalavai-1-1.x86_64.rpm
+        $SUDO rpm -ivh ./kalavai-1-1.x86_64.rpm
+        $SUDO rm kalavai-1-1.x86_64.rpm
     fi
 }
 success() {
