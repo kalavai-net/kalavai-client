@@ -816,7 +816,7 @@ def jobs__list(*others):
 
 
 @arguably.command
-def jobs__logs(*others, name):
+def jobs__logs(*others, name, stream_interval=0):
     """
     Get logs for a specific job
     """
@@ -825,19 +825,32 @@ def jobs__logs(*others, name):
         "label": TEMPLATE_LABEL,
         "value": name
     }
-    try:
-        result = request_to_server(
-            method="post",
-            endpoint="/v1/get_logs_for_label",
-            data=data,
-            server_creds=USER_LOCAL_SERVER_FILE
-        )
-        for pod, logs in result.items():
-            console.log(f"[yellow]Pod {pod}")
-            console.log(f"[green]{logs}")
-    except Exception as e:
-        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
-        return
+    while True:
+        try:
+            result = request_to_server(
+                method="post",
+                endpoint="/v1/get_logs_for_label",
+                data=data,
+                server_creds=USER_LOCAL_SERVER_FILE
+            )
+            if stream_interval == 0:
+                for pod, logs in result.items():
+                    console.log(f"[yellow]Pod {pod}")
+                    console.log(f"[green]{logs}")
+                break
+            else:
+                os.system("clear")
+                for pod, logs in result.items():
+                    print(f"[yellow]Pod {pod}")
+                    print(f"[green]{logs}")
+                time.sleep(stream_interval)
+        except KeyboardInterrupt:
+            break
+        except Exception as e:
+            console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
+            return
+            
+
 
 if __name__ == "__main__":
     user_path("", create_path=True)
