@@ -3,7 +3,7 @@ set -e
 # get version (if set)
 if [[ -z "${KALAVAI_VERSION}" ]]; then
     # set to latest
-    KALAVAI_VERSION=curl -s https://api.github.com/repos/kalavai-net/kalavai-client/releases/latest | jq -r '.tag_name'
+    KALAVAI_VERSION=$(curl -s https://api.github.com/repos/kalavai-net/kalavai-client/releases/latest | jq -r '.tag_name')
 else
     KALAVAI_VERSION="${KALAVAI_VERSION}"
 fi
@@ -133,13 +133,13 @@ install_kalavai_app() {
 
     if [ "$package_manager" == "apt-get" ]; then
         # Debian installers (deb) - apt-get
-        wget https://github.com/kalavai-net/kalavai-client/releases/download/v${KALAVAI_VERSION}/kalavai_1_amd64.deb -O kalavai_1_amd64.deb
+        wget https://github.com/kalavai-net/kalavai-client/releases/download/${KALAVAI_VERSION}/kalavai_1_amd64.deb -O kalavai_1_amd64.deb
         $SUDO dpkg -i ./kalavai_1_amd64.deb
         $SUDO apt-get install -f
         $SUDO rm kalavai_1_amd64.deb
     else
         # RedHat installers (rpm) - yum dnf apk
-        wget https://github.com/kalavai-net/kalavai-client/releases/download/v${KALAVAI_VERSION}/kalavai-1-1.x86_64.rpm -O kalavai-1-1.x86_64.rpm
+        wget https://github.com/kalavai-net/kalavai-client/releases/download/${KALAVAI_VERSION}/kalavai-1-1.x86_64.rpm -O kalavai-1-1.x86_64.rpm
         $SUDO rpm -ivh ./kalavai-1-1.x86_64.rpm
         $SUDO rm kalavai-1-1.x86_64.rpm
     fi
