@@ -28,7 +28,9 @@ Kalavai is a platform for distributed computing, and thus it supports a wide ran
 
 ## Install
 
-![Watch the video](https://raw.githubusercontent.com/kalavai-net/kalavai-client/main/docs/docs/assets/videos/kalavai_cli.mp4)
+https://github.com/user-attachments/assets/af2ee15d-f18c-4802-8210-1873b0de07eb
+
+
 
 ### Requirements
 
