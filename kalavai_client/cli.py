@@ -1,3 +1,4 @@
+from collections import defaultdict
 import os
 import uuid
 from string import Template
@@ -764,7 +765,7 @@ def jobs__list(*others):
         console.log("[green]No deployments found.")
         return
     
-    columns = ["Deployment", "Status", "Endpoint"]
+    columns = ["Deployment", "Status", "Workers", "Endpoint"]
     rows = []
     for deployment in deployment_names:
         try:
@@ -787,6 +788,22 @@ def jobs__list(*others):
                 statuses = f"{last['type']}: {last['message']}"
             else:
                 statuses = "Unknown"
+            # get pod statuses
+            data = {
+                "namespace": "default",
+                "label": "leaderworkerset.sigs.k8s.io/name",
+                "value": deployment
+            }
+            result = request_to_server(
+                method="post",
+                endpoint="/v1/get_pods_status_for_label",
+                data=data,
+                server_creds=USER_LOCAL_SERVER_FILE
+            )
+            workers = defaultdict(int)
+            for _, status in result.items():
+                workers[status] += 1
+            workers = "\n".join([f"{k}: {v}" for k, v in workers.items()])
             # get URL details
             data = {
                 "label": TEMPLATE_LABEL,
@@ -802,7 +819,7 @@ def jobs__list(*others):
             node_ports = [p["node_port"] for s in result.values() for p in s["ports"]]
 
             urls = [f"http://{load_server_ip(USER_LOCAL_SERVER_FILE)}:{node_port}" for node_port in node_ports]
-            rows.append((deployment, statuses, "\n".join(urls)))
+            rows.append((deployment, statuses, workers, "\n".join(urls)))
 
         except Exception as e:
             console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
@@ -822,7 +839,7 @@ def jobs__logs(*others, name, stream_interval=0):
     """
     data = {
         "namespace": "default",
-        "label": TEMPLATE_LABEL,
+        "label": "leaderworkerset.sigs.k8s.io/name",
         "value": name
     }
     while True:
