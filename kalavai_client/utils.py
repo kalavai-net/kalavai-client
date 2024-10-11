@@ -28,6 +28,25 @@ def run_cmd(command):
     except OSError as error:
         return error # for exit code
 
+def join_vpn(token):
+    try:
+        data = decode_dict(token)
+        for field in ["server", "value"]:
+            assert field in data
+    except:
+        raise ValueError("Invalid net token")
+    
+    run_cmd(f"sudo netclient join -t {token} >/dev/null 2>&1")
+
+def leave_vpn():
+    try:
+        vpns = json.loads(run_cmd("sudo netclient list").decode())
+        left_vpns = [vpn['network'] for vpn in vpns]
+        for vpn in left_vpns:
+            run_cmd(f"sudo netclient leave {vpn}")
+        return left_vpns
+    except:
+        return None
 
 def is_service_running(service):
     return 0 == os.system(f'systemctl is-active --quiet {service}')
@@ -103,9 +122,16 @@ def generate_table(columns, rows, end_sections=None):
 
     return table
 
-def store_server_info(server_ip, auth_key, watcher_service, file, node_name, cluster_name):
+def store_server_info(server_ip, auth_key, watcher_service, file, node_name, cluster_name, net_token=None):
     with open(file, "w") as f:
-        json.dump({"server_ip": server_ip, "auth_key": auth_key, "watcher_service": watcher_service, "node_name": node_name, "cluster_name": cluster_name}, f)
+        json.dump({
+            "server_ip": server_ip,
+            "auth_key": auth_key,
+            "watcher_service": watcher_service,
+            "node_name": node_name,
+            "cluster_name": cluster_name,
+            "net_token": net_token
+        }, f)
     return True
 
 def load_server_ip(file):
@@ -119,6 +145,13 @@ def load_node_name(file):
     try:
         with open(file, "r") as f:
             return json.load(f)["node_name"]
+    except:
+        return None
+
+def load_net_token(file):
+    try:
+        with open(file, "r") as f:
+            return json.load(f)["net_token"]
     except:
         return None
 
@@ -172,13 +205,14 @@ def user_confirm(question: str, options: list) -> int:
         return None
     return None
 
-def generate_join_token(cluster_ip, cluster_token, cluster_name, auth_key, watcher_service):
+def generate_join_token(cluster_ip, cluster_token, cluster_name, auth_key, watcher_service, net_token):
     data = {
         "cluster_ip": cluster_ip,
         "cluster_name": cluster_name,
         "cluster_token": cluster_token,
         "auth_key": auth_key,
-        "watcher_service": watcher_service
+        "watcher_service": watcher_service,
+        "net_token": net_token
     }
     return encode_dict(data=data)
 

@@ -30,7 +30,10 @@ from kalavai_client.utils import (
     load_cluster_name,
     resource_path,
     user_path,
-    safe_remove
+    safe_remove,
+    join_vpn,
+    load_net_token,
+    leave_vpn
 )
 from kalavai_client.cluster import (
     k3sCluster
@@ -69,6 +72,10 @@ CLUSTER = k3sCluster(
 ######################
 
 def cleanup_local():
+    # disconnect from private network
+    vpns = leave_vpn()
+    for vpn in vpns:
+        console.log(f"You have left {vpn} VPN")
     safe_remove(USER_LOCAL_CONFIG_FILE)
     safe_remove(USER_KUBECONFIG_FILE)
     safe_remove(USER_LOCAL_SERVER_FILE)
@@ -152,13 +159,23 @@ def select_ip_address():
 ##################
 
 @arguably.command
-def start(cluster_name, *others,  ip_address: str=None):
+def start(cluster_name, *others,  ip_address: str=None, net_token: str=None):
     """
     Start Kalavai cluster and start/resume sharing resources.
 
     Args:
         *others: all the other positional arguments go here
     """
+
+    # join private network if provided
+    if net_token is not None:
+        console.log("Joining private network")
+        try:
+            join_vpn(token=net_token)
+            time.sleep(5)
+        except Exception as e:
+            console.log(f"[red]Error when joining network: {str(e)}")
+            return
 
     if ip_address is None:
         console.log("Scanning for valid IPs...")
@@ -194,7 +211,8 @@ def start(cluster_name, *others,  ip_address: str=None):
         file=USER_LOCAL_SERVER_FILE,
         watcher_service=watcher_service,
         node_name=socket.gethostname(),
-        cluster_name=cluster_name)
+        cluster_name=cluster_name,
+        net_token=net_token)
     
     while not CLUSTER.is_agent_running():
         console.log("Waiting for seed to start...")
@@ -222,7 +240,7 @@ def token(*others):
     Generate a join token for others to connect to your cluster
     """
     if not Path(USER_LOCAL_CONFIG_FILE).is_file():
-        console.log("[red]Local config file not found. Possible reasons: the cluster has not been started; this is a worker node.")
+        console.log("[red]Local config file not found. Possible reasons: the cluster has not been started or this is a worker node.")
         return None
     
     with open(USER_LOCAL_CONFIG_FILE, "r") as f:
@@ -230,6 +248,7 @@ def token(*others):
     
     auth_key = load_server_auth_key(USER_LOCAL_SERVER_FILE)
     watcher_service = load_watcher_service_url(USER_LOCAL_SERVER_FILE)
+    net_token = load_net_token(USER_LOCAL_SERVER_FILE)
 
     cluster_token = CLUSTER.get_cluster_token()
 
@@ -241,7 +260,8 @@ def token(*others):
         cluster_name=cluster_name,
         cluster_token=cluster_token,
         auth_key=auth_key,
-        watcher_service=watcher_service
+        watcher_service=watcher_service,
+        net_token=net_token
     )
 
     console.log("[green]Join token:")
@@ -256,7 +276,7 @@ def check_token(token, *others):
     """
     try:
         data = decode_dict(token)
-        for field in ["cluster_ip", "cluster_token", "cluster_name", "auth_key", "watcher_service"]:
+        for field in ["cluster_ip", "cluster_token", "cluster_name", "auth_key", "watcher_service", "net_token"]:
             assert field in data
         console.log("[green]Token format is correct")
         return True
@@ -276,12 +296,7 @@ def join(token, *others, node_name=None, ip_address: str = None):
     """
     if node_name is None:
         node_name = socket.gethostname()
-
-    if ip_address is None:
-        console.log("Scanning for valid IPs...")
-        ip_address = select_ip_address()
-    console.log(f"Using {ip_address} address for worker")
-
+    
     # check token
     if not check_token(token):
         return
@@ -293,10 +308,27 @@ def join(token, *others, node_name=None, ip_address: str = None):
         cluster_name = data["cluster_name"]
         auth_key = data['auth_key']
         watcher_service = data["watcher_service"]
+        net_token = data["net_token"]
     except Exception as e:
         console.log(str(e))
         console.log("[red] Invalid token")
         return
+    
+    # join private network if provided
+    if net_token is not None:
+        console.log("Joining private network")
+        try:
+            join_vpn(token=net_token)
+            time.sleep(5)
+        except Exception as e:
+            console.log(f"[red]Error when joining network: {str(e)}")
+            return
+
+    if ip_address is None:
+        console.log("Scanning for valid IPs...")
+        ip_address = select_ip_address()
+    console.log(f"Using {ip_address} address for worker")
+    
         
     # check that k3s is not running already in the host
     # k3s service running or preinstalled
