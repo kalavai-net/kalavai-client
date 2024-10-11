@@ -59,15 +59,17 @@ setup_verify_arch() {
 install_core_dependencies() {
     info "Installing package dependencies..."
     info "Installing nvidia runtime..."
-    # nvidia-container-runtime, wireguard, open-iscsi, containerd
+    # nvidia-container-runtime, wireguard, containerd, netclient
     $SUDO $package_manager install -y curl jq wget
     if [ "$package_manager" == "apt-get" ]; then
         curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | $SUDO gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
         && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
             sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
             $SUDO tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+        curl -sL 'https://apt.netmaker.org/gpg.key' | $SUDO gpg --dearmor -o /usr/share/keyrings/netmaker-keyring.gpg
+        echo "deb [signed-by=/usr/share/keyrings/netmaker-keyring.gpg] https://apt.netmaker.org stable main" | $SUDO tee /etc/apt/sources.list.d/netclient.list
         $SUDO $package_manager update
-        $SUDO $package_manager install -y nvidia-container-toolkit wireguard open-iscsi nfs-common
+        $SUDO $package_manager install -y nvidia-container-toolkit wireguard nfs-common netclient
 
     elif [ "$package_manager" == "yum" ]; then
         curl -s -L https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo | \
@@ -79,19 +81,22 @@ install_core_dependencies() {
     elif [ "$package_manager" == "dnf" ]; then
         curl -s -L https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo | \
             $SUDO tee /etc/yum.repos.d/nvidia-container-toolkit.repo
-        $SUDO $package_manager install -y nvidia-container-toolkit wireguard-tools iscsi-initiator-utils nfs-utils
-
+        curl -sL 'https://rpm.netmaker.org/gpg.key' | $SUDO tee /tmp/gpg.key
+        curl -sL 'https://rpm.netmaker.org/netclient-repo' | $SUDO tee /etc/yum.repos.d/netclient.repo
+        $SUDO rpm --import /tmp/gpg.key
+        $SUDO $package_manager check-update
+        $SUDO $package_manager install -y netclient nvidia-container-toolkit wireguard-tools iscsi-initiator-utils nfs-utils
+         
     elif [ "$package_manager" == "zypper" ]; then
         $SUDO $package_manager ar https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo
         $SUDO $package_manager --gpg-auto-import-keys install -y nvidia-container-toolkit
-        $SUDO $package_manager install -y wireguard-tools open-iscsi
-
+        $SUDO rpm --import https://rpm.netmaker.org/gpg.key
+        curl -sL 'https://rpm.netmaker.org/netclient-repo' | $SUDO tee /etc/zypp/repos.d/netclient.repo
+        $SUDO $package_manager refresh
+        $SUDO $package_manager install -y wireguard-tools netclient
     else
         fatal "Package manager is not recognised"
     fi
-    
-    # enable Open ISCSI
-    $SUDO systemctl enable --now iscsid
 
     # install containerd
     wget https://github.com/containerd/containerd/releases/download/v1.7.18/containerd-1.7.18-linux-amd64.tar.gz -O containerd-1.7.18-linux-amd64.tar.gz
