@@ -179,23 +179,25 @@ class k3sCluster(Cluster):
 
     def pause_agent(self):
         try:
-            if self.is_seed_node():
-                run_cmd('systemctl stop k3s >/dev/null 2>&1')
-            else:
-                run_cmd('systemctl stop k3s-agent >/dev/null 2>&1')
-            return not self.is_agent_running()
+            run_cmd('sudo systemctl stop k3s >/dev/null 2>&1')
         except:
-            return False
+            pass
+        try:
+            run_cmd('sudo systemctl stop k3s-agent >/dev/null 2>&1')
+        except:
+            pass
+
 
     def restart_agent(self):
         try:
-            if self.is_seed_node():
-                run_cmd('systemctl start k3s >/dev/null 2>&1')
-            else:
-                run_cmd('systemctl start k3s-agent >/dev/null 2>&1')
-            return self.is_agent_running()
+            run_cmd('sudo systemctl start k3s >/dev/null 2>&1')
         except:
-            return False
+            pass
+        try:
+            run_cmd('sudo systemctl start k3s-agent >/dev/null 2>&1')
+        except:
+            pass
+        return self.is_agent_running()
 
     def get_cluster_token(self):
         return run_cmd("sudo k3s token create --kubeconfig /etc/rancher/k3s/k3s.yaml --ttl 0").decode()
