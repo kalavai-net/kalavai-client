@@ -125,13 +125,13 @@ def set_schedulable(schedulable, node_name=load_node_name(USER_LOCAL_SERVER_FILE
         "node_names": [node_name]
     }
     try:
-        _ = request_to_server(
+        res = request_to_server(
             method="post",
             endpoint="/v1/set_node_schedulable",
             data=data,
             server_creds=USER_LOCAL_SERVER_FILE
         )
-        console.log(f"[green] Success")
+        console.log(f"{res}")
     except Exception as e:
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
 
@@ -371,6 +371,7 @@ def join(token, *others, node_name=None, ip_address: str = None):
         restart()
     
     # set status to schedulable
+    time.sleep(10)
     set_schedulable(schedulable=True)
     console.log(f"[green] You are connected to {cluster_name}")
             
@@ -582,7 +583,10 @@ def node__delete(name, *others):
             data=data,
             server_creds=USER_LOCAL_SERVER_FILE
         )
-        console.log(f"Node {name} deleted successfully")
+        if result is None or result is True:
+            console.log(f"Node {name} deleted successfully")
+        else:
+            console.log(f"{result}")
     except Exception as e:
         console.log(f"[yellow](ignore if stopping worker from dead server). Error when removing node {name}: {str(e)}")
 
@@ -769,7 +773,7 @@ def job__delete(*others, name):
             data=data,
             server_creds=USER_LOCAL_SERVER_FILE
         )
-        console.log(f"[green] Success. {result}")
+        console.log(f"{result}")
     except Exception as e:
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
 
