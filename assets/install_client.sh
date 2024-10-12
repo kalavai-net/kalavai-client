@@ -118,6 +118,9 @@ install_core_dependencies() {
     rm runc.amd64
 
     # install helmfile
+    curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+    chmod 700 get_helm.sh
+    ./get_helm.sh
     wget https://github.com/helmfile/helmfile/releases/download/v0.167.1/helmfile_0.167.1_linux_amd64.tar.gz
     mkdir helmfile && tar -xvzf helmfile_0.167.1_linux_amd64.tar.gz -C helmfile
     $SUDO mv helmfile/helmfile /usr/local/bin/

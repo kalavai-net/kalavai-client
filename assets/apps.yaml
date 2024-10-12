@@ -33,6 +33,8 @@ releases:
       value: "True"
     - name: deployment.auth_key
       value: "$auth_key"
+    - name: deployment.readonly_key
+      value: "$readonly_key"
     - name: service.nodePort
       value: $watcher_port
   - name: nvidia-gpu-operator
