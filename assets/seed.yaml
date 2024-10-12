@@ -45,6 +45,7 @@ spec:
               in_cluster: "True"
               use_auth_key: "True"
               auth_key: "$auth_key"
+              readonly_key: "$readonly_key"
             service:
               nodePort: $watcher_port
         - name: nvidia-gpu-operator

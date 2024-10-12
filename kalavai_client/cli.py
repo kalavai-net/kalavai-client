@@ -1,5 +1,6 @@
 from collections import defaultdict
 import os
+import json
 import uuid
 from string import Template
 import time
@@ -33,7 +34,8 @@ from kalavai_client.utils import (
     safe_remove,
     join_vpn,
     load_net_token,
-    leave_vpn
+    leave_vpn,
+    load_server_readonly_key
 )
 from kalavai_client.cluster import (
     k3sCluster
@@ -96,7 +98,7 @@ def restart():
         console.log("[white] Kalava sharing resumed")
         fetch_remote_templates()
     else:
-        console.log("[red] Error when restarting. Please run [yellow]kalavai restart[white] again.")
+        console.log("[red] Error when restarting. Please run [yellow]kalavai resume[white] again.")
 
 def check_gpu_drivers():
     value = run_cmd("command -v nvidia-smi")
@@ -183,11 +185,13 @@ def start(cluster_name, *others,  ip_address: str=None, net_token: str=None):
     console.log(f"Using {ip_address} address for server")
 
     auth_key = str(uuid.uuid4())
+    readonly_key = str(uuid.uuid4())
     watcher_port = 31000
     values = {
         "cluster_name": cluster_name,
         "server_address": ip_address,
         "auth_key": auth_key,
+        "readonly_key": readonly_key,
         "watcher_port": watcher_port
     }
     # populate cluster config file
@@ -208,6 +212,7 @@ def start(cluster_name, *others,  ip_address: str=None, net_token: str=None):
     store_server_info(
         server_ip=ip_address,
         auth_key=auth_key,
+        readonly_key=readonly_key,
         file=USER_LOCAL_SERVER_FILE,
         watcher_service=watcher_service,
         node_name=socket.gethostname(),
@@ -235,7 +240,7 @@ def start(cluster_name, *others,  ip_address: str=None, net_token: str=None):
     return None
 
 @arguably.command
-def token(*others):
+def token(*others, admin_privilege=True):
     """
     Generate a join token for others to connect to your cluster
     """
@@ -246,7 +251,10 @@ def token(*others):
     with open(USER_LOCAL_CONFIG_FILE, "r") as f:
         config = yaml.safe_load(f)
     
-    auth_key = load_server_auth_key(USER_LOCAL_SERVER_FILE)
+    if admin_privilege:
+        auth_key = load_server_auth_key(USER_LOCAL_SERVER_FILE)
+    else:
+        auth_key = load_server_readonly_key(USER_LOCAL_SERVER_FILE)
     watcher_service = load_watcher_service_url(USER_LOCAL_SERVER_FILE)
     net_token = load_net_token(USER_LOCAL_SERVER_FILE)
 
@@ -377,7 +385,7 @@ def stop(*others):
     """
     # k3s stop locally
     console.log("[white] Stopping kalavai app...")
-    nodes__delete(load_node_name(USER_LOCAL_SERVER_FILE))
+    node__delete(load_node_name(USER_LOCAL_SERVER_FILE))
     CLUSTER.remove_agent()
     cleanup_local()
     console.log("[white] Kalavai has stopped sharing your resources. Use [yellow]kalavai start[white] or [yellow]kalavai join[white] to start again!")
@@ -523,7 +531,7 @@ def diagnostics(*others, log_file=None):
             console.log(f"{log}\n")
 
 @arguably.command
-def nodes__list(*others):
+def node__list(*others):
     """
     Display information about nodes connected
     """
@@ -560,7 +568,7 @@ def nodes__list(*others):
 
 
 @arguably.command
-def nodes__delete(name, *others):
+def node__delete(name, *others):
     """
     Delete a node from the cluster
     """
@@ -580,7 +588,7 @@ def nodes__delete(name, *others):
 
 
 @arguably.command
-def nodes__cordon(node_name, *others):
+def node__cordon(node_name, *others):
     """
     Cordon a particular node so no more work will be scheduled on it
     """
@@ -588,7 +596,7 @@ def nodes__cordon(node_name, *others):
 
 
 @arguably.command
-def nodes__uncordon(node_name, *others):
+def node__uncordon(node_name, *others):
     """
     Uncordon a particular node to allow more work to be scheduled on it
     """
@@ -596,7 +604,7 @@ def nodes__uncordon(node_name, *others):
 
 
 @arguably.command
-def jobs__templates(*others):
+def job__templates(*others):
     """
     Job templates integrated with kalavai. Use env var LOCAL_TEMPLATES_DIR to test local templates
     """
@@ -610,19 +618,19 @@ def jobs__templates(*others):
 
 
 @arguably.command
-def jobs__reload(*others):
+def job__reload(*others):
     """
     Refreshes template collection from remote repository. Run when you want to update your local collection.
     """
     templates = fetch_remote_templates()
     
     console.log(f"[green] {len(templates)} templates loaded remotely")
-    jobs__templates()
+    job__templates()
 
 
 
 @arguably.command
-def jobs__run(template_name, *others, values_path=None):
+def job__run(template_name, *others, values_path=None):
     """
     Deploy and run a template job.
 
@@ -638,7 +646,7 @@ def jobs__run(template_name, *others, values_path=None):
     
     if template_name not in available_templates:
         console.log(f"[red]{template_name} not found")
-        jobs__templates()
+        job__templates()
         return
     
     path = paths[available_templates.index(template_name)]
@@ -700,7 +708,7 @@ def jobs__run(template_name, *others, values_path=None):
             console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
 
 @arguably.command
-def jobs__defaults(template_name, *others):
+def job__defaults(template_name, *others):
     """
     Fetch default values.yaml for a template job
     """
@@ -711,7 +719,7 @@ def jobs__defaults(template_name, *others):
     
     if template_name not in available_templates:
         console.log(f"[red]{template_name} not found")
-        jobs__templates()
+        job__templates()
         return
     
     path = paths[available_templates.index(template_name)]
@@ -722,7 +730,7 @@ def jobs__defaults(template_name, *others):
 
 
 @arguably.command
-def jobs__describe(template_name, *others):
+def job__describe(template_name, *others):
     """
     Fetch documentation for a template job
     """
@@ -733,7 +741,7 @@ def jobs__describe(template_name, *others):
     
     if template_name not in available_templates:
         console.log(f"[red]{template_name} not found")
-        jobs__templates()
+        job__templates()
         return
     
     path = paths[available_templates.index(template_name)]
@@ -744,7 +752,7 @@ def jobs__describe(template_name, *others):
 
 
 @arguably.command
-def jobs__delete(*others, name):
+def job__delete(*others, name):
     """
     Delete job in the cluster
     """
@@ -767,7 +775,7 @@ def jobs__delete(*others, name):
 
 
 @arguably.command
-def jobs__list(*others):
+def job__list(*others):
     """
     List jobs in the cluster
     """
@@ -861,11 +869,12 @@ def jobs__list(*others):
             generate_table(columns=columns, rows=rows)
         )
         
-    console.log("Get more information about a deployment with [yellow]kalavai jobs logs <name of deployment> [white](note it only works when the deployment is complete)")
+    console.log("Get logs with [yellow]kalavai job logs <name of deployment> [white](note it only works when the deployment is complete)")
+    console.log("Get full job manifest with [yellow]kalavai job manifest <name of deployment> [white](note it only works when the deployment is complete)")
 
 
 @arguably.command
-def jobs__logs(*others, name, stream_interval=0):
+def job__logs(*others, name, stream_interval=0):
     """
     Get logs for a specific job
     """
@@ -890,15 +899,39 @@ def jobs__logs(*others, name, stream_interval=0):
             else:
                 os.system("clear")
                 for pod, logs in result.items():
-                    print(f"[yellow]Pod {pod}")
-                    print(f"[green]{logs}")
+                    print(f"Pod {pod}")
+                    print(f"{logs}")
                 time.sleep(stream_interval)
         except KeyboardInterrupt:
             break
         except Exception as e:
             console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
             return
-            
+
+@arguably.command
+def job__manifest(*others, name):
+    """
+    Get job manifest description
+    """
+    data = {
+        "namespace": "default",
+        "label": "leaderworkerset.sigs.k8s.io/name",
+        "value": name
+    }
+    try:
+        result = request_to_server(
+            method="post",
+            endpoint="/v1/describe_pods_for_label",
+            data=data,
+            server_creds=USER_LOCAL_SERVER_FILE
+        )
+        for pod, manifest in result.items():
+            manifest = json.dumps(manifest, indent=3)
+            console.log(f"[yellow]Pod {pod}")
+            console.log(f"{manifest}")
+    except Exception as e:
+        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
+        return         
 
 
 if __name__ == "__main__":

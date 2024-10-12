@@ -122,11 +122,12 @@ def generate_table(columns, rows, end_sections=None):
 
     return table
 
-def store_server_info(server_ip, auth_key, watcher_service, file, node_name, cluster_name, net_token=None):
+def store_server_info(server_ip, auth_key, watcher_service, file, node_name, cluster_name, readonly_key=None, net_token=None):
     with open(file, "w") as f:
         json.dump({
             "server_ip": server_ip,
             "auth_key": auth_key,
+            "readonly_key": readonly_key,
             "watcher_service": watcher_service,
             "node_name": node_name,
             "cluster_name": cluster_name,
@@ -166,6 +167,13 @@ def load_server_auth_key(file):
     try:
         with open(file, "r") as f:
             return json.load(f)["auth_key"]
+    except:
+        return None
+    
+def load_server_readonly_key(file):
+    try:
+        with open(file, "r") as f:
+            return json.load(f)["readonly_key"]
     except:
         return None
 
