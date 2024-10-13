@@ -49,6 +49,7 @@ CORE_NAMESPACES = ["lws-system", "kube-system", "gpu-operator", "kalavai"]
 TEMPLATE_LABEL = "kalavai.lws.name"
 KUBE_VERSION = os.getenv("KALAVAI_KUBE_VERSION", "v1.31.1+k3s1")
 FLANNEL_IFACE = os.getenv("KALAVAI_FLANNEL_IFACE", None)
+FORBIDEDEN_IPS = ["127.0.0.1"]
 # kalavai templates
 CLUSTER_CONFIG_TEMPLATE = resource_path("assets/seed.yaml")
 HELM_APPS_FILE = resource_path("assets/apps.yaml")
@@ -76,8 +77,9 @@ CLUSTER = k3sCluster(
 def cleanup_local():
     # disconnect from private network
     vpns = leave_vpn()
-    for vpn in vpns:
-        console.log(f"You have left {vpn} VPN")
+    if vpns is not None:
+        for vpn in vpns:
+            console.log(f"You have left {vpn} VPN")
     safe_remove(USER_LOCAL_CONFIG_FILE)
     safe_remove(USER_KUBECONFIG_FILE)
     safe_remove(USER_LOCAL_SERVER_FILE)
@@ -141,6 +143,8 @@ def select_ip_address():
     for iface in ni.interfaces():
         try:
             ip = ni.ifaddresses(iface)[ni.AF_INET][0]['addr']
+            if ip in FORBIDEDEN_IPS:
+                continue
             ips.append(ip)
         except:
             pass
