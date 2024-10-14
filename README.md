@@ -28,6 +28,8 @@ Kalavai is a platform for distributed computing, and thus it supports a wide ran
 
 ## Install
 
+> Kalavai is at a **very early stage** of its development. We encourage people to use it and give us feedback! Although we are trying to minimise breaking changes, these may occur until we have a stable version (v1.0).
+
 https://github.com/user-attachments/assets/af2ee15d-f18c-4802-8210-1873b0de07eb
 
 
