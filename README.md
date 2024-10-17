@@ -37,21 +37,63 @@ https://github.com/user-attachments/assets/af2ee15d-f18c-4802-8210-1873b0de07eb
 ### Requirements
 
 - A laptop, desktop or Virtual Machine
-- Admin / privileged access (eg. `sudo` access in linux)
-- Running a compatible Operative system (see [compatibility matrix](#compatibility-matrix))
+- Admin / privileged access (eg. `sudo` access in linux or Administrator in Windows)
+- Running Windows or Linux (see more details in our [compatibility matrix](#compatibility-matrix))
+
+Check out the details on all [compatible systems](#compatibility-matrix).
 
 
-### One-line installer
+### Linux
 
-To install the `kalavai` CLI, run the following command:
+To install the `kalavai` CLI, run the following command on your terminal:
 
 ```bash
 curl -sfL https://raw.githubusercontent.com/kalavai-net/kalavai-client/main/assets/install_client.sh | bash -
 ```
 
-#### `kalavai` CLI
+### Windows
 
-Manage your AI cluster or deploy and monitor jobs with the `kalavai` CLI:
+For Windows machines complete WSL configuration first before continuing. You must be running Windows 10 version 2004 and higher (Build 19041 and higher) or Windows 11 to use the commands below. **If you are on earlier versions** please see the [manual install](https://learn.microsoft.com/en-us/windows/wsl/install-manual) page.
+
+1. Open a PowerShell with administrative permissions (_Run as Administrator_)
+
+2. Install WSL2:
+```bash
+wsl --install -d Ubuntu-24.04
+```
+
+3. Inside WSL, install Kalavai:
+```bash
+curl -sfL https://raw.githubusercontent.com/kalavai-net/kalavai-client/main/assets/install_client.sh | bash -
+```
+
+**Note**: you **must keep the WSL console window open** to continue to share resources with an AI cluster. If you restart your machine or close the console, you will need to resume kalavai as follows:
+```bash
+kalavai resume
+```
+
+**Known issue**: if the above resume command hangs or fails, try to run the pause command before and then reattempt resuming:
+```bash
+kalavai pause
+kalavai resume
+```
+
+To make sure the agent is running, check the diagnostics:
+```bash
+$ kalavai diagnostics
+
+App installed: True                                   cli.py:531
+Agent running: True                                   cli.py:531
+Containerd running: True                              cli.py:531
+
+Getting deployment status...  
+```
+...
+
+
+### What's next
+
+You are ready to create and join clusters! To get your hands dirty, check our [quick start](#quick-start) guide.
 
 ```bash
 $ kalavai --help
@@ -68,15 +110,13 @@ positional arguments:
     pause        Pause sharing your device and make your device unavailable for kalavai scheduling.
     resume       Resume sharing your device and make device available for kalavai scheduling.
     resources    Display information about resources on the cluster
-    nodes        Display information about nodes connected
+    node         Display information about nodes connected
     diagnostics  Run diagnostics on a local installation of kalavai, and stores in log file
     job
 
 options:
   -h, --help  show this help message and exit
 ```
-
-To get started, check our [quick start](#quick-start) guide.
 
 
 ## How it works?
@@ -98,7 +138,7 @@ Kalavai is **free to use, no caps, for both commercial and non-commercial purpos
 Simply use the CLI to start your seed node:
 
 ```bash
-kalavai start
+kalavai start <cluster-name>
 ```
 
 Note that it will take a few minutes to setup and download all dependencies. Check the status of your cluster with:
@@ -134,7 +174,7 @@ kalavai join <token>
 Note that **worker nodes must be able to see the seed node**; this could be achieved using a public IP on the seed node or by having both computers on the same local network. After some time, you should be able to see the new node:
 
 ```bash
-kalavai nodes list
+kalavai node list
 ```
 
 You can also see the total resources available:
@@ -156,14 +196,12 @@ If your system is not currently supported, [open an issue](https://github.com/ka
 
 Currently compatible and tested OS:
 - Debian-based linux (such as Ubuntu)
+- Windows 10+ (using WSL2)
 
 Currently compatible (untested. [Interested in testing them?](mailto:info@kalavai.net)):
 - Fedora
 - RedHat
 - Any distro capable of installing `.deb` and `.rpm` packages.
-
-Coming soon:
-- Windows 10+ with WSL
 
 Currently not compatible:
 - MacOS
@@ -177,8 +215,8 @@ Currently not compatible:
 
 - [x] Kalavai client on Linux
 - [x] [TEMPLATE] Distributed LLM deployment
+- [x] Kalavai client on Windows (with WSL2)
 - [ ] [TEMPLATE] Distributed LLM fine tuning
-- [ ] Kalavai client on Windows
 - [ ] Kalavai client on Mac
 - [ ] Ray cluster support
 

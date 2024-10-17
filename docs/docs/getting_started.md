@@ -41,7 +41,7 @@ kalavai join <token>
 After some time, you should be able to see the new node:
 
 ```bash
-kalavai nodes
+kalavai node list
 ```
 
 You can also see the total resources available:
