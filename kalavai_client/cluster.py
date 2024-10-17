@@ -160,11 +160,18 @@ class k3sCluster(Cluster):
 
 
     def remove_agent(self):
-        if self.is_seed_node():
+        try:
             run_cmd('/usr/local/bin/k3s-uninstall.sh >/dev/null 2>&1')
             run_cmd('sudo rm -r /etc/rancher/node/ >/dev/null 2>&1')
-        else:
+            return True
+        except:
+            pass
+        try:
             run_cmd('/usr/local/bin/k3s-agent-uninstall.sh >/dev/null 2>&1')
+            return True
+        except:
+            pass
+        return False
 
     def is_agent_running(self):
         status = (0 == os.system('systemctl is-active --quiet k3s-agent.service')) or (0 == os.system('systemctl is-active --quiet k3s.service'))
@@ -200,9 +207,13 @@ class k3sCluster(Cluster):
         return self.is_agent_running()
 
     def get_cluster_token(self):
-        return run_cmd("sudo k3s token create --kubeconfig /etc/rancher/k3s/k3s.yaml --ttl 0").decode()
-        #return run_cmd("sudo cat /var/lib/rancher/k3s/server/node-token").decode()
+        if self.is_seed_node():
+            return run_cmd("sudo k3s token create --kubeconfig /etc/rancher/k3s/k3s.yaml --ttl 0").decode()
+        else:
+            return None
     
     def diagnostics(self) -> str:
-        data = run_cmd(f"k3s kubectl get pods -A -o wide --kubeconfig {self.kubeconfig_file}").decode() + "\n\n" + run_cmd(f"k3s kubectl get nodes --kubeconfig {self.kubeconfig_file}").decode()
-        return data
+        if self.is_seed_node():
+            return run_cmd(f"k3s kubectl get pods -A -o wide --kubeconfig {self.kubeconfig_file}").decode() + "\n\n" + run_cmd(f"k3s kubectl get nodes --kubeconfig {self.kubeconfig_file}").decode()
+        else:
+            return None

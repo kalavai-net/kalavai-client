@@ -76,10 +76,14 @@ CLUSTER = k3sCluster(
 
 def cleanup_local():
     # disconnect from private network
-    vpns = leave_vpn()
-    if vpns is not None:
-        for vpn in vpns:
-            console.log(f"You have left {vpn} VPN")
+    try:
+        vpns = leave_vpn()
+        if vpns is not None:
+            for vpn in vpns:
+                console.log(f"You have left {vpn} VPN")
+    except:
+        # no vpn
+        pass
     safe_remove(USER_LOCAL_CONFIG_FILE)
     safe_remove(USER_KUBECONFIG_FILE)
     safe_remove(USER_LOCAL_SERVER_FILE)
@@ -172,6 +176,10 @@ def start(cluster_name, *others,  ip_address: str=None, net_token: str=None):
     Args:
         *others: all the other positional arguments go here
     """
+
+    if CLUSTER.is_cluster_init():
+        console.log(f"[white] You are already connected to {load_cluster_name(USER_LOCAL_SERVER_FILE)}. Enter [yellow]kalavai stop[white] to exit and join another one.")
+        return
 
     # join private network if provided
     if net_token is not None:
@@ -479,6 +487,9 @@ def status(*others):
     """
     Check the status of the kalavai cluster
     """
+    if not CLUSTER.is_cluster_init():
+        console.log("This node is not connected to any cluster")
+        return
     try:
         response = request_to_server(
             method="POST",
@@ -502,7 +513,7 @@ def status(*others):
 def diagnostics(*others, log_file=None):
     """
     Run diagnostics on a local installation of kalavai, and stores in log file
-    * is k0s installed
+    * is cluster installed
     * is agent running
     * is kube-watcher running
     * is lws running
@@ -541,7 +552,7 @@ def node__list(*others):
     Display information about nodes connected
     """
     if not CLUSTER.is_cluster_init() or not CLUSTER.is_agent_running():
-        console.log("[red]Kalavai is not running or not installed on your machine")
+        console.log("[red]Kalavai is not running on your machine")
         return
 
     try:
@@ -577,6 +588,10 @@ def node__delete(name, *others):
     """
     Delete a node from the cluster
     """
+    if not CLUSTER.is_cluster_init():
+        console.log("This node is not connected to any cluster")
+        return
+    
     data = {
         "node_names": [name]
     }
@@ -645,6 +660,9 @@ def job__run(template_name, *others, values_path=None):
     Args:
         *others: all the other positional arguments go here
     """
+    if not CLUSTER.is_cluster_init() or not CLUSTER.is_agent_running():
+        console.log("[red]Kalavai is not running or not installed on your machine")
+
     expose = True
 
     paths, available_templates = zip(*get_all_templates(
@@ -764,6 +782,9 @@ def job__delete(*others, name):
     """
     Delete job in the cluster
     """
+    if not CLUSTER.is_cluster_init() or not CLUSTER.is_agent_running():
+        console.log("[red]Kalavai is not running or not installed on your machine")
+
     # deploy template with kube-watcher
     data = {
         "namespace": "default",
