@@ -18,13 +18,13 @@ See [how to install kalavai client app](install_client.md)
 
 Fetch the joining token from the master node:
 ```bash
-kalavai generate-token
+kalavai token
 ```
 
 And then join!
 Create cluster:
 ```bash
-kalavai join ---
+kalavai join <token>
 ```
 
 ## What's next?

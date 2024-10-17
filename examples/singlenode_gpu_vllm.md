@@ -76,12 +76,12 @@ template_values:
 
 3. Deploy your vLLM template:
 ```bash
-kalavai jobs run vllm --values-path values.yaml
+kalavai job run vllm --values-path values.yaml
 ```
 
 4. Wait until it is ready; it may take a few minutes depending on your internet connection. Monitor the deployment until status is `Available`:
 ```bash
-$ kalavai jobs list
+$ kalavai job list
 
 ┏━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃ Deployment        ┃ Status                            ┃ Endpoint               ┃
@@ -125,7 +125,7 @@ print("Completion result:", completion)
 
 If you want to inspect what's going on with the openAI server, you can access the full logs of the job (on each node) with:
 ```bash
-kalavai jobs logs vllm-phi-1
+kalavai job logs vllm-phi-1
 ```
 
 
@@ -133,5 +133,5 @@ kalavai jobs logs vllm-phi-1
 
 Once you are done with your model, you can delete the deployment with
 ```bash
-kalavai jobs delete vllm-phi-1
+kalavai job delete vllm-phi-1
 ```
