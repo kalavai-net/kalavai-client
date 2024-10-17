@@ -14,19 +14,27 @@ if [ $(id -u) -eq 0 ]; then
     SUDO=
 fi
 # get package installer
-declare -A osInfo;
-osInfo[/etc/debian_version]="apt-get"
-osInfo[/etc/centos-release]="yum"
-osInfo[/etc/fedora-release]="dnf"
-osInfo[/etc/SuSE-release]="zypper"
+. /etc/os-release
 
-for f in ${!osInfo[@]}
-do
-    if [[ -f $f ]];then
-        package_manager=${osInfo[$f]}
-    fi
-done
+if [[ $ID == *"ubuntu"* ]]; then
+  package_manager="apt-get"
+fi
 
+if [[ $ID == *"debian"* ]]; then
+  package_manager="apt-get"
+fi
+
+if [[ $ID == *"suse"* ]]; then
+  package_manager="zypper"
+fi
+
+if [[ $ID == *"fedora"* ]]; then
+  package_manager="dnf"
+fi
+
+if [[ $ID == *"centos"* ]]; then
+  package_manager="yum"
+fi
 # --- helper functions for logs ---
 info()
 {
@@ -86,14 +94,14 @@ install_core_dependencies() {
         $SUDO rpm --import /tmp/gpg.key
         $SUDO $package_manager check-update
         $SUDO $package_manager install -y netclient nvidia-container-toolkit wireguard-tools iscsi-initiator-utils nfs-utils
-         
+
     elif [ "$package_manager" == "zypper" ]; then
-        $SUDO $package_manager ar https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo
-        $SUDO $package_manager --gpg-auto-import-keys install -y nvidia-container-toolkit
+        $SUDO $package_manager ar https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo || true
+        $SUDO $package_manager --gpg-auto-import-keys install -y --force nvidia-container-toolkit
         $SUDO rpm --import https://rpm.netmaker.org/gpg.key
         curl -sL 'https://rpm.netmaker.org/netclient-repo' | $SUDO tee /etc/zypp/repos.d/netclient.repo
         $SUDO $package_manager refresh
-        $SUDO $package_manager install -y wireguard-tools netclient
+        $SUDO $package_manager install -y --force wireguard-tools netclient
     else
         fatal "Package manager is not recognised"
     fi
@@ -137,6 +145,8 @@ fs.inotify.max_user_watches = 655360
 fs.inotify.max_user_instances = 1280"  | sudo tee -a /etc/sysctl.conf
 
 }
+
+}
 install_kalavai_app() {
 
     if [ "$package_manager" == "apt-get" ]; then
@@ -166,9 +176,3 @@ success() {
     install_kalavai_app
     success
 }
-
-
-
-
-
-
