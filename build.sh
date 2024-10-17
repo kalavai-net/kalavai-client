@@ -13,6 +13,6 @@ echo "## GENERATE INSTALLABLE with FPM"
 # can add dependencies by passing -d name to fpm
 cd build_specs &&
 fpm -s dir -t deb -d wireguard --name kalavai --force &&
-fpm -s dir -t rpm -d wireguard --name kalavai --force && 
+fpm -s dir -t rpm -d wireguard-tools netclient nvidia-container-toolkit --name kalavai --force && 
 mv -i *.deb ../ &&
 mv -i *.rpm ../
