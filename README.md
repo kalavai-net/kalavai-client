@@ -87,8 +87,9 @@ Agent running: True                                   cli.py:531
 Containerd running: True                              cli.py:531
 
 Getting deployment status...  
-```
 ...
+```
+
 
 
 ### What's next
