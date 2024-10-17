@@ -62,7 +62,20 @@ For Windows machines complete WSL configuration first before continuing. You mus
 wsl --install -d Ubuntu-24.04
 ```
 
-3. Inside WSL, install Kalavai:
+3. Make sure to enable `systemd` by editing (or creating if required) a file `/etc/wsl.conf`
+```bash
+[boot]
+systemd=true
+```
+
+4. Restart the WSL instance by exiting and logging back in:
+```bash
+exit
+wsl --shutdown
+wsl -d Ubuntu-24.04
+```
+
+5. Inside WSL, install Kalavai:
 ```bash
 curl -sfL https://raw.githubusercontent.com/kalavai-net/kalavai-client/main/assets/install_client.sh | bash -
 ```
