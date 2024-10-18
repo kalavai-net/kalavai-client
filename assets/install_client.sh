@@ -70,6 +70,7 @@ install_core_dependencies() {
     # nvidia-container-runtime, wireguard, containerd, netclient
     $SUDO $package_manager install -y curl jq wget
     if [ "$package_manager" == "apt-get" ]; then
+        $SUDO $package_manager install -y gnupg2
         curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | $SUDO gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
         && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
             sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
