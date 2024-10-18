@@ -12,7 +12,7 @@ echo "One file executable available at dist/${APP_NAME}"
 echo "## GENERATE INSTALLABLE with FPM"
 # can add dependencies by passing -d name to fpm
 cd build_specs &&
-fpm -s dir -t deb -d wireguard -d nvidia-container-toolkit -d netclient --name kalavai --force &&
+fpm -s dir -t deb -d wireguard -d nvidia-container-toolkit --name kalavai --force &&
 fpm -s dir -t rpm -d wireguard-tools -d netclient -d nvidia-container-toolkit --name kalavai --force && 
 mv -i *.deb ../ &&
 mv -i *.rpm ../
