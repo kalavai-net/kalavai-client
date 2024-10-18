@@ -253,6 +253,8 @@ Anything missing here? Give us a shout in the [discussion board](https://github.
 
 ### Requirements
 
+Python version <= 3.10.
+
 On Ubuntu:
 
 ```bash
