@@ -174,11 +174,11 @@ class k3sCluster(Cluster):
         return False
 
     def is_agent_running(self):
-        status = (0 == os.system('systemctl is-active --quiet k3s-agent.service')) or (0 == os.system('systemctl is-active --quiet k3s.service'))
+        status = (0 == os.system('sudo systemctl is-active --quiet k3s-agent.service')) or (0 == os.system('sudo systemctl is-active --quiet k3s.service'))
         return status
 
     def is_seed_node(self):
-        return 0 == os.system('systemctl is-active --quiet k3s.service')
+        return 0 == os.system('sudo systemctl is-active --quiet k3s.service')
 
     def is_cluster_init(self):
         status = Path("/usr/local/bin/k3s-agent-uninstall.sh").is_file() or Path("/usr/local/bin/k3s-uninstall.sh").is_file()
