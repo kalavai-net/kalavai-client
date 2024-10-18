@@ -256,7 +256,7 @@ Anything missing here? Give us a shout in the [discussion board](https://github.
 ```bash
 virtualenv -p python3 env
 source env/bin/activate
-sudo apt install python3-tk rpm squashfs-tools ruby-dev build-essential -y
+sudo apt install python3-tk rpm squashfs-tools ruby-dev build-essential gcc -y
 sudo gem i fpm -f
 pip install -e .
 ```
