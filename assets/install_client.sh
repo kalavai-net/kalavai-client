@@ -145,8 +145,6 @@ fs.inotify.max_user_watches = 655360
 fs.inotify.max_user_instances = 1280"  | sudo tee -a /etc/sysctl.conf
 
 }
-
-}
 install_kalavai_app() {
 
     if [ "$package_manager" == "apt-get" ]; then
