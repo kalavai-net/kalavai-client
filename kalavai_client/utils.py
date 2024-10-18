@@ -49,7 +49,7 @@ def leave_vpn():
         return None
 
 def is_service_running(service):
-    return 0 == os.system(f'systemctl is-active --quiet {service}')
+    return 0 == os.system(f'sudo systemctl is-active --quiet {service}')
 
 
 def fetch_git_files(remote_folder):
