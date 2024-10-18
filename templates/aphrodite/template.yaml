@@ -1,0 +1,89 @@
+apiVersion: leaderworkerset.x-k8s.io/v1
+kind: LeaderWorkerSet
+metadata:
+  name: $deployment_name
+  labels:
+    # must have this label
+    kalavai.lws.name: $deployment_name
+spec:
+  replicas: $replicas
+  leaderWorkerTemplate:
+    size: $num_workers
+    restartPolicy: RecreateGroupOnPodRestart
+    leaderTemplate:
+      metadata:
+        labels:
+          role: leader
+          kalavai.lws.name: $deployment_name
+      spec:
+        runtimeClassName: nvidia
+        containers:
+        - name: aphrodite-leader
+          image: bundenth/ray-aphrodite:v0.0.10
+          env:
+          - name: HF_TOKEN
+            value: $hf_token
+          command:
+            - sh
+            - -c
+            - "/vllm-workspace/ray_init.sh leader --ray_cluster_size=$num_workers;
+                 aphrodite run $model_id \
+                  --host 0.0.0.0 --port 8080 \
+                  --tensor-parallel-size $tensor_parallel_size \
+                  --pipeline-parallel-size $pipeline_parallel_size \
+                  $extra"
+          resources:
+            requests:
+              cpu: "$cpus"
+              memory: $memory
+              nvidia.com/gpu: "$gpus"
+            limits:
+              cpu: "$cpus"
+              memory: $memory
+              nvidia.com/gpu: "$gpus"
+          ports:
+          # if use 8080 as exposed port (if required)
+          - containerPort: 8080
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 90
+            periodSeconds: 30
+          volumeMounts:
+            - mountPath: /dev/shm
+              name: dshm
+        volumes:
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: $shmem_size
+    workerTemplate:
+      spec:
+        runtimeClassName: nvidia
+        containers:
+        - name: aphrodite-worker
+          image: bundenth/ray-aphrodite:v0.0.10
+          env:
+            - name: HF_TOKEN
+              value: $hf_token
+          command:
+            - sh
+            - -c
+            - "/vllm-workspace/ray_init.sh worker --ray_address=$$LWS_LEADER_ADDRESS"
+          resources:
+            requests:
+              cpu: "$cpus"
+              memory: $memory
+              nvidia.com/gpu: "$gpus"
+            limits:
+              cpu: "$cpus"
+              memory: $memory
+              nvidia.com/gpu: "$gpus"
+          volumeMounts:
+            - mountPath: /dev/shm
+              name: dshm   
+        volumes:
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: $shmem_size
