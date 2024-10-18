@@ -1,32 +1,36 @@
 set -e
 
-# get version (if set)
-if [[ -z "${KALAVAI_VERSION}" ]]; then
-    # set to latest
-    KALAVAI_VERSION=$(curl -s https://api.github.com/repos/kalavai-net/kalavai-client/releases/latest | jq -r '.tag_name')
-else
-    KALAVAI_VERSION="${KALAVAI_VERSION}"
-fi
-
 # elevate to sudo if not already
 SUDO=sudo
 if [ $(id -u) -eq 0 ]; then
     SUDO=
 fi
 # get package installer
-declare -A osInfo;
-osInfo[/etc/debian_version]="apt-get"
-osInfo[/etc/centos-release]="yum"
-osInfo[/etc/fedora-release]="dnf"
-osInfo[/etc/SuSE-release]="zypper"
+. /etc/os-release
 
-for f in ${!osInfo[@]}
-do
-    if [[ -f $f ]];then
-        package_manager=${osInfo[$f]}
-    fi
-done
+if [[ $ID == *"ubuntu"* ]]; then
+  package_manager="apt-get"
+fi
 
+if [[ $ID == *"pop"* ]]; then
+  package_manager="apt-get"
+fi
+
+if [[ $ID == *"debian"* ]]; then
+  package_manager="apt-get"
+fi
+
+if [[ $ID == *"suse"* ]]; then
+  package_manager="zypper"
+fi
+
+if [[ $ID == *"fedora"* ]]; then
+  package_manager="dnf"
+fi
+
+if [[ $ID == *"centos"* ]]; then
+  package_manager="yum"
+fi
 # --- helper functions for logs ---
 info()
 {
@@ -60,8 +64,9 @@ install_core_dependencies() {
     info "Installing package dependencies..."
     info "Installing nvidia runtime..."
     # nvidia-container-runtime, wireguard, containerd, netclient
-    $SUDO $package_manager install -y curl jq wget
+    $SUDO $package_manager install -y curl jq wget openssl
     if [ "$package_manager" == "apt-get" ]; then
+        $SUDO $package_manager install -y gnupg2
         curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | $SUDO gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
         && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
             sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
@@ -84,16 +89,16 @@ install_core_dependencies() {
         curl -sL 'https://rpm.netmaker.org/gpg.key' | $SUDO tee /tmp/gpg.key
         curl -sL 'https://rpm.netmaker.org/netclient-repo' | $SUDO tee /etc/yum.repos.d/netclient.repo
         $SUDO rpm --import /tmp/gpg.key
-        $SUDO $package_manager check-update
+        #$SUDO $package_manager check-update
         $SUDO $package_manager install -y netclient nvidia-container-toolkit wireguard-tools iscsi-initiator-utils nfs-utils
-         
+
     elif [ "$package_manager" == "zypper" ]; then
-        $SUDO $package_manager ar https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo
-        $SUDO $package_manager --gpg-auto-import-keys install -y nvidia-container-toolkit
+        $SUDO $package_manager ar https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo || true
+        $SUDO $package_manager --gpg-auto-import-keys install -y --force nvidia-container-toolkit
         $SUDO rpm --import https://rpm.netmaker.org/gpg.key
         curl -sL 'https://rpm.netmaker.org/netclient-repo' | $SUDO tee /etc/zypp/repos.d/netclient.repo
         $SUDO $package_manager refresh
-        $SUDO $package_manager install -y wireguard-tools netclient
+        $SUDO $package_manager install -y --force wireguard-tools netclient
     else
         fatal "Package manager is not recognised"
     fi
@@ -129,7 +134,7 @@ install_core_dependencies() {
 
     # configure containerd for nvidia
     # PRODUCES ERRO[0000] unrecognized runtime 'containerd'
-    $SUDO nvidia-ctk runtime configure --runtime=containerd
+    $SUDO nvidia-ctk runtime configure --runtime=containerd || true
     $SUDO systemctl restart containerd
 
     echo "# TACKLE "too many files open" in kubernetes pods
@@ -138,6 +143,14 @@ fs.inotify.max_user_instances = 1280"  | sudo tee -a /etc/sysctl.conf
 
 }
 install_kalavai_app() {
+
+    # get version (if set)
+    if [[ -z "${KALAVAI_VERSION}" ]]; then
+        # set to latest
+        KALAVAI_VERSION=$(curl -s https://api.github.com/repos/kalavai-net/kalavai-client/releases/latest | jq -r '.tag_name')
+    else
+        KALAVAI_VERSION="${KALAVAI_VERSION}"
+    fi
 
     if [ "$package_manager" == "apt-get" ]; then
         # Debian installers (deb) - apt-get
@@ -166,9 +179,3 @@ success() {
     install_kalavai_app
     success
 }
-
-
-
-
-
-

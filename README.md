@@ -11,6 +11,8 @@
 
 > Kalavai is an **open source, self-hosted** platform that turns **everyday devices** into your very own AI cluster. Home desktops, gaming laptops, work computers, cloud VMs...Aggregate resources from multiple machines and **say goodbye to CUDA out of memory errors**. Deploy your favourite open source LLM, fine tune it with your own data, or simply run your distributed work, zero-devops. **Simple. Private. Yours.**
 
+![Overview of Kalavai](/docs/docs/assets/images/overview_diagram.png)
+
 This repository contains:
 - Our [open, free CLI](#install): turn your devices into AI-capable servers.
 - [Community integrations](templates/README.md): template jobs built by Kalavai and the community that makes deploying distributed workflows easy for users.
@@ -251,10 +253,12 @@ Anything missing here? Give us a shout in the [discussion board](https://github.
 
 ### Requirements
 
+On Ubuntu:
+
 ```bash
 virtualenv -p python3 env
 source env/bin/activate
-sudo apt install python3-tk rpm squashfs-tools ruby-dev build-essential -y
+sudo apt install python3-tk python3-dev rpm squashfs-tools ruby-dev build-essential gcc -y
 sudo gem i fpm -f
 pip install -e .
 ```
