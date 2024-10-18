@@ -1,13 +1,5 @@
 set -e
 
-# get version (if set)
-if [[ -z "${KALAVAI_VERSION}" ]]; then
-    # set to latest
-    KALAVAI_VERSION=$(curl -s https://api.github.com/repos/kalavai-net/kalavai-client/releases/latest | jq -r '.tag_name')
-else
-    KALAVAI_VERSION="${KALAVAI_VERSION}"
-fi
-
 # elevate to sudo if not already
 SUDO=sudo
 if [ $(id -u) -eq 0 ]; then
@@ -17,6 +9,10 @@ fi
 . /etc/os-release
 
 if [[ $ID == *"ubuntu"* ]]; then
+  package_manager="apt-get"
+fi
+
+if [[ $ID == *"pop"* ]]; then
   package_manager="apt-get"
 fi
 
@@ -68,7 +64,7 @@ install_core_dependencies() {
     info "Installing package dependencies..."
     info "Installing nvidia runtime..."
     # nvidia-container-runtime, wireguard, containerd, netclient
-    $SUDO $package_manager install -y curl jq wget
+    $SUDO $package_manager install -y curl jq wget openssl
     if [ "$package_manager" == "apt-get" ]; then
         $SUDO $package_manager install -y gnupg2
         curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | $SUDO gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
@@ -93,7 +89,7 @@ install_core_dependencies() {
         curl -sL 'https://rpm.netmaker.org/gpg.key' | $SUDO tee /tmp/gpg.key
         curl -sL 'https://rpm.netmaker.org/netclient-repo' | $SUDO tee /etc/yum.repos.d/netclient.repo
         $SUDO rpm --import /tmp/gpg.key
-        $SUDO $package_manager check-update
+        #$SUDO $package_manager check-update
         $SUDO $package_manager install -y netclient nvidia-container-toolkit wireguard-tools iscsi-initiator-utils nfs-utils
 
     elif [ "$package_manager" == "zypper" ]; then
@@ -138,7 +134,7 @@ install_core_dependencies() {
 
     # configure containerd for nvidia
     # PRODUCES ERRO[0000] unrecognized runtime 'containerd'
-    $SUDO nvidia-ctk runtime configure --runtime=containerd
+    $SUDO nvidia-ctk runtime configure --runtime=containerd || true
     $SUDO systemctl restart containerd
 
     echo "# TACKLE "too many files open" in kubernetes pods
@@ -147,6 +143,14 @@ fs.inotify.max_user_instances = 1280"  | sudo tee -a /etc/sysctl.conf
 
 }
 install_kalavai_app() {
+
+    # get version (if set)
+    if [[ -z "${KALAVAI_VERSION}" ]]; then
+        # set to latest
+        KALAVAI_VERSION=$(curl -s https://api.github.com/repos/kalavai-net/kalavai-client/releases/latest | jq -r '.tag_name')
+    else
+        KALAVAI_VERSION="${KALAVAI_VERSION}"
+    fi
 
     if [ "$package_manager" == "apt-get" ]; then
         # Debian installers (deb) - apt-get
