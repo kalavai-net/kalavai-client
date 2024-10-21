@@ -1,7 +1,7 @@
 template_values:
 - name: deployment_name
-  value: vllm-deployment-1
-  default: vllm-deployment-1
+  value: aphrodite-1
+  default: aphrodite-1
   description: "Name of the deployment job"
 
 - name: replicas
@@ -14,13 +14,18 @@ template_values:
   default: "1"
   description: "Workers per deployment (for tensor parallelism)"
 
-- name: model_id
+- name: repo_id
   value: null
   default: null
   description: "Huggingface model id to load"
 
+- name: model_filename
+  value: "None"
+  default: "None"
+  description: "Specific model file to use (handy for quantized models such as gguf)"
+
 - name: hf_token
-  value: <yout token>
+  value: <your token>
   default: null
   description: "Huggingface token, required to load model weights"
 
@@ -35,8 +40,8 @@ template_values:
   description: "GPUs per single worker (final one = gpus * num_workers)"
 
 - name: memory
-  value: "4Gi"
-  default: "4Gi"
+  value: "8Gi"
+  default: "8Gi"
   description: "RAM memory per single worker (final one = memory * num_workers)"
 
 - name: tensor_parallel_size
@@ -55,6 +60,6 @@ template_values:
   description: "Size of the shared memory volume"
 
 - name: extra
-  value: "--dtype float16 --enforce-eager --swap-space 0"
-  default: --dtype float16 --enforce-eager --swap-space 0
-  description: "Extra parameters to pass to the vLLM server. See https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html#command-line-arguments-for-the-server"
+  value: ""
+  default: ""
+  description: "Extra parameters to pass to the vLLM server. See https://aphrodite.pygmalion.chat/"
