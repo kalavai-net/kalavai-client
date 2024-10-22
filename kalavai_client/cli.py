@@ -47,9 +47,11 @@ VERSION = 1
 RESOURCE_EXCLUDE = ["ephemeral-storage", "hugepages-1Gi", "hugepages-2Mi", "pods"]
 CORE_NAMESPACES = ["lws-system", "kube-system", "gpu-operator", "kalavai"]
 TEMPLATE_LABEL = "kalavai.lws.name"
+RAY_LABEL = "kalavai.ray.name"
 KUBE_VERSION = os.getenv("KALAVAI_KUBE_VERSION", "v1.31.1+k3s1")
 FLANNEL_IFACE = os.getenv("KALAVAI_FLANNEL_IFACE", None)
 FORBIDEDEN_IPS = ["127.0.0.1"]
+DEFAULT_NAMESPACE = "kalavai"
 # kalavai templates
 CLUSTER_CONFIG_TEMPLATE = resource_path("assets/seed.yaml")
 HELM_APPS_FILE = resource_path("assets/apps.yaml")
@@ -960,8 +962,153 @@ def job__manifest(*others, name):
             console.log(f"{manifest}")
     except Exception as e:
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
-        return         
+        return 
 
+
+@arguably.command
+def ray__create(template_path, *others):
+    """
+    Create a cluster using KubeRay operator
+    """
+    with open(template_path, "r") as f:
+        template_yaml = yaml.safe_load(f)
+        # ensure deployment is labelled (for tracking and deletion)
+        if "metadata" not in template_yaml or "name" not in template_yaml["metadata"]:
+            console.log("[red]Cluster must contain a metadata field and include a name entry.")
+            return
+        name = template_yaml["metadata"]["name"]
+        if "labels" in template_yaml["metadata"]:
+            template_yaml["metadata"]["labels"][RAY_LABEL] = name
+        else:
+            template_yaml["metadata"]["labels"] = {
+                RAY_LABEL: name
+            }
+        template_yaml = json.dumps(template_yaml)
+
+    data = {
+        "object": {
+            "group": "ray.io",
+            "api_version": "v1",
+            "namespace": "default",
+            "plural": "rayclusters"
+        },
+        "body": template_yaml
+    }
+    try:
+        result = request_to_server(
+            method="post",
+            endpoint="/v1/deploy_custom_object",
+            data=data,
+            server_creds=USER_LOCAL_SERVER_FILE
+        )
+        if len(result['failed']) > 0:
+            console.log(f"[red]Error when deploying template\n\n{result['failed']}")
+            return
+        if len(result['successful']) > 0:
+            console.log(f"[green]Template {template_path} successfully deployed!")
+    except Exception as e:
+        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
+        return
+
+
+@arguably.command
+def ray__list(*status):
+    if not CLUSTER.is_cluster_init() or not CLUSTER.is_agent_running():
+        console.log("[red]Kalavai is not running or not installed on your machine")
+
+    data = {
+        "group": "ray.io",
+        "api_version": "v1",
+        "namespace": "default",
+        "plural": "rayclusters"
+    }
+    try:
+        result = request_to_server(
+            method="post",
+            endpoint="/v1/get_objects_of_type",
+            data=data,
+            server_creds=USER_LOCAL_SERVER_FILE
+        )
+        clusters = result['items']
+
+    except Exception as e:
+        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
+        return
+
+    if len(clusters) == 0:
+        console.log("No clusters available")
+        return
+    
+    # pretty print
+    columns = ["Name", "Status", "CPUs", "GPUs", "Memory", "Endpoints"]
+    rows = []
+    server_ip = load_server_ip(USER_LOCAL_SERVER_FILE)
+    for cluster in clusters:
+        cluster_name = cluster['metadata']['name']
+        cpus = cluster["status"]["desiredCPU"]
+        gpus = cluster["status"]["desiredGPU"]
+        memory = cluster["status"]["desiredMemory"]
+        min_workers = cluster["status"]["minWorkerReplicas"] if "minWorkerReplicas" in cluster["status"] else 0
+        max_workers = cluster["status"]["maxWorkerReplicas"] if "maxWorkerReplicas" in cluster["status"] else 0
+        ready_workers = cluster["status"]["readyWorkerReplicas"] if "readyWorkerReplicas" in cluster["status"] else 0
+        head_status = cluster["status"]["state"] if "state" in cluster["status"] else "creating"
+        status = f"Head {head_status}\nWorkers: {ready_workers} ready ({min_workers}/{max_workers})"
+        endpoints = [f"{k}: http://{server_ip}:{v}" for k, v in cluster['status']["endpoints"].items()]
+        rows.append(
+            (cluster_name, status, cpus, gpus, memory, "\n".join(endpoints))
+        )
+    table = generate_table(columns=columns, rows=rows)
+    console.log(table)
+
+@arguably.command
+def ray__delete(*others, name):
+    """
+    Delete a ray cluster
+    """
+    if not CLUSTER.is_cluster_init() or not CLUSTER.is_agent_running():
+        console.log("[red]Kalavai is not running or not installed on your machine")
+
+    # deploy template with kube-watcher
+    data = {
+        "namespace": "default",
+        "label": RAY_LABEL, # this ensures that both raycluster and services are deleted
+        "value": name
+    }
+    try:
+        result = request_to_server(
+            method="post",
+            endpoint="/v1/delete_labeled_resources",
+            data=data,
+            server_creds=USER_LOCAL_SERVER_FILE
+        )
+        console.log(f"{result}")
+    except Exception as e:
+        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
+
+@arguably.command
+def ray__manifest(*others, name):
+    """
+    Get ray cluster manifest description
+    """
+    data = {
+        "namespace": "default",
+        "label": "ray.io/cluster",
+        "value": name
+    }
+    try:
+        result = request_to_server(
+            method="post",
+            endpoint="/v1/describe_pods_for_label",
+            data=data,
+            server_creds=USER_LOCAL_SERVER_FILE
+        )
+        for pod, manifest in result.items():
+            manifest = json.dumps(manifest, indent=3)
+            console.log(f"[yellow]Pod {pod}")
+            console.log(f"{manifest}")
+    except Exception as e:
+        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
+        return
 
 if __name__ == "__main__":
     user_path("", create_path=True)

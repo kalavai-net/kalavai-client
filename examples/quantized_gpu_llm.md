@@ -90,12 +90,12 @@ template_values:
   description: "Extra parameters to pass to the vLLM server. See https://aphrodite.pygmalion.chat/"
 ```
 
-3. Deploy your aphrodite template:
+2. Deploy your aphrodite template:
 ```bash
 kalavai job run aphrodite --values-path values.yaml
 ```
 
-4. Wait until it is ready; it may take a few minutes depending on your internet connection. Monitor the deployment until status is `Available`:
+3. Wait until it is ready; it may take a few minutes depending on your internet connection. Monitor the deployment until status is `Available`:
 ```bash
 $ kalavai job list
 
@@ -106,7 +106,7 @@ $ kalavai job list
 └───────────────────┴───────────────────────────────────┴────────────────────────┘
 ```
 
-5. Now you are ready to do inference with the model! Substitute the URL below with the endpoint indicated above:
+4. Now you are ready to do inference with the model! Substitute the URL below with the endpoint indicated above:
 
 ```bash
 curl http://100.8.0.2:31947/v1/completions \
@@ -119,7 +119,7 @@ curl http://100.8.0.2:31947/v1/completions \
     }'
 ```
 
-6. Alternatively, you can do inference in Python:
+5. Alternatively, you can do inference in Python:
 
 ```python
 from openai import OpenAI
@@ -137,9 +137,9 @@ completion = client.completions.create(
 print("Completion result:", completion)
 ```
 
-7. A KoboldAI GUI should be available in your browser at the address `http://100.8.0.2:31947`:
+6. A KoboldAI GUI should be available in your browser at the address `http://100.8.0.2:31947`:
 
-![KoboldAI for our Qwen Chat model](./kobold.png)
+![KoboldAI for our Qwen Chat model](img/kobold.png)
 
 
 ## Debug

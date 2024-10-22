@@ -1,0 +1,69 @@
+# example: https://raw.githubusercontent.com/ray-project/ray/master/doc/source/cluster/kubernetes/configs/ray-cluster.gpu.yaml
+apiVersion: ray.io/v1
+kind: RayCluster
+metadata:
+  name: gpu-cluster
+  annotations:
+    # fault tolerance https://ray-project.github.io/kuberay/guidance/gcs-ft/
+    #ray.io/ft-enabled: "true" # <- add this annotation enable GCS FT
+    #ray.io/external-storage-namespace: "raycluster-storage" # <- optional, to specify the external storage namespace
+spec:
+  rayVersion: "2.32.0"
+  autoscalerOptions:
+    # upscalingMode is "Default" or "Aggressive."
+    # Conservative: Upscaling is rate-limited; the number of pending worker pods is at most the size of the Ray cluster.
+    # Default: Upscaling is not rate-limited.
+    # Aggressive: An alias for Default; upscaling is not rate-limited.
+    upscalingMode: Default
+    # idleTimeoutSeconds is the number of seconds to wait before scaling down a worker pod which is not using Ray resources.
+    idleTimeoutSeconds: 60
+  enableInTreeAutoscaling: true
+  headGroupSpec:
+    serviceType: NodePort
+    rayStartParams:
+      dashboard-host: "0.0.0.0"
+    template: # Pod template
+      spec: # Pod spec
+        restartPolicy: Always
+        containers:
+        - name: ray-head
+          image: docker.io/rayproject/ray:2.32.0-py310-gpu
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              cpu: 2
+              memory: 4Gi
+            requests:
+              cpu: 2
+              memory: 4Gi
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh","-c","ray stop"]
+  workerGroupSpecs:
+  # worker group of up to 4 GPU workers
+  - groupName: gpu-group
+    replicas: 1
+    minReplicas: 1
+    maxReplicas: 2
+    rayStartParams: 
+      num-gpus: "1"
+    template:
+      spec:
+        containers:
+        - name: ml-work-group
+          image: docker.io/rayproject/ray:2.32.0-py310-gpu
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              nvidia.com/gpu: 1
+              cpu: 2
+              memory: 4Gi
+            requests:
+              nvidia.com/gpu: 1
+              cpu: 2
+              memory: 4Gi
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh","-c","ray stop"]
