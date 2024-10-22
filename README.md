@@ -27,6 +27,7 @@ Kalavai is a platform for distributed computing, and thus it supports a wide ran
 - [Single node vLLM GPU LLM deployment](examples/singlenode_gpu_vllm.md)
 - [Multi node vLLM GPU LLM deployment](examples/multinode_gpu_vllm.md)
 - [Aphrodite-engine quantized LLM deployment, including Kobold interface](examples/quantized_gpu_llm.md)
+- [Ray cluster](examples/ray_cluster.md) for distributed computation.
 
 
 ## Install
