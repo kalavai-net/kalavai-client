@@ -24,9 +24,9 @@ This repository contains:
 ## What can Kalavai do?
 
 Kalavai is a platform for distributed computing, and thus it supports a wide range of tasks. Here is a growing list of examples:
-- [Single node vLLM GPU LLM deployment](examples/singlenode_gpu_vllm.md)
-- [Multi node vLLM GPU LLM deployment](examples/multinode_gpu_vllm.md)
-- [Aphrodite-engine quantized LLM deployment, including Kobold interface](examples/quantized_gpu_llm.md)
+- [Single node vLLM GPU LLM](examples/singlenode_gpu_vllm.md) deployment
+- [Multi node vLLM GPU LLM](examples/multinode_gpu_vllm.md) deployment
+- [Aphrodite-engine quantized LLM](examples/quantized_gpu_llm.md) deployment, including Kobold interface
 - [Ray cluster](examples/ray_cluster.md) for distributed computation.
 
 
