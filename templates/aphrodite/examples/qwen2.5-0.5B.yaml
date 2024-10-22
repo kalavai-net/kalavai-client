@@ -1,0 +1,65 @@
+template_values:
+- name: deployment_name
+  value: aphrodite-1
+  default: aphrodite-1
+  description: "Name of the deployment job"
+
+- name: replicas
+  value: "1"
+  default: "1"
+  description: "How many replicas to deploy for the model"
+
+- name: num_workers
+  value: "1"
+  default: "1"
+  description: "Workers per deployment (for tensor parallelism)"
+
+- name: repo_id
+  value: Qwen/Qwen2.5-0.5B-Instruct
+  default: null
+  description: "Huggingface model id to load"
+
+- name: model_filename
+  value: "None"
+  default: "None"
+  description: "Specific model file to use (handy for quantized models such as gguf)"
+
+- name: hf_token
+  value: <your token>
+  default: null
+  description: "Huggingface token, required to load model weights"
+
+- name: cpus
+  value: "4"
+  default: "4"
+  description: "CPUs per single worker (final one = cpus * num_workers)"
+
+- name: gpus
+  value: "1"
+  default: "1"
+  description: "GPUs per single worker (final one = gpus * num_workers)"
+
+- name: memory
+  value: "8Gi"
+  default: "8Gi"
+  description: "RAM memory per single worker (final one = memory * num_workers)"
+
+- name: tensor_parallel_size
+  value: "1"
+  default: "1"
+  description: "Tensor parallelism (use the number of GPUs per node)"
+
+- name: pipeline_parallel_size
+  value: "1"
+  default: "1"
+  description: "Pipeline parallelism (use the number of nodes)"
+
+- name: shmem_size
+  value: "4Gi"
+  default: "4Gi"
+  description: "Size of the shared memory volume"
+
+- name: extra
+  value: "--dtype float16 --enforce-eager"
+  default: ""
+  description: "Extra parameters to pass to the vLLM server. See https://aphrodite.pygmalion.chat/"
