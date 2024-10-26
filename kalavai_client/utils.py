@@ -13,12 +13,135 @@ from rich.table import Table
 import yaml
 import platform
 import psutil
+
 import GPUtil
+
+from kalavai_client.auth import KalavaiAuthClient
 
 
 GITHUB_ORG = "kalavai-net"
 GITHUB_REPO = "kalavai-client"
 GITHUB_TEMPLATE_PATH = "templates"
+CLUSTER_IP_KEY = "cluster_ip"
+CLUSTER_TOKEN_KEY = "cluster_token"
+SERVER_IP_KEY = "server_ip"
+NODE_NAME_KEY = "node_name"
+NET_TOKEN_KEY = "net_token"
+CLUSTER_NAME_KEY = "cluster_name"
+AUTH_KEY = "auth_key"
+READONLY_KEY = "readonly_key"
+WATCHER_SERVICE_KEY = "watcher_service"
+WATCHER_PORT_KEY = "watcher_port"
+MANDATORY_TOKEN_FIELDS = [
+    CLUSTER_IP_KEY,
+    CLUSTER_TOKEN_KEY,
+    CLUSTER_NAME_KEY,
+    AUTH_KEY,
+    WATCHER_SERVICE_KEY,
+    NET_TOKEN_KEY
+]
+
+
+def load_server_info(data_key, file):
+    try:
+        with open(file, "r") as f:
+            return json.load(f)[data_key]
+    except:
+        return None
+    
+def user_login(user_cookie, username, password):
+    auth = KalavaiAuthClient(
+        user_cookie_file=user_cookie
+    )
+    user = auth.load_user_session()
+    if user is None:
+        user = auth.login(username=username, password=password)
+    return user
+
+def user_logout(user_cookie):
+    auth = KalavaiAuthClient(
+        user_cookie_file=user_cookie
+    )
+    auth.logout()
+
+def get_public_vpns(user_cookie):
+    auth = KalavaiAuthClient(
+        user_cookie_file=user_cookie
+    )
+    if not auth.is_logged_in():
+        raise ValueError("Cannot access vpns, user is not authenticated")
+    seeds = auth.call_function(
+        "get_public_vpns"
+    )
+    return seeds
+
+def get_public_seeds(user_only, user_cookie):
+    auth = KalavaiAuthClient(
+        user_cookie_file=user_cookie
+    )
+    if not auth.is_logged_in():
+        raise ValueError("Cannot access vpns, user is not authenticated")
+    user = auth.load_user_session() if user_only else None
+    seeds = auth.call_function(
+        "get_available_seeds",
+        user
+    )
+    return seeds
+
+def get_vpn_key(location, user_cookie):
+    auth = KalavaiAuthClient(
+        user_cookie_file=user_cookie
+    )
+    if not auth.is_logged_in():
+        raise ValueError("Cannot access vpns, user is not authenticated")
+    key = auth.call_function(
+        "get_vpn_key",
+        location
+    )
+    return key
+
+def register_cluster(name, token, description, user_cookie):
+    auth = KalavaiAuthClient(
+        user_cookie_file=user_cookie
+    )
+    if not auth.is_logged_in():
+        raise ValueError("Cannot register cluster, user is not authenticated")
+    user = auth.load_user_session()
+    seed = auth.call_function(
+        "register_seed",
+        name,
+        user,
+        description,
+        token
+    )
+    return seed
+
+def unregister_cluster(name, user_cookie):
+    auth = KalavaiAuthClient(
+        user_cookie_file=user_cookie
+    )
+    if not auth.is_logged_in():
+        raise ValueError("Cannot register cluster, user is not authenticated")
+    user = auth.load_user_session()
+    seed = auth.call_function(
+        "unregister_seed",
+        name,
+        user,
+    )
+    return seed
+
+def check_gpu_drivers():
+    value = run_cmd("command -v nvidia-smi")
+    if len(value.decode("utf-8")) == 0:
+        # no nvidia installed, no need to check nvidia any further
+        return False
+    else:
+        # check drivers are set correctly
+        try:
+            value = run_cmd("nvidia-smi")
+            return True
+        except:
+            raise ("Nvidia not configured properly. Please check your drivers are installed and configured")
 
 
 def run_cmd(command):
@@ -28,7 +151,10 @@ def run_cmd(command):
     except OSError as error:
         return error # for exit code
 
-def join_vpn(token):
+def join_vpn(location, user_cookie):
+    token = get_vpn_key(location=location, user_cookie=user_cookie)
+    if token is None:
+        raise ValueError(f"VPN location {location} not found or is private")
     try:
         data = decode_dict(token)
         for field in ["server", "value"]:
@@ -37,6 +163,7 @@ def join_vpn(token):
         raise ValueError("Invalid net token")
     
     run_cmd(f"sudo netclient join -t {token} >/dev/null 2>&1")
+    return token
 
 def leave_vpn():
     try:
@@ -97,8 +224,8 @@ def get_all_templates(local_path, templates_path=None, remote_load=False):
 
 
 def request_to_server(method, endpoint, data, server_creds):
-    service_url = load_watcher_service_url(server_creds)
-    auth_key = load_server_auth_key(server_creds)
+    service_url = load_server_info(data_key=WATCHER_SERVICE_KEY, file=server_creds)
+    auth_key = load_server_info(data_key=AUTH_KEY, file=server_creds)
 
     headers = {
         "X-API-KEY": auth_key
@@ -116,7 +243,7 @@ def request_to_server(method, endpoint, data, server_creds):
 def generate_table(columns, rows, end_sections=None):
 
     table = Table(show_header=True, header_style="bold white")
-    [table.add_column(col) for col in columns]
+    [table.add_column(col, overflow="fold") for col in columns]
     for idx, row in enumerate(rows):
         table.add_row(*row, end_section=end_sections and idx in end_sections)
 
@@ -125,64 +252,15 @@ def generate_table(columns, rows, end_sections=None):
 def store_server_info(server_ip, auth_key, watcher_service, file, node_name, cluster_name, readonly_key=None, net_token=None):
     with open(file, "w") as f:
         json.dump({
-            "server_ip": server_ip,
-            "auth_key": auth_key,
-            "readonly_key": readonly_key,
-            "watcher_service": watcher_service,
-            "node_name": node_name,
-            "cluster_name": cluster_name,
-            "net_token": net_token
+            SERVER_IP_KEY: server_ip,
+            AUTH_KEY: auth_key,
+            READONLY_KEY: readonly_key,
+            WATCHER_SERVICE_KEY: watcher_service,
+            NODE_NAME_KEY: node_name,
+            CLUSTER_NAME_KEY: cluster_name,
+            NET_TOKEN_KEY: net_token
         }, f)
     return True
-
-def load_server_ip(file):
-    try:
-        with open(file, "r") as f:
-            return json.load(f)["server_ip"]
-    except:
-        return None
-
-def load_node_name(file):
-    try:
-        with open(file, "r") as f:
-            return json.load(f)["node_name"]
-    except:
-        return None
-
-def load_net_token(file):
-    try:
-        with open(file, "r") as f:
-            return json.load(f)["net_token"]
-    except:
-        return None
-
-def load_cluster_name(file):
-    try:
-        with open(file, "r") as f:
-            return json.load(f)["cluster_name"]
-    except:
-        return None
-
-def load_server_auth_key(file):
-    try:
-        with open(file, "r") as f:
-            return json.load(f)["auth_key"]
-    except:
-        return None
-    
-def load_server_readonly_key(file):
-    try:
-        with open(file, "r") as f:
-            return json.load(f)["readonly_key"]
-    except:
-        return None
-
-def load_watcher_service_url(file):
-    try:
-        with open(file, "r") as f:
-            return json.load(f)["watcher_service"]
-    except:
-        return None
 
 def load_template(template_path, values_path):
     if not Path(template_path).exists():
@@ -215,12 +293,12 @@ def user_confirm(question: str, options: list) -> int:
 
 def generate_join_token(cluster_ip, cluster_token, cluster_name, auth_key, watcher_service, net_token):
     data = {
-        "cluster_ip": cluster_ip,
-        "cluster_name": cluster_name,
-        "cluster_token": cluster_token,
-        "auth_key": auth_key,
-        "watcher_service": watcher_service,
-        "net_token": net_token
+        CLUSTER_IP_KEY: cluster_ip,
+        CLUSTER_NAME_KEY: cluster_name,
+        CLUSTER_TOKEN_KEY: cluster_token,
+        AUTH_KEY: auth_key,
+        WATCHER_SERVICE_KEY: watcher_service,
+        NET_TOKEN_KEY: net_token
     }
     return encode_dict(data=data)
 

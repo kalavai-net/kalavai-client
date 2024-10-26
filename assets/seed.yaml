@@ -5,11 +5,11 @@ metadata:
   name: $cluster_name
 spec:
   api:
-    address: $server_address
+    address: $cluster_ip
     k0sApiPort: 9443
     port: 6443
     sans:
-    - $server_address
+    - $cluster_ip
   controllerManager: {}
   extensions:
     helm:
@@ -113,7 +113,7 @@ spec:
   storage:
     etcd:
       externalCluster: null
-      peerAddress: $server_address
+      peerAddress: $cluster_ip
     type: etcd
   telemetry:
     enabled: true

@@ -6,6 +6,7 @@ from string import Template
 import time
 import socket
 from pathlib import Path
+from getpass import getpass
 
 import yaml
 import netifaces as ni
@@ -19,23 +20,33 @@ from kalavai_client.utils import (
     user_confirm,
     load_template,
     store_server_info,
-    load_server_auth_key,
-    load_node_name,
-    load_server_ip,
     generate_table,
     request_to_server,
     get_all_templates,
-    load_watcher_service_url,
-    run_cmd,
     is_service_running,
-    load_cluster_name,
     resource_path,
     user_path,
     safe_remove,
     join_vpn,
-    load_net_token,
     leave_vpn,
-    load_server_readonly_key
+    load_server_info,
+    user_login,
+    user_logout,
+    get_public_vpns,
+    register_cluster,
+    unregister_cluster,
+    get_public_seeds,
+    SERVER_IP_KEY,
+    AUTH_KEY,
+    WATCHER_SERVICE_KEY,
+    READONLY_KEY,
+    NET_TOKEN_KEY,
+    NODE_NAME_KEY,
+    CLUSTER_NAME_KEY,
+    CLUSTER_IP_KEY,
+    CLUSTER_TOKEN_KEY,
+    WATCHER_PORT_KEY,
+    MANDATORY_TOKEN_FIELDS
 )
 from kalavai_client.cluster import (
     k3sCluster
@@ -51,7 +62,6 @@ RAY_LABEL = "kalavai.ray.name"
 KUBE_VERSION = os.getenv("KALAVAI_KUBE_VERSION", "v1.31.1+k3s1")
 FLANNEL_IFACE = os.getenv("KALAVAI_FLANNEL_IFACE", None)
 FORBIDEDEN_IPS = ["127.0.0.1"]
-DEFAULT_NAMESPACE = "kalavai"
 # kalavai templates
 CLUSTER_CONFIG_TEMPLATE = resource_path("assets/seed.yaml")
 HELM_APPS_FILE = resource_path("assets/apps.yaml")
@@ -62,6 +72,7 @@ USER_LOCAL_CONFIG_FILE = user_path("cluster_config.conf")
 USER_KUBECONFIG_FILE = user_path("kubeconfig")
 USER_LOCAL_SERVER_FILE = user_path(".server")
 USER_TEMPLATES_FOLDER = user_path("templates", create_path=True)
+USER_COOKIE = user_path(".user_cookie.pkl")
 
 
 console = Console()
@@ -89,8 +100,7 @@ def cleanup_local():
     safe_remove(USER_LOCAL_CONFIG_FILE)
     safe_remove(USER_KUBECONFIG_FILE)
     safe_remove(USER_LOCAL_SERVER_FILE)
-    
-    
+
 def fetch_remote_templates():
     templates = get_all_templates(
         local_path=USER_TEMPLATES_FOLDER,
@@ -98,7 +108,6 @@ def fetch_remote_templates():
         remote_load=True)
     return templates
 
-        
 def restart():
     console.log("[white] Restarting sharing (may take a few minutes)...")
     success = CLUSTER.restart_agent()
@@ -106,24 +115,9 @@ def restart():
         console.log("[white] Kalava sharing resumed")
         fetch_remote_templates()
     else:
-        console.log("[red] Error when restarting. Please run [yellow]kalavai resume[white] again.")
+        console.log("[red] Error when restarting. Please run [yellow]kalavai cluster resume[white] again.")
 
-def check_gpu_drivers():
-    value = run_cmd("command -v nvidia-smi")
-    if len(value.decode("utf-8")) == 0:
-        # no nvidia installed, no need to check nvidia any further
-        return True
-    else:
-        # check drivers are set correctly
-        try:
-            value = run_cmd("nvidia-smi")
-            return True
-        except:
-            console.log("[red] Nvidia not configured properly. Please check your drivers are installed and configured")
-            console.log("[white] run [yellow]nvidia-smi[white] to see if the drivers can find your card.")
-            return False
-
-def set_schedulable(schedulable, node_name=load_node_name(USER_LOCAL_SERVER_FILE)):
+def set_schedulable(schedulable, node_name=load_server_info(data_key=NODE_NAME_KEY, file=USER_LOCAL_SERVER_FILE)):
     """
     Delete job in the cluster
     """
@@ -142,7 +136,6 @@ def set_schedulable(schedulable, node_name=load_node_name(USER_LOCAL_SERVER_FILE
         console.log(f"{res}")
     except Exception as e:
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
-
 
 def select_ip_address():
     ips = []
@@ -171,7 +164,133 @@ def select_ip_address():
 ##################
 
 @arguably.command
-def start(cluster_name, *others,  ip_address: str=None, net_token: str=None):
+def login(*others,  username: str=None):
+    """
+    [AUTH] (For public clusters only) Log in to Kalavai server.
+
+    Args:
+        *others: all the other positional arguments go here
+    """
+    console.log("Kalavai account details. If you don't have an account, create one at [yellow]https://platform.kalavai.net")
+    if username is None:
+        username = input("User email: ")
+    password = getpass()
+    user = user_login(
+        user_cookie=USER_COOKIE,
+        username=username,
+        password=password
+    )
+    
+    if user is not None:
+        console.log(f"[green]{username} logged in successfully")
+    else:
+        console.log(f"[red]Invalid credentials for {username}")
+    
+    return user is not None
+
+@arguably.command
+def logout(*others):
+    """
+    [AUTH] (For public clusters only) Log out of Kalavai server.
+
+    Args:
+        *others: all the other positional arguments go here
+    """
+    user_logout(
+        user_cookie=USER_COOKIE
+    )
+    console.log("[green]Log out successfull")
+
+@arguably.command
+def vpn__list(*others):
+    """
+    [AUTH] List public vpn locations on Kalavai
+    """
+    try:
+        seeds = get_public_vpns(user_cookie=USER_COOKIE)
+    except Exception as e:
+        console.log(f"[red]Error: {str(e)}")
+        console.log("Are you authenticated? Try [yellow]kalavai login")
+        return
+    columns, rows = [], []
+    for idx, seed in enumerate(seeds):
+        columns = seed.keys()
+        rows.append([str(idx)] + list(seed.values()))
+    columns = ["VPN"] + list(columns)
+    table = generate_table(columns=columns, rows=rows)
+    console.log(table)
+
+@arguably.command
+def cluster__publish(name, *others):
+    """
+    [AUTH] Publish cluster to Kalavai platform, where other users may be able to join
+    """
+    # Check for:
+    # - cluster is up and running
+    # - cluster is connected to vpn (has net token)
+    # - user is authenticated
+    if not CLUSTER.is_cluster_init():
+        console.log(f"[red] No local cluster running. Start a cluster with [yellow]kalavai cluster start [white]first.")
+        return
+    
+    try:
+        token = cluster__token()
+        if not cluster__check_token(token=token, public=True):
+            raise ValueError("[red]Cluster must be started with a valid vpn_location to publish")
+        register_cluster(
+            name=name,
+            token=token,
+            description=f"{name} cluster",
+            user_cookie=USER_COOKIE)
+        console.log("[green]Your cluster is now public on https://platform.kalavai.net")
+    except Exception as e:
+        console.log(f"[red]Error when publishing cluster. {str(e)}")
+
+@arguably.command
+def cluster__unpublish(name, *others):
+    """
+    [AUTH] Unpublish cluster to Kalavai platform. Cluster and all its workers will still work
+    """
+    # Check for:
+    # - cluster is up and running
+    # - user is authenticated
+    if not CLUSTER.is_cluster_init():
+        console.log(f"[red] No local cluster running. Start a cluster with [yellow]kalavai cluster start [white]first.")
+        return
+    
+    try:
+        unregister_cluster(
+            name=name,
+            user_cookie=USER_COOKIE)
+        console.log("[green]Your cluster has been removed from https://platform.kalavai.net")
+    except Exception as e:
+        console.log(f"[red]Error when unpublishing cluster. {str(e)}")
+
+@arguably.command
+def cluster__list(*others, user_only=False):
+    """
+    [AUTH] List public clusters in to Kalavai platform.
+    """
+    try:
+        seeds = get_public_seeds(
+            user_only=user_only,
+            user_cookie=USER_COOKIE)
+    except Exception as e:
+        console.log(f"[red]Error when loading cluster seeds. {str(e)}")
+        return
+    
+    for seed in seeds:
+        console.log("[yellow]************************************")
+        for key, value in seed.items():
+            if key == "join_key":
+                continue
+            console.log(f"[yellow]{key}: [green]{value}")
+        print(f"Join key: {seed['join_key']}")
+        console.log("[yellow]************************************")
+    console.log("[white]Use [yellow]kalavai cluster join <join key> [white]to join a public cluster")
+
+@arguably.command
+def cluster__start(cluster_name, *others,  ip_address: str=None, vpn_location: str=None):
     """
     Start Kalavai cluster and start/resume sharing resources.
 
@@ -180,14 +299,15 @@ def start(cluster_name, *others,  ip_address: str=None, net_token: str=None):
     """
 
     if CLUSTER.is_cluster_init():
-        console.log(f"[white] You are already connected to {load_cluster_name(USER_LOCAL_SERVER_FILE)}. Enter [yellow]kalavai stop[white] to exit and join another one.")
+        console.log(f"[white] You are already connected to {load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE)}. Enter [yellow]kalavai cluster stop[white] to exit and join another one.")
         return
 
     # join private network if provided
-    if net_token is not None:
+    net_token = None
+    if vpn_location is not None:
         console.log("Joining private network")
         try:
-            join_vpn(token=net_token)
+            net_token = join_vpn(location=vpn_location)
             time.sleep(5)
         except Exception as e:
             console.log(f"[red]Error when joining network: {str(e)}")
@@ -202,11 +322,11 @@ def start(cluster_name, *others,  ip_address: str=None, net_token: str=None):
     readonly_key = str(uuid.uuid4())
     watcher_port = 31000
     values = {
-        "cluster_name": cluster_name,
-        "server_address": ip_address,
-        "auth_key": auth_key,
-        "readonly_key": readonly_key,
-        "watcher_port": watcher_port
+        CLUSTER_NAME_KEY: cluster_name,
+        CLUSTER_IP_KEY: ip_address,
+        AUTH_KEY: auth_key,
+        READONLY_KEY: readonly_key,
+        WATCHER_PORT_KEY: watcher_port
     }
     # populate cluster config file
     with open(CLUSTER_CONFIG_TEMPLATE, "r") as f:
@@ -249,12 +369,13 @@ def start(cluster_name, *others,  ip_address: str=None, net_token: str=None):
         dependencies_file=USER_HELM_APPS_FILE
     )
     
-    console.log("[green]Your cluster is ready! Grow your cluster by sharing your joining token with others. Run [yellow]kalavai token[green] to generate one.")
+    console.log("[green]Your cluster is ready! Grow your cluster by sharing your joining token with others. Run [yellow]kalavai cluster token[green] to generate one.")
     fetch_remote_templates()
+
     return None
 
 @arguably.command
-def token(*others, admin_privilege=True):
+def cluster__token(*others, admin_privilege=True):
     """
     Generate a join token for others to connect to your cluster
     """
@@ -266,11 +387,11 @@ def token(*others, admin_privilege=True):
         config = yaml.safe_load(f)
     
     if admin_privilege:
-        auth_key = load_server_auth_key(USER_LOCAL_SERVER_FILE)
+        auth_key = load_server_info(data_key=AUTH_KEY, file=USER_LOCAL_SERVER_FILE)
     else:
-        auth_key = load_server_readonly_key(USER_LOCAL_SERVER_FILE)
-    watcher_service = load_watcher_service_url(USER_LOCAL_SERVER_FILE)
-    net_token = load_net_token(USER_LOCAL_SERVER_FILE)
+        auth_key = load_server_info(data_key=READONLY_KEY, file=USER_LOCAL_SERVER_FILE)
+    watcher_service = load_server_info(data_key=WATCHER_SERVICE_KEY, file=USER_LOCAL_SERVER_FILE)
+    net_token = load_server_info(data_key=NET_TOKEN_KEY, file=USER_LOCAL_SERVER_FILE)
 
     cluster_token = CLUSTER.get_cluster_token()
 
@@ -292,14 +413,17 @@ def token(*others, admin_privilege=True):
     return join_token
 
 @arguably.command
-def check_token(token, *others):
+def cluster__check_token(token, *others, public=False):
     """
     Utility to check the validity of a join token
     """
     try:
         data = decode_dict(token)
-        for field in ["cluster_ip", "cluster_token", "cluster_name", "auth_key", "watcher_service", "net_token"]:
+        for field in MANDATORY_TOKEN_FIELDS:
             assert field in data
+        if public:
+            if data["net_token"] is None:
+                raise ValueError("Token is not valid for public seeds. Did you start the cluster with a vpn_location?")
         console.log("[green]Token format is correct")
         return True
     except Exception as e:
@@ -309,7 +433,7 @@ def check_token(token, *others):
 
 
 @arguably.command
-def join(token, *others, node_name=None, ip_address: str = None):
+def cluster__join(token, *others, node_name=None, ip_address: str = None):
     """
     Join Kalavai cluster and start/resume sharing resources.
 
@@ -320,17 +444,17 @@ def join(token, *others, node_name=None, ip_address: str = None):
         node_name = socket.gethostname()
     
     # check token
-    if not check_token(token):
+    if not cluster__check_token(token):
         return
 
     try:
         data = decode_dict(token)
-        kalavai_url = data["cluster_ip"]
-        kalavai_token = data["cluster_token"]
-        cluster_name = data["cluster_name"]
-        auth_key = data['auth_key']
-        watcher_service = data["watcher_service"]
-        net_token = data["net_token"]
+        kalavai_url = data[CLUSTER_IP_KEY]
+        kalavai_token = data[CLUSTER_TOKEN_KEY]
+        cluster_name = data[CLUSTER_NAME_KEY]
+        auth_key = data[AUTH_KEY]
+        watcher_service = data[WATCHER_SERVICE_KEY]
+        net_token = data[NET_TOKEN_KEY]
     except Exception as e:
         console.log(str(e))
         console.log("[red] Invalid token")
@@ -344,6 +468,7 @@ def join(token, *others, node_name=None, ip_address: str = None):
             time.sleep(5)
         except Exception as e:
             console.log(f"[red]Error when joining network: {str(e)}")
+            console.log("Are you authenticated? Try [yellow]kalavai login")
             return
 
     if ip_address is None:
@@ -351,7 +476,6 @@ def join(token, *others, node_name=None, ip_address: str = None):
         ip_address = select_ip_address()
     console.log(f"Using {ip_address} address for worker")
     
-        
     # check that k3s is not running already in the host
     # k3s service running or preinstalled
     if  not CLUSTER.is_agent_running():
@@ -379,7 +503,7 @@ def join(token, *others, node_name=None, ip_address: str = None):
             cluster_name=cluster_name)
         fetch_remote_templates()
     else:
-        console.log(f"[white] You are already connected to {load_cluster_name(USER_LOCAL_SERVER_FILE)}. Enter [yellow]kalavai stop[white] to exit and join another one.")
+        console.log(f"[white] You are already connected to {load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE)}. Enter [yellow]kalavai cluster stop[white] to exit and join another one.")
     
     if not CLUSTER.is_agent_running():
         restart()
@@ -391,7 +515,7 @@ def join(token, *others, node_name=None, ip_address: str = None):
             
     
 @arguably.command
-def stop(*others):
+def cluster__stop(*others):
     """
     Stop sharing your device and clean up. DO THIS ONLY IF YOU WANT TO REMOVE KALAVAI-CLIENT from your device.
 
@@ -400,13 +524,13 @@ def stop(*others):
     """
     # k3s stop locally
     console.log("[white] Stopping kalavai app...")
-    node__delete(load_node_name(USER_LOCAL_SERVER_FILE))
+    node__delete(load_server_info(data_key=NODE_NAME_KEY, file=USER_LOCAL_SERVER_FILE))
     CLUSTER.remove_agent()
     cleanup_local()
-    console.log("[white] Kalavai has stopped sharing your resources. Use [yellow]kalavai start[white] or [yellow]kalavai join[white] to start again!")
+    console.log("[white] Kalavai has stopped sharing your resources. Use [yellow]kalavai cluster start[white] or [yellow]kalavai cluster join[white] to start again!")
 
 @arguably.command
-def pause(*others):
+def cluster__pause(*others):
     """
     Pause sharing your device and make your device unavailable for kalavai scheduling.
 
@@ -417,12 +541,12 @@ def pause(*others):
     console.log("[white] Pausing kalavai app...")
     success = CLUSTER.pause_agent()
     if success:
-        console.log("[white] Kalava sharing paused. Resume with [yellow]kalavai resume")
+        console.log("[white] Kalava sharing paused. Resume with [yellow]kalavai cluster resume")
     else:
-        console.log("[red] Error when stopping. Please run [yellow]kalavai pause[red] again.")
+        console.log("[red] Error when stopping. Please run [yellow]kalavai cluster pause[red] again.")
 
 @arguably.command
-def resume(*others):
+def cluster__resume(*others):
     """
     Resume sharing your device and make device available for kalavai scheduling.
 
@@ -431,14 +555,14 @@ def resume(*others):
     """
     # k3s stop locally
     if not CLUSTER.is_cluster_init():
-        console.log("[red] Kalavai app was not started before, please run [yellow]kalavai start[red] to start a cluster or [yellow]kalavai join[red] to join one first")
+        console.log("[red] Kalavai app was not started before, please run [yellow]kalavai cluster start[red] to start a cluster or [yellow]kalavai cluster join[red] to join one first")
         return
     console.log("[white] Resuming kalavai app...")
     restart()
 
 
 @arguably.command
-def resources(*others):
+def cluster__resources(*others):
     """
     Display information about resources on the cluster
     """
@@ -485,7 +609,7 @@ def resources(*others):
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
 
 @arguably.command
-def status(*others):
+def cluster__status(*others):
     """
     Check the status of the kalavai cluster
     """
@@ -512,21 +636,15 @@ def status(*others):
 
 
 @arguably.command
-def diagnostics(*others, log_file=None):
+def cluster__diagnostics(*others, log_file=None):
     """
-    Run diagnostics on a local installation of kalavai, and stores in log file
+    Run diagnostics on a local installation of kalavai
     * is cluster installed
     * is agent running
     * is kube-watcher running
     * is lws running
     """
     logs = []
-
-    logs.append(f"App installed: {CLUSTER.is_cluster_init()}")
-
-    logs.append(f"Agent running: {CLUSTER.is_agent_running()}")
-
-    logs.append(f"Containerd running: {is_service_running(service='containerd.service')}")
 
     logs.append("Getting deployment status...")
 
@@ -537,7 +655,12 @@ def diagnostics(*others, log_file=None):
     else:
         # worker node
         logs.append("Could not access node info. This info is only available to seed nodes. Ignore if you are on a worker node.")
+    logs.append(f"App installed: {CLUSTER.is_cluster_init()}")
 
+    logs.append(f"Agent running: {CLUSTER.is_agent_running()}")
+
+    logs.append(f"Containerd running: {is_service_running(service='containerd.service')}")
+    
     if log_file is not None:
         with open(log_file, "w") as f:
             for log in logs:
@@ -889,7 +1012,7 @@ def job__list(*others):
             )
             node_ports = [p["node_port"] for s in result.values() for p in s["ports"]]
 
-            urls = [f"http://{load_server_ip(USER_LOCAL_SERVER_FILE)}:{node_port}" for node_port in node_ports]
+            urls = [f"http://{load_server_info(data_key=SERVER_IP_KEY, file=USER_LOCAL_SERVER_FILE)}:{node_port}" for node_port in node_ports]
             rows.append((deployment, statuses, workers, "\n".join(urls)))
 
         except Exception as e:
@@ -905,7 +1028,7 @@ def job__list(*others):
 
 
 @arguably.command
-def job__logs(*others, name, stream_interval=0):
+def job__logs(*others, name, stream=False):
     """
     Get logs for a specific job
     """
@@ -922,7 +1045,7 @@ def job__logs(*others, name, stream_interval=0):
                 data=data,
                 server_creds=USER_LOCAL_SERVER_FILE
             )
-            if stream_interval == 0:
+            if not stream:
                 for pod, logs in result.items():
                     console.log(f"[yellow]Pod {pod}")
                     console.log(f"[green]{logs}")
@@ -932,7 +1055,7 @@ def job__logs(*others, name, stream_interval=0):
                 for pod, logs in result.items():
                     print(f"Pod {pod}")
                     print(f"{logs}")
-                time.sleep(stream_interval)
+                time.sleep(1)
         except KeyboardInterrupt:
             break
         except Exception as e:
@@ -1042,7 +1165,7 @@ def ray__list(*status):
     # pretty print
     columns = ["Name", "Status", "CPUs", "GPUs", "Memory", "Endpoints"]
     rows = []
-    server_ip = load_server_ip(USER_LOCAL_SERVER_FILE)
+    server_ip = load_server_info(data_key=SERVER_IP_KEY, file=USER_LOCAL_SERVER_FILE)
     for cluster in clusters:
         cluster_name = cluster['metadata']['name']
         cpus = cluster["status"]["desiredCPU"]

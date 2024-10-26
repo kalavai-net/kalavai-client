@@ -86,18 +86,18 @@ curl -sfL https://raw.githubusercontent.com/kalavai-net/kalavai-client/main/asse
 
 **Note**: you **must keep the WSL console window open** to continue to share resources with an AI cluster. If you restart your machine or close the console, you will need to resume kalavai as follows:
 ```bash
-kalavai resume
+kalavai cluster resume
 ```
 
 **Known issue**: if the above resume command hangs or fails, try to run the pause command before and then reattempt resuming:
 ```bash
-kalavai pause
-kalavai resume
+kalavai cluster pause
+kalavai cluster resume
 ```
 
 To make sure the agent is running, check the diagnostics:
 ```bash
-$ kalavai diagnostics
+$ kalavai cluster diagnostics
 
 App installed: True                                   cli.py:531
 Agent running: True                                   cli.py:531
@@ -120,17 +120,12 @@ usage: cli.py [-h] command ...
 
 positional arguments:
   command
-    start        Start Kalavai cluster and start/resume sharing resources.
-    token        Generate a join token for others to connect to your cluster
-    join         Join Kalavai cluster and start/resume sharing resources.
-    stop         Stop sharing your device and clean up. DO THIS ONLY IF YOU WANT TO REMOVE KALAVAI-CLIENT from your
-                 device.
-    pause        Pause sharing your device and make your device unavailable for kalavai scheduling.
-    resume       Resume sharing your device and make device available for kalavai scheduling.
-    resources    Display information about resources on the cluster
-    node         Display information about nodes connected
-    diagnostics  Run diagnostics on a local installation of kalavai, and stores in log file
+    login     (For public clusters only) Log in to Kalavai server.
+    logout    (For public clusters only) Log out of Kalavai server.
+    cluster
+    node
     job
+    ray
 
 options:
   -h, --help  show this help message and exit
@@ -156,13 +151,13 @@ Kalavai is **free to use, no caps, for both commercial and non-commercial purpos
 Simply use the CLI to start your seed node:
 
 ```bash
-kalavai start <cluster-name>
+kalavai cluster start <cluster-name>
 ```
 
 Note that it will take a few minutes to setup and download all dependencies. Check the status of your cluster with:
 
 ```bash
-kalavai diagnostics
+kalavai cluster diagnostics
 ```
 
 
@@ -180,13 +175,13 @@ _Wait, isn't Kalavai free and runs on my computer? Why would I need a hosted sol
 
 In the seed node, generate a join token:
 ```bash
-kalavai token
+kalavai cluster token
 ```
 
 Copy the displayed token. On the worker node, run:
 
 ```bash
-kalavai join <token>
+kalavai cluster join <token>
 ```
 
 Note that **worker nodes must be able to see the seed node**; this could be achieved using a public IP on the seed node or by having both computers on the same local network. After some time, you should be able to see the new node:
@@ -198,7 +193,7 @@ kalavai node list
 You can also see the total resources available:
 
 ```bash
-kalavai resources
+kalavai cluster resources
 ```
 
 ### Enough already, let's run stuff!
