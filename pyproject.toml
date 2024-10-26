@@ -1,6 +1,6 @@
 [tool.poetry]
 name        = "kalavai-client"
-version     = "0.2.1"
+version     = "0.2.7"
 description = "Client app for kalavai platform"
 authors     = ["Carlos Fernandez Musoles <carlos@kalavai.net>"]
 
@@ -8,7 +8,6 @@ authors     = ["Carlos Fernandez Musoles <carlos@kalavai.net>"]
 [tool.poetry.dependencies]
 python                          = "> 3.7.2"
 requests                        = { version = ">= 2.25" }
-mysql-connector-python          = { version = "8.3.0" }
 psutil                          = { version = "5.9.8" }
 pyyaml                          = { version = "6.0.2" }
 rich                            = { version = "13.7.1" }
@@ -18,7 +17,7 @@ gputil                          = { version = "1.4.0" }
 py2app                          = { version = "0.28.7" }
 pyinstaller                     = { version = "6.5.0" }
 Pillow                          = { version = "10.3.0" }
-setuptools                      = { version = "<70.0.0" }
+setuptools                      = { version = "70.0.0" }
 netifaces                       = { version = "0.11.0" }
 anvil-uplink                    = { version = "0.5.1" }
 
