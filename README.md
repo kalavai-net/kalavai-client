@@ -7,6 +7,25 @@
 
 </div>
 
+
+# New structure
+
+- What is Kalavai: easily pool disparate resources together for AI
+  Quick list: deploy LLMs, Ray cluster
+
+- Public clusters --> Access resources from the community
+  Create a kalavai account  
+  How to create one
+  How to join one
+
+- Private clusters --> pool your resources together
+  How to create one
+  How to invite others (privately)
+
+- 
+
+
+
 # Turn everyday devices into your own AI cluster
 
 > Kalavai is an **open source, self-hosted** platform that turns **everyday devices** into your very own AI cluster. Home desktops, gaming laptops, work computers, cloud VMs...Aggregate resources from multiple machines and **say goodbye to CUDA out of memory errors**. Deploy your favourite open source LLM, fine tune it with your own data, or simply run your distributed work, zero-devops. **Simple. Private. Yours.**
@@ -229,6 +248,7 @@ Currently not compatible:
 - [x] Kalavai client on Linux
 - [x] [TEMPLATE] Distributed LLM deployment
 - [x] Kalavai client on Windows (with WSL2)
+- [ ] Public clusters
 - [ ] [TEMPLATE] Distributed LLM fine tuning
 - [ ] Kalavai client on Mac
 - [ ] Ray cluster support

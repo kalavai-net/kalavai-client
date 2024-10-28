@@ -22,23 +22,25 @@ from kalavai_client.auth import KalavaiAuthClient
 GITHUB_ORG = "kalavai-net"
 GITHUB_REPO = "kalavai-client"
 GITHUB_TEMPLATE_PATH = "templates"
+USER_NODE_LABEL_KEY = "user_node_label"
 CLUSTER_IP_KEY = "cluster_ip"
 CLUSTER_TOKEN_KEY = "cluster_token"
 SERVER_IP_KEY = "server_ip"
 NODE_NAME_KEY = "node_name"
-NET_TOKEN_KEY = "net_token"
+PUBLIC_LOCATION_KEY = "public_location"
 CLUSTER_NAME_KEY = "cluster_name"
-AUTH_KEY = "auth_key"
-READONLY_KEY = "readonly_key"
+AUTH_KEY = "watcher_auth_key"
+READONLY_KEY = "watcher_readonly_key"
 WATCHER_SERVICE_KEY = "watcher_service"
 WATCHER_PORT_KEY = "watcher_port"
+DEPLOY_HELIOS_KEY = "deploy_helios"
 MANDATORY_TOKEN_FIELDS = [
     CLUSTER_IP_KEY,
     CLUSTER_TOKEN_KEY,
     CLUSTER_NAME_KEY,
     AUTH_KEY,
     WATCHER_SERVICE_KEY,
-    NET_TOKEN_KEY
+    PUBLIC_LOCATION_KEY
 ]
 
 
@@ -49,7 +51,7 @@ def load_server_info(data_key, file):
     except:
         return None
     
-def user_login(user_cookie, username, password):
+def user_login(user_cookie, username=None, password=None):
     auth = KalavaiAuthClient(
         user_cookie_file=user_cookie
     )
@@ -88,17 +90,17 @@ def get_public_seeds(user_only, user_cookie):
     )
     return seeds
 
-def get_vpn_key(location, user_cookie):
+def get_vpn_details(location, user_cookie):
     auth = KalavaiAuthClient(
         user_cookie_file=user_cookie
     )
     if not auth.is_logged_in():
         raise ValueError("Cannot access vpns, user is not authenticated")
-    key = auth.call_function(
-        "get_vpn_key",
+    vpn = auth.call_function(
+        "get_vpn_details",
         location
     )
-    return key
+    return vpn
 
 def register_cluster(name, token, description, user_cookie):
     auth = KalavaiAuthClient(
@@ -121,11 +123,26 @@ def unregister_cluster(name, user_cookie):
         user_cookie_file=user_cookie
     )
     if not auth.is_logged_in():
-        raise ValueError("Cannot register cluster, user is not authenticated")
+        raise ValueError("Cannot unregister cluster, user is not authenticated")
     user = auth.load_user_session()
     seed = auth.call_function(
         "unregister_seed",
         name,
+        user,
+    )
+    return seed
+
+def validate_join_public_seed(cluster_name, join_key, user_cookie):
+    auth = KalavaiAuthClient(
+        user_cookie_file=user_cookie
+    )
+    if not auth.is_logged_in():
+        raise ValueError("Cannot notify join cluster, user is not authenticated")
+    user = auth.load_user_session()
+    seed = auth.call_function(
+        "validate_join_public_seed",
+        cluster_name,
+        join_key,
         user,
     )
     return seed
@@ -152,7 +169,8 @@ def run_cmd(command):
         return error # for exit code
 
 def join_vpn(location, user_cookie):
-    token = get_vpn_key(location=location, user_cookie=user_cookie)
+    vpn = get_vpn_details(location=location, user_cookie=user_cookie)
+    token = vpn["key"]
     if token is None:
         raise ValueError(f"VPN location {location} not found or is private")
     try:
@@ -163,7 +181,7 @@ def join_vpn(location, user_cookie):
         raise ValueError("Invalid net token")
     
     run_cmd(f"sudo netclient join -t {token} >/dev/null 2>&1")
-    return token
+    return vpn
 
 def leave_vpn():
     try:
@@ -249,7 +267,7 @@ def generate_table(columns, rows, end_sections=None):
 
     return table
 
-def store_server_info(server_ip, auth_key, watcher_service, file, node_name, cluster_name, readonly_key=None, net_token=None):
+def store_server_info(server_ip, auth_key, watcher_service, file, node_name, cluster_name, readonly_key=None, public_location=None):
     with open(file, "w") as f:
         json.dump({
             SERVER_IP_KEY: server_ip,
@@ -258,7 +276,7 @@ def store_server_info(server_ip, auth_key, watcher_service, file, node_name, clu
             WATCHER_SERVICE_KEY: watcher_service,
             NODE_NAME_KEY: node_name,
             CLUSTER_NAME_KEY: cluster_name,
-            NET_TOKEN_KEY: net_token
+            PUBLIC_LOCATION_KEY: public_location
         }, f)
     return True
 
@@ -291,14 +309,14 @@ def user_confirm(question: str, options: list) -> int:
         return None
     return None
 
-def generate_join_token(cluster_ip, cluster_token, cluster_name, auth_key, watcher_service, net_token):
+def generate_join_token(cluster_ip, cluster_token, cluster_name, auth_key, watcher_service, public_location):
     data = {
         CLUSTER_IP_KEY: cluster_ip,
         CLUSTER_NAME_KEY: cluster_name,
         CLUSTER_TOKEN_KEY: cluster_token,
         AUTH_KEY: auth_key,
         WATCHER_SERVICE_KEY: watcher_service,
-        NET_TOKEN_KEY: net_token
+        PUBLIC_LOCATION_KEY: public_location
     }
     return encode_dict(data=data)
 

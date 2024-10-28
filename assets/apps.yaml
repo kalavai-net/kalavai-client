@@ -34,9 +34,9 @@ releases:
     - name: deployment.use_auth_key
       value: "True"
     - name: deployment.auth_key
-      value: "$auth_key"
+      value: "$watcher_auth_key"
     - name: deployment.readonly_key
-      value: "$readonly_key"
+      value: "$watcher_readonly_key"
     - name: service.nodePort
       value: $watcher_port
   # - name: nvidia-gpu-operator
@@ -47,6 +47,22 @@ releases:
     namespace: kalavai
     chart: kalavai/gpu
     installed: true
+  - name: helios
+    namespace: kalavai
+    chart: kalavai/kalavai-helios
+    installed: $deploy_helios
+    set:
+    - name: deployment.watcher_endpoint
+      value: "http://$watcher_service"
+    - name: deployment.watcher_auth_key
+      value: "$watcher_readonly_key"
+    - name: deployment.kalavai_api_endpoint
+      value: "https://platform.kalavai.net/_/api"
+    - name: deployment.user_node_label
+      value: "$user_node_label"
+    - name: deployment.sleep_interval
+      value: 300
+    
   - name: hami-vgpu
     namespace: kalavai
     chart: hami-charts/hami
@@ -60,3 +76,4 @@ releases:
       value: "1"
     - name: devicePlugin.deviceSplitCount
       value: "1"
+
