@@ -68,7 +68,6 @@ KUBE_VERSION = os.getenv("KALAVAI_KUBE_VERSION", "v1.31.1+k3s1")
 FLANNEL_IFACE = os.getenv("KALAVAI_FLANNEL_IFACE", None)
 FORBIDEDEN_IPS = ["127.0.0.1"]
 # kalavai templates
-CLUSTER_CONFIG_TEMPLATE = resource_path("assets/seed.yaml")
 HELM_APPS_FILE = resource_path("assets/apps.yaml")
 SERVICE_TEMPLATE_FILE = resource_path("assets/service_template.yaml")
 # user specific config files
@@ -347,13 +346,6 @@ def cluster__start(cluster_name, *others,  ip_address: str=None, public_location
         USER_NODE_LABEL_KEY: USER_NODE_LABEL,
         DEPLOY_HELIOS_KEY: public_location is not None
     }
-    # populate cluster config file
-    with open(CLUSTER_CONFIG_TEMPLATE, "r") as f:
-        config = Template(f.read())
-        config = config.substitute(values)
-    
-    with open(USER_LOCAL_CONFIG_FILE, "w") as f:
-        f.write(config)
     
     # 1. start k3s server
     console.log("Installing cluster seed")

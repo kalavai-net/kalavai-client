@@ -9,9 +9,11 @@ AUTH_UPLINK_KEY = os.getenv("ANVIL_UPLINK_KEY", "client_AOPKTWK227ZV3R4ENTMOQRIY
 
 class KalavaiAuthClient:
     def __init__(self, user_cookie_file=None):
-        anvil.server.connect(AUTH_UPLINK_KEY)
+        anvil.server.connect(AUTH_UPLINK_KEY, quiet=True)
         self.user_cookie_file = user_cookie_file
-        self.load_user_session()
+        user = self.load_user_session()
+        if user is not None:
+            print(f"[KalavaiAuthClient]Logged in as {user['username']}")
 
     def login(self, username, password):
         try:
