@@ -61,7 +61,7 @@ releases:
     - name: deployment.user_node_label
       value: "$user_node_label"
     - name: deployment.sleep_interval
-      value: 300
+      value: 600
     
   - name: hami-vgpu
     namespace: kalavai

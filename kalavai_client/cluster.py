@@ -11,7 +11,7 @@ from kalavai_client.utils import (
 
 class Cluster(ABC):
     @abstractmethod
-    def start_seed_node(self, ip_address, cluster_config_file, labels):
+    def start_seed_node(self, ip_address, labels):
         raise NotImplementedError()
 
     @abstractmethod
@@ -145,7 +145,7 @@ class k3sCluster(Cluster):
             print("[Warning] issues detected with nvidia, GPU has been disabled for this node")
             self.node_labels = ""
         
-    def start_seed_node(self, ip_address, cluster_config_file, labels=None):
+    def start_seed_node(self, ip_address, labels=None):
         node_labels = self.node_labels 
         if labels is not None:
             for key, value in labels.items():

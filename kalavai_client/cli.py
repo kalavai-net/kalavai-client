@@ -72,7 +72,6 @@ HELM_APPS_FILE = resource_path("assets/apps.yaml")
 SERVICE_TEMPLATE_FILE = resource_path("assets/service_template.yaml")
 # user specific config files
 USER_HELM_APPS_FILE = user_path("apps.yaml")
-USER_LOCAL_CONFIG_FILE = user_path("cluster_config.conf")
 USER_KUBECONFIG_FILE = user_path("kubeconfig")
 USER_LOCAL_SERVER_FILE = user_path(".server")
 USER_TEMPLATES_FOLDER = user_path("templates", create_path=True)
@@ -101,7 +100,6 @@ def cleanup_local():
     except:
         # no vpn
         pass
-    safe_remove(USER_LOCAL_CONFIG_FILE)
     safe_remove(USER_KUBECONFIG_FILE)
     safe_remove(USER_LOCAL_SERVER_FILE)
 
@@ -351,7 +349,6 @@ def cluster__start(cluster_name, *others,  ip_address: str=None, public_location
     console.log("Installing cluster seed")
     CLUSTER.start_seed_node(
         ip_address=ip_address,
-        cluster_config_file=USER_LOCAL_CONFIG_FILE,
         labels=node_labels)
     
     store_server_info(
@@ -395,12 +392,9 @@ def cluster__token(*others, admin_privilege=True):
     """
     Generate a join token for others to connect to your cluster
     """
-    if not Path(USER_LOCAL_CONFIG_FILE).is_file():
-        console.log("[red]Local config file not found. Possible reasons: the cluster has not been started or this is a worker node.")
+    if not CLUSTER.is_cluster_init() or not CLUSTER.is_seed_node():
+        console.log("[red]Node is not seed. Possible reasons: the cluster has not been started or this is a worker node.")
         return None
-    
-    with open(USER_LOCAL_CONFIG_FILE, "r") as f:
-        config = yaml.safe_load(f)
     
     if admin_privilege:
         auth_key = load_server_info(data_key=AUTH_KEY, file=USER_LOCAL_SERVER_FILE)
@@ -411,8 +405,8 @@ def cluster__token(*others, admin_privilege=True):
 
     cluster_token = CLUSTER.get_cluster_token()
 
-    ip_address = config["spec"]["api"]["address"]
-    cluster_name = config["metadata"]["name"]
+    ip_address = load_server_info(SERVER_IP_KEY, file=USER_LOCAL_SERVER_FILE)# config["spec"]["api"]["address"]
+    cluster_name = load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE) # config["metadata"]["name"]
 
     join_token = generate_join_token(
         cluster_ip=f"https://{ip_address}:6443",
