@@ -224,7 +224,7 @@ def location__list(*others):
     console.log(table)
 
 @arguably.command
-def cluster__publish(*others):
+def cluster__publish(*others, description=None):
     """
     [AUTH] Publish cluster to Kalavai platform, where other users may be able to join
     """
@@ -236,15 +236,20 @@ def cluster__publish(*others):
         console.log(f"[red] No local cluster running. Start a cluster with [yellow]kalavai cluster start [white]first.")
         return
     
+    if description is None:
+        console.log("[yellow] In a few words (max 300 chars), describe your goals with this cluster. Markdown format accepted. Remember, this is what other users will see to decide whether to share their resources with you, [blue]so inspire them!")
+        description = input("\n")
+    
     try:
         token = cluster__token()
         if not cluster__check_token(token=token, public=True):
             raise ValueError("[red]Cluster must be started with a valid vpn_location to publish")
         cluster_name = load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE)
+        
         register_cluster(
             name=cluster_name,
             token=token,
-            description=f"{cluster_name} cluster",
+            description=description,
             user_cookie=USER_COOKIE)
         console.log("[green]Your cluster is now public on https://platform.kalavai.net")
     except Exception as e:
@@ -296,7 +301,7 @@ def cluster__list(*others, user_only=False):
     console.log("[white]Use [yellow]kalavai cluster join <join key> [white]to join a public cluster")
 
 @arguably.command
-def cluster__start(cluster_name, *others,  ip_address: str=None, public_location: str=None):
+def cluster__start(cluster_name, *others,  ip_address: str=None, location: str=None):
     """
     Start Kalavai cluster and start/resume sharing resources.
 
@@ -311,11 +316,11 @@ def cluster__start(cluster_name, *others,  ip_address: str=None, public_location
     # join private network if provided
     subnet = None
     node_labels = None
-    if public_location is not None:
+    if location is not None:
         console.log("Joining private network")
         try:
             vpn = join_vpn(
-                location=public_location,
+                location=location,
                 user_cookie=USER_COOKIE)
             subnet = vpn["subnet"]
             user = user_login(user_cookie=USER_COOKIE)
@@ -342,7 +347,7 @@ def cluster__start(cluster_name, *others,  ip_address: str=None, public_location
         WATCHER_PORT_KEY: watcher_port,
         WATCHER_SERVICE_KEY: watcher_service,
         USER_NODE_LABEL_KEY: USER_NODE_LABEL,
-        DEPLOY_HELIOS_KEY: public_location is not None
+        DEPLOY_HELIOS_KEY: location is not None
     }
     
     # 1. start k3s server
@@ -359,7 +364,7 @@ def cluster__start(cluster_name, *others,  ip_address: str=None, public_location
         watcher_service=watcher_service,
         node_name=socket.gethostname(),
         cluster_name=cluster_name,
-        public_location=public_location)
+        public_location=location)
     
     while not CLUSTER.is_agent_running():
         console.log("Waiting for seed to start...")
@@ -377,12 +382,12 @@ def cluster__start(cluster_name, *others,  ip_address: str=None, public_location
         dependencies_file=USER_HELM_APPS_FILE
     )
     
-    console.log("[green]Your cluster is ready! Grow your cluster by sharing your joining token with others. Run [yellow]kalavai cluster token[green] to generate one.")
     fetch_remote_templates()
+    console.log("[green]Your cluster is ready! Grow your cluster by sharing your joining token with others. Run [yellow]kalavai cluster token[green] to generate one.")
 
-    if public_location is not None:
+    if location is not None:
         # register with kalavai if it's a public cluster
-        console.log("Register public cluster with Kalavai...")
+        console.log("Registering public cluster with Kalavai...")
         cluster__publish()
 
     return None
