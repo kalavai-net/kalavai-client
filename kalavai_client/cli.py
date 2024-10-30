@@ -393,7 +393,7 @@ def cluster__start(cluster_name, *others,  ip_address: str=None, location: str=N
     return None
 
 @arguably.command
-def cluster__token(*others, admin_privilege=True):
+def cluster__token(*others, admin_workers=False):
     """
     Generate a join token for others to connect to your cluster
     """
@@ -401,7 +401,7 @@ def cluster__token(*others, admin_privilege=True):
         console.log("[red]Node is not seed. Possible reasons: the cluster has not been started or this is a worker node.")
         return None
     
-    if admin_privilege:
+    if admin_workers:
         auth_key = load_server_info(data_key=AUTH_KEY, file=USER_LOCAL_SERVER_FILE)
     else:
         auth_key = load_server_info(data_key=READONLY_KEY, file=USER_LOCAL_SERVER_FILE)
