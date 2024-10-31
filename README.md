@@ -10,13 +10,13 @@
 
 # Kalavai: the first social network for AI computation
 
+### With Kalavai **you can run large AI projects that you couldn't with your own hardware alone**
+
 > Kalavai is an **open source** platform that turns **everyday devices** into your very own AI supercomputer. We help you aggregate resources from multiple machines: home desktops, gaming laptops, work computers, cloud VMs... When you need to **go beyond**, Kalavai **facilitates matchmaking** of resources so anyone in our community can tap into a larger pool of devices by **inspiring others to join** your cause.
 
 ![Overview of Kalavai](/docs/docs/assets/images/overview_diagram.png)
 
 ## What can Kalavai do?
-
-In a few words, with Kalavai **you can run large AI projects that you could not run with your own hardware**.
 
 Kalavai's goal is to make AI hardware accessible and affordable to all. We do it in two ways:
 
