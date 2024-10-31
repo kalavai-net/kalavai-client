@@ -13,6 +13,7 @@ import yaml
 import netifaces as ni
 import arguably
 from rich.console import Console
+from better_profanity import profanity
 
 from kalavai_client.utils import (
     user_path,
@@ -57,6 +58,7 @@ from kalavai_client.cluster import (
 )
 
 
+KALAVAI_PLATFORM_URL = os.getenv("KALAVAI_PLATFORM_URL", "https://platform.kalavai.net")
 LOCAL_TEMPLATES_DIR = os.getenv("LOCAL_TEMPLATES_DIR", None)
 VERSION = 1
 RESOURCE_EXCLUDE = ["ephemeral-storage", "hugepages-1Gi", "hugepages-2Mi", "pods"]
@@ -174,7 +176,7 @@ def login(*others,  username: str=None):
     Args:
         *others: all the other positional arguments go here
     """
-    console.log("Kalavai account details. If you don't have an account, create one at [yellow]https://platform.kalavai.net")
+    console.log(f"Kalavai account details. If you don't have an account, create one at [yellow]{KALAVAI_PLATFORM_URL}")
     if username is None:
         username = input("User email: ")
     password = getpass()
@@ -237,8 +239,11 @@ def cluster__publish(*others, description=None):
         return
     
     if description is None:
-        console.log("[yellow] In a few words (max 300 chars), describe your goals with this cluster. Markdown format accepted. Remember, this is what other users will see to decide whether to share their resources with you, [blue]so inspire them!")
-        description = input("\n")
+        console.log("[yellow] [Markdown] In a few words (max 500 chars), describe your goals with this cluster. Remember, this is what other users will see to decide whether to share their resources with you, [blue]so inspire them!")
+        description = input(f"(You can edit this later in {KALAVAI_PLATFORM_URL}\n")
+    
+    profanity.load_censor_words()
+    description = profanity.censor(description)
     
     try:
         token = cluster__token()
@@ -251,7 +256,7 @@ def cluster__publish(*others, description=None):
             token=token,
             description=description,
             user_cookie=USER_COOKIE)
-        console.log("[green]Your cluster is now public on https://platform.kalavai.net")
+        console.log(f"[green]Your cluster is now public on {KALAVAI_PLATFORM_URL}")
     except Exception as e:
         console.log(f"[red]Error when publishing cluster. {str(e)}")
 
@@ -273,7 +278,7 @@ def cluster__unpublish(cluster_name=None, *others):
         unregister_cluster(
             name=cluster_name,
             user_cookie=USER_COOKIE)
-        console.log("[green]Your cluster has been removed from https://platform.kalavai.net")
+        console.log(f"[green]Your cluster has been removed from {KALAVAI_PLATFORM_URL}")
     except Exception as e:
         console.log(f"[red]Error when unpublishing cluster. {str(e)}")
 
@@ -410,8 +415,8 @@ def cluster__token(*others, admin_workers=False):
 
     cluster_token = CLUSTER.get_cluster_token()
 
-    ip_address = load_server_info(SERVER_IP_KEY, file=USER_LOCAL_SERVER_FILE)# config["spec"]["api"]["address"]
-    cluster_name = load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE) # config["metadata"]["name"]
+    ip_address = load_server_info(SERVER_IP_KEY, file=USER_LOCAL_SERVER_FILE)
+    cluster_name = load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE)
 
     join_token = generate_join_token(
         cluster_ip=f"https://{ip_address}:6443",
