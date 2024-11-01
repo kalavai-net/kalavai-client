@@ -152,6 +152,8 @@ def select_ip_address(subnet=None):
                 ips.append(ip)
         except:
             pass
+    if len(ips) == 1:
+        return ips[0]
     while True:
         option = user_confirm(
             question="Select IP to advertise the node (needs to be visible to other nodes)",
