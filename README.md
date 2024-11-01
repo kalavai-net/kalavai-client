@@ -36,6 +36,13 @@ Both versions can be managed using our free [kalavai CLI](#getting-started) tool
 - [Join our Substack](https://kalavainet.substack.com/) for updates and be part of our community
 
 
+### News updates
+
+- 22 October 2024: Announcement of our [world record largest distributed LLM inference](https://kalavainet.substack.com/p/setting-a-new-world-record-the-worlds)
+- 30 October 2024: Release of our [public cluster platform](https://platform.kalavai.net)
+- 31 October 2024: [Help needed](https://kalavainet.substack.com/p/llm-world-record-testing-the-waters) to test public clusters!
+
+
 ## Getting started
 
 The `kalavai` CLI is the main tool to interact with the Kalavai platform, to create and manage both local and public clusters. Let's go over its installation
