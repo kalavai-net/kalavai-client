@@ -13,7 +13,6 @@ import yaml
 import netifaces as ni
 import arguably
 from rich.console import Console
-from better_profanity import profanity
 
 from kalavai_client.utils import (
     user_path,
@@ -244,8 +243,8 @@ def cluster__publish(*others, description=None):
         console.log("[yellow] [Markdown] In a few words (max 500 chars), describe your goals with this cluster. Remember, this is what other users will see to decide whether to share their resources with you, [blue]so inspire them!")
         description = input(f"(You can edit this later in {KALAVAI_PLATFORM_URL}\n")
     
-    profanity.load_censor_words()
-    description = profanity.censor(description)
+
+    description = description
     
     try:
         token = cluster__token()
