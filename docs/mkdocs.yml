@@ -4,11 +4,12 @@ nav:
     - Welcome to Kalavai: index.md
     - Concepts: concepts.md
     - Getting started: getting_started.md
-  # - Create AI clusters:
-  #   - Bootstrap an AI cluster: bootstrap.md
-  #   - Join an existing AI cluster: join.md
-  # - Configure applications: 
-  #   - Install: install_apps.md
+  - Create AI clusters:
+    - Local clusters: local_cluster.md
+    - Public clusters: public_cluster.md
+  - Applications: 
+    - Templates: templates.md
+    - Ray: ray.md
   # - Tutorials:
   #   - End 2 end example: end2end.md
   # - More:

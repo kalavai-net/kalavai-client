@@ -1,24 +1,58 @@
 # Welcome to Kalavai
 
-> Kalavai is a self-hosted platform that turns **everyday devices** into your very own AI cluster. Do you have an old desktop or a gaming laptop gathering dust? Aggregate resources from multiple machines and **say goodbye to CUDA out of memory errors**. Deploy your favourite open source LLM, fine tune it with your own data, or simply run your distributed work, zero-devops. **Simple. Private. Yours.**
+> Kalavai is an **open source** platform that turns **everyday devices** into your very own AI supercomputer. We help you aggregate resources from multiple machines: home desktops, gaming laptops, work computers, cloud VMs... When you need to **go beyond**, Kalavai **facilitates matchmaking** of resources so anyone in our community can tap into a larger pool of devices by **inspiring others to join** your cause.
 
 
 **Want to be notified of the latest features?** 
 
-[Join our mailing list](http://eepurl.com/iC89hk){:target="_blank" .md-button .md-button--primary}
+We regularly publish news, articles and updates on our Substack channel.
+
+[Subscribe to our substack](https://kalavainet.substack.com/){:target="_blank" .md-button .md-button--primary}
 
 ---
 
-## What problem does Kalavai address
+## What does Kalavai do
 
-Despite the hype of new models, **AI remains hard to leverage in real world scenarios**. We've been there, in startups, as AI developers. We have experienced how **expensive the hardware is** to procure; we've felt frustrated with **cloud providers rationing GPUs**; we've wasted countless hours in **devops rabbit-holes** configuring and managing multiple machines, distracted away from the actual fun of AI. All of this makes AI inaccessible for most.
+Kalavai's goal is to make AI hardware accessible and affordable to all. We do it in two ways:
+
+1. The open source version can be used to pool any devices, for _commercial and non-commercial_ purposes. This is perfect as **a management layer for research groups and organisations** that already have hardware lying around and wish to unlock its power, without requiring a devops team. This AI clusters are free, secure and totally private.
+
+2. Our [managed version](https://platform.kalavai.net) acts as a **social network for AI computing**, facilitating users to connect with the community's resources. _Think Reddit, but instead of memes, users share resources with inspiring projects._
 
 
-## Who is Kalavai built for
+## Compatibility matrix
 
-* Research institutions such as Universities and research centres
-* Enterprises looking to deploy AI in their workflows but without a big devops team
-* The AI community looking to train and deploy Large Language Models -larger than any single device they own
+If your system is not currently supported, [open an issue](https://github.com/kalavai-net/kalavai-client/issues) and request it. We are expanding this list constantly.
+
+### OS compatibility
+
+Currently compatible and tested OS:
+- Debian-based linux (such as Ubuntu)
+- Windows 10+ (using WSL2)
+
+Currently compatible (untested. [Interested in testing them?](mailto:info@kalavai.net)):
+- Fedora
+- RedHat
+- Any distro capable of installing `.deb` and `.rpm` packages.
+
+Currently not compatible:
+- MacOS
+
+### Hardware compatibility:
+
+- `amd64` or `x86_64` CPU architecture
+- (optional) NVIDIA GPU
+- AMD and Intel GPUs are currently not supported (yet!)
+
+
+## Contribute
+
+- PR welcome!
+- [Join the community](https://github.com/kalavai-net/kalavai-client/) and share ideas!
+- Report [bugs, issues and new features](https://github.com/kalavai-net/kalavai-client/issues).
+- Help improve our [compatibility matrix](#compatibility-matrix) by testing on different operative systems.
+- [Community integrations](templates/README.md) are template jobs built by Kalavai and the community that makes deploying distributed workflows easy for users. Anyone can extend them and contribute to this repo.
+- [Join our mailing list](http://eepurl.com/iC89hk) for release updates and priority access to new features!
 
 
 ## Getting started

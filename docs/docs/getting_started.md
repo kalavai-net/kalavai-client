@@ -7,83 +7,66 @@ tags:
   - quick start
 ---
 
-# Quick start
+# Getting started
 
 Kalavai is **free to use, no caps, for both commercial and non-commercial purposes**. All you need to get started is one or more computers that can see each other (i.e. within the same network), and you are good to go. If you wish to join computers in different locations / networks, check our [managed kalavai](#managed-kalavai) offering.
 
-### Create a seed node
+The `kalavai` CLI is the main tool to interact with the Kalavai platform, to create and manage both local and public clusters. Let's go over its installation
 
-Simply use the CLI to start your seed node:
+<!--https://github.com/user-attachments/assets/af2ee15d-f18c-4802-8210-1873b0de07eb -->
 
-```bash
-kalavai start
-```
+## Requirements
 
-Note that it will take a few minutes to setup and download all dependencies. Check the status of your cluster with:
+- A laptop, desktop or Virtual Machine
+- Admin / privileged access (eg. `sudo` access in linux or Administrator in Windows)
+- Running Windows or Linux (see more details in our [compatibility matrix](#compatibility-matrix))
 
-```bash
-kalavai diagnostics
-```
 
-### Add a worker node
+## Linux
 
-In the seed node, generate a join token:
-```bash
-kalavai token
-```
-
-Copy the displayed token. On the worker node, run:
+Run the following command on your terminal:
 
 ```bash
-kalavai join <token>
+curl -sfL https://raw.githubusercontent.com/kalavai-net/kalavai-client/main/assets/install_client.sh | bash -
 ```
 
-After some time, you should be able to see the new node:
+## Windows
 
+For Windows machines complete WSL configuration first before continuing. You must be running Windows 10 version 2004 and higher (Build 19041 and higher) or Windows 11 to use the commands below. **If you are on earlier versions** please see the [manual install](https://learn.microsoft.com/en-us/windows/wsl/install-manual) page.
+
+1. Open a PowerShell with administrative permissions (_Run as Administrator_)
+
+2. Install WSL2:
 ```bash
-kalavai node list
+wsl --install -d Ubuntu-24.04
 ```
 
-You can also see the total resources available:
-
+3. Make sure to enable `systemd` by editing (or creating if required) a file `/etc/wsl.conf`
 ```bash
-kalavai resources
+[boot]
+systemd=true
 ```
 
-### Enough already, let's run stuff!
-
-In short, run a template job:
-
+4. Restart the WSL instance by exiting and logging back in:
 ```bash
-kalavai run <template name> --values-path <values file>
+exit
+wsl --shutdown
+wsl -d Ubuntu-24.04
 ```
 
-Each job requires two values:
-- Name of the template --get a list of available integrations with `kalavai templates`
-- Parameter values for the template.
-
-Here we will use the example of deploying a LLM (vllm template). To generate default values file:
+5. Inside WSL, install Kalavai:
 ```bash
-kalavai job defaults vllm > values.yaml
+curl -sfL https://raw.githubusercontent.com/kalavai-net/kalavai-client/main/assets/install_client.sh | bash -
 ```
 
-This will create a `values.yaml` file that contains the default values for a vllm job, such as the model id, the number of workers, etc.
-
-Then you can use the newly created values to run the job:
+**Note**: you **must keep the WSL console window open** to continue to share resources with an AI cluster. If you restart your machine or close the console, you will need to resume kalavai as follows:
 ```bash
-kalavai job run vllm --values-path values.yaml
+kalavai cluster resume
 ```
 
-In this case, the job also deploys a service that can be accessible via an endpoint. Find out the url with:
-
+**Known issue**: if the above resume command hangs or fails, try to run the pause command before and then reattempt resuming:
 ```bash
-kalavai job list 
+kalavai cluster pause
+kalavai cluster resume
 ```
 
-Job monitoring and lifecycle:
-```bash
-# provide the logs of a specific job
-kalavai job logs <name of the job> 
-# delete a job
-kalavai job delete <name of the job>
-```

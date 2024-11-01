@@ -8,7 +8,7 @@ tags:
 ---
 # Develop with Kalavai
 
-[Coming soon...]
+> Work in progress
 
 ## Install applications
 
