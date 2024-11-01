@@ -5,7 +5,7 @@ tags:
   - VPN
 ---
 
-# End to end walkthrough: how to boostrap a multi-node AI cluster
+# End to end walkthrough: how to bootstrap a multi-node AI cluster
 
 ## Setting up the environment
 
