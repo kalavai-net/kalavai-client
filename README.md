@@ -32,7 +32,7 @@ Both versions can be managed using our free [kalavai CLI](#getting-started) tool
 ### Want to know more?
 
 - Get a free [Kalavai account](https://platform.kalavai.net) and start sharing.
-- Full documentation (WIP) for the project. For now, follow the instructions [here](#getting-started)
+- Full [documentation](https://kalavai-net.github.io/kalavai-client/) (WIP) for the project.
 - [Join our Substack](https://kalavainet.substack.com/) for updates and be part of our community
 
 
