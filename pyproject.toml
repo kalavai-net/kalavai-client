@@ -1,6 +1,6 @@
 [tool.poetry]
 name        = "kalavai-client"
-version     = "0.2.7"
+version     = "0.2.10"
 description = "Client app for kalavai platform"
 authors     = ["Carlos Fernandez Musoles <carlos@kalavai.net>"]
 
@@ -20,7 +20,6 @@ Pillow                          = { version = "10.3.0" }
 setuptools                      = { version = "<70.0.0" }
 netifaces                       = { version = "0.11.0" }
 anvil-uplink                    = { version = "0.5.1" }
-profanity                       = { version = "0.7.0" }
 
 
 [tool.poetry.dev-dependencies]
