@@ -420,7 +420,7 @@ def pool__token(*others, admin_workers=False):
     cluster_name = load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE)
 
     join_token = generate_join_token(
-        cluster_ip=f"https://{ip_address}:6443",
+        cluster_ip=ip_address,
         cluster_name=cluster_name,
         cluster_token=cluster_token,
         auth_key=auth_key,
@@ -476,7 +476,7 @@ def pool__join(token, *others, node_name=None, ip_address: str=None):
 
     try:
         data = decode_dict(token)
-        kalavai_url = data[CLUSTER_IP_KEY]
+        kalavai_seed_ip = data[CLUSTER_IP_KEY]
         kalavai_token = data[CLUSTER_TOKEN_KEY]
         cluster_name = data[CLUSTER_NAME_KEY]
         auth_key = data[AUTH_KEY]
@@ -522,23 +522,23 @@ def pool__join(token, *others, node_name=None, ip_address: str=None):
     console.log(f"Using {ip_address} address for worker")
     
     # local k3s agent join
-    console.log(f"[white] Connecting to {cluster_name} @ {kalavai_url} (this may take a few minutes)...")
+    console.log(f"[white] Connecting to {cluster_name} @ {kalavai_seed_ip} (this may take a few minutes)...")
     try:
         CLUSTER.start_worker_node(
-            url=kalavai_url,
+            url=kalavai_seed_ip,
             token=kalavai_token,
             node_name=node_name,
             ip_address=ip_address,
             labels=node_labels)
     except Exception as e:
-        console.log(f"[red] Error connecting to {cluster_name} @ {kalavai_url}. Check with the admin if the token is still valid.")
+        console.log(f"[red] Error connecting to {cluster_name} @ {kalavai_seed_ip}. Check with the admin if the token is still valid.")
         exit()
 
     while not CLUSTER.is_agent_running():
         console.log("Waiting for worker to start...")
         time.sleep(10)
     store_server_info(
-        server_ip=kalavai_url,
+        server_ip=kalavai_seed_ip,
         auth_key=auth_key,
         file=USER_LOCAL_SERVER_FILE,
         watcher_service=watcher_service,

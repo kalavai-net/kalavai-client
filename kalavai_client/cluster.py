@@ -161,7 +161,7 @@ class k3sCluster(Cluster):
         if labels is not None:
             for key, value in labels.items():
                 node_labels += f" --node-label {key}={value}"
-        command = f'curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="{self.kube_version}" INSTALL_K3S_EXEC="agent --token {token} --server {url} --node-name {node_name} --node-ip {ip_address} --node-external-ip {ip_address} {self.flannel_iface} {node_labels}" sh - >/dev/null 2>&1'
+        command = f'curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="{self.kube_version}" INSTALL_K3S_EXEC="agent --token {token} --server https://{url}:6443 --node-name {node_name} --node-ip {ip_address} --node-external-ip {ip_address} {self.flannel_iface} {node_labels}" sh - >/dev/null 2>&1'
         run_cmd(command)
         
 
