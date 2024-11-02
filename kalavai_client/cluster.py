@@ -11,11 +11,11 @@ from kalavai_client.utils import (
 
 class Cluster(ABC):
     @abstractmethod
-    def start_seed_node(self, ip_address, labels):
+    def start_seed_node(self, ip_address, labels, flannel_iface):
         raise NotImplementedError()
 
     @abstractmethod
-    def start_worker_node(self, url, token, node_name, auth_key, watcher_service, ip_address, labels):
+    def start_worker_node(self, url, token, node_name, auth_key, watcher_service, ip_address, labels, flannel_iface):
         raise NotImplementedError()
 
 
@@ -135,9 +135,9 @@ class k3sCluster(Cluster):
         self.kubeconfig_file = kubeconfig_file
 
         if flannel_iface is not None:
-            self.flannel_iface = f"--flannel-iface {flannel_iface}"
+            self.default_flannel_iface = flannel_iface
         else:
-            self.flannel_iface = ""
+            self.default_flannel_iface = ""
         try:
             if check_gpu_drivers():
                 self.node_labels = "--node-label gpu=on"
@@ -145,23 +145,30 @@ class k3sCluster(Cluster):
             print("[Warning] issues detected with nvidia, GPU has been disabled for this node")
             self.node_labels = ""
         
-    def start_seed_node(self, ip_address, labels=None):
+    def start_seed_node(self, ip_address, labels=None, is_public=False):
         node_labels = self.node_labels 
         if labels is not None:
             for key, value in labels.items():
                 node_labels += f" --node-label {key}={value}"
-
-        run_cmd(f'curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="{self.kube_version}" INSTALL_K3S_EXEC="server --node-ip {ip_address} --node-external-ip {ip_address} {self.flannel_iface} --flannel-backend wireguard-native {node_labels}" sh - >/dev/null 2>&1')
+        if is_public:
+            flannel_iface = f"--flannel-iface {self.default_flannel_iface}"
+        else:
+            flannel_iface = ""
+        run_cmd(f'curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="{self.kube_version}" INSTALL_K3S_EXEC="server --node-ip {ip_address} --node-external-ip {ip_address} {flannel_iface} --flannel-backend wireguard-native {node_labels}" sh - >/dev/null 2>&1')
         run_cmd(f"sudo cp /etc/rancher/k3s/k3s.yaml {self.kubeconfig_file}")
         run_cmd(f"sudo chown $USER {self.kubeconfig_file}")
 
 
-    def start_worker_node(self, url, token, node_name, ip_address, labels=None):
+    def start_worker_node(self, url, token, node_name, ip_address, labels=None, is_public=False):
         node_labels = self.node_labels 
         if labels is not None:
             for key, value in labels.items():
                 node_labels += f" --node-label {key}={value}"
-        command = f'curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="{self.kube_version}" INSTALL_K3S_EXEC="agent --token {token} --server https://{url}:6443 --node-name {node_name} --node-ip {ip_address} --node-external-ip {ip_address} {self.flannel_iface} {node_labels}" sh - >/dev/null 2>&1'
+        if is_public:
+            flannel_iface = f"--flannel-iface {self.default_flannel_iface}"
+        else:
+            flannel_iface = ""
+        command = f'curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="{self.kube_version}" INSTALL_K3S_EXEC="agent --token {token} --server https://{url}:6443 --node-name {node_name} --node-ip {ip_address} --node-external-ip {ip_address} {flannel_iface} {node_labels}" sh - >/dev/null 2>&1'
         run_cmd(command)
         
 

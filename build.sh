@@ -2,6 +2,7 @@ set -e
 
 # TODO:
 # - right OPENSSL version (not the one on ubuntu 24 or pop-os)
+# - low enough version of GCC
 
 # - checks: building from a built environment
 # TODO: rebuild?

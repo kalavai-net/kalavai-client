@@ -66,7 +66,7 @@ TEMPLATE_LABEL = "kalavai.lws.name"
 RAY_LABEL = "kalavai.ray.name"
 USER_NODE_LABEL = "kalavai.cluster.user"
 KUBE_VERSION = os.getenv("KALAVAI_KUBE_VERSION", "v1.31.1+k3s1")
-FLANNEL_IFACE = os.getenv("KALAVAI_FLANNEL_IFACE", "netmaker")
+DEFAULT_FLANNEL_IFACE = os.getenv("KALAVAI_FLANNEL_IFACE", "netmaker")
 FORBIDEDEN_IPS = ["127.0.0.1"]
 # kalavai templates
 HELM_APPS_FILE = resource_path("assets/apps.yaml")
@@ -82,7 +82,7 @@ USER_COOKIE = user_path(".user_cookie.pkl")
 console = Console()
 CLUSTER = k3sCluster(
     kube_version=KUBE_VERSION,
-    flannel_iface=FLANNEL_IFACE,
+    flannel_iface=DEFAULT_FLANNEL_IFACE,
     kubeconfig_file=USER_KUBECONFIG_FILE
 )
 
@@ -360,7 +360,8 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
     console.log("Installing cluster seed")
     CLUSTER.start_seed_node(
         ip_address=ip_address,
-        labels=node_labels)
+        labels=node_labels,
+        is_public=location is not None)
     
     store_server_info(
         server_ip=ip_address,
@@ -444,7 +445,7 @@ def pool__check_token(token, *others, public=False):
             assert field in data
         if public:
             if data[PUBLIC_LOCATION_KEY] is None:
-                raise ValueError("Token is not valid for public seeds. Did you start the cluster with a public_location?")
+                raise ValueError("Token is not valid for public pools. Did you start the cluster with a public_location?")
         console.log("[green]Token format is correct")
         return True
     except Exception as e:
@@ -529,7 +530,8 @@ def pool__join(token, *others, node_name=None, ip_address: str=None):
             token=kalavai_token,
             node_name=node_name,
             ip_address=ip_address,
-            labels=node_labels)
+            labels=node_labels,
+            is_public=public_location is not None)
     except Exception as e:
         console.log(f"[red] Error connecting to {cluster_name} @ {kalavai_seed_ip}. Check with the admin if the token is still valid.")
         exit()
@@ -570,7 +572,7 @@ def pool__stop(*others):
                 name=load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE),
                 user_cookie=USER_COOKIE)
     except Exception as e:
-        console.log(f"[red][WARNING]: (ignore if not a public seed) Error when unpublishing cluster. {str(e)}")
+        console.log(f"[red][WARNING]: (ignore if not a public pool) Error when unpublishing cluster. {str(e)}")
     # remove local node agent
     CLUSTER.remove_agent()
     # clean local files
