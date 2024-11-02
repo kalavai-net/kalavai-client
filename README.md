@@ -20,7 +20,7 @@
 
 Kalavai's goal is to make AI hardware accessible and affordable to all. We do it in two ways:
 
-1. The open source version can be used to pool any devices, for _commercial and non-commercial_ purposes. This is perfect as **a management layer for research groups and organisations** that already have hardware lying around and wish to unlock its power, without requiring a devops team. This AI clusters are free, secure and totally private.
+1. The open source version can be used to pool any devices, for _commercial and non-commercial_ purposes. This is perfect as **a management layer for research groups and organisations** that already have hardware lying around and wish to unlock its power, without requiring a devops team. This AI pools are free, secure and totally private.
 
 2. Our [managed version](https://platform.kalavai.net) acts as a **social network for AI computing**, facilitating users to connect with the community's resources. _Think Reddit, but instead of memes, users share resources with inspiring projects._
 
@@ -39,13 +39,13 @@ Both versions can be managed using our free [kalavai CLI](#getting-started) tool
 ### News updates
 
 - 22 October 2024: Announcement of our [world record largest distributed LLM inference](https://kalavainet.substack.com/p/setting-a-new-world-record-the-worlds)
-- 30 October 2024: Release of our [public cluster platform](https://platform.kalavai.net)
-- 31 October 2024: [Help needed](https://kalavainet.substack.com/p/llm-world-record-testing-the-waters) to test public clusters!
+- 30 October 2024: Release of our [public pool platform](https://platform.kalavai.net)
+- 31 October 2024: [Help needed](https://kalavainet.substack.com/p/llm-world-record-testing-the-waters) to test public pools!
 
 
 ## Getting started
 
-The `kalavai` CLI is the main tool to interact with the Kalavai platform, to create and manage both local and public clusters. Let's go over its installation
+The `kalavai` CLI is the main tool to interact with the Kalavai platform, to create and manage both local and public pools. Let's go over its installation
 
 <!--https://github.com/user-attachments/assets/af2ee15d-f18c-4802-8210-1873b0de07eb -->
 
@@ -93,51 +93,51 @@ wsl -d Ubuntu-24.04
 curl -sfL https://raw.githubusercontent.com/kalavai-net/kalavai-client/main/assets/install_client.sh | bash -
 ```
 
-**Note**: you **must keep the WSL console window open** to continue to share resources with an AI cluster. If you restart your machine or close the console, you will need to resume kalavai as follows:
+**Note**: you **must keep the WSL console window open** to continue to share resources with an AI pool. If you restart your machine or close the console, you will need to resume kalavai as follows:
 ```bash
-kalavai cluster resume
+kalavai pool resume
 ```
 
 **Known issue**: if the above resume command hangs or fails, try to run the pause command before and then reattempt resuming:
 ```bash
-kalavai cluster pause
-kalavai cluster resume
+kalavai pool pause
+kalavai pool resume
 ```
 
 
-## Createa a local cluster
+## Createa a local pool
 
-Kalavai is **free to use, no caps, for both commercial and non-commercial purposes**. All you need to get started is one or more computers that can see each other (i.e. within the same network), and you are good to go. If you wish to join computers in different locations / networks, check [managed kalavai](#public-clusters-crowdsource-community-resources).
+Kalavai is **free to use, no caps, for both commercial and non-commercial purposes**. All you need to get started is one or more computers that can see each other (i.e. within the same network), and you are good to go. If you wish to join computers in different locations / networks, check [managed kalavai](#public-pools-crowdsource-community-resources).
 
 ### 1. Start a seed node
 
 Simply use the CLI to start your seed node:
 
 ```bash
-kalavai cluster start <cluster-name>
+kalavai pool start <pool-name>
 ```
 
 Now you are ready to add worker nodes to this seed. To do so, generate a joining token:
 ```bash
-$ kalavai cluster token
+$ kalavai pool token
 
 Join token: <token>
 ```
 
 ### 2. Add worker nodes
 
-Increase the power of your AI cluster by inviting others to join.
+Increase the power of your AI pool by inviting others to join.
 
 Copy the joining token. On the worker node, run:
 
 ```bash
-kalavai cluster join <token>
+kalavai pool join <token>
 ```
 
 
-## Public clusters: crowdsource community resources
+## Public pools: crowdsource community resources
 
-Our public platform expands local clusters in two key aspects:
+Our public platform expands local pools in two key aspects:
 - Worker nodes **no longer have to be in the same local network**
 - Users can **tap into community resources**: inspire others in the community to join their projects with their resources
 
@@ -146,7 +146,7 @@ To get started, you need is a [free account on our platform](https://platform.ka
 
 ### A) Tap into community resources
 
-Create a new cluster, using a public location provided by Kalavai:
+Create a new pool, using a public location provided by Kalavai:
 ```bash
 # Authenticate with your kalavai account
 kalavai login
@@ -160,41 +160,41 @@ kalavai location list
 │ 0   │ uk_london_1 │ 100.10.0.0/16 │
 └─────┴─────────────┴───────────────┘
 
-# Create and publish your cluster
-kalavai cluster start <cluster-name> --location uk_london_1
+# Create and publish your pool
+kalavai pool start <pool-name> --location uk_london_1
 ```
 
-If all goes well, your cluster will be created and published on the `Public Seeds` section of our [platform](https://platform.kalavai.net)
+If all goes well, your pool will be created and published on the `Public Seeds` section of our [platform](https://platform.kalavai.net)
 
 ![Public seeds](/docs/docs/assets/images/public_seeds.png)
 
-Note: to be able to publish clusters your account needs to have sufficient karma points. Earn karma by [sharing your resources](#b-share-resources-with-inspiring-community-projects) with others.
+Note: to be able to publish pools your account needs to have sufficient karma points. Earn karma by [sharing your resources](#b-share-resources-with-inspiring-community-projects) with others.
 
 
 ### B) Share resources with inspiring community projects
 
 Have idle computing resources? Wish to be part of exciting public projects? Want to give back to the community? Earn social credit (both literally and metaphorically) by sharing your computer with others within the community.
 
-All you need is a public joining key. Get them in our platform, on the list of published clusters. Press `Join` and follow the instructions
+All you need is a public joining key. Get them in our platform, on the list of published pools. Press `Join` and follow the instructions
 
-![alt text](/docs/docs/assets/images/join_public_cluster.png)
+![alt text](/docs/docs/assets/images/join_public_pool.png)
 
 
 ## What next?
 
-Within a cluster, you can monitor the nodes connected and the resources available:
+Within a pool, you can monitor the nodes connected and the resources available:
 
 ```bash
 # Get all connected nodes
 kalavai node list
 
-# Get all resources within the cluster (CPUs, RAM, GPUs...)
-kalavai cluster resources
+# Get all resources within the pool (CPUs, RAM, GPUs...)
+kalavai pool resources
 ```
 
 ### Enough already, let's run stuff!
 
-Check our [examples](examples/) to put your new AI cluster to good use!
+Check our [examples](examples/) to put your new AI pool to good use!
 - [Single node vLLM GPU LLM](examples/singlenode_gpu_vllm.md) deployment
 - [Multi node vLLM GPU LLM](examples/multinode_gpu_vllm.md) deployment
 - [Aphrodite-engine quantized LLM](examples/quantized_gpu_llm.md) deployment, including Kobold interface
@@ -230,7 +230,7 @@ Currently not compatible:
 - [x] Kalavai client on Linux
 - [x] [TEMPLATE] Distributed LLM deployment
 - [x] Kalavai client on Windows (with WSL2)
-- [x] Public clusters
+- [x] Public pools
 - [ ] [TEMPLATE] Distributed LLM fine tuning
 - [ ] Kalavai client on Mac
 - [x] Ray cluster support

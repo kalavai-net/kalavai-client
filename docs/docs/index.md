@@ -15,7 +15,7 @@ We regularly publish news, articles and updates on our Substack channel.
 
 Kalavai's goal is to make AI hardware accessible and affordable to all. We do it in two ways:
 
-1. The open source version can be used to pool any devices, for _commercial and non-commercial_ purposes. This is perfect as **a management layer for research groups and organisations** that already have hardware lying around and wish to unlock its power, without requiring a devops team. This AI clusters are free, secure and totally private.
+1. The open source version can be used to pool any devices, for _commercial and non-commercial_ purposes. This is perfect as **a management layer for research groups and organisations** that already have hardware lying around and wish to unlock its power, without requiring a devops team. These AI pools are free, secure and totally private.
 
 2. Our [managed version](https://platform.kalavai.net) acts as a **social network for AI computing**, facilitating users to connect with the community's resources. _Think Reddit, but instead of memes, users share resources with inspiring projects._
 

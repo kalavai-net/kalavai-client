@@ -227,9 +227,9 @@ def location__list(*others):
     console.log(table)
 
 @arguably.command
-def cluster__publish(*others, description=None):
+def pool__publish(*others, description=None):
     """
-    [AUTH] Publish cluster to Kalavai platform, where other users may be able to join
+    [AUTH] Publish pool to Kalavai platform, where other users may be able to join
     """
     # Check for:
     # - cluster is up and running
@@ -247,8 +247,8 @@ def cluster__publish(*others, description=None):
     description = description
     
     try:
-        token = cluster__token()
-        if not cluster__check_token(token=token, public=True):
+        token = pool__token()
+        if not pool__check_token(token=token, public=True):
             raise ValueError("[red]Cluster must be started with a valid vpn_location to publish")
         cluster_name = load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE)
         
@@ -262,9 +262,9 @@ def cluster__publish(*others, description=None):
         console.log(f"[red]Error when publishing cluster. {str(e)}")
 
 @arguably.command
-def cluster__unpublish(cluster_name=None, *others):
+def pool__unpublish(cluster_name=None, *others):
     """
-    [AUTH] Unpublish cluster to Kalavai platform. Cluster and all its workers will still work
+    [AUTH] Unpublish pool to Kalavai platform. Cluster and all its workers will still work
     """
     # Check for:
     # - cluster is up and running
@@ -284,16 +284,16 @@ def cluster__unpublish(cluster_name=None, *others):
         console.log(f"[red]Error when unpublishing cluster. {str(e)}")
 
 @arguably.command
-def cluster__list(*others, user_only=False):
+def pool__list(*others, user_only=False):
     """
-    [AUTH] List public clusters in to Kalavai platform.
+    [AUTH] List public pools in to Kalavai platform.
     """
     try:
         seeds = get_public_seeds(
             user_only=user_only,
             user_cookie=USER_COOKIE)
     except Exception as e:
-        console.log(f"[red]Error when loading cluster seeds. {str(e)}")
+        console.log(f"[red]Error when loading pools. {str(e)}")
         return
     
     for seed in seeds:
@@ -304,12 +304,12 @@ def cluster__list(*others, user_only=False):
             console.log(f"[yellow]{key}: [green]{value}")
         print(f"Join key: {seed['join_key']}")
         console.log("[yellow]************************************")
-    console.log("[white]Use [yellow]kalavai cluster join <join key> [white]to join a public cluster")
+    console.log("[white]Use [yellow]kalavai pool join <join key> [white]to join a public pool")
 
 @arguably.command
-def cluster__start(cluster_name, *others,  ip_address: str=None, location: str=None):
+def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None):
     """
-    Start Kalavai cluster and start/resume sharing resources.
+    Start Kalavai pool and start/resume sharing resources.
 
     Args:
         *others: all the other positional arguments go here
@@ -394,14 +394,14 @@ def cluster__start(cluster_name, *others,  ip_address: str=None, location: str=N
     if location is not None:
         # register with kalavai if it's a public cluster
         console.log("Registering public cluster with Kalavai...")
-        cluster__publish()
+        pool__publish()
 
     return None
 
 @arguably.command
-def cluster__token(*others, admin_workers=False):
+def pool__token(*others, admin_workers=False):
     """
-    Generate a join token for others to connect to your cluster
+    Generate a join token for others to connect to your pool
     """
     if not CLUSTER.is_cluster_init() or not CLUSTER.is_seed_node():
         console.log("[red]Node is not seed. Possible reasons: the cluster has not been started or this is a worker node.")
@@ -434,7 +434,7 @@ def cluster__token(*others, admin_workers=False):
     return join_token
 
 @arguably.command
-def cluster__check_token(token, *others, public=False):
+def pool__check_token(token, *others, public=False):
     """
     Utility to check the validity of a join token
     """
@@ -454,9 +454,9 @@ def cluster__check_token(token, *others, public=False):
 
 
 @arguably.command
-def cluster__join(token, *others, node_name=None, ip_address: str=None):
+def pool__join(token, *others, node_name=None, ip_address: str=None):
     """
-    Join Kalavai cluster and start/resume sharing resources.
+    Join Kalavai pool and start/resume sharing resources.
 
     Args:
         *others: all the other positional arguments go here
@@ -465,7 +465,7 @@ def cluster__join(token, *others, node_name=None, ip_address: str=None):
         node_name = socket.gethostname()
     
     # check token
-    if not cluster__check_token(token):
+    if not pool__check_token(token):
         return
     
     # check that k3s is not running already in the host
@@ -553,7 +553,7 @@ def cluster__join(token, *others, node_name=None, ip_address: str=None):
     console.log(f"[green] You are connected to {cluster_name}")
 
 @arguably.command
-def cluster__stop(*others):
+def pool__stop(*others):
     """
     Stop sharing your device and clean up. DO THIS ONLY IF YOU WANT TO REMOVE KALAVAI-CLIENT from your device.
 
@@ -578,7 +578,7 @@ def cluster__stop(*others):
     console.log("[white] Kalavai has stopped sharing your resources. Use [yellow]kalavai cluster start[white] or [yellow]kalavai cluster join[white] to start again!")
 
 @arguably.command
-def cluster__pause(*others):
+def pool__pause(*others):
     """
     Pause sharing your device and make your device unavailable for kalavai scheduling.
 
@@ -594,7 +594,7 @@ def cluster__pause(*others):
         console.log("[red] Error when stopping. Please run [yellow]kalavai cluster pause[red] again.")
 
 @arguably.command
-def cluster__resume(*others):
+def pool__resume(*others):
     """
     Resume sharing your device and make device available for kalavai scheduling.
 
@@ -610,9 +610,9 @@ def cluster__resume(*others):
 
 
 @arguably.command
-def cluster__resources(*others):
+def pool__resources(*others):
     """
-    Display information about resources on the cluster
+    Display information about resources on the pool
     """
     if not CLUSTER.is_cluster_init() or not CLUSTER.is_agent_running():
         console.log("[red]Kalavai is not running or not installed on your machine")
@@ -657,12 +657,12 @@ def cluster__resources(*others):
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
 
 @arguably.command
-def cluster__status(*others):
+def pool__status(*others):
     """
-    Check the status of the kalavai cluster
+    Check the status of the kalavai pool
     """
     if not CLUSTER.is_cluster_init():
-        console.log("This node is not connected to any cluster")
+        console.log("This node is not connected to any pool")
         return
     try:
         response = request_to_server(
@@ -678,16 +678,16 @@ def cluster__status(*others):
                 console.log(f"{key} status: {state}")
                 global_status &= state
         console.log("---------------------------------")
-        console.log(f"--> Cluster status: {global_status}")
+        console.log(f"--> Pool status: {global_status}")
     except Exception as e:
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
 
 
 @arguably.command
-def cluster__diagnostics(*others, log_file=None):
+def pool__diagnostics(*others, log_file=None):
     """
     Run diagnostics on a local installation of kalavai
-    * is cluster installed
+    * is pool installed
     * is agent running
     * is kube-watcher running
     * is lws running
@@ -718,6 +718,98 @@ def cluster__diagnostics(*others, log_file=None):
     else:
         for log in logs:
             console.log(f"{log}\n")
+
+@arguably.command
+def cluster__publish(*others, description=None):
+    """
+    [deprecated] Use pool publish endpoint instead
+    """
+    pool__publish(*others, description=description)
+
+@arguably.command
+def cluster__unpublish(cluster_name=None, *others):
+    """
+    [deprecated] Use pool unpublish endpoint instead
+    """
+    pool__unpublish(cluster_name, *others)
+
+@arguably.command
+def cluster__list(*others, user_only=False):
+    """
+    [deprecated] Use pool list endpoint instead
+    """
+    pool__list(*others, user_only=user_only)
+    
+
+@arguably.command
+def cluster__start(cluster_name, *others,  ip_address: str=None, location: str=None):
+    """
+    [deprecated] Use pool start endpoint instead
+    """
+    pool__start(cluster_name, *others,  ip_address=ip_address, location=location)
+
+@arguably.command
+def cluster__token(*others, admin_workers=False):
+    """
+    [deprecated] Use pool token endpoint instead
+    """
+    return pool__token(*others, admin_workers=admin_workers)
+
+@arguably.command
+def cluster__check_token(token, *others, public=False):
+    """
+    [deprecated] Use pool check-token endpoint instead
+    """
+    return pool__check_token(token, *others, public=public)
+
+@arguably.command
+def cluster__join(token, *others, node_name=None, ip_address: str=None):
+    """
+    [deprecated] Use pool join endpoint instead
+    """
+    pool__join(token, *others, node_name=node_name, ip_address=ip_address)
+
+@arguably.command
+def cluster__stop(*others):
+    """
+    [deprecated] Use pool stop endpoint instead
+    """
+    pool__stop(*others)
+
+@arguably.command
+def cluster__pause(*others):
+    """
+    [deprecated] Use pool pause endpoint instead
+    """
+    pool__pause(*others)
+
+@arguably.command
+def cluster__resume(*others):
+    """
+    [deprecated] Use pool resume endpoint instead
+    """
+    pool__resume(*others)
+
+@arguably.command
+def cluster__resources(*others):
+    """
+    [deprecated] Use pool resources endpoint instead
+    """
+    pool__resources(*others)
+
+@arguably.command
+def cluster__status(*others):
+    """
+    [deprecated] Use pool status endpoint instead
+    """
+    pool__status(*others)
+
+@arguably.command
+def cluster__diagnostics(*others, log_file=None):
+    """
+    (deprecated) Use pool diagnostics endpoint
+    """
+    pool__diagnostics(*others, log_file=log_file)
 
 @arguably.command
 def node__list(*others):

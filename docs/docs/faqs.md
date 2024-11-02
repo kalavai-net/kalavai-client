@@ -8,9 +8,9 @@ tags:
 
 ## General
 
-### What are clusters?
+### What are AI pools?
 
-In Kalavai parlor, a cluster refers to a group of resources. We go beyond machine procurement and include everything a team needs to work on AI; from the hardware devices (GPUs, CPUs and memory) to the setup of a distributed environment and the tech stack needed to make it useful.
+In Kalavai parlor, a pool refers to a group of resources. We go beyond machine procurement and include everything a team needs to work on AI; from the hardware devices (GPUs, CPUs and memory) to the setup of a distributed environment and the tech stack needed to make it useful.
 
 Kalavai aims to manage it all (procurement of additional cloud resources, installing and configuring open source and industry standard frameworks, configuration management, facilitate distributed computing) so teams can focus on AI innovation.
 
@@ -60,7 +60,7 @@ Our goal is not to narrow companies' choices but to manage the complexity of hyb
 
 ### Organisations with on premise servers already have systems to use them. Why would they trust you to manage that for all their needs?
 
-Kalavai works as an integration system, it does not force organisations to switch every workflow they have over to benefit from it. They can install the kalavai client in their existing on premise servers, which will automatically then connect them to the cluster and make them able to run workflows. The kalavai client is designed to co-exist with any application and can be limited to use only a portion of resources, so organisations can easily continue to use their on premise deployments.
+Kalavai works as an integration system, it does not force organisations to switch every workflow they have over to benefit from it. They can install the kalavai client in their existing on premise servers, which will automatically then connect them to the pool and make them able to run workflows. The kalavai client is designed to co-exist with any application and can be limited to use only a portion of resources, so organisations can easily continue to use their on premise deployments.
 
 
 ### I’ve heard of a bunch of service providers for rent-a-GPU on demand. Isn’t the market saturated already?

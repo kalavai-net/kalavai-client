@@ -11,17 +11,17 @@ From Ray's documentation:
 
 > Ray is an open-source unified framework for scaling AI and Python applications like machine learning.
 
-Kalavai and Ray work perfectly together. Ray is a great framework to deal with distributed computation on top of an existing hardware cluster. Kalavai acts as a unifying layer that brings that required hardware together for Ray to do its magic.
+Kalavai and Ray work perfectly together. Ray is a great framework to deal with distributed computation on top of an existing hardware pool. Kalavai acts as a unifying layer that brings that required hardware together for Ray to do its magic.
 
 To get started, check out [our example](/examples/ray_cluster.md) to get a Ray cluster going. 
 
 ## Create a cluster
 
-- Specs how to define specs: kalavai cluster resources (cpu, memory and nvidia.com/gpu)
+- Specs how to define specs: kalavai pool resources (cpu, memory and nvidia.com/gpu)
 
 
 ```bash
-$ kalavai cluster resources
+$ kalavai pool resources
 
 ┏━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓ 
 ┃           ┃ n_nodes ┃ cpu                ┃ memory      ┃ nvidia.com/gpu ┃ 

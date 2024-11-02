@@ -11,7 +11,7 @@ tags:
 
 Kalavai is **free to use, no caps, for both commercial and non-commercial purposes**. All you need to get started is one or more computers that can see each other (i.e. within the same network), and you are good to go. If you wish to join computers in different locations / networks, check our [managed kalavai](#managed-kalavai) offering.
 
-The `kalavai` CLI is the main tool to interact with the Kalavai platform, to create and manage both local and public clusters. Let's go over its installation
+The `kalavai` CLI is the main tool to interact with the Kalavai platform, to create and manage both local and public pools. Let's go over its installation
 
 <!--https://github.com/user-attachments/assets/af2ee15d-f18c-4802-8210-1873b0de07eb -->
 
@@ -59,14 +59,14 @@ wsl -d Ubuntu-24.04
 curl -sfL https://raw.githubusercontent.com/kalavai-net/kalavai-client/main/assets/install_client.sh | bash -
 ```
 
-**Note**: you **must keep the WSL console window open** to continue to share resources with an AI cluster. If you restart your machine or close the console, you will need to resume kalavai as follows:
+**Note**: you **must keep the WSL console window open** to continue to share resources with an AI pool. If you restart your machine or close the console, you will need to resume kalavai as follows:
 ```bash
-kalavai cluster resume
+kalavai pool resume
 ```
 
 **Known issue**: if the above resume command hangs or fails, try to run the pause command before and then reattempt resuming:
 ```bash
-kalavai cluster pause
-kalavai cluster resume
+kalavai pool pause
+kalavai pool resume
 ```
 
