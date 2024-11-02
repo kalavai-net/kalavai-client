@@ -66,7 +66,7 @@ TEMPLATE_LABEL = "kalavai.lws.name"
 RAY_LABEL = "kalavai.ray.name"
 USER_NODE_LABEL = "kalavai.cluster.user"
 KUBE_VERSION = os.getenv("KALAVAI_KUBE_VERSION", "v1.31.1+k3s1")
-FLANNEL_IFACE = os.getenv("KALAVAI_FLANNEL_IFACE", None)
+FLANNEL_IFACE = os.getenv("KALAVAI_FLANNEL_IFACE", "netmaker")
 FORBIDEDEN_IPS = ["127.0.0.1"]
 # kalavai templates
 HELM_APPS_FILE = resource_path("assets/apps.yaml")
@@ -118,7 +118,7 @@ def restart():
         console.log("[white] Kalava sharing resumed")
         fetch_remote_templates()
     else:
-        console.log("[red] Error when restarting. Please run [yellow]kalavai cluster resume[white] again.")
+        console.log("[red] Error when restarting. Please run [yellow]kalavai pool resume[white] again.")
 
 def set_schedulable(schedulable, node_name=load_server_info(data_key=NODE_NAME_KEY, file=USER_LOCAL_SERVER_FILE)):
     """
@@ -236,7 +236,7 @@ def pool__publish(*others, description=None):
     # - cluster is connected to vpn (has net token)
     # - user is authenticated
     if not CLUSTER.is_cluster_init():
-        console.log(f"[red] No local cluster running. Start a cluster with [yellow]kalavai cluster start [white]first.")
+        console.log(f"[red] No local cluster running. Start a cluster with [yellow]kalavai pool start [white]first.")
         return
     
     if description is None:
@@ -270,7 +270,7 @@ def pool__unpublish(cluster_name=None, *others):
     # - cluster is up and running
     # - user is authenticated
     if not CLUSTER.is_cluster_init():
-        console.log(f"[red] No local cluster running. Start a cluster with [yellow]kalavai cluster start [white]first.")
+        console.log(f"[red] No local cluster running. Start a cluster with [yellow]kalavai pool start [white]first.")
         return
     
     try:
@@ -316,7 +316,7 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
     """
 
     if CLUSTER.is_cluster_init():
-        console.log(f"[white] You are already connected to {load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE)}. Enter [yellow]kalavai cluster stop[white] to exit and join another one.")
+        console.log(f"[white] You are already connected to {load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE)}. Enter [yellow]kalavai pool stop[white] to exit and join another one.")
         return
 
     # join private network if provided
@@ -389,7 +389,7 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
     )
     
     fetch_remote_templates()
-    console.log("[green]Your cluster is ready! Grow your cluster by sharing your joining token with others. Run [yellow]kalavai cluster token[green] to generate one.")
+    console.log("[green]Your cluster is ready! Grow your cluster by sharing your joining token with others. Run [yellow]kalavai pool token[green] to generate one.")
 
     if location is not None:
         # register with kalavai if it's a public cluster
@@ -471,7 +471,7 @@ def pool__join(token, *others, node_name=None, ip_address: str=None):
     # check that k3s is not running already in the host
     # k3s service running or preinstalled
     if CLUSTER.is_agent_running():
-        console.log(f"[white] You are already connected to {load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE)}. Enter [yellow]kalavai cluster stop[white] to exit and join another one.")
+        console.log(f"[white] You are already connected to {load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE)}. Enter [yellow]kalavai pool stop[white] to exit and join another one.")
         return
 
     try:
@@ -575,7 +575,7 @@ def pool__stop(*others):
     CLUSTER.remove_agent()
     # clean local files
     cleanup_local()
-    console.log("[white] Kalavai has stopped sharing your resources. Use [yellow]kalavai cluster start[white] or [yellow]kalavai cluster join[white] to start again!")
+    console.log("[white] Kalavai has stopped sharing your resources. Use [yellow]kalavai pool start[white] or [yellow]kalavai pool join[white] to start again!")
 
 @arguably.command
 def pool__pause(*others):
@@ -589,9 +589,9 @@ def pool__pause(*others):
     console.log("[white] Pausing kalavai app...")
     success = CLUSTER.pause_agent()
     if success:
-        console.log("[white] Kalava sharing paused. Resume with [yellow]kalavai cluster resume")
+        console.log("[white] Kalava sharing paused. Resume with [yellow]kalavai pool resume")
     else:
-        console.log("[red] Error when stopping. Please run [yellow]kalavai cluster pause[red] again.")
+        console.log("[red] Error when stopping. Please run [yellow]kalavai pool pause[red] again.")
 
 @arguably.command
 def pool__resume(*others):
@@ -603,7 +603,7 @@ def pool__resume(*others):
     """
     # k3s stop locally
     if not CLUSTER.is_cluster_init():
-        console.log("[red] Kalavai app was not started before, please run [yellow]kalavai cluster start[red] to start a cluster or [yellow]kalavai cluster join[red] to join one first")
+        console.log("[red] Kalavai app was not started before, please run [yellow]kalavai pool start[red] to start a pool or [yellow]kalavai pool join[red] to join one first")
         return
     console.log("[white] Resuming kalavai app...")
     restart()
