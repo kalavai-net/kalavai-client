@@ -12,7 +12,7 @@
         <link rel="prev" href="../concepts/">
       
       
-        <link rel="next" href="../local_cluster/">
+        <link rel="next" href="../local_pool/">
       
       
       <link rel="icon" href="../assets/icons/browser.png">
@@ -423,7 +423,7 @@
             
   
   <span class="md-ellipsis">
-    Create AI clusters
+    Create AI pools
   </span>
   
 
@@ -433,7 +433,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
-            Create AI clusters
+            Create AI pools
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -444,11 +444,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../local_cluster/" class="md-nav__link">
+      <a href="../local_pool/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Local clusters
+    Local pools
   </span>
   
 
@@ -465,11 +465,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../public_cluster/" class="md-nav__link">
+      <a href="../public_pool/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Public clusters
+    Public pools
   </span>
   
 
@@ -680,7 +680,7 @@
 
 <h1 id="getting-started">Getting started</h1>
 <p>Kalavai is <strong>free to use, no caps, for both commercial and non-commercial purposes</strong>. All you need to get started is one or more computers that can see each other (i.e. within the same network), and you are good to go. If you wish to join computers in different locations / networks, check our <a href="#managed-kalavai">managed kalavai</a> offering.</p>
-<p>The <code>kalavai</code> CLI is the main tool to interact with the Kalavai platform, to create and manage both local and public clusters. Let's go over its installation</p>
+<p>The <code>kalavai</code> CLI is the main tool to interact with the Kalavai platform, to create and manage both local and public pools. Let's go over its installation</p>
 <!--https://github.com/user-attachments/assets/af2ee15d-f18c-4802-8210-1873b0de07eb -->
 
 <h2 id="requirements">Requirements</h2>
@@ -723,12 +723,12 @@ wsl -d Ubuntu-24.04
 </ol>
 <pre><code class="language-bash">curl -sfL https://raw.githubusercontent.com/kalavai-net/kalavai-client/main/assets/install_client.sh | bash -
 </code></pre>
-<p><strong>Note</strong>: you <strong>must keep the WSL console window open</strong> to continue to share resources with an AI cluster. If you restart your machine or close the console, you will need to resume kalavai as follows:</p>
-<pre><code class="language-bash">kalavai cluster resume
+<p><strong>Note</strong>: you <strong>must keep the WSL console window open</strong> to continue to share resources with an AI pool. If you restart your machine or close the console, you will need to resume kalavai as follows:</p>
+<pre><code class="language-bash">kalavai pool resume
 </code></pre>
 <p><strong>Known issue</strong>: if the above resume command hangs or fails, try to run the pause command before and then reattempt resuming:</p>
-<pre><code class="language-bash">kalavai cluster pause
-kalavai cluster resume
+<pre><code class="language-bash">kalavai pool pause
+kalavai pool resume
 </code></pre>
 
 
