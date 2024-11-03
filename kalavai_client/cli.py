@@ -1170,7 +1170,7 @@ def job__list(*others):
 
 
 @arguably.command
-def job__logs(*others, name, stream=False):
+def job__logs(name, *others, pod_name=None, stream=False):
     """
     Get logs for a specific job
     """
@@ -1189,12 +1189,16 @@ def job__logs(*others, name, stream=False):
             )
             if not stream:
                 for pod, logs in result.items():
+                    if pod_name is not None and pod_name != pod:
+                        continue
                     console.log(f"[yellow]Pod {pod}")
                     console.log(f"[green]{logs}")
                 break
             else:
                 os.system("clear")
                 for pod, logs in result.items():
+                    if pod_name is not None and pod_name != pod:
+                        continue
                     print(f"Pod {pod}")
                     print(f"{logs}")
                 time.sleep(1)
@@ -1202,6 +1206,7 @@ def job__logs(*others, name, stream=False):
             break
         except Exception as e:
             console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
+            console.log(f"Check if {name} is running with [yellow]kalavai job list")
             return
 
 @arguably.command

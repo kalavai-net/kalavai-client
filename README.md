@@ -208,10 +208,11 @@ If your system is not currently supported, [open an issue](https://github.com/ka
 ### OS compatibility
 
 Currently compatible and tested OS:
-- Debian-based linux (such as Ubuntu)
+- Ubuntu (22.04, 24.04)
 - Windows 10+ (using WSL2)
 
 Currently compatible (untested. [Interested in testing them?](mailto:info@kalavai.net)):
+- Debian-based linux
 - Fedora
 - RedHat
 - Any distro capable of installing `.deb` and `.rpm` packages.

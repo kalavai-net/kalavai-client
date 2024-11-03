@@ -46,10 +46,10 @@ $ kalavai job list
 
 This is a model endpoint that can be interacted as you would any [LLM server](https://aphrodite.pygmalion.chat/pages/usage/openai.html). For example:
 ```bash
-curl http://192.168.68.67:31685/v1/completions \
+curl 192.168.68.67:31685/v1/completions \
     -H "Content-Type: application/json" \
     -d '{
-        "model": "qwen2.5-0.5B.yaml",
+        "model": "Qwen/Qwen2.5-0.5B-Instruct",
         "prompt": "Every age it seems is tainted by the greed of men. Rubbish to one such as I,",
         "max_tokens": 100,
         "temperature": 0
