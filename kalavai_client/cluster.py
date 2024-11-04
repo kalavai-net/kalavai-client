@@ -5,7 +5,8 @@ from abc import ABC, abstractmethod
 from kalavai_client.utils import (
     run_cmd,
     user_path,
-    check_gpu_drivers
+    check_gpu_drivers,
+    validate_poolconfig
 )
 
 
@@ -56,13 +57,18 @@ class Cluster(ABC):
     def diagnostics(self) -> str:
         raise NotImplementedError()
     
+    @abstractmethod
+    def validate_cluster(self) -> bool:
+        raise NotImplementedError
+    
 
 class k0sCluster(Cluster):
 
-    def __init__(self, kubeconfig_file, kube_version="v1.31.1+k3s1", flannel_iface=None):
+    def __init__(self, kubeconfig_file, poolconfig_file, kube_version="v1.31.1+k3s1", flannel_iface=None):
         self.kube_version = kube_version
         self.flannel_iface = flannel_iface
         self.kubeconfig_file = kubeconfig_file
+        self.poolconfig_file = poolconfig_file
 
 
     def start_seed_node(self, ip_address, cluster_config_file, labels):
@@ -130,9 +136,10 @@ class k0sCluster(Cluster):
 
 class k3sCluster(Cluster):
 
-    def __init__(self, kubeconfig_file, kube_version="v1.31.1+k3s1", flannel_iface=None):
+    def __init__(self, kubeconfig_file, poolconfig_file, kube_version="v1.31.1+k3s1", flannel_iface=None):
         self.kube_version = kube_version
         self.kubeconfig_file = kubeconfig_file
+        self.poolconfig_file = poolconfig_file
 
         if flannel_iface is not None:
             self.default_flannel_iface = flannel_iface
@@ -204,14 +211,18 @@ class k3sCluster(Cluster):
         return status
 
     def pause_agent(self):
+        status = False
         try:
             run_cmd('sudo systemctl stop k3s >/dev/null 2>&1')
+            status = True
         except:
             pass
         try:
             run_cmd('sudo systemctl stop k3s-agent >/dev/null 2>&1')
+            status = True
         except:
             pass
+        return status
 
 
     def restart_agent(self):
@@ -237,3 +248,14 @@ class k3sCluster(Cluster):
             return run_cmd(f"k3s kubectl get pods -A -o wide --kubeconfig {self.kubeconfig_file}").decode() + "\n\n" + run_cmd(f"k3s kubectl get nodes --kubeconfig {self.kubeconfig_file}").decode()
         else:
             return None
+        
+    def validate_cluster(self) -> bool:
+        if not self.is_cluster_init():
+            raise ValueError("Pool not initialised")
+        if not self.is_agent_running():
+            raise ValueError("Pool initialised but agent is not running")
+        # check cache files
+        if not validate_poolconfig(self.poolconfig_file):
+            raise ValueError("Cache missconfigured. Run 'kalavai pool stop' to clear.")
+        return True
+

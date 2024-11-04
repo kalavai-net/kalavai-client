@@ -42,6 +42,14 @@ MANDATORY_TOKEN_FIELDS = [
     WATCHER_SERVICE_KEY,
     PUBLIC_LOCATION_KEY
 ]
+MANDATORY_POOLCONFIG_FIELDS = [
+    SERVER_IP_KEY,
+    AUTH_KEY,
+    WATCHER_SERVICE_KEY,
+    NODE_NAME_KEY,
+    CLUSTER_NAME_KEY,
+    PUBLIC_LOCATION_KEY
+]
 
 
 def load_server_info(data_key, file):
@@ -147,6 +155,16 @@ def validate_join_public_seed(cluster_name, join_key, user_cookie):
     )
     return seed
 
+def validate_poolconfig(poolconfig_file):
+    if not Path(poolconfig_file).is_file():
+        return False
+    with open(poolconfig_file, "r") as f:
+        data = json.load(f)
+    for field in MANDATORY_POOLCONFIG_FIELDS:
+        if field not in data:
+            return False
+    return True
+
 def check_gpu_drivers():
     value = run_cmd("command -v nvidia-smi")
     if len(value.decode("utf-8")) == 0:
@@ -241,9 +259,16 @@ def get_all_templates(local_path, templates_path=None, remote_load=False):
     return [ (local_path, item) for item in os.listdir(local_path) if os.path.isdir(os.path.join(local_path, item)) ]
 
 
-def request_to_server(method, endpoint, data, server_creds):
-    service_url = load_server_info(data_key=WATCHER_SERVICE_KEY, file=server_creds)
-    auth_key = load_server_info(data_key=AUTH_KEY, file=server_creds)
+def request_to_server(method, endpoint, data, server_creds, force_url=None, force_key=None):
+    if force_url is None:
+        service_url = load_server_info(data_key=WATCHER_SERVICE_KEY, file=server_creds)
+    else:
+        service_url = force_url
+    
+    if force_key is None:
+        auth_key = load_server_info(data_key=AUTH_KEY, file=server_creds)
+    else:
+        auth_key = force_key
 
     headers = {
         "X-API-KEY": auth_key
