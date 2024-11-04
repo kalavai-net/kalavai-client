@@ -21,8 +21,8 @@ class Cluster(ABC):
 
 
     @abstractmethod
-    def install_dependencies(self, dependencies_file, kubeconfig_file):
-        run_cmd(f"helmfile sync --file {dependencies_file} --kubeconfig {kubeconfig_file} >/dev/null 2>&1")
+    def update_dependencies(self, dependencies_files):
+        raise NotImplementedError()
 
 
     @abstractmethod
@@ -64,12 +64,12 @@ class Cluster(ABC):
 
 class k0sCluster(Cluster):
 
-    def __init__(self, kubeconfig_file, poolconfig_file, kube_version="v1.31.1+k3s1", flannel_iface=None):
+    def __init__(self, kubeconfig_file, poolconfig_file, dependencies_file, kube_version="v1.31.1+k3s1", flannel_iface=None):
         self.kube_version = kube_version
         self.flannel_iface = flannel_iface
         self.kubeconfig_file = kubeconfig_file
         self.poolconfig_file = poolconfig_file
-
+        self.dependencies_file = dependencies_file
 
     def start_seed_node(self, ip_address, cluster_config_file, labels):
         run_cmd("curl -sSLf https://get.k0s.sh | sudo sh")
@@ -91,10 +91,10 @@ class k0sCluster(Cluster):
         run_cmd("sudo k0s start")
 
 
-    def install_dependencies(self, dependencies_file):
-        super().install_dependencies(
-            dependencies_file=dependencies_file,
-            kubeconfig_file=self.kubeconfig_file)
+    def update_dependencies(self, dependencies_file=None):
+        if dependencies_file is None:
+            dependencies_file = self.dependencies_file
+        run_cmd(f"helmfile sync --file {dependencies_file} --kubeconfig {self.kubeconfig_file} >/dev/null 2>&1")
 
 
     def remove_agent(self):
@@ -136,10 +136,11 @@ class k0sCluster(Cluster):
 
 class k3sCluster(Cluster):
 
-    def __init__(self, kubeconfig_file, poolconfig_file, kube_version="v1.31.1+k3s1", flannel_iface=None):
+    def __init__(self, kubeconfig_file, poolconfig_file, dependencies_file, kube_version="v1.31.1+k3s1", flannel_iface=None):
         self.kube_version = kube_version
         self.kubeconfig_file = kubeconfig_file
         self.poolconfig_file = poolconfig_file
+        self.dependencies_file = dependencies_file
 
         if flannel_iface is not None:
             self.default_flannel_iface = flannel_iface
@@ -179,10 +180,14 @@ class k3sCluster(Cluster):
         run_cmd(command)
         
 
-    def install_dependencies(self, dependencies_file):
-        super().install_dependencies(
-            dependencies_file=dependencies_file,
-            kubeconfig_file=self.kubeconfig_file)
+    def update_dependencies(self, dependencies_file=None, debug=False):
+        if dependencies_file is not None:
+            self.dependencies_file = dependencies_file
+        if debug:
+            output = ""
+        else:
+            output = " >/dev/null 2>&1"
+        run_cmd(f"helmfile sync --file {self.dependencies_file} --kubeconfig {self.kubeconfig_file} {output}")
 
 
     def remove_agent(self):

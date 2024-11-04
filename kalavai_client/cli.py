@@ -84,7 +84,8 @@ CLUSTER = k3sCluster(
     kube_version=KUBE_VERSION,
     flannel_iface=DEFAULT_FLANNEL_IFACE,
     kubeconfig_file=USER_KUBECONFIG_FILE,
-    poolconfig_file=USER_LOCAL_SERVER_FILE
+    poolconfig_file=USER_LOCAL_SERVER_FILE,
+    dependencies_file=USER_HELM_APPS_FILE
 )
 
 
@@ -407,7 +408,7 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
     
     with open(USER_HELM_APPS_FILE, "w") as f:
         f.write(config)
-    CLUSTER.install_dependencies(
+    CLUSTER.update_dependencies(
         dependencies_file=USER_HELM_APPS_FILE
     )
     
@@ -722,6 +723,30 @@ def pool__resources(*others):
         
     except Exception as e:
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
+
+@arguably.command
+def pool__update(*others):
+    """
+    Update kalavai pool
+    """
+    try:
+        CLUSTER.validate_cluster()
+    except Exception as e:
+        console.log(f"[red]Problems with your pool: {str(e)}")
+        return
+    
+    if not CLUSTER.is_seed_node():
+        console.log("You can only update a pool from the seed node.")
+        return
+    
+    # update dependencies
+    try:
+        CLUSTER.update_dependencies(debug=True)
+        console.log("Pool updating. Expect some downtime on core services")
+    except Exception as e:
+        console.log(f"[red]Error when updating pool: {str(e)}")
+        return
+
 
 @arguably.command
 def pool__status(*others):
