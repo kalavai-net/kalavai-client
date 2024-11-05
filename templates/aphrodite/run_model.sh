@@ -29,7 +29,7 @@ done
 
 if [ $model_filename = "None" ]; then
     # load from repo
-    #python3 /vllm-workspace/download_hf.py --repo_id $repo_id --local_dir /dev/shm/
+    #python3 /vllm-workspace/download_hf.py --repo_id $repo_id --local_dir /vllm-workspace/
 
     python -m aphrodite.endpoints.openai.api_server  \
         --model $repo_id \
@@ -39,9 +39,9 @@ if [ $model_filename = "None" ]; then
         $extra
 else
     # load from file
-    python3 /vllm-workspace/download_hf.py --repo_id $repo_id --filename $model_filename --local_dir /dev/shm/
+    python3 /vllm-workspace/download_hf.py --repo_id $repo_id --filename $model_filename --local_dir /vllm-workspace/
     python -m aphrodite.endpoints.openai.api_server  \
-        --model /dev/shm/$model_filename \
+        --model /vllm-workspace/$model_filename \
         --port 8080 --host 0.0.0.0 \
         --tensor-parallel-size $tensor_parallel_size \
         --pipeline-parallel-size $pipeline_parallel_size \

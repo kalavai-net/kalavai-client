@@ -19,7 +19,7 @@ spec:
         runtimeClassName: nvidia
         containers:
         - name: aphrodite-leader
-          image: bundenth/ray-aphrodite:v0.0.23
+          image: bundenth/ray-aphrodite:v0.0.24
           env:
           - name: HF_TOKEN
             value: $hf_token
@@ -34,7 +34,7 @@ spec:
                   --extra='$extra' \
                   --tensor_parallel_size=$tensor_parallel_size \
                   --pipeline_parallel_size=$pipeline_parallel_size;
-                sleep 10"
+                sleep 30"
           resources:
             requests:
               cpu: "$cpus"
@@ -65,7 +65,7 @@ spec:
         runtimeClassName: nvidia
         containers:
         - name: aphrodite-worker
-          image: bundenth/ray-aphrodite:v0.0.23
+          image: bundenth/ray-aphrodite:v0.0.24
           env:
             - name: HF_TOKEN
               value: $hf_token
