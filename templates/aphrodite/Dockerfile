@@ -1,5 +1,4 @@
 FROM rayproject/ray:2.36.0-py310-gpu
-COPY ray_init.sh /vllm-workspace/ray_init.sh
 
 RUN sudo apt update && sudo apt install bc
 RUN pip3 install aphrodite-engine
@@ -7,7 +6,7 @@ RUN pip3 install aphrodite-engine
 RUN pip3 install gguf==0.10.0 
 RUN pip3 install huggingface_hub
 
-
+COPY ray_init.sh /vllm-workspace/ray_init.sh
 COPY download_hf.py /vllm-workspace/download_hf.py
 COPY run_model.sh /vllm-workspace/run_model.sh
 

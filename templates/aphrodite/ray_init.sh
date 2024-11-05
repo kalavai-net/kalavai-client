@@ -41,9 +41,8 @@ case "$subcommand" in
     fi
 
     for (( i=0; i < $ray_init_timeout; i+=5 )); do
-      echo "----->MEMORY "$memory
+      memory=$(echo "$ray_object_store_memory*0.75" | bc -l)
       round_mem=$(round ${memory} 0)
-      echo "----->ROUND MEMORY "$round_mem
       ray start --address=$ray_address:$ray_port --block --object-store-memory=$round_mem
       if [ $? -eq 0 ]; then
         echo "Worker: Ray runtime started with head address $ray_address:$ray_port"
@@ -86,9 +85,7 @@ case "$subcommand" in
 
     # start the ray daemon
     memory=$(echo "$ray_object_store_memory*0.75" | bc -l)
-    echo "----->MEMORY "$memory
     round_mem=$(round ${memory} 0)
-    echo "----->ROUND MEMORY "$round_mem
     ray start --head --port=$ray_port --object-store-memory=$round_mem
 
     # wait until all workers are active
