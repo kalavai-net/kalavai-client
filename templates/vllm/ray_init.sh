@@ -4,7 +4,7 @@ subcommand=$1
 shift
 
 ray_port=6379
-ray_init_timeout=3000
+ray_init_timeout=360000
 
 case "$subcommand" in
   worker)
@@ -33,7 +33,7 @@ case "$subcommand" in
     fi
 
     for (( i=0; i < $ray_init_timeout; i+=5 )); do
-      ray start --address=$ray_address:$ray_port --block
+      ray start --address=$ray_address:$ray_port --block --object-store-memory 200000000000
       if [ $? -eq 0 ]; then
         echo "Worker: Ray runtime started with head address $ray_address:$ray_port"
         exit 0
@@ -71,7 +71,7 @@ case "$subcommand" in
     fi
 
     # start the ray daemon
-    ray start --head --port=$ray_port
+    ray start --head --port=$ray_port object-store-memory 200000000000
 
     # wait until all workers are active
     for (( i=0; i < $ray_init_timeout; i+=5 )); do
