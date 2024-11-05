@@ -1,6 +1,7 @@
 FROM rayproject/ray:2.36.0-py310-gpu
 COPY ray_init.sh /vllm-workspace/ray_init.sh
 
+RUN sudo apt update && sudo apt install bc
 RUN pip3 install aphrodite-engine
 # workaround dependency issue with gguf https://github.com/PygmalionAI/aphrodite-engine/issues/783
 RUN pip3 install gguf==0.10.0 
