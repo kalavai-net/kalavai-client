@@ -19,7 +19,7 @@ spec:
         runtimeClassName: nvidia
         containers:
         - name: vllm-leader
-          image: bundenth/ray-vllm:v1.0.2
+          image: bundenth/ray-vllm:v1.0.3
           env:
           - name: HUGGING_FACE_HUB_TOKEN
             value: $hf_token
@@ -27,6 +27,7 @@ spec:
             - sh
             - -c
             - "/vllm-workspace/ray_init.sh leader --ray_cluster_size=$num_workers; 
+                 ray status;
                  python3 -m vllm.entrypoints.openai.api_server \
                   --host 0.0.0.0 --port 8080 \
                   --tensor-parallel-size $tensor_parallel_size \
@@ -63,7 +64,7 @@ spec:
         runtimeClassName: nvidia
         containers:
         - name: vllm-worker
-          image: bundenth/ray-vllm:v1.0.2
+          image: bundenth/ray-vllm:v1.0.3
           env:
             - name: HUGGING_FACE_HUB_TOKEN
               value: $hf_token

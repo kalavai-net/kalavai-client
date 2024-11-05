@@ -71,7 +71,7 @@ case "$subcommand" in
     fi
 
     # start the ray daemon
-    ray start --head --port=$ray_port object-store-memory 200000000000
+    ray start --head --port=$ray_port --object-store-memory 200000000000
 
     # wait until all workers are active
     for (( i=0; i < $ray_init_timeout; i+=5 )); do
