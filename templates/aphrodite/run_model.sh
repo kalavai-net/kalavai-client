@@ -1,3 +1,4 @@
+#!/bin/bash
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -29,6 +30,7 @@ while [ $# -gt 0 ]; do
 done
 
 source /home/ray/workspace/env/bin/activate
+
 if [ $model_filename = "None" ]; then
     # load from repo
     #python3 /vllm-workspace/download_hf.py --repo_id $repo_id --local_dir /vllm-workspace/
