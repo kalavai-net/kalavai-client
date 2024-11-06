@@ -26,10 +26,10 @@ spec:
           command:
             - sh
             - -c
-            - "$$HOME/workspace/ray_init.sh leader --ray_cluster_size=$num_workers --ray_object_store_memory=$shmem_size;
+            - "/home/ray/workspace/ray_init.sh leader --ray_cluster_size=$num_workers --ray_object_store_memory=$shmem_size;
                 sleep 30;
                 ray status;
-                $$HOME/workspace/run_model.sh \
+                /home/ray/workspace/run_model.sh \
                   --repo_id=$repo_id \
                   --model_filename=$model_filename \
                   --extra='$extra' \
@@ -73,7 +73,7 @@ spec:
           command:
             - sh
             - -c
-            - "$$HOME/workspace/ray_init.sh worker --ray_address=$$LWS_LEADER_ADDRESS --ray_object_store_memory=$shmem_size;
+            - "/home/ray/workspace/ray_init.sh worker --ray_address=$$LWS_LEADER_ADDRESS --ray_object_store_memory=$shmem_size;
                 sleep 10;
                 ray status;
                 tail -f /dev/null"
