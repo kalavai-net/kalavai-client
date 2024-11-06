@@ -26,8 +26,7 @@ spec:
           command:
             - sh
             - -c
-            - "source /home/ray/workspace/env/bin/activate;
-                /home/ray/workspace/ray_init.sh leader --ray_cluster_size=$num_workers --ray_object_store_memory=$shmem_size;
+            - "/home/ray/workspace/ray_init.sh leader --ray_cluster_size=$num_workers --ray_object_store_memory=$shmem_size;
                 sleep 30;
                 ray status;
                 /home/ray/workspace/run_model.sh \
