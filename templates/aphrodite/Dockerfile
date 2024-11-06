@@ -9,7 +9,8 @@ RUN python3 -m venv $HOME/workspace/env
 RUN . $HOME/workspace/env/bin/activate && \
     pip3 install aphrodite-engine --no-cache-dir && \
     pip3 install gguf==0.10.0 --no-cache-dir && \
-    pip3 install huggingface_hub --no-cache-dir
+    pip3 install huggingface_hub --no-cache-dir && \
+    pip3 install ray[serve-grpc]==2.36.0
 
 COPY ray_init.sh .
 COPY download_hf.py .
