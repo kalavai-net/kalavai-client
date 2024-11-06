@@ -6,6 +6,13 @@ shift
 ray_port=6379
 ray_init_timeout=360000
 ray_object_store_memory=4000000000
+ray_block=""
+
+round() {
+  printf "%.${2}f" "${1}"
+}
+
+source /home/ray/workspace/env/bin/activate
 
 case "$subcommand" in
   worker)
@@ -17,6 +24,9 @@ case "$subcommand" in
           ;;
         --ray_object_store_memory=*)
           ray_object_store_memory="${1#*=}"
+          ;;
+        --ray_block=*)
+          ray_block="--block"
           ;;
         --ray_port=*)
           ray_port="${1#*=}"
@@ -37,7 +47,9 @@ case "$subcommand" in
     fi
 
     for (( i=0; i < $ray_init_timeout; i+=5 )); do
-      ray start --address=$ray_address:$ray_port --block --object-store-memory $ray_object_store_memory
+      memory=$(echo "$ray_object_store_memory*0.75" | bc -l)
+      round_mem=$(round ${memory} 0)
+      ray start --address=$ray_address:$ray_port $ray_block --object-store-memory=$round_mem
       if [ $? -eq 0 ]; then
         echo "Worker: Ray runtime started with head address $ray_address:$ray_port"
         exit 0
@@ -59,6 +71,9 @@ case "$subcommand" in
             --ray_object_store_memory=*)
               ray_object_store_memory="${1#*=}"
               ;;
+            --ray_block=*)
+              ray_block="--block"
+              ;;
             --ray_cluster_size=*)
               ray_cluster_size="${1#*=}"
               ;;
@@ -78,7 +93,9 @@ case "$subcommand" in
     fi
 
     # start the ray daemon
-    ray start --head --port=$ray_port --object-store-memory $ray_object_store_memory
+    memory=$(echo "$ray_object_store_memory*0.75" | bc -l)
+    round_mem=$(round ${memory} 0)
+    ray start --head --port=$ray_port --object-store-memory=$round_mem $ray_block
 
     # wait until all workers are active
     for (( i=0; i < $ray_init_timeout; i+=5 )); do

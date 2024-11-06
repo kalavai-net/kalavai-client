@@ -19,21 +19,22 @@ spec:
         runtimeClassName: nvidia
         containers:
         - name: vllm-leader
-          image: bundenth/ray-vllm:v1.0.3
+          image: bundenth/ray-vllm:v1.1.0
           env:
           - name: HUGGING_FACE_HUB_TOKEN
             value: $hf_token
           command:
             - sh
             - -c
-            - "/vllm-workspace/ray_init.sh leader --ray_cluster_size=$num_workers; 
-                 ray status;
-                 python3 -m vllm.entrypoints.openai.api_server \
-                  --host 0.0.0.0 --port 8080 \
-                  --tensor-parallel-size $tensor_parallel_size \
-                  --pipeline-parallel-size $pipeline_parallel_size \
-                  --model $model_id \
-                  $extra"
+            - "/home/ray/workspace/ray_init.sh leader --ray_cluster_size=$num_workers --ray_object_store_memory=$shmem_size;
+                sleep 30;
+                ray status;
+                /home/ray/workspace/run_model.sh \
+                  --model_id=$model_id \
+                  --extra='$extra' \
+                  --tensor_parallel_size=$tensor_parallel_size \
+                  --pipeline_parallel_size=$pipeline_parallel_size;
+                sleep 30"
           resources:
             requests:
               cpu: "$cpus"
@@ -64,14 +65,14 @@ spec:
         runtimeClassName: nvidia
         containers:
         - name: vllm-worker
-          image: bundenth/ray-vllm:v1.0.3
+          image: bundenth/ray-vllm:v1.1.0
           env:
             - name: HUGGING_FACE_HUB_TOKEN
               value: $hf_token
           command:
             - sh
             - -c
-            - "/vllm-workspace/ray_init.sh worker --ray_address=$$LWS_LEADER_ADDRESS"
+            - "/home/ray/workspace/ray_init.sh worker --ray_address=$$LWS_LEADER_ADDRESS --ray_object_store_memory=$shmem_size --ray_block=1"
           resources:
             requests:
               cpu: "$cpus"
