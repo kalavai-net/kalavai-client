@@ -19,7 +19,7 @@ spec:
         runtimeClassName: nvidia
         containers:
         - name: aphrodite-leader
-          image: bundenth/ray-aphrodite:v0.0.29
+          image: bundenth/ray-aphrodite:v0.1.0
           env:
           - name: HF_TOKEN
             value: $hf_token
@@ -27,6 +27,7 @@ spec:
             - sh
             - -c
             - "/vllm-workspace/ray_init.sh leader --ray_cluster_size=$num_workers --ray_object_store_memory=$shmem_size;
+                sleep 30;
                 ray status;
                 /vllm-workspace/run_model.sh \
                   --repo_id=$repo_id \
@@ -65,7 +66,7 @@ spec:
         runtimeClassName: nvidia
         containers:
         - name: aphrodite-worker
-          image: bundenth/ray-aphrodite:v0.0.29
+          image: bundenth/ray-aphrodite:v0.1.0
           env:
             - name: HF_TOKEN
               value: $hf_token
@@ -73,6 +74,7 @@ spec:
             - sh
             - -c
             - "/vllm-workspace/ray_init.sh worker --ray_address=$$LWS_LEADER_ADDRESS --ray_object_store_memory=$shmem_size;
+                sleep 10;
                 ray status;
                 tail -f /dev/null"
           resources:
