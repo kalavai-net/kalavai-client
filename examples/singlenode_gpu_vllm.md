@@ -65,8 +65,8 @@ template_values:
   default: "1"
   description: "Pipeline parallelism (use the number of nodes)"
 - name: shmem_size
-  value: "4Gi"
-  default: "4Gi"
+  value: "4000000000"
+  default: "4000000000"
   description: "Size of the shared memory volume"
 - name: extra
   value: "--dtype float16 --enforce-eager --swap-space 0"

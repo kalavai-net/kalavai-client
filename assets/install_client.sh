@@ -64,6 +64,7 @@ install_core_dependencies() {
     info "Installing package dependencies..."
     info "Installing nvidia runtime..."
     # nvidia-container-runtime, wireguard, containerd, netclient
+    # TODO default Y when adding keys
     $SUDO $package_manager install -y curl jq wget openssl
     if [ "$package_manager" == "apt-get" ]; then
         $SUDO $package_manager install -y gnupg2
@@ -137,6 +138,7 @@ install_core_dependencies() {
     $SUDO nvidia-ctk runtime configure --runtime=containerd || true
     $SUDO systemctl restart containerd
 
+    # TODO: check if this has been added already
     echo "# TACKLE "too many files open" in kubernetes pods
 fs.inotify.max_user_watches = 655360
 fs.inotify.max_user_instances = 1280"  | sudo tee -a /etc/sysctl.conf

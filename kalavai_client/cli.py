@@ -935,8 +935,8 @@ def node__list(*others):
             rows.append(tuple(row))
         
         console.log("Nodes with 'unschedulable=True' will not receive workload")
-        console.log("To make a node unschedulable (i.e. won't receive workloads) use [yellow]kalavai nodes cordon <node name>")
-        console.log("To make a node schedulable (i.e. will receive workloads) use [yellow]kalavai nodes uncordon <node name>")
+        console.log("To make a node unschedulable (i.e. won't receive workloads) use [yellow]kalavai node cordon <node name>")
+        console.log("To make a node schedulable (i.e. will receive workloads) use [yellow]kalavai node uncordon <node name>")
         console.print(
             generate_table(columns=columns, rows=rows)
         )
@@ -1027,7 +1027,7 @@ def job__reload(*others):
 
 
 @arguably.command
-def job__run(template_name, *others, values_path=None):
+def job__run(template_name, *others, values=None):
     """
     Deploy and run a template job.
 
@@ -1056,13 +1056,13 @@ def job__run(template_name, *others, values_path=None):
     template_path = os.path.join(path, template_name, "template.yaml")
 
     
-    if values_path is None or not Path(values_path).is_file():
-        console.log(f"[red]Values file {values_path} was not found")
+    if values is None or not Path(values).is_file():
+        console.log(f"[red]Values file {values} was not found")
         return
     
     template_yaml = load_template(
         template_path=template_path,
-        values_path=values_path)
+        values_path=values)
 
     # deploy template with kube-watcher
     data = {
@@ -1094,7 +1094,7 @@ def job__run(template_name, *others, values_path=None):
     if expose:
         sidecar_template_yaml = load_template(
             template_path=SERVICE_TEMPLATE_FILE,
-            values_path=values_path
+            values_path=values
         )
         try:
             result = request_to_server(

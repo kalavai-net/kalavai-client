@@ -80,8 +80,8 @@ template_values:
   description: "Pipeline parallelism (use the number of nodes)"
 
 - name: shmem_size
-  value: "4Gi"
-  default: "4Gi"
+  value: "4000000000"
+  default: "4000000000"
   description: "Size of the shared memory volume"
 
 - name: extra

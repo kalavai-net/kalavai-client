@@ -211,6 +211,7 @@ If your system is not currently supported, [open an issue](https://github.com/ka
 
 Currently compatible and tested OS:
 - Ubuntu (22.04, 24.04)
+- Pop! OS 22.04
 - Windows 10+ (using WSL2)
 
 Currently compatible (untested. [Interested in testing them?](mailto:info@kalavai.net)):
