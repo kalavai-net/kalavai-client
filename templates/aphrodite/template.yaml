@@ -19,14 +19,14 @@ spec:
         runtimeClassName: nvidia
         containers:
         - name: aphrodite-leader
-          image: bundenth/ray-aphrodite:v0.1.1
+          image: bundenth/ray-aphrodite:v0.1.2
           env:
           - name: HF_TOKEN
             value: $hf_token
           command:
             - sh
             - -c
-            - "/home/ray/workspace/env/bin/activate;
+            - "source /home/ray/workspace/env/bin/activate;
                 /home/ray/workspace/ray_init.sh leader --ray_cluster_size=$num_workers --ray_object_store_memory=$shmem_size;
                 sleep 30;
                 ray status;
@@ -67,14 +67,14 @@ spec:
         runtimeClassName: nvidia
         containers:
         - name: aphrodite-worker
-          image: bundenth/ray-aphrodite:v0.1.1
+          image: bundenth/ray-aphrodite:v0.1.2
           env:
             - name: HF_TOKEN
               value: $hf_token
           command:
             - sh
             - -c
-            - "/home/ray/workspace/env/bin/activate;
+            - "source /home/ray/workspace/env/bin/activate;
                 /home/ray/workspace/ray_init.sh worker --ray_address=$$LWS_LEADER_ADDRESS --ray_object_store_memory=$shmem_size;
                 sleep 10;
                 ray status;

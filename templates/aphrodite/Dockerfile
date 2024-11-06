@@ -2,7 +2,7 @@ FROM rayproject/ray:2.36.0-py310-gpu AS compile-image
 
 WORKDIR $HOME/workspace
 
-RUN sudo apt update && sudo apt install --no-install-recommends -y build-essential gcc bc
+RUN sudo apt update && sudo apt install --no-install-recommends -y build-essential gcc
 
 RUN python3 -m venv $HOME/workspace/env
 # workaround dependency issue with gguf https://github.com/PygmalionAI/aphrodite-engine/issues/783
@@ -17,6 +17,8 @@ COPY run_model.sh .
 
 
 FROM rayproject/ray:2.36.0-py310-gpu AS build-image
+
+RUN sudo apt update && sudo apt install bc
 
 WORKDIR $HOME/workspace
 
