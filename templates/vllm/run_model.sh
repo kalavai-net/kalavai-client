@@ -3,7 +3,7 @@
 while [ $# -gt 0 ]; do
   case "$1" in
     --model_id=*)
-      repo_id="${1#*=}"
+      model_id="${1#*=}"
       ;;
     --tensor_parallel_size=*)
       tensor_parallel_size="${1#*=}"

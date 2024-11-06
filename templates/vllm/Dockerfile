@@ -7,7 +7,7 @@ RUN sudo apt update && sudo apt install --no-install-recommends -y build-essenti
 RUN python3 -m venv $HOME/workspace/env
 RUN . $HOME/workspace/env/bin/activate && \
     pip3 install vllm --no-cache-dir && \
-    pip3 install ray[serve-grpc]==2.36.0
+    pip3 install ray[serve-grpc]==2.36.0 --no-cache-dir
 
 COPY ray_init.sh .
 COPY run_model.sh .

@@ -19,7 +19,7 @@ spec:
         runtimeClassName: nvidia
         containers:
         - name: vllm-leader
-          image: bundenth/ray-vllm:v1.1.0
+          image: bundenth/ray-vllm:v1.1.1
           env:
           - name: HUGGING_FACE_HUB_TOKEN
             value: $hf_token
@@ -65,7 +65,7 @@ spec:
         runtimeClassName: nvidia
         containers:
         - name: vllm-worker
-          image: bundenth/ray-vllm:v1.1.0
+          image: bundenth/ray-vllm:v1.1.1
           env:
             - name: HUGGING_FACE_HUB_TOKEN
               value: $hf_token
