@@ -1,3 +1,4 @@
+
 while [ $# -gt 0 ]; do
   case "$1" in
     --model_filename=*)
@@ -27,6 +28,7 @@ while [ $# -gt 0 ]; do
   shift
 done
 
+source /home/ray/workspace/env/bin/activate
 if [ $model_filename = "None" ]; then
     # load from repo
     #python3 /vllm-workspace/download_hf.py --repo_id $repo_id --local_dir /vllm-workspace/
@@ -39,7 +41,7 @@ if [ $model_filename = "None" ]; then
         $extra
 else
     # load from file
-    python3 /vllm-workspace/download_hf.py --repo_id $repo_id --filename $model_filename --local_dir /vllm-workspace/
+    python /vllm-workspace/download_hf.py --repo_id $repo_id --filename $model_filename --local_dir /vllm-workspace/
     python -m aphrodite.endpoints.openai.api_server  \
         --model /vllm-workspace/$model_filename \
         --port 8080 --host 0.0.0.0 \
