@@ -39,12 +39,12 @@ $ kalavai job list
 
 This is a model endpoint that can be interacted as you would any [LLM server](https://docs.vllm.ai/en/latest/getting_started/quickstart.html#using-openai-completions-api-with-vllm). For example:
 ```bash
-curl http://100.8.0.2:31992/v1/completions \
+curl http://100.10.0.2:31992/v1/completions \
     -H "Content-Type: application/json" \
     -d '{
-        "model": "facebook/opt-350m",
+        "model": "Qwen/Qwen2.5-0.5B-Instruct",
         "prompt": "San Francisco is a",
-        "max_tokens": 7,
+        "max_tokens": 100,
         "temperature": 0
     }'
 ```

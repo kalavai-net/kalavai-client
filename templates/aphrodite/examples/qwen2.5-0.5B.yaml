@@ -60,6 +60,6 @@ template_values:
   description: "Size of the shared memory volume (1GB == 1000000000)"
 
 - name: extra
-  value: "--dtype float16 --enforce-eager"
+  value: "--dtype float16"
   default: ""
   description: "Extra parameters to pass to the vLLM server. See https://aphrodite.pygmalion.chat/"
