@@ -1,4 +1,5 @@
 from collections import defaultdict
+import math
 import os
 import json
 import uuid
@@ -663,12 +664,16 @@ def pool__gpus(*others):
         )
         columns, rows = [], []
         for node, gpus in data.items():
+            row_gpus = []
             for gpu in gpus:
-                rows.append([node] + list(gpu.values()))
-            columns = list(gpu.keys())
+                row_gpus.append( f"{gpu['model']} ({math.floor(int(gpu['memory'])/1000)} GBs)")
+                #rows.append([node] + list(gpu.values()))
+            rows.append([node, str(len(row_gpus)), "\n".join(row_gpus)])
+
+            columns = ["Quantity", "GPU(s)"]
         columns = ["Node"] + columns
         console.print(
-            generate_table(columns=columns, rows=rows)
+            generate_table(columns=columns, rows=rows,end_sections=[n for n in range(len(rows))])
         )
         
     except Exception as e:
