@@ -72,7 +72,9 @@ spec:
           command:
             - sh
             - -c
-            - "/vllm-workspace/ray_init.sh worker --ray_address=$$LWS_LEADER_ADDRESS --ray_object_store_memory=$shmem_size"
+            - "/vllm-workspace/ray_init.sh worker --ray_address=$$LWS_LEADER_ADDRESS --ray_object_store_memory=$shmem_size
+                ray status;
+                tail -f /dev/null"
           resources:
             requests:
               cpu: "$cpus"
