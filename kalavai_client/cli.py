@@ -547,6 +547,12 @@ def pool__join(token, *others, node_name=None, ip_address: str=None):
             leave_vpn()
             return
 
+    # send note to server to let them know the node is coming online
+    if not pre_join_check(node_name=node_name, server_url=watcher_service, server_key=auth_key):
+        console.log(f"[red] Failed pre join checks. Server offline or node '{node_name}' may already exist. Please specify a different one with '--node-name'")
+        leave_vpn()
+        return
+
     if ip_address is None:
         console.log("Scanning for valid IPs...")
         ip_address = select_ip_address(subnet=subnet)
@@ -554,10 +560,6 @@ def pool__join(token, *others, node_name=None, ip_address: str=None):
     
     # local k3s agent join
     console.log(f"[white] Connecting to {cluster_name} @ {kalavai_seed_ip} (this may take a few minutes)...")
-    # send note to server to let them know the node is coming online
-    if not pre_join_check(node_name=node_name, server_url=watcher_service, server_key=auth_key):
-        console.log(f"[red] Failed pre join checks. Server offline or node '{node_name}' may already exist. Please specify a different one with '--node-name'")
-        return
     try:
         CLUSTER.start_worker_node(
             url=kalavai_seed_ip,
@@ -568,6 +570,7 @@ def pool__join(token, *others, node_name=None, ip_address: str=None):
             is_public=public_location is not None)
     except Exception as e:
         console.log(f"[red] Error connecting to {cluster_name} @ {kalavai_seed_ip}. Check with the admin if the token is still valid.")
+        leave_vpn()
         exit()
 
     while not CLUSTER.is_agent_running():
@@ -645,7 +648,7 @@ def pool__resume(*others):
     restart()
 
 @arguably.command
-def pool__gpus(*others):
+def pool__gpus(*others, available=False):
     """
     Display GPU information from all connected nodes
     """
@@ -666,11 +669,15 @@ def pool__gpus(*others):
         for node, gpus in data.items():
             row_gpus = []
             for gpu in gpus:
-                row_gpus.append( f"{gpu['model']} ({math.floor(int(gpu['memory'])/1000)} GBs)")
-                #rows.append([node] + list(gpu.values()))
-            rows.append([node, str(len(row_gpus)), "\n".join(row_gpus)])
+                status = gpu["ready"] if "ready" in gpu else True
+                if available and not status:
+                    continue
+                row_gpus.append( (f"{gpu['model']} ({math.floor(int(gpu['memory'])/1000)} GBs)", str(status)))
+            if len(row_gpus) > 0:
+                models, statuses = zip(*row_gpus)
+                rows.append([node, str(len(row_gpus)), "\n".join(models), "\n".join(statuses)])
 
-            columns = ["Quantity", "GPU(s)"]
+            columns = ["Quantity", "GPU(s)", "Ready"]
         columns = ["Node"] + columns
         console.print(
             generate_table(columns=columns, rows=rows,end_sections=[n for n in range(len(rows))])
