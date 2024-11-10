@@ -10,7 +10,7 @@
 </div>
 
 
-# Kalavai: the first social network for AI computation
+# Kalavai: the first platform for crowdsourcing AI computation
 
 ### Run large AI projects that you couldn't with your own hardware alone
 
@@ -24,7 +24,7 @@ Kalavai's goal is to make AI hardware accessible and affordable to all. We do it
 
 1. The open source version can be used to pool any devices, for _commercial and non-commercial_ purposes. This is perfect as **a management layer for research groups and organisations** that already have hardware lying around and wish to unlock its power, without requiring a devops team. This AI pools are free, secure and totally private.
 
-2. Our [managed version](https://platform.kalavai.net) acts as a **social network for AI computing**, facilitating users to connect with the community's resources. _Think Reddit, but instead of memes, users share resources with inspiring projects._
+2. Our [managed version](https://platform.kalavai.net) acts as a **platform to crowdsource AI computing between its members**, facilitating users to connect with the community's resources. _Think Reddit, but instead of memes, users share resources with inspiring projects._
 
 Both versions can be managed using our free [kalavai CLI](#getting-started) tool.
 
