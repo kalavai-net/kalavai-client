@@ -10,7 +10,7 @@
 </div>
 
 
-# Kalavai: the first platform for crowdsourcing AI computation
+# Kalavai: the first platform to crowdsource AI computation
 
 ### Run large AI projects that you couldn't with your own hardware alone
 
