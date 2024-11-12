@@ -19,10 +19,12 @@ spec:
         runtimeClassName: nvidia
         containers:
         - name: aphrodite-leader
-          image: docker.io/bundenth/ray-aphrodite:v1.0.5
+          image: docker.io/bundenth/ray-aphrodite:v1.0.6
           env:
           - name: HF_TOKEN
             value: $hf_token
+          - name: HF_HOME
+            value: /home/ray/cache
           command:
             - sh
             - -c
@@ -36,7 +38,7 @@ spec:
                   --extra='$extra' \
                   --tensor_parallel_size=$tensor_parallel_size \
                   --pipeline_parallel_size=$pipeline_parallel_size \
-                  --download_dir=/home/ray/cache;
+                  --cache_dir=/home/ray/cache;
                 sleep 30"
           resources:
             requests:
@@ -75,7 +77,7 @@ spec:
         runtimeClassName: nvidia
         containers:
         - name: aphrodite-worker
-          image: docker.io/bundenth/ray-aphrodite:v1.0.5
+          image: docker.io/bundenth/ray-aphrodite:v1.0.6
           env:
             - name: HF_TOKEN
               value: $hf_token
