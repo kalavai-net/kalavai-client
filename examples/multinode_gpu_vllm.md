@@ -31,6 +31,10 @@ template_values:
   value: vllm-gemma-1
   default: vllm-gemma-1
   description: "Name of the deployment job"
+- name: storage
+  value: "pool-cache"
+  default: "pool-cache"
+  description: "Pool storage to use to cache model weights"
 - name: replicas
   value: "1"
   default: "1"
@@ -55,6 +59,10 @@ template_values:
   value: "1"
   default: "1"
   description: "GPUs per single worker (final one = gpus * num_workers)"
+- name: gpu_vram
+  value: "4000"
+  default: "4000"
+  description: "vRAM per GPU (total one = num_workers * gpus * gpu_vram)"
 - name: memory
   value: "4Gi"
   default: "4Gi"

@@ -8,10 +8,12 @@ This template makes heavy use of the [vLLM library](https://docs.vllm.ai/en/late
 
 ## Key template variables
 
+- `storage`: Pool storage to use to cache model weights. Useful to persist weights across jobs. Pools have a default storage named `pool-cache`, and you can create new ones with `kalavai storage create <name> <capacity>`.
 - `num_workers`: Number of workers per deployment (for tensor parallelism, i.e. how many pieces to divide the model into)
 - `model_id`: Huggingface repository to load from [Huggingface](https://huggingface.co/models). This usually takes the form of `OrgName/ModelID`
 - `hf_token` (optional): Huggingface token, required to load licensed model weights
 - `gpus`: GPUs per single worker (final one = gpus * num_workers)
+- `gpu_vram`: Minimum vRAM for each GPU requested (total one = gpus * num_workers * gpu_vram)
 - `extra` (optional): any extra parameters to pass to aphrodite engine. Expected format: `--parameter1_name parameter1_value --parameterX_name parameterX_value`
 - `tensor_parallel_size`: Tensor parallelism (use the number of GPUs per node)
 - `pipeline_parallel_size`: Pipeline parallelism (use the number of nodes)

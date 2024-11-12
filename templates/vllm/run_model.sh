@@ -5,6 +5,9 @@ while [ $# -gt 0 ]; do
     --model_id=*)
       model_id="${1#*=}"
       ;;
+    --download_dir=*)
+      download_dir="${1#*=}"
+      ;;
     --tensor_parallel_size=*)
       tensor_parallel_size="${1#*=}"
       ;;
@@ -30,4 +33,5 @@ python -m vllm.entrypoints.openai.api_server \
     --tensor-parallel-size $tensor_parallel_size \
     --pipeline-parallel-size $pipeline_parallel_size \
     --model $model_id \
+    --download-dir $download_dir \
     $extra

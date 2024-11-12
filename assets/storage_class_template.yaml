@@ -1,0 +1,17 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: $sc_name
+provisioner: driver.longhorn.io
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+parameters:
+  shareManagerNodeSelector: $sc_label_selector #storage-allowed:true
+  numberOfReplicas: "$sc_replicas"
+  staleReplicaTimeout: "2880"
+  fromBackup: ""
+  fsType: "ext4"
+  #nfsOptions: "vers=4.2,noresvport,softerr,timeo=600,retrans=5"
+  #nfsOptions: "hard,timeo=50,retrans=1"
+

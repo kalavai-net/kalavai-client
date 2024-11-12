@@ -8,6 +8,8 @@ repositories:
     url: https://kalavai-net.github.io/helm-charts/
   - name: hami-charts
     url: https://project-hami.github.io/HAMi/
+  - name: longhorn
+    url: https://charts.longhorn.io
 
 releases:
   - name: kuberay
@@ -18,6 +20,10 @@ releases:
     namespace: kuberay
     chart: kuberay/kuberay-apiserver
     installed: false
+  - name: longhorn-system
+    namespace: kalavai
+    chart: longhorn/longhorn
+    installed: true
   - name: lws
     namespace: kalavai
     chart: kalavai/lws
@@ -39,10 +45,6 @@ releases:
       value: "$watcher_readonly_key"
     - name: service.nodePort
       value: $watcher_port
-  # - name: nvidia-gpu-operator
-  #   namespace: gpu-operator
-  #   chart: nvidia/gpu-operator
-  #   installed: true
   - name: nvidia-gpu-operator
     namespace: kalavai
     chart: kalavai/gpu
@@ -76,4 +78,8 @@ releases:
       value: "1"
     - name: devicePlugin.deviceSplitCount
       value: "1"
+    - name: scheduler.defaultSchedulerPolicy.nodeSchedulerPolicy
+      value: "binpack"
+    - name: scheduler.defaultSchedulerPolicy.gpuSchedulerPolicy
+      value: "binpack"
 

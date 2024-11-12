@@ -1,5 +1,7 @@
 #!/bin/bash
 
+download_dir="/home/ray/cache"
+
 while [ $# -gt 0 ]; do
   case "$1" in
     --model_filename=*)
@@ -7,6 +9,9 @@ while [ $# -gt 0 ]; do
       ;;
     --repo_id=*)
       repo_id="${1#*=}"
+      ;;
+    --download_dir=*)
+      download_dir="${1#*=}"
       ;;
     --quantization=*)
       quantization="${1#*=}"
@@ -33,22 +38,23 @@ source /home/ray/workspace/env/bin/activate
 
 if [ $model_filename = "None" ]; then
     # load from repo
-    #python3 /vllm-workspace/download_hf.py --repo_id $repo_id --local_dir /vllm-workspace/
+    python /home/ray/workspace/download_hf.py --repo_id $repo_id --local_dir $download_dir
 
     python -m aphrodite.endpoints.openai.api_server  \
         --model $repo_id \
         --port 8080 --host 0.0.0.0 \
         --tensor-parallel-size $tensor_parallel_size \
         --pipeline-parallel-size $pipeline_parallel_size \
+        --download-dir $download_dir \
         $extra
 else
     # load from file
-    python /vllm-workspace/download_hf.py --repo_id $repo_id --filename $model_filename --local_dir /vllm-workspace/
+    python /home/ray/workspace/download_hf.py --repo_id $repo_id --filename $model_filename --local_dir $download_dir
     python -m aphrodite.endpoints.openai.api_server  \
         --model /vllm-workspace/$model_filename \
         --port 8080 --host 0.0.0.0 \
         --tensor-parallel-size $tensor_parallel_size \
         --pipeline-parallel-size $pipeline_parallel_size \
+        --download-dir $download_dir \
         $extra
 fi
-

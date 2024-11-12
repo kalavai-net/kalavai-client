@@ -52,6 +52,49 @@ MANDATORY_POOLCONFIG_FIELDS = [
 ]
 
 
+####### Methods to check OS compatibility ########
+def check_gpu_drivers():
+    value = run_cmd("command -v nvidia-smi")
+    if len(value.decode("utf-8")) == 0:
+        # no nvidia installed, no need to check nvidia any further
+        return False
+    else:
+        # check drivers are set correctly
+        try:
+            value = run_cmd("nvidia-smi")
+            return True
+        except:
+            raise ("Nvidia not configured properly. Please check your drivers are installed and configured")
+
+def is_storage_compatible():
+    """
+    Raw method to determine if running node is compatible with PVC (longhorn)
+
+    Exclude: WSL
+    """
+    try:
+        flagged = any([
+            "microsoft" in run_cmd("cat /proc/version").decode().lower()
+        ])
+        return not flagged
+    except:
+        return False
+################
+
+def is_watcher_alive(server_creds):
+    try:
+        request_to_server(
+            method="get",
+            endpoint="/v1/health",
+            data=None,
+            server_creds=server_creds
+        )
+    except:
+        return False
+    return True
+
+
+
 def load_server_info(data_key, file):
     try:
         with open(file, "r") as f:
@@ -164,20 +207,6 @@ def validate_poolconfig(poolconfig_file):
         if field not in data:
             return False
     return True
-
-def check_gpu_drivers():
-    value = run_cmd("command -v nvidia-smi")
-    if len(value.decode("utf-8")) == 0:
-        # no nvidia installed, no need to check nvidia any further
-        return False
-    else:
-        # check drivers are set correctly
-        try:
-            value = run_cmd("nvidia-smi")
-            return True
-        except:
-            raise ("Nvidia not configured properly. Please check your drivers are installed and configured")
-
 
 def run_cmd(command):
     try:
@@ -305,7 +334,7 @@ def store_server_info(server_ip, auth_key, watcher_service, file, node_name, clu
         }, f)
     return True
 
-def load_template(template_path, values_path):
+def load_template(template_path, values):
     if not Path(template_path).exists():
         raise FileNotFoundError(f"{template_path} does not exist")
     with open(template_path, 'r') as f:
@@ -313,12 +342,6 @@ def load_template(template_path, values_path):
     
     template = Template(yaml_template)
 
-    if not Path(values_path).exists():
-        raise FileNotFoundError(f"{values_path} does not exist")
-    
-    with open(values_path, "r") as f:
-        raw_values = yaml.load(f, Loader=yaml.SafeLoader)
-        values = {variable["name"]: variable['value'] for variable in raw_values["template_values"]}
     return template.substitute(values)
 
 
@@ -362,7 +385,6 @@ def get_gpus():
         mem = int(gpu.memoryTotal / 1000) # in GBs
         gpus.append(f"{name}-{mem}GB")
     return ",".join(gpus)
-
 
 def system_uptick_request(username, node_name, backend_endpoint, backend_api_key, local_version=0):
     gpus = get_gpus()

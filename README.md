@@ -251,6 +251,10 @@ Anything missing here? Give us a shout in the [discussion board](https://github.
 - [Community integrations](templates/README.md) are template jobs built by Kalavai and the community that makes deploying distributed workflows easy for users. Anyone can extend them and contribute to this repo.
 - [Join our mailing list](http://eepurl.com/iC89hk) for release updates and priority access to new features!
 
+### Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=kalavai-net/kalavai-client&type=Date)](https://star-history.com/#kalavai-net/kalavai-client&Date)
+
 
 ## Build from source
 
@@ -287,3 +291,5 @@ To run the unit tests, use:
 ```bash
 python -m unittest
 ```
+
+

@@ -39,6 +39,8 @@ from kalavai_client.utils import (
     unregister_cluster,
     get_public_seeds,
     validate_join_public_seed,
+    is_storage_compatible,
+    is_watcher_alive,
     SERVER_IP_KEY,
     AUTH_KEY,
     WATCHER_SERVICE_KEY,
@@ -65,6 +67,12 @@ RESOURCE_EXCLUDE = ["ephemeral-storage", "hugepages-1Gi", "hugepages-2Mi", "pods
 CORE_NAMESPACES = ["lws-system", "kube-system", "gpu-operator", "kalavai"]
 TEMPLATE_LABEL = "kalavai.lws.name"
 RAY_LABEL = "kalavai.ray.name"
+PVC_NAME_LABEL = "kalavai.storage.name"
+STORAGE_CLASS_NAME = "longhorn-rwx"
+STORAGE_CLASS_LABEL = "kalavai.storage.enabled"
+DEFAULT_STORAGE_NAME = "pool-cache"
+DEFAULT_STORAGE_SIZE = 5
+DEFAULT_STORAGE_REPLICAS = 1
 USER_NODE_LABEL = "kalavai.cluster.user"
 KUBE_VERSION = os.getenv("KALAVAI_KUBE_VERSION", "v1.31.1+k3s1")
 DEFAULT_FLANNEL_IFACE = os.getenv("KALAVAI_FLANNEL_IFACE", "netmaker")
@@ -72,6 +80,8 @@ FORBIDEDEN_IPS = ["127.0.0.1"]
 # kalavai templates
 HELM_APPS_FILE = resource_path("assets/apps.yaml")
 SERVICE_TEMPLATE_FILE = resource_path("assets/service_template.yaml")
+STORAGE_TEMPLATE_FILE = resource_path("assets/pvc_template.yaml")
+STORAGE_CLASS_TEMPLATE_FILE = resource_path("assets/storage_class_template.yaml")
 # user specific config files
 USER_HELM_APPS_FILE = user_path("apps.yaml")
 USER_KUBECONFIG_FILE = user_path("kubeconfig")
@@ -184,6 +194,25 @@ def select_ip_address(subnet=None):
         else:
             console.log("[red] Input error")
     return ips[option]
+
+def deploy_templated_yaml(template_file, template_values):
+    sidecar_template_yaml = load_template(
+        template_path=template_file,
+        values=template_values
+    )
+    try:
+        result = request_to_server(
+            method="post",
+            endpoint="/v1/deploy_generic_model",
+            data={"config": sidecar_template_yaml},
+            server_creds=USER_LOCAL_SERVER_FILE
+        )
+        if len(result['failed']) > 0:
+            console.log(f"[red]Error when creating {template_file}\n\n{result['failed']}")
+        if len(result['successful']) > 0:
+            console.log(f"[green]Created {template_file}")
+    except Exception as e:
+        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
 
 
 ##################
@@ -331,7 +360,7 @@ def pool__list(*others, user_only=False):
     console.log("[white]Use [yellow]kalavai pool join <join key> [white]to join a public pool")
 
 @arguably.command
-def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None):
+def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None, default_storage_name: str=DEFAULT_STORAGE_NAME, default_storage_size: int=DEFAULT_STORAGE_SIZE):
     """
     Start Kalavai pool and start/resume sharing resources.
 
@@ -345,7 +374,9 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
 
     # join private network if provided
     subnet = None
-    node_labels = None
+    node_labels = {
+        STORAGE_CLASS_LABEL: is_storage_compatible()
+    }
     if location is not None:
         console.log("Joining private network")
         try:
@@ -420,6 +451,17 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
         # register with kalavai if it's a public cluster
         console.log("Registering public cluster with Kalavai...")
         pool__publish()
+    
+    # create default local storage
+    while True:
+        # wait until the server is ready to create objects
+        console.log("Waiting for core services to be ready, may take a few minutes...")
+        time.sleep(30)
+        if is_watcher_alive(server_creds=USER_LOCAL_SERVER_FILE):
+            break
+    console.log(f"Initialising storage: {DEFAULT_STORAGE_NAME} ({DEFAULT_STORAGE_SIZE}Gi)...")  
+    storage__init()
+    storage__create()
 
     return None
 
@@ -520,7 +562,9 @@ def pool__join(token, *others, node_name=None, ip_address: str=None):
         return
     
     # join private network if provided
-    node_labels = None
+    node_labels = {
+        STORAGE_CLASS_LABEL: is_storage_compatible()
+    }
     if public_location is not None:
         console.log("Joining private network")
         try:
@@ -827,96 +871,99 @@ def pool__diagnostics(*others, log_file=None):
             console.log(f"{log}\n")
 
 @arguably.command
-def cluster__publish(*others, description=None):
+def storage__init(replicas=DEFAULT_STORAGE_REPLICAS, *others):
     """
-    [deprecated] Use pool publish endpoint instead
+    Create storage for the cluster
     """
-    pool__publish(*others, description=description)
+    try:
+        CLUSTER.validate_cluster()
+    except Exception as e:
+        console.log(f"[red]Problems with your pool: {str(e)}")
+        return
+
+    # Ensure storage class exists
+    deploy_templated_yaml(
+        template_file=STORAGE_CLASS_TEMPLATE_FILE,
+        template_values={
+            "sc_name": STORAGE_CLASS_NAME,
+            "sc_label_selector": f"{STORAGE_CLASS_LABEL}:True",
+            "sc_replicas": replicas
+        }
+    )
 
 @arguably.command
-def cluster__unpublish(cluster_name=None, *others):
+def storage__create(name=DEFAULT_STORAGE_NAME, storage=DEFAULT_STORAGE_SIZE, *others):
     """
-    [deprecated] Use pool unpublish endpoint instead
+    Create storage for the cluster
     """
-    pool__unpublish(cluster_name, *others)
+    try:
+        CLUSTER.validate_cluster()
+    except Exception as e:
+        console.log(f"[red]Problems with your pool: {str(e)}")
+        return
+
+    # Deploy PVC
+    deploy_templated_yaml(
+        template_file=STORAGE_TEMPLATE_FILE,
+        template_values={
+            "pvc_name": name,
+            "storage": f"{storage}Gi",
+            "storage_class_name": STORAGE_CLASS_NAME,
+            "pvc_name_label": PVC_NAME_LABEL
+        }
+    )
 
 @arguably.command
-def cluster__list(*others, user_only=False):
+def storage__list(*other):
     """
-    [deprecated] Use pool list endpoint instead
+    List existing storages deployed in the pool
     """
-    pool__list(*others, user_only=user_only)
+    try:
+        CLUSTER.validate_cluster()
+    except Exception as e:
+        console.log(f"[red]Problems with your pool: {str(e)}")
+        return
     
-
+    data = {
+        "label": "kalavai.resource",
+        "value": "storage",
+        "namespace": "default"
+    }
+    try:
+        result = request_to_server(
+            method="post",
+            endpoint="/v1/get_resources_with_label",
+            data=data,
+            server_creds=USER_LOCAL_SERVER_FILE
+        )
+        for resource, items in result.items():
+            console.log(f"[yellow]{resource}s available in the pool")
+            for name, values in items.items():
+                console.log(f"\t{name} ({values['creation_timestamp']})")
+    except Exception as e:
+        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
+    
 @arguably.command
-def cluster__start(cluster_name, *others,  ip_address: str=None, location: str=None):
+def storage__delete(name, *others):
     """
-    [deprecated] Use pool start endpoint instead
+    Delete storage by name
     """
-    pool__start(cluster_name, *others,  ip_address=ip_address, location=location)
-
-@arguably.command
-def cluster__token(*others, admin_workers=False):
-    """
-    [deprecated] Use pool token endpoint instead
-    """
-    return pool__token(*others, admin_workers=admin_workers)
-
-@arguably.command
-def cluster__check_token(token, *others, public=False):
-    """
-    [deprecated] Use pool check-token endpoint instead
-    """
-    return pool__check_token(token, *others, public=public)
-
-@arguably.command
-def cluster__join(token, *others, node_name=None, ip_address: str=None):
-    """
-    [deprecated] Use pool join endpoint instead
-    """
-    pool__join(token, *others, node_name=node_name, ip_address=ip_address)
-
-@arguably.command
-def cluster__stop(*others):
-    """
-    [deprecated] Use pool stop endpoint instead
-    """
-    pool__stop(*others)
-
-@arguably.command
-def cluster__pause(*others):
-    """
-    [deprecated] Use pool pause endpoint instead
-    """
-    pool__pause(*others)
-
-@arguably.command
-def cluster__resume(*others):
-    """
-    [deprecated] Use pool resume endpoint instead
-    """
-    pool__resume(*others)
-
-@arguably.command
-def cluster__resources(*others):
-    """
-    [deprecated] Use pool resources endpoint instead
-    """
-    pool__resources(*others)
-
-@arguably.command
-def cluster__status(*others):
-    """
-    [deprecated] Use pool status endpoint instead
-    """
-    pool__status(*others)
-
-@arguably.command
-def cluster__diagnostics(*others, log_file=None):
-    """
-    (deprecated) Use pool diagnostics endpoint
-    """
-    pool__diagnostics(*others, log_file=log_file)
+    # deploy template with kube-watcher
+    data = {
+        "namespace": "default",
+        "label": PVC_NAME_LABEL,
+        "value": name
+    }
+    try:
+        result = request_to_server(
+            method="post",
+            endpoint="/v1/delete_labeled_resources",
+            data=data,
+            server_creds=USER_LOCAL_SERVER_FILE
+        )
+        console.log(f"{result}")
+    except Exception as e:
+        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
 
 @arguably.command
 def node__list(*others):
@@ -1067,14 +1114,16 @@ def job__run(template_name, *others, values=None):
     path = paths[available_templates.index(template_name)]
     template_path = os.path.join(path, template_name, "template.yaml")
 
-    
     if values is None or not Path(values).is_file():
         console.log(f"[red]Values file {values} was not found")
-        return
+
+    with open(values, "r") as f:
+        raw_values = yaml.load(f, Loader=yaml.SafeLoader)
+        values_dict = {variable["name"]: variable['value'] for variable in raw_values["template_values"]}
     
     template_yaml = load_template(
         template_path=template_path,
-        values_path=values)
+        values=values_dict)
 
     # deploy template with kube-watcher
     data = {
@@ -1104,23 +1153,10 @@ def job__run(template_name, *others, values=None):
     
     # expose lws with nodeport template if required
     if expose:
-        sidecar_template_yaml = load_template(
-            template_path=SERVICE_TEMPLATE_FILE,
-            values_path=values
+        deploy_templated_yaml(
+            template_file=SERVICE_TEMPLATE_FILE,
+            template_values=values_dict
         )
-        try:
-            result = request_to_server(
-                method="post",
-                endpoint="/v1/deploy_generic_model",
-                data={"config": sidecar_template_yaml},
-                server_creds=USER_LOCAL_SERVER_FILE
-            )
-            if len(result['failed']) > 0:
-                console.log(f"[red]Error when deploying sidecar\n\n{result['failed']}")
-            if len(result['successful']) > 0:
-                console.log(f"[green]Sidecar {template_path} successfully deployed!")
-        except Exception as e:
-            console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
 
 @arguably.command
 def job__defaults(template_name, *others):

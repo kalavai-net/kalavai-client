@@ -3,30 +3,47 @@ template_values:
   value: vllm-deployment-1
   default: vllm-deployment-1
   description: "Name of the deployment job"
+
+- name: storage
+  value: "pool-cache"
+  default: "pool-cache"
+  description: "Pool storage to use to cache model weights"
+
 - name: replicas
   value: "1"
   default: "1"
   description: "How many replicas to deploy for the model"
+
 - name: num_workers
   value: "1"
   default: "1"
   description: "Workers per deployment (for tensor parallelism)"
+
 - name: model_id
   value: Qwen/Qwen2.5-0.5B-Instruct
   default: null
   description: "Huggingface model id to load"
+
 - name: hf_token
   value: <yout token>
   default: null
   description: "Huggingface token, required to load model weights"
+
 - name: cpus
   value: "2"
   default: "4"
   description: "CPUs per single worker (final one = cpus * num_workers)"
+
 - name: gpus
   value: "1"
   default: "1"
   description: "GPUs per single worker (final one = gpus * num_workers)"
+
+- name: gpu_vram
+  value: "4000"
+  default: "4000"
+  description: "vRAM per GPU (total one = num_workers * gpus * gpu_vram)"
+
 - name: memory
   value: "8Gi"
   default: "4Gi"

@@ -19,31 +19,35 @@ spec:
         runtimeClassName: nvidia
         containers:
         - name: vllm-leader
-          image: bundenth/ray-vllm:v1.1.2
+          image: docker.io/bundenth/ray-vllm:v1.1.3
           env:
-          - name: HUGGING_FACE_HUB_TOKEN
+          - name: HF_TOKEN
             value: $hf_token
           command:
             - sh
             - -c
             - "/home/ray/workspace/ray_init.sh leader --ray_cluster_size=$num_workers --ray_object_store_memory=$shmem_size;
                 sleep 30;
+                nvidia-smi;
                 ray status;
                 /home/ray/workspace/run_model.sh \
                   --model_id=$model_id \
                   --extra='$extra' \
                   --tensor_parallel_size=$tensor_parallel_size \
-                  --pipeline_parallel_size=$pipeline_parallel_size;
+                  --pipeline_parallel_size=$pipeline_parallel_size \
+                  --download_dir=/home/ray/cache;
                 sleep 30"
           resources:
             requests:
               cpu: "$cpus"
               memory: $memory
               nvidia.com/gpu: "$gpus"
+              nvidia.com/gpumem: "$gpu_vram"
             limits:
               cpu: "$cpus"
               memory: $memory
               nvidia.com/gpu: "$gpus"
+              nvidia.com/gpumem: "$gpu_vram"
           ports:
           # if use 8080 as exposed port (if required)
           - containerPort: 8080
@@ -54,37 +58,45 @@ spec:
             periodSeconds: 30
           volumeMounts:
             - mountPath: /dev/shm
-              name: dshm
+              name: dshm   
+            - name: cache
+              mountPath: /home/ray/cache
         volumes:
         - name: dshm
           emptyDir:
             medium: Memory
             sizeLimit: $shmem_size
+        - name: cache
+          persistentVolumeClaim:
+            claimName: $storage
     workerTemplate:
       spec:
         runtimeClassName: nvidia
         containers:
         - name: vllm-worker
-          image: bundenth/ray-vllm:v1.1.2
+          image: docker.io/bundenth/ray-vllm:v1.1.3
           env:
-            - name: HUGGING_FACE_HUB_TOKEN
+            - name: HF_TOKEN
               value: $hf_token
           command:
             - sh
             - -c
-            - "RAY_BACKEND_LOG_LEVEL=error /home/ray/workspace/ray_init.sh worker --ray_address=$$LWS_LEADER_ADDRESS --ray_object_store_memory=$shmem_size --ray_block=1"
+            - "nvidia-smi;
+                RAY_BACKEND_LOG_LEVEL=error /home/ray/workspace/ray_init.sh worker --ray_address=$$LWS_LEADER_ADDRESS --ray_object_store_memory=$shmem_size --ray_block=1"
           resources:
             requests:
               cpu: "$cpus"
               memory: $memory
               nvidia.com/gpu: "$gpus"
+              nvidia.com/gpumem: "$gpu_vram"
             limits:
               cpu: "$cpus"
               memory: $memory
               nvidia.com/gpu: "$gpus"
+              nvidia.com/gpumem: "$gpu_vram"
           volumeMounts:
             - mountPath: /dev/shm
-              name: dshm   
+              name: dshm
         volumes:
         - name: dshm
           emptyDir:

@@ -19,7 +19,7 @@ spec:
         runtimeClassName: nvidia
         containers:
         - name: aphrodite-leader
-          image: bundenth/ray-aphrodite:v1.0.0
+          image: docker.io/bundenth/ray-aphrodite:v1.0.2
           env:
           - name: HF_TOKEN
             value: $hf_token
@@ -28,23 +28,27 @@ spec:
             - -c
             - "/home/ray/workspace/ray_init.sh leader --ray_cluster_size=$num_workers --ray_object_store_memory=$shmem_size;
                 sleep 30;
+                nvidia-smi;
                 ray status;
                 /home/ray/workspace/run_model.sh \
                   --repo_id=$repo_id \
                   --model_filename=$model_filename \
                   --extra='$extra' \
                   --tensor_parallel_size=$tensor_parallel_size \
-                  --pipeline_parallel_size=$pipeline_parallel_size;
+                  --pipeline_parallel_size=$pipeline_parallel_size \
+                  --download_dir=/home/ray/cache;
                 sleep 30"
           resources:
             requests:
               cpu: "$cpus"
               memory: $memory
               nvidia.com/gpu: "$gpus"
+              nvidia.com/gpumem: "$gpu_vram"
             limits:
               cpu: "$cpus"
               memory: $memory
               nvidia.com/gpu: "$gpus"
+              nvidia.com/gpumem: "$gpu_vram"
           ports:
           # if use 8080 as exposed port (if required)
           - containerPort: 8080
@@ -55,37 +59,45 @@ spec:
             periodSeconds: 30
           volumeMounts:
             - mountPath: /dev/shm
-              name: dshm
+              name: dshm   
+            - name: cache
+              mountPath: /home/ray/cache
         volumes:
         - name: dshm
           emptyDir:
             medium: Memory
             sizeLimit: $shmem_size
+        - name: cache
+          persistentVolumeClaim:
+            claimName: $storage
     workerTemplate:
       spec:
         runtimeClassName: nvidia
         containers:
         - name: aphrodite-worker
-          image: bundenth/ray-aphrodite:v1.0.0
+          image: docker.io/bundenth/ray-aphrodite:v1.0.2
           env:
             - name: HF_TOKEN
               value: $hf_token
           command:
             - sh
             - -c
-            - "/home/ray/workspace/ray_init.sh worker --ray_address=$$LWS_LEADER_ADDRESS --ray_object_store_memory=$shmem_size --ray_block=1"
+            - "nvidia-smi;
+                /home/ray/workspace/ray_init.sh worker --ray_address=$$LWS_LEADER_ADDRESS --ray_object_store_memory=$shmem_size --ray_block=1"
           resources:
             requests:
               cpu: "$cpus"
               memory: $memory
               nvidia.com/gpu: "$gpus"
+              nvidia.com/gpumem: "$gpu_vram"
             limits:
               cpu: "$cpus"
               memory: $memory
               nvidia.com/gpu: "$gpus"
+              nvidia.com/gpumem: "$gpu_vram"
           volumeMounts:
             - mountPath: /dev/shm
-              name: dshm   
+              name: dshm
         volumes:
         - name: dshm
           emptyDir:
