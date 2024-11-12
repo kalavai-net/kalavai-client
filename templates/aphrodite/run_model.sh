@@ -38,6 +38,9 @@ source /home/ray/workspace/env/bin/activate
 
 if [ $model_filename = "None" ]; then
     # load from repo
+    echo "Downloading model: "$repo_id
+    python /home/ray/workspace/download_hf.py --repo_id $repo_id --local_dir $download_dir
+
     python -m aphrodite.endpoints.openai.api_server  \
         --model $repo_id \
         --port 8080 --host 0.0.0.0 \
