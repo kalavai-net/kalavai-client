@@ -38,8 +38,6 @@ source /home/ray/workspace/env/bin/activate
 
 if [ $model_filename = "None" ]; then
     # load from repo
-    python /home/ray/workspace/download_hf.py --repo_id $repo_id --local_dir $download_dir
-
     python -m aphrodite.endpoints.openai.api_server  \
         --model $repo_id \
         --port 8080 --host 0.0.0.0 \
@@ -49,6 +47,7 @@ if [ $model_filename = "None" ]; then
         $extra
 else
     # load from file
+    echo "Downloading model: "$repo_id
     python /home/ray/workspace/download_hf.py --repo_id $repo_id --filename $model_filename --local_dir $download_dir
     python -m aphrodite.endpoints.openai.api_server  \
         --model /vllm-workspace/$model_filename \

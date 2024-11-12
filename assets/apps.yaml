@@ -24,6 +24,12 @@ releases:
     namespace: kalavai
     chart: longhorn/longhorn
     installed: true
+    set:
+    # security issue! enable for testing only
+    # - name: service.ui.type
+    #   value: NodePort
+    # - name: service.ui.nodePort
+    #   value: $longhorn_ui_port
   - name: lws
     namespace: kalavai
     chart: kalavai/lws
