@@ -102,7 +102,7 @@ template_values:
 
 2. Deploy your aphrodite template:
 ```bash
-kalavai job run aphrodite --values-path values.yaml
+kalavai job run aphrodite --values values.yaml
 ```
 
 3. Wait until it is ready; it may take a few minutes depending on your internet connection. Monitor the deployment until status is `Available`:

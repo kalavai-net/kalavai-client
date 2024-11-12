@@ -84,7 +84,7 @@ template_values:
 
 2. Deploy your vLLM template:
 ```bash
-kalavai job run vllm --values-path values.yaml
+kalavai job run vllm --values values.yaml
 ```
 
 3. Wait until it is ready; it may take a few minutes depending on your internet connection. Monitor the deployment until status is `Available`:

@@ -24,7 +24,7 @@ Get default values, edit them and deploy:
 ```bash
 kalavai job defaults vllm > values.yaml
 # edit values.yaml as required
-kalavai job run vllm --values-path values.yaml
+kalavai job run vllm --values values.yaml
 ```
 
 Find out the url endpoint of the model with:

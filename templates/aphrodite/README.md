@@ -31,7 +31,7 @@ Get default values, edit them and deploy:
 ```bash
 kalavai job defaults aphrodite > values.yaml
 # edit values.yaml as required
-kalavai job run aphrodite --values-path values.yaml
+kalavai job run aphrodite --values values.yaml
 ```
 
 Find out the url endpoint of the model with:
