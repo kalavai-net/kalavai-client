@@ -53,7 +53,8 @@ from kalavai_client.utils import (
     WATCHER_PORT_KEY,
     MANDATORY_TOKEN_FIELDS,
     USER_NODE_LABEL_KEY,
-    DEPLOY_HELIOS_KEY
+    DEPLOY_HELIOS_KEY,
+    LONGHORN_UI_PORT_KEY
 )
 from kalavai_client.cluster import (
     k3sCluster
@@ -399,6 +400,7 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
     auth_key = str(uuid.uuid4())
     readonly_key = str(uuid.uuid4())
     watcher_port = 31000
+    longhorn_port = 30000
     watcher_service = f"{ip_address}:{watcher_port}"
     values = {
         CLUSTER_NAME_KEY: cluster_name,
@@ -406,6 +408,7 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
         AUTH_KEY: auth_key,
         READONLY_KEY: readonly_key,
         WATCHER_PORT_KEY: watcher_port,
+        LONGHORN_UI_PORT_KEY: longhorn_port,
         WATCHER_SERVICE_KEY: watcher_service,
         USER_NODE_LABEL_KEY: USER_NODE_LABEL,
         DEPLOY_HELIOS_KEY: location is not None

@@ -33,6 +33,7 @@ AUTH_KEY = "watcher_auth_key"
 READONLY_KEY = "watcher_readonly_key"
 WATCHER_SERVICE_KEY = "watcher_service"
 WATCHER_PORT_KEY = "watcher_port"
+LONGHORN_UI_PORT_KEY = "longhorn_ui_port"
 DEPLOY_HELIOS_KEY = "deploy_helios"
 MANDATORY_TOKEN_FIELDS = [
     CLUSTER_IP_KEY,
