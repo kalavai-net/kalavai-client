@@ -23,6 +23,8 @@ spec:
           env:
           - name: HF_TOKEN
             value: $hf_token
+          - name: HF_HOME
+            value: /home/ray/cache
           command:
             - sh
             - -c
@@ -34,8 +36,7 @@ spec:
                   --model_id=$model_id \
                   --extra='$extra' \
                   --tensor_parallel_size=$tensor_parallel_size \
-                  --pipeline_parallel_size=$pipeline_parallel_size \
-                  --download_dir=/home/ray/cache;
+                  --pipeline_parallel_size=$pipeline_parallel_size;
                 sleep 30"
           resources:
             requests:
