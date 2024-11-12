@@ -19,7 +19,7 @@ spec:
         runtimeClassName: nvidia
         containers:
         - name: aphrodite-leader
-          image: docker.io/bundenth/ray-aphrodite:v1.0.2
+          image: docker.io/bundenth/ray-aphrodite:v1.0.3
           env:
           - name: HF_TOKEN
             value: $hf_token
@@ -75,7 +75,7 @@ spec:
         runtimeClassName: nvidia
         containers:
         - name: aphrodite-worker
-          image: docker.io/bundenth/ray-aphrodite:v1.0.2
+          image: docker.io/bundenth/ray-aphrodite:v1.0.3
           env:
             - name: HF_TOKEN
               value: $hf_token
