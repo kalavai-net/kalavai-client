@@ -13,7 +13,7 @@ List of supported model architectures [here](https://aphrodite.pygmalion.chat/pa
 
 ## Key template variables
 
-- `storage`: Pool storage to use to cache model weights. Pools have a default storage named `pool-cache`, and you can create new ones with `kalavai storage create <name> <capacity>`.
+- `storage`: Pool storage to use to cache model weights. Useful to persist weights across jobs. Pools have a default storage named `pool-cache`, and you can create new ones with `kalavai storage create <name> <capacity>`.
 - `num_workers`: Number of workers per deployment (for tensor parallelism, i.e. how many pieces to divide the model into)
 - `repo_id`: Huggingface repository to load from [Huggingface](https://huggingface.co/models). This usually takes the form of `OrgName/ModelID`
 - `filename` (optional): if a repo contains multiple versions of a model, one can explicitly define which file to fetch. This is useful when downloading a GGUF model. Only the filename is requred (e.g. `Llama-3.1-8B-Lexi-Uncensored_V2_F16.gguf` on repository [Orenguteng/Llama-3.1-8B-Lexi-Uncensored-V2-GGUF](https://huggingface.co/Orenguteng/Llama-3.1-8B-Lexi-Uncensored-V2-GGUF/tree/main))

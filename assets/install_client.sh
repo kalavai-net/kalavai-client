@@ -75,15 +75,17 @@ install_core_dependencies() {
         curl -sL 'https://apt.netmaker.org/gpg.key' | $SUDO gpg --dearmor -o /usr/share/keyrings/netmaker-keyring.gpg
         echo "deb [signed-by=/usr/share/keyrings/netmaker-keyring.gpg] https://apt.netmaker.org stable main" | $SUDO tee /etc/apt/sources.list.d/netclient.list
         $SUDO $package_manager update
-        $SUDO $package_manager install -y nvidia-container-toolkit wireguard nfs-common netclient
+        $SUDO $package_manager install -y nvidia-container-toolkit wireguard nfs-common netclient open-iscsi
 
     elif [ "$package_manager" == "yum" ]; then
         curl -s -L https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo | \
             $SUDO tee /etc/yum.repos.d/nvidia-container-toolkit.repo
         $SUDO $package_manager install -y nvidia-container-toolkit iscsi-initiator-utils nfs-utils
         $SUDO $package_manager install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm https://www.elrepo.org/elrepo-release-8.el8.elrepo.noarch.rpm
-        $SUDO $package_manager install -y kmod-wireguard wireguard-tools
-
+        $SUDO $package_manager install -y kmod-wireguard wireguard-tools iscsi-initiator-utils
+        systemctl enable iscsid
+        systemctl start iscsid
+        
     elif [ "$package_manager" == "dnf" ]; then
         curl -s -L https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo | \
             $SUDO tee /etc/yum.repos.d/nvidia-container-toolkit.repo
@@ -99,7 +101,9 @@ install_core_dependencies() {
         $SUDO rpm --import https://rpm.netmaker.org/gpg.key
         curl -sL 'https://rpm.netmaker.org/netclient-repo' | $SUDO tee /etc/zypp/repos.d/netclient.repo
         $SUDO $package_manager refresh
-        $SUDO $package_manager install -y --force wireguard-tools netclient
+        $SUDO $package_manager install -y --force wireguard-tools netclient nfs-client open-iscsi
+        systemctl enable iscsid
+        systemctl start iscsid
     else
         fatal "Package manager is not recognised"
     fi
