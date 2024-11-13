@@ -79,8 +79,10 @@ spec:
         - name: aphrodite-worker
           image: docker.io/bundenth/ray-aphrodite:v1.0.6
           env:
-            - name: HF_TOKEN
-              value: $hf_token
+          - name: HF_TOKEN
+            value: $hf_token
+          - name: HF_HOME
+            value: /home/ray/cache
           command:
             - sh
             - -c
@@ -99,9 +101,14 @@ spec:
               nvidia.com/gpumem: "$gpu_vram"
           volumeMounts:
             - mountPath: /dev/shm
-              name: dshm
+              name: dshm   
+            - name: cache
+              mountPath: /home/ray/cache
         volumes:
         - name: dshm
           emptyDir:
             medium: Memory
             sizeLimit: $shmem_size
+        - name: cache
+          persistentVolumeClaim:
+            claimName: $storage
