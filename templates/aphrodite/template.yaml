@@ -19,7 +19,7 @@ spec:
         runtimeClassName: nvidia
         containers:
         - name: aphrodite-leader
-          image: docker.io/bundenth/ray-aphrodite:v1.0.6
+          image: docker.io/bundenth/ray-aphrodite:v1.0.7
           env:
           - name: HF_TOKEN
             value: $hf_token
@@ -28,7 +28,7 @@ spec:
           command:
             - sh
             - -c
-            - "/home/ray/workspace/ray_init.sh leader --ray_cluster_size=$num_workers --ray_object_store_memory=$shmem_size;
+            - "/home/ray/workspace/ray_init.sh leader --ray_cluster_size=$num_workers --ray_object_store_memory=$shmem_size --ray_temp_dir /home/ray/cache/tmp;
                 sleep 30;
                 nvidia-smi;
                 ray status;
@@ -77,7 +77,7 @@ spec:
         runtimeClassName: nvidia
         containers:
         - name: aphrodite-worker
-          image: docker.io/bundenth/ray-aphrodite:v1.0.6
+          image: docker.io/bundenth/ray-aphrodite:v1.0.7
           env:
           - name: HF_TOKEN
             value: $hf_token

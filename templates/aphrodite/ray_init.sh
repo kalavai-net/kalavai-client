@@ -7,6 +7,7 @@ ray_port=6379
 ray_init_timeout=360000
 ray_object_store_memory=4000000000
 ray_block=""
+ray_temp_dir="/tmp/"
 
 round() {
   printf "%.${2}f" "${1}"
@@ -80,6 +81,9 @@ case "$subcommand" in
             --ray_init_timeout=*)
               ray_init_timeout="${1#*=}"
               ;;
+            --ray_temp_dir=*)
+              ray_temp_dir="${1#*=}"
+              ;;
             *)
               echo "unknown argument: $1"
               exit 1
@@ -95,7 +99,7 @@ case "$subcommand" in
     # start the ray daemon
     memory=$(echo "$ray_object_store_memory*0.75" | bc -l)
     round_mem=$(round ${memory} 0)
-    RAY_BACKEND_LOG_LEVEL=error ray start --head --port=$ray_port --object-store-memory=$round_mem $ray_block
+    RAY_BACKEND_LOG_LEVEL=error ray start --head --port=$ray_port --object-store-memory=$round_mem $ray_block --temp-dir $ray_temp_dir
 
     # wait until all workers are active
     for (( i=0; i < $ray_init_timeout; i+=5 )); do
