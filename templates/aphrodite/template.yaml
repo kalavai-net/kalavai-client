@@ -101,14 +101,9 @@ spec:
               nvidia.com/gpumem: "$gpu_vram"
           volumeMounts:
             - mountPath: /dev/shm
-              name: dshm   
-            - name: cache
-              mountPath: /home/ray/cache
+              name: dshm
         volumes:
         - name: dshm
           emptyDir:
             medium: Memory
             sizeLimit: $shmem_size
-        - name: cache
-          persistentVolumeClaim:
-            claimName: $storage
