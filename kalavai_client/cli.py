@@ -1328,9 +1328,9 @@ def job__list(*others):
             console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
             return
         
-        console.print(
-            generate_table(columns=columns, rows=rows)
-        )
+    console.print(
+        generate_table(columns=columns, rows=rows)
+    )
         
     console.log("Get logs with [yellow]kalavai job logs <name of deployment> [white](note it only works when the deployment is complete)")
     console.log("Get full job manifest with [yellow]kalavai job manifest <name of deployment> [white](note it only works when the deployment is complete)")
