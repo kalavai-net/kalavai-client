@@ -28,7 +28,7 @@ spec:
           command:
             - sh
             - -c
-            - "/home/ray/workspace/ray_init.sh leader --ray_cluster_size=$num_workers --ray_object_store_memory=$shmem_size --ray_temp_dir /home/ray/cache/tmp;
+            - "/home/ray/workspace/ray_init.sh leader --ray_cluster_size=$num_workers --ray_object_store_memory=$shmem_size --ray_temp_dir=/home/ray/cache/tmp;
                 sleep 30;
                 nvidia-smi;
                 ray status;
