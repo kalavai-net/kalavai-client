@@ -99,7 +99,7 @@ case "$subcommand" in
     # start the ray daemon
     memory=$(echo "$ray_object_store_memory*0.75" | bc -l)
     round_mem=$(round ${memory} 0)
-    RAY_BACKEND_LOG_LEVEL=error ray start --head --port=$ray_port --object-store-memory=$round_mem $ray_block --temp-dir $ray_temp_dir
+    RAY_BACKEND_LOG_LEVEL=error ray start --head --port=$ray_port --object-store-memory=$round_mem $ray_block --temp-dir=$ray_temp_dir
 
     # wait until all workers are active
     for (( i=0; i < $ray_init_timeout; i+=5 )); do
