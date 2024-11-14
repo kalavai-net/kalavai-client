@@ -106,7 +106,7 @@ case "$subcommand" in
 
     # wait until all workers are active
     for (( i=0; i < $ray_init_timeout; i+=5 )); do
-        active_nodes=`python3 -c 'import ray; ray.init(); print(sum(node["Alive"] for node in ray.nodes()))'`
+        active_nodes=`python3 -c "import ray; ray.init(_temp_dir=\"${ray_temp_dir}\"); print(sum(node[\"Alive\"] for node in ray.nodes()))"`
         if [ $active_nodes -eq $ray_cluster_size ]; then
           echo "All ray workers are active and the ray cluster is initialized successfully."
           exit 0
