@@ -16,6 +16,12 @@
 
 > Kalavai is an **open source** platform that turns **everyday devices** into your very own AI supercomputer. We help you aggregate resources from multiple machines: home desktops, gaming laptops, work computers, cloud VMs... When you need to **go beyond**, Kalavai **facilitates matchmaking** of resources so anyone in our community can tap into a larger pool of devices by **inspiring others to join** your cause.
 
+<div align="center">
+
+<a href="https://www.producthunt.com/posts/kalavai?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-kalavai" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=610197&theme=neutral" alt="Kalavai - The&#0032;first&#0032;platform&#0032;to&#0032;crowdsource&#0032;AI&#0032;computation | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+
+</div>
+
 ![Overview of Kalavai](/docs/docs/assets/images/overview_diagram.png)
 
 ## What can Kalavai do?
