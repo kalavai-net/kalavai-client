@@ -73,7 +73,7 @@ STORAGE_CLASS_NAME = "longhorn-rwx"
 STORAGE_CLASS_LABEL = "kalavai.storage.enabled"
 DEFAULT_STORAGE_NAME = "pool-cache"
 DEFAULT_STORAGE_SIZE = 5
-DEFAULT_STORAGE_REPLICAS = 1
+DEFAULT_STORAGE_REPLICAS = 3
 USER_NODE_LABEL = "kalavai.cluster.user"
 KUBE_VERSION = os.getenv("KALAVAI_KUBE_VERSION", "v1.31.1+k3s1")
 DEFAULT_FLANNEL_IFACE = os.getenv("KALAVAI_FLANNEL_IFACE", "netmaker")
@@ -195,6 +195,40 @@ def select_ip_address(subnet=None):
         else:
             console.log("[red] Input error")
     return ips[option]
+
+def fetch_gpus():
+    data = request_to_server(
+        method="post",
+        endpoint="/v1/get_node_gpus",
+        data={},
+        server_creds=USER_LOCAL_SERVER_FILE
+    )
+    return data.items()
+
+def select_gpus(message):
+    gpu_models = ["Any/None"]
+    gpu_models_full = ["Any/None"]
+    available_gpus = fetch_gpus()
+    for _, gpus in available_gpus:
+        for gpu in gpus:
+            status = "free" if "ready" in gpu else "busy"
+            memory = math.floor(int(gpu['memory'])/1000)
+            gpu_models.append(gpu['model'])
+            gpu_models_full.append(f"{gpu['model']} ({memory}GB) ({status})" )
+    
+    while True:
+        options = user_confirm(
+            question=message,
+            options=gpu_models_full,
+            multiple=True
+        )
+        if options is not None:
+            if 0 in options:
+                ids = None
+            else:
+                ids = ",".join([gpu_models[i] for i in options])
+            break
+    return ids
 
 def deploy_templated_yaml(template_file, template_values):
     sidecar_template_yaml = load_template(
@@ -706,14 +740,9 @@ def pool__gpus(*others, available=False):
         return
 
     try:
-        data = request_to_server(
-            method="post",
-            endpoint="/v1/get_node_gpus",
-            data={},
-            server_creds=USER_LOCAL_SERVER_FILE
-        )
+        data = fetch_gpus()
         columns, rows = [], []
-        for node, gpus in data.items():
+        for node, gpus in data:
             row_gpus = []
             for gpu in gpus:
                 status = gpu["ready"] if "ready" in gpu else True
@@ -1124,6 +1153,32 @@ def job__run(template_name, *others, values=None):
         raw_values = yaml.load(f, Loader=yaml.SafeLoader)
         values_dict = {variable["name"]: variable['value'] for variable in raw_values["template_values"]}
     
+    # Inject hardware information if not present in the template
+
+    def generate_gpu_annotation(input_message, values, value_key, annotation_key):
+        if value_key not in values:
+            selection = select_gpus(message=input_message)
+        else:
+            selection = values[value_key]
+        if selection is not None:
+            values[value_key] = f"{annotation_key}: {selection}"
+        else:
+            values[value_key] = ""
+    GPU_TYPES_KEY = "use_gputype"
+    GPU_NOTYPES_KEY = "nouse_gputype"
+    generate_gpu_annotation(
+        input_message="SELECT Target GPUs for the job",
+        values=values_dict,
+        value_key=GPU_TYPES_KEY,
+        annotation_key="nvidia.com/use-gputype"
+    )
+    generate_gpu_annotation(
+        input_message="AVOID Target GPUs for the job",
+        values=values_dict,
+        value_key=GPU_NOTYPES_KEY,
+        annotation_key="nvidia.com/nouse-gputype"
+    )
+
     template_yaml = load_template(
         template_path=template_path,
         values=values_dict)

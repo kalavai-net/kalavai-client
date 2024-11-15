@@ -12,6 +12,10 @@ spec:
     restartPolicy: RecreateGroupOnPodRestart
     leaderTemplate:
       metadata:
+        annotations:
+          # must have these annotations
+          $nouse_gputype
+          $use_gputype
         labels:
           role: leader
           kalavai.lws.name: $deployment_name
@@ -25,6 +29,8 @@ spec:
             value: $hf_token
           - name: HF_HOME
             value: /home/ray/cache
+          - name: TMPDIR
+            value: /home/ray/cache/tmp
           command:
             - sh
             - -c
@@ -43,12 +49,10 @@ spec:
               cpu: "$cpus"
               memory: $memory
               nvidia.com/gpu: "$gpus"
-              nvidia.com/gpumem: "$gpu_vram"
             limits:
               cpu: "$cpus"
               memory: $memory
               nvidia.com/gpu: "$gpus"
-              nvidia.com/gpumem: "$gpu_vram"
           ports:
           # if use 8080 as exposed port (if required)
           - containerPort: 8080
@@ -71,14 +75,23 @@ spec:
           persistentVolumeClaim:
             claimName: $storage
     workerTemplate:
+      metadata:
+        annotations:
+          # must have these annotations
+          $nouse_gputype
+          $use_gputype
       spec:
         runtimeClassName: nvidia
         containers:
         - name: vllm-worker
           image: docker.io/bundenth/ray-vllm:v1.1.4
           env:
-            - name: HF_TOKEN
-              value: $hf_token
+          - name: HF_TOKEN
+            value: $hf_token
+          - name: HF_HOME
+            value: /home/ray/cache
+          - name: TMPDIR
+            value: /home/ray/cache/tmp
           command:
             - sh
             - -c
@@ -89,12 +102,10 @@ spec:
               cpu: "$cpus"
               memory: $memory
               nvidia.com/gpu: "$gpus"
-              nvidia.com/gpumem: "$gpu_vram"
             limits:
               cpu: "$cpus"
               memory: $memory
               nvidia.com/gpu: "$gpus"
-              nvidia.com/gpumem: "$gpu_vram"
           volumeMounts:
             - mountPath: /dev/shm
               name: dshm

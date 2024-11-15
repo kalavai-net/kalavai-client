@@ -13,4 +13,20 @@ spec:
   resources:
     requests:
       storage: $storage
-
+# ---
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: $pvc_name
+#   labels:
+#     $pvc_name_label: $pvc_name
+#     kalavai.resource: storage
+#   annotations:
+#     volumeType: local
+# spec:
+#   accessModes:
+#     - ReadWriteOnce
+#   storageClassName: $storage_class_name
+#   resources:
+#     requests:
+#       storage: $storage

@@ -346,14 +346,25 @@ def load_template(template_path, values):
     return template.substitute(values)
 
 
-def user_confirm(question: str, options: list) -> int:
+def user_confirm(question: str, options: list, multiple: bool=False) -> int:
     try:
         [print(f"{idx}) {option}") for idx, option in enumerate(options)]
-        reply = str(input(f"{question}: "))
-        if reply.isnumeric():
+        reply = str(input(f"--> {question}: "))
+        if multiple:
+            if "," in reply:
+                selection = reply.split(",")
+                cast_selection = [int(s) for s in selection]
+                if all([s >= 0 and s < len(options) for s in cast_selection]):
+                    return cast_selection
+            else:
+                reply = int(reply)
+                if reply >= 0 and reply <= len(options):
+                    return [reply]
+        else:
             reply = int(reply)
             if reply >= 0 and reply <= len(options):
                 return reply
+
     except:
         return None
     return None

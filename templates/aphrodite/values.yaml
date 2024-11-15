@@ -35,19 +35,14 @@ template_values:
   description: "Huggingface token, required to load model weights"
 
 - name: cpus
-  value: "4"
-  default: "4"
+  value: "2"
+  default: "2"
   description: "CPUs per single worker (final one = cpus * num_workers)"
 
 - name: gpus
   value: "1"
   default: "1"
   description: "GPUs per single worker (final one = gpus * num_workers)"
-
-- name: gpu_vram
-  value: "1000"
-  default: "4000"
-  description: "vRAM per GPU (total one = num_workers * gpus * gpu_vram)"
 
 - name: memory
   value: "8Gi"

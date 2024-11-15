@@ -12,6 +12,10 @@ spec:
     restartPolicy: RecreateGroupOnPodRestart
     leaderTemplate:
       metadata:
+        annotations:
+          # must have these annotations
+          $nouse_gputype
+          $use_gputype
         labels:
           role: leader
           kalavai.lws.name: $deployment_name
@@ -47,12 +51,10 @@ spec:
               cpu: "$cpus"
               memory: $memory
               nvidia.com/gpu: "$gpus"
-              nvidia.com/gpumem: "$gpu_vram"
             limits:
               cpu: "$cpus"
               memory: $memory
               nvidia.com/gpu: "$gpus"
-              nvidia.com/gpumem: "$gpu_vram"
           ports:
           # if use 8080 as exposed port (if required)
           - containerPort: 8080
@@ -75,6 +77,11 @@ spec:
           persistentVolumeClaim:
             claimName: $storage
     workerTemplate:
+      metadata:
+        annotations:
+          # must have these annotations
+          $nouse_gputype
+          $use_gputype
       spec:
         runtimeClassName: nvidia
         containers:
@@ -97,12 +104,10 @@ spec:
               cpu: "$cpus"
               memory: $memory
               nvidia.com/gpu: "$gpus"
-              nvidia.com/gpumem: "$gpu_vram"
             limits:
               cpu: "$cpus"
               memory: $memory
               nvidia.com/gpu: "$gpus"
-              nvidia.com/gpumem: "$gpu_vram"
           volumeMounts:
             - mountPath: /dev/shm
               name: dshm

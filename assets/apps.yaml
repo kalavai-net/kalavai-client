@@ -6,8 +6,8 @@ repositories:
     url: https://helm.ngc.nvidia.com/nvidia
   - name: kalavai
     url: https://kalavai-net.github.io/helm-charts/
-  - name: hami-charts
-    url: https://project-hami.github.io/HAMi/
+  # - name: hami-charts
+  #   url: https://project-hami.github.io/HAMi/
   - name: longhorn
     url: https://charts.longhorn.io
 
@@ -16,6 +16,7 @@ releases:
     namespace: kuberay
     chart: kuberay/kuberay-operator
     installed: true
+    version: "1.2.2"
   - name: kuberay-apiserver
     namespace: kuberay
     chart: kuberay/kuberay-apiserver
@@ -26,10 +27,10 @@ releases:
     installed: true
     set:
     # security issue! enable for testing only
-    # - name: service.ui.type
-    #   value: NodePort
-    # - name: service.ui.nodePort
-    #   value: $longhorn_ui_port
+    - name: service.ui.type
+      value: NodePort
+    - name: service.ui.nodePort
+      value: $longhorn_ui_port
   - name: lws
     namespace: kalavai
     chart: kalavai/lws
@@ -73,19 +74,19 @@ releases:
     
   - name: hami-vgpu
     namespace: kalavai
-    chart: hami-charts/hami
+    chart: kalavai/hami
     installed: true
     set:
-    - name: scheduler.kubeScheduler.imageTag
-      value: v1.31.1
     - name: devicePlugin.runtimeClassName
       value: "nvidia"
-    - name: devicePlugin.deviceMemoryScaling
-      value: "1"
-    - name: devicePlugin.deviceSplitCount
-      value: "1"
     - name: scheduler.defaultSchedulerPolicy.nodeSchedulerPolicy
       value: "binpack"
     - name: scheduler.defaultSchedulerPolicy.gpuSchedulerPolicy
       value: "binpack"
+    - name: scheduler.kubeScheduler.imageTag
+      value: v1.31.1
+    - name: devicePlugin.deviceMemoryScaling
+      value: "1"
+    - name: devicePlugin.deviceSplitCount
+      value: "1"
 
