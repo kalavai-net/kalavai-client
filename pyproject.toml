@@ -1,6 +1,6 @@
 [tool.poetry]
 name        = "kalavai-client"
-version     = "0.2.10"
+version     = "0.3.1"
 description = "Client app for kalavai platform"
 authors     = ["Carlos Fernandez Musoles <carlos@kalavai.net>"]
 
