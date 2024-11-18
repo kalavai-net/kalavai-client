@@ -44,7 +44,8 @@ from kalavai_client.utils import (
     SERVER_IP_KEY,
     AUTH_KEY,
     WATCHER_SERVICE_KEY,
-    READONLY_KEY,
+    READONLY_AUTH_KEY,
+    WRITE_AUTH_KEY,
     PUBLIC_LOCATION_KEY,
     NODE_NAME_KEY,
     CLUSTER_NAME_KEY,
@@ -54,7 +55,10 @@ from kalavai_client.utils import (
     MANDATORY_TOKEN_FIELDS,
     USER_NODE_LABEL_KEY,
     DEPLOY_HELIOS_KEY,
-    LONGHORN_UI_PORT_KEY
+    LONGHORN_UI_PORT_KEY,
+    LONGHORN_MANAGER_PORT_KEY,
+    KALAVAI_API_ENDPOINT_KEY,
+    IS_PUBLIC_POOL_KEY
 )
 from kalavai_client.cluster import (
     k3sCluster
@@ -62,6 +66,7 @@ from kalavai_client.cluster import (
 
 
 KALAVAI_PLATFORM_URL = os.getenv("KALAVAI_PLATFORM_URL", "https://platform.kalavai.net")
+KALAVAI_API_ENDPOINT = os.getenv("KALAVAI_API_ENDPOINT", "https://platform.kalavai.net/_/api")
 LOCAL_TEMPLATES_DIR = os.getenv("LOCAL_TEMPLATES_DIR", None)
 VERSION = 1
 RESOURCE_EXCLUDE = ["ephemeral-storage", "hugepages-1Gi", "hugepages-2Mi", "pods"]
@@ -80,8 +85,6 @@ DEFAULT_FLANNEL_IFACE = os.getenv("KALAVAI_FLANNEL_IFACE", "netmaker")
 FORBIDEDEN_IPS = ["127.0.0.1"]
 # kalavai templates
 HELM_APPS_FILE = resource_path("assets/apps.yaml")
-SERVICE_TEMPLATE_FILE = resource_path("assets/service_template.yaml")
-STORAGE_TEMPLATE_FILE = resource_path("assets/pvc_template.yaml")
 STORAGE_CLASS_TEMPLATE_FILE = resource_path("assets/storage_class_template.yaml")
 # user specific config files
 USER_HELM_APPS_FILE = user_path("apps.yaml")
@@ -134,7 +137,8 @@ def pre_join_check(node_name, server_url, server_key):
             method="get",
             endpoint="/v1/get_nodes",
             data={"node_names": [node_name]},
-            server_creds=USER_LOCAL_SERVER_FILE
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
         )
         return node_name not in nodes.keys()
     except Exception as e:
@@ -164,11 +168,29 @@ def set_schedulable(schedulable, node_name=load_server_info(data_key=NODE_NAME_K
             method="post",
             endpoint="/v1/set_node_schedulable",
             data=data,
-            server_creds=USER_LOCAL_SERVER_FILE
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
         )
         console.log(f"{res}")
     except Exception as e:
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
+
+def init_user_workspace():
+    set_schedulable(schedulable=True)
+
+    is_public_pool = load_server_info(data_key=IS_PUBLIC_POOL_KEY, file=USER_LOCAL_SERVER_FILE)
+    if is_public_pool:
+        try:
+            res = request_to_server(
+                method="post",
+                endpoint="/v1/create_user_space",
+                data=None,
+                server_creds=USER_LOCAL_SERVER_FILE,
+                user_cookie=USER_COOKIE
+            )
+            console.log(f"[green]Worskpace created")
+        except Exception as e:
+            console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
 
 def select_ip_address(subnet=None):
     ips = []
@@ -201,7 +223,8 @@ def fetch_gpus():
         method="post",
         endpoint="/v1/get_node_gpus",
         data={},
-        server_creds=USER_LOCAL_SERVER_FILE
+        server_creds=USER_LOCAL_SERVER_FILE,
+        user_cookie=USER_COOKIE
     )
     return data.items()
 
@@ -230,24 +253,18 @@ def select_gpus(message):
             break
     return ids
 
-def deploy_templated_yaml(template_file, template_values):
-    sidecar_template_yaml = load_template(
-        template_path=template_file,
-        values=template_values
-    )
-    try:
-        result = request_to_server(
-            method="post",
-            endpoint="/v1/deploy_generic_model",
-            data={"config": sidecar_template_yaml},
-            server_creds=USER_LOCAL_SERVER_FILE
+def select_token_type():
+    options = ["Admin", "User (deploy jobs)", "Worker (read only)"]
+    
+    while True:
+        choice = user_confirm(
+            question="What type of access are you granting?",
+            options=options,
+            multiple=False
         )
-        if len(result['failed']) > 0:
-            console.log(f"[red]Error when creating {template_file}\n\n{result['failed']}")
-        if len(result['successful']) > 0:
-            console.log(f"[green]Created {template_file}")
-    except Exception as e:
-        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
+        if choice is not None:
+            break
+    return {"admin": choice == 0, "user": choice == 1, "worker": choice == 2}
 
 
 ##################
@@ -325,6 +342,8 @@ def pool__publish(*others, description=None):
     except Exception as e:
         console.log(f"[red]Problems with your pool: {str(e)}")
         return
+    choices = select_token_type()
+    token = pool__token(**choices)
     
     if description is None:
         console.log("[yellow] [Markdown] In a few words (max 500 chars), describe your goals with this cluster. Remember, this is what other users will see to decide whether to share their resources with you, [blue]so inspire them!")
@@ -333,7 +352,6 @@ def pool__publish(*others, description=None):
     description = description
     
     try:
-        token = pool__token()
         if not pool__check_token(token=token, public=True):
             raise ValueError("[red]Cluster must be started with a valid vpn_location to publish")
         cluster_name = load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE)
@@ -395,7 +413,7 @@ def pool__list(*others, user_only=False):
     console.log("[white]Use [yellow]kalavai pool join <join key> [white]to join a public pool")
 
 @arguably.command
-def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None, default_storage_name: str=DEFAULT_STORAGE_NAME, default_storage_size: int=DEFAULT_STORAGE_SIZE):
+def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None):
     """
     Start Kalavai pool and start/resume sharing resources.
 
@@ -432,20 +450,26 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
     console.log(f"Using {ip_address} address for server")
 
     auth_key = str(uuid.uuid4())
-    readonly_key = str(uuid.uuid4())
+    write_auth_key = str(uuid.uuid4())
+    readonly_auth_key = str(uuid.uuid4())
     watcher_port = 31000
-    longhorn_port = 30000
+    longhorn_ui_port = 30000
+    longhorn_manager_port = 30001
     watcher_service = f"{ip_address}:{watcher_port}"
     values = {
         CLUSTER_NAME_KEY: cluster_name,
         CLUSTER_IP_KEY: ip_address,
         AUTH_KEY: auth_key,
-        READONLY_KEY: readonly_key,
+        READONLY_AUTH_KEY: readonly_auth_key,
+        WRITE_AUTH_KEY: write_auth_key,
         WATCHER_PORT_KEY: watcher_port,
-        LONGHORN_UI_PORT_KEY: longhorn_port,
+        LONGHORN_UI_PORT_KEY: longhorn_ui_port,
+        LONGHORN_MANAGER_PORT_KEY: longhorn_manager_port,
         WATCHER_SERVICE_KEY: watcher_service,
         USER_NODE_LABEL_KEY: USER_NODE_LABEL,
-        DEPLOY_HELIOS_KEY: location is not None
+        DEPLOY_HELIOS_KEY: location is not None,
+        IS_PUBLIC_POOL_KEY: location is not None,
+        KALAVAI_API_ENDPOINT_KEY: KALAVAI_API_ENDPOINT
     }
     
     # 1. start k3s server
@@ -458,12 +482,14 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
     store_server_info(
         server_ip=ip_address,
         auth_key=auth_key,
-        readonly_key=readonly_key,
+        readonly_auth_key=readonly_auth_key,
+        write_auth_key=write_auth_key,
         file=USER_LOCAL_SERVER_FILE,
         watcher_service=watcher_service,
         node_name=socket.gethostname(),
         cluster_name=cluster_name,
-        public_location=location)
+        public_location=location,
+        user_api_key=user["api_key"] if user is not None else None)
     
     while not CLUSTER.is_agent_running():
         console.log("Waiting for seed to start...")
@@ -494,16 +520,19 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
         # wait until the server is ready to create objects
         console.log("Waiting for core services to be ready, may take a few minutes...")
         time.sleep(30)
-        if is_watcher_alive(server_creds=USER_LOCAL_SERVER_FILE):
+        if is_watcher_alive(server_creds=USER_LOCAL_SERVER_FILE, user_cookie=USER_COOKIE):
             break
+    console.log("Initialise user workspace...")
+    init_user_workspace()
     console.log(f"Initialising storage: {DEFAULT_STORAGE_NAME} ({DEFAULT_STORAGE_SIZE}Gi)...")  
     storage__init()
     storage__create()
 
     return None
 
+
 @arguably.command
-def pool__token(*others, admin_workers=False):
+def pool__token(*others, admin=False, user=False, worker=False):
     """
     Generate a join token for others to connect to your pool
     """
@@ -517,10 +546,16 @@ def pool__token(*others, admin_workers=False):
         console.log("[red]Node is not seed. Possible reasons: this is a worker node.")
         return None
     
-    if admin_workers:
+    if not admin and not user and not worker:
+        console.log(f"[red]Select at least one mode (--admin, --user or --worker)")
+        return
+    
+    if admin:
         auth_key = load_server_info(data_key=AUTH_KEY, file=USER_LOCAL_SERVER_FILE)
+    elif user:
+        auth_key = load_server_info(data_key=WRITE_AUTH_KEY, file=USER_LOCAL_SERVER_FILE)
     else:
-        auth_key = load_server_info(data_key=READONLY_KEY, file=USER_LOCAL_SERVER_FILE)
+        auth_key = load_server_info(data_key=READONLY_AUTH_KEY, file=USER_LOCAL_SERVER_FILE)
     watcher_service = load_server_info(data_key=WATCHER_SERVICE_KEY, file=USER_LOCAL_SERVER_FILE)
     public_location = load_server_info(data_key=PUBLIC_LOCATION_KEY, file=USER_LOCAL_SERVER_FILE)
 
@@ -664,12 +699,13 @@ def pool__join(token, *others, node_name=None, ip_address: str=None):
         watcher_service=watcher_service,
         node_name=node_name,
         cluster_name=cluster_name,
-        public_location=public_location)
+        public_location=public_location,
+        user_api_key=user["api_key"] if user is not None else None)
     fetch_remote_templates()
     
     # set status to schedulable
     time.sleep(10)
-    set_schedulable(schedulable=True)
+    init_user_workspace()
     console.log(f"[green] You are connected to {cluster_name}")
 
 @arguably.command
@@ -779,13 +815,15 @@ def pool__resources(*others):
             method="get",
             endpoint="/v1/get_cluster_total_resources",
             data={},
-            server_creds=USER_LOCAL_SERVER_FILE
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
         )
         available = request_to_server(
             method="get",
             endpoint="/v1/get_cluster_available_resources",
             data={},
-            server_creds=USER_LOCAL_SERVER_FILE
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
         )
         columns = []
         total_values = []
@@ -837,37 +875,7 @@ def pool__update(*others):
 
 
 @arguably.command
-def pool__status(*others):
-    """
-    Check the status of the kalavai pool
-    """
-    try:
-        CLUSTER.validate_cluster()
-    except Exception as e:
-        console.log(f"[red]Problems with your pool: {str(e)}")
-        return
-
-    try:
-        response = request_to_server(
-            method="POST",
-            endpoint="/v1/get_deployments",
-            data={"namespaces": CORE_NAMESPACES},
-            server_creds=USER_LOCAL_SERVER_FILE
-        )
-        global_status = True
-        for _, deployments in response.items():
-            for key, values in deployments.items():
-                state = values["available_replicas"] == values["ready_replicas"]
-                console.log(f"{key} status: {state}")
-                global_status &= state
-        console.log("---------------------------------")
-        console.log(f"--> Pool status: {global_status}")
-    except Exception as e:
-        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
-
-
-@arguably.command
-def pool__diagnostics(*others, log_file=None):
+def pool__status(*others, log_file=None):
     """
     Run diagnostics on a local installation of kalavai
     * is pool installed
@@ -912,16 +920,29 @@ def storage__init(replicas=DEFAULT_STORAGE_REPLICAS, *others):
     except Exception as e:
         console.log(f"[red]Problems with your pool: {str(e)}")
         return
-
-    # Ensure storage class exists
-    deploy_templated_yaml(
-        template_file=STORAGE_CLASS_TEMPLATE_FILE,
-        template_values={
+    
+    sidecar_template_yaml = load_template(
+        template_path=STORAGE_CLASS_TEMPLATE_FILE,
+        values={
             "sc_name": STORAGE_CLASS_NAME,
             "sc_label_selector": f"{STORAGE_CLASS_LABEL}:True",
             "sc_replicas": replicas
         }
     )
+    try:
+        result = request_to_server(
+            method="post",
+            endpoint="/v1/deploy_generic_model",
+            data={"config": sidecar_template_yaml},
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        if len(result['failed']) > 0:
+            console.log(f"[red]Error when creating storage class\n\n{result['failed']}")
+        if len(result['successful']) > 0:
+            console.log(f"[green]Created storage class: {STORAGE_CLASS_NAME} ({replicas} replicas)")
+    except Exception as e:
+        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
 
 @arguably.command
 def storage__create(name=DEFAULT_STORAGE_NAME, storage=DEFAULT_STORAGE_SIZE, *others):
@@ -935,15 +956,29 @@ def storage__create(name=DEFAULT_STORAGE_NAME, storage=DEFAULT_STORAGE_SIZE, *ot
         return
 
     # Deploy PVC
-    deploy_templated_yaml(
-        template_file=STORAGE_TEMPLATE_FILE,
-        template_values={
-            "pvc_name": name,
-            "storage": f"{storage}Gi",
-            "storage_class_name": STORAGE_CLASS_NAME,
-            "pvc_name_label": PVC_NAME_LABEL
-        }
-    )
+    data = {
+        "name": name,
+        "labels": {
+            PVC_NAME_LABEL: name,
+            "kalavai.resource": "storage"
+        },
+        "access_modes": ["ReadWriteMany"],
+        "storage_class_name": STORAGE_CLASS_NAME,
+        "storage_size": storage
+    }
+
+    try:
+        result = request_to_server(
+            method="post",
+            endpoint="/v1/deploy_storage_claim",
+            data=data,
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        console.log(f"Storage {name} ({storage}) created")
+    except Exception as e:
+        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
+
 
 @arguably.command
 def storage__list(*other):
@@ -958,15 +993,15 @@ def storage__list(*other):
     
     data = {
         "label": "kalavai.resource",
-        "value": "storage",
-        "namespace": "default"
+        "value": "storage"
     }
     try:
         result = request_to_server(
             method="post",
             endpoint="/v1/get_resources_with_label",
             data=data,
-            server_creds=USER_LOCAL_SERVER_FILE
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
         )
         for resource, items in result.items():
             console.log(f"[yellow]{resource}s available in the pool")
@@ -982,7 +1017,6 @@ def storage__delete(name, *others):
     """
     # deploy template with kube-watcher
     data = {
-        "namespace": "default",
         "label": PVC_NAME_LABEL,
         "value": name
     }
@@ -991,7 +1025,8 @@ def storage__delete(name, *others):
             method="post",
             endpoint="/v1/delete_labeled_resources",
             data=data,
-            server_creds=USER_LOCAL_SERVER_FILE
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
         )
         console.log(f"{result}")
     except Exception as e:
@@ -1013,7 +1048,8 @@ def node__list(*others):
             method="get",
             endpoint="/v1/get_nodes",
             data={},
-            server_creds=USER_LOCAL_SERVER_FILE
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
         )
         rows = []
         columns = ["Node name"]
@@ -1055,7 +1091,8 @@ def node__delete(name, *others):
             method="post",
             endpoint="/v1/delete_nodes",
             data=data,
-            server_creds=USER_LOCAL_SERVER_FILE
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
         )
         if result is None or result is True:
             console.log(f"Node {name} deleted successfully")
@@ -1188,7 +1225,6 @@ def job__run(template_name, *others, values=None):
         "object": {
             "group": "leaderworkerset.x-k8s.io",
             "api_version": "v1",
-            "namespace": "default",
             "plural": "leaderworkersets"
         },
         "body": template_yaml
@@ -1198,7 +1234,8 @@ def job__run(template_name, *others, values=None):
             method="post",
             endpoint="/v1/deploy_custom_object",
             data=data,
-            server_creds=USER_LOCAL_SERVER_FILE
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
         )
         if len(result['failed']) > 0:
             console.log(f"[red]Error when deploying template\n\n{result['failed']}")
@@ -1211,10 +1248,31 @@ def job__run(template_name, *others, values=None):
     
     # expose lws with nodeport template if required
     if expose:
-        deploy_templated_yaml(
-            template_file=SERVICE_TEMPLATE_FILE,
-            template_values=values_dict
-        )
+        data = {
+            "name": template_name,
+            "labels": {TEMPLATE_LABEL: template_name},
+            "selector_labels": {
+                TEMPLATE_LABEL: template_name,
+                "role": "leader"
+            },
+            "service_type": "NodePort",
+            "ports": [
+                {"name": "http", "port": "8080", "protocol": "TCP", "target_port": 8080}
+            ]
+        }
+        try:
+            result = request_to_server(
+                method="post",
+                endpoint="/v1/deploy_service",
+                data=data,
+                server_creds=USER_LOCAL_SERVER_FILE,
+                user_cookie=USER_COOKIE
+            )
+            console.log(result)
+            console.log("Service deployed")
+        except Exception as e:
+            console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
+
 
 @arguably.command
 def job__defaults(template_name, *others):
@@ -1273,7 +1331,6 @@ def job__delete(name, *others):
 
     # deploy template with kube-watcher
     data = {
-        "namespace": "default",
         "label": TEMPLATE_LABEL, # this ensures that both lws template and services are deleted
         "value": name
     }
@@ -1282,7 +1339,8 @@ def job__delete(name, *others):
             method="post",
             endpoint="/v1/delete_labeled_resources",
             data=data,
-            server_creds=USER_LOCAL_SERVER_FILE
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
         )
         console.log(f"{result}")
     except Exception as e:
@@ -1304,14 +1362,14 @@ def job__list(*others):
         "group": "leaderworkerset.x-k8s.io",
         "api_version": "v1",
         "plural": "leaderworkersets",
-        "namespace": ""
     }
     try:
         result = request_to_server(
             method="post",
             endpoint="/v1/get_objects_of_type",
             data=data,
-            server_creds=USER_LOCAL_SERVER_FILE
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
         )
         deployment_names = [d["metadata"]["name"] for d in result["items"]]
 
@@ -1332,14 +1390,14 @@ def job__list(*others):
                 "group": "leaderworkerset.x-k8s.io",
                 "api_version": "v1",
                 "plural": "leaderworkersets",
-                "namespace": "default",
                 "name": deployment
             }
             result = request_to_server(
                 method="post",
                 endpoint="/v1/get_status_for_object",
                 data=data,
-                server_creds=USER_LOCAL_SERVER_FILE
+                server_creds=USER_LOCAL_SERVER_FILE,
+                user_cookie=USER_COOKIE
             )
             if len(result) > 0:
                 last = result[-1]
@@ -1348,7 +1406,6 @@ def job__list(*others):
                 statuses = "Unknown"
             # get pod statuses
             data = {
-                "namespace": "default",
                 "label": "leaderworkerset.sigs.k8s.io/name",
                 "value": deployment
             }
@@ -1356,7 +1413,8 @@ def job__list(*others):
                 method="post",
                 endpoint="/v1/get_pods_status_for_label",
                 data=data,
-                server_creds=USER_LOCAL_SERVER_FILE
+                server_creds=USER_LOCAL_SERVER_FILE,
+                user_cookie=USER_COOKIE
             )
             workers = defaultdict(int)
             for _, status in result.items():
@@ -1372,7 +1430,8 @@ def job__list(*others):
                 method="post",
                 endpoint="/v1/get_ports_for_services",
                 data=data,
-                server_creds=USER_LOCAL_SERVER_FILE
+                server_creds=USER_LOCAL_SERVER_FILE,
+                user_cookie=USER_COOKIE
             )
             node_ports = [p["node_port"] for s in result.values() for p in s["ports"]]
 
@@ -1403,7 +1462,6 @@ def job__logs(name, *others, pod_name=None, stream=False):
         return
     
     data = {
-        "namespace": "default",
         "label": "leaderworkerset.sigs.k8s.io/name",
         "value": name
     }
@@ -1413,7 +1471,8 @@ def job__logs(name, *others, pod_name=None, stream=False):
                 method="post",
                 endpoint="/v1/get_logs_for_label",
                 data=data,
-                server_creds=USER_LOCAL_SERVER_FILE
+                server_creds=USER_LOCAL_SERVER_FILE,
+                user_cookie=USER_COOKIE
             )
             if not stream:
                 for pod, logs in result.items():
@@ -1449,7 +1508,6 @@ def job__manifest(*others, name):
         return
     
     data = {
-        "namespace": "default",
         "label": "leaderworkerset.sigs.k8s.io/name",
         "value": name
     }
@@ -1458,7 +1516,8 @@ def job__manifest(*others, name):
             method="post",
             endpoint="/v1/describe_pods_for_label",
             data=data,
-            server_creds=USER_LOCAL_SERVER_FILE
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
         )
         for pod, manifest in result.items():
             manifest = json.dumps(manifest, indent=3)
@@ -1499,7 +1558,6 @@ def ray__create(template_path, *others):
         "object": {
             "group": "ray.io",
             "api_version": "v1",
-            "namespace": "default",
             "plural": "rayclusters"
         },
         "body": template_yaml
@@ -1509,7 +1567,8 @@ def ray__create(template_path, *others):
             method="post",
             endpoint="/v1/deploy_custom_object",
             data=data,
-            server_creds=USER_LOCAL_SERVER_FILE
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
         )
         if len(result['failed']) > 0:
             console.log(f"[red]Error when deploying template\n\n{result['failed']}")
@@ -1535,7 +1594,6 @@ def ray__list(*status):
     data = {
         "group": "ray.io",
         "api_version": "v1",
-        "namespace": "default",
         "plural": "rayclusters"
     }
     try:
@@ -1543,7 +1601,8 @@ def ray__list(*status):
             method="post",
             endpoint="/v1/get_objects_of_type",
             data=data,
-            server_creds=USER_LOCAL_SERVER_FILE
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
         )
         clusters = result['items']
 
@@ -1589,7 +1648,6 @@ def ray__delete(*others, name):
 
     # deploy template with kube-watcher
     data = {
-        "namespace": "default",
         "label": RAY_LABEL, # this ensures that both raycluster and services are deleted
         "value": name
     }
@@ -1598,7 +1656,8 @@ def ray__delete(*others, name):
             method="post",
             endpoint="/v1/delete_labeled_resources",
             data=data,
-            server_creds=USER_LOCAL_SERVER_FILE
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
         )
         console.log(f"{result}")
     except Exception as e:
@@ -1616,7 +1675,6 @@ def ray__manifest(*others, name):
         return
     
     data = {
-        "namespace": "default",
         "label": "ray.io/cluster",
         "value": name
     }
@@ -1625,7 +1683,8 @@ def ray__manifest(*others, name):
             method="post",
             endpoint="/v1/describe_pods_for_label",
             data=data,
-            server_creds=USER_LOCAL_SERVER_FILE
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
         )
         for pod, manifest in result.items():
             manifest = json.dumps(manifest, indent=3)

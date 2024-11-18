@@ -31,6 +31,10 @@ releases:
       value: NodePort
     - name: service.ui.nodePort
       value: $longhorn_ui_port
+    - name: service.manager.type
+      value: NodePort
+    - name: service.manager.nodePort
+      value: $longhorn_manager_port
   - name: lws
     namespace: kalavai
     chart: kalavai/lws
@@ -38,6 +42,7 @@ releases:
   - name: kalavai-watcher
     namespace: kalavai
     chart: kalavai/kalavai-watcher
+    version: "0.2.6"
     installed: true
     set:
     - name: namespace
@@ -46,10 +51,16 @@ releases:
       value: "True"
     - name: deployment.use_auth_key
       value: "True"
-    - name: deployment.auth_key
-      value: "$watcher_auth_key"
+    - name: deployment.admin_key
+      value: "$watcher_admin_key"
+    - name: deployment.write_key
+      value: "$watcher_write_key"
     - name: deployment.readonly_key
       value: "$watcher_readonly_key"
+    - name: deployment.is_public_pool
+      value: $is_public_pool
+    - name: deployment.kalavai_api_endpoint
+      value: $kalavai_api_endpoint
     - name: service.nodePort
       value: $watcher_port
   - name: nvidia-gpu-operator

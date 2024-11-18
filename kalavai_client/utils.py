@@ -29,12 +29,17 @@ SERVER_IP_KEY = "server_ip"
 NODE_NAME_KEY = "node_name"
 PUBLIC_LOCATION_KEY = "public_location"
 CLUSTER_NAME_KEY = "cluster_name"
-AUTH_KEY = "watcher_auth_key"
-READONLY_KEY = "watcher_readonly_key"
+AUTH_KEY = "watcher_admin_key"
+WRITE_AUTH_KEY = "watcher_write_key"
+USER_API_KEY = "user_api_key"
+READONLY_AUTH_KEY = "watcher_readonly_key"
 WATCHER_SERVICE_KEY = "watcher_service"
 WATCHER_PORT_KEY = "watcher_port"
 LONGHORN_UI_PORT_KEY = "longhorn_ui_port"
+LONGHORN_MANAGER_PORT_KEY = "longhorn_manager_port"
 DEPLOY_HELIOS_KEY = "deploy_helios"
+IS_PUBLIC_POOL_KEY = "is_public_pool"
+KALAVAI_API_ENDPOINT_KEY = "kalavai_api_endpoint"
 MANDATORY_TOKEN_FIELDS = [
     CLUSTER_IP_KEY,
     CLUSTER_TOKEN_KEY,
@@ -82,15 +87,17 @@ def is_storage_compatible():
         return False
 ################
 
-def is_watcher_alive(server_creds):
+def is_watcher_alive(server_creds, user_cookie):
     try:
         request_to_server(
             method="get",
             endpoint="/v1/health",
             data=None,
-            server_creds=server_creds
+            server_creds=server_creds,
+            user_cookie=user_cookie
         )
-    except:
+    except Exception as e:
+        print(str(e))
         return False
     return True
 
@@ -117,6 +124,14 @@ def user_logout(user_cookie):
         user_cookie_file=user_cookie
     )
     auth.logout()
+
+def load_user_session(user_cookie):
+    auth = KalavaiAuthClient(
+        user_cookie_file=user_cookie
+    )
+    if not auth.is_logged_in():
+        raise ValueError("User is not authenticated")
+    return auth.load_user_session()
 
 def get_public_vpns(user_cookie):
     auth = KalavaiAuthClient(
@@ -289,7 +304,15 @@ def get_all_templates(local_path, templates_path=None, remote_load=False):
     return [ (local_path, item) for item in os.listdir(local_path) if os.path.isdir(os.path.join(local_path, item)) ]
 
 
-def request_to_server(method, endpoint, data, server_creds, force_url=None, force_key=None):
+def request_to_server(
+        method,
+        endpoint,
+        data,
+        server_creds,
+        force_url=None,
+        force_key=None,
+        user_cookie=None
+):
     if force_url is None:
         service_url = load_server_info(data_key=WATCHER_SERVICE_KEY, file=server_creds)
     else:
@@ -303,6 +326,13 @@ def request_to_server(method, endpoint, data, server_creds, force_url=None, forc
     headers = {
         "X-API-KEY": auth_key
     }
+
+    is_public_pool = load_server_info(data_key=IS_PUBLIC_POOL_KEY, file=server_creds)
+    if is_public_pool:
+        user = load_user_session(user_cookie=user_cookie)
+        headers["USER-KEY"] = load_server_info(data_key=USER_API_KEY, file=server_creds)
+        headers["USER"] = user["username"]
+
     response = requests.request(
         method=method,
         url=f"http://{service_url}{endpoint}",
@@ -322,16 +352,19 @@ def generate_table(columns, rows, end_sections=None):
 
     return table
 
-def store_server_info(server_ip, auth_key, watcher_service, file, node_name, cluster_name, readonly_key=None, public_location=None):
+def store_server_info(server_ip, auth_key, watcher_service, file, node_name, cluster_name, readonly_auth_key=None, write_auth_key=None, public_location=None, user_api_key=None):
     with open(file, "w") as f:
         json.dump({
             SERVER_IP_KEY: server_ip,
             AUTH_KEY: auth_key,
-            READONLY_KEY: readonly_key,
+            READONLY_AUTH_KEY: readonly_auth_key,
+            WRITE_AUTH_KEY: write_auth_key,
             WATCHER_SERVICE_KEY: watcher_service,
             NODE_NAME_KEY: node_name,
             CLUSTER_NAME_KEY: cluster_name,
-            PUBLIC_LOCATION_KEY: public_location
+            PUBLIC_LOCATION_KEY: public_location,
+            USER_API_KEY: user_api_key,
+            IS_PUBLIC_POOL_KEY: public_location is not None
         }, f)
     return True
 

@@ -260,7 +260,8 @@ class k3sCluster(Cluster):
         if not self.is_agent_running():
             raise ValueError("Pool initialised but agent is not running")
         # check cache files
-        if not validate_poolconfig(self.poolconfig_file):
-            raise ValueError("Cache missconfigured. Run 'kalavai pool stop' to clear.")
+        if self.is_seed_node():
+            if not validate_poolconfig(self.poolconfig_file):
+                raise ValueError("Cache missconfigured. Run 'kalavai pool stop' to clear.")
         return True
 
