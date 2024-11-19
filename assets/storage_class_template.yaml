@@ -5,9 +5,9 @@ metadata:
 provisioner: driver.longhorn.io
 allowVolumeExpansion: true
 reclaimPolicy: Delete
-volumeBindingMode: Immediate
+volumeBindingMode: WaitForFirstConsumer
 parameters:
-  shareManagerNodeSelector: $sc_label_selector #storage-allowed:true
+  shareManagerNodeSelector: $sc_label_selector
   numberOfReplicas: "$sc_replicas"
   staleReplicaTimeout: "2880"
   fromBackup: ""

@@ -78,7 +78,7 @@ STORAGE_CLASS_NAME = "longhorn-rwx"
 STORAGE_CLASS_LABEL = "kalavai.storage.enabled"
 DEFAULT_STORAGE_NAME = "pool-cache"
 DEFAULT_STORAGE_SIZE = 5
-DEFAULT_STORAGE_REPLICAS = 3
+DEFAULT_STORAGE_REPLICAS = 1
 USER_NODE_LABEL = "kalavai.cluster.user"
 KUBE_VERSION = os.getenv("KALAVAI_KUBE_VERSION", "v1.31.1+k3s1")
 DEFAULT_FLANNEL_IFACE = os.getenv("KALAVAI_FLANNEL_IFACE", "netmaker")
@@ -229,6 +229,7 @@ def fetch_gpus():
     return data.items()
 
 def select_gpus(message):
+    console.log(f"[yellow]{message}")
     gpu_models = ["Any/None"]
     gpu_models_full = ["Any/None"]
     available_gpus = fetch_gpus()
@@ -241,7 +242,7 @@ def select_gpus(message):
     
     while True:
         options = user_confirm(
-            question=message,
+            question=" ",
             options=gpu_models_full,
             multiple=True
         )
@@ -427,6 +428,7 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
 
     # join private network if provided
     subnet = None
+    user = None
     node_labels = {
         STORAGE_CLASS_LABEL: is_storage_compatible()
     }
@@ -438,7 +440,7 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
                 user_cookie=USER_COOKIE)
             subnet = vpn["subnet"]
             user = user_login(user_cookie=USER_COOKIE)
-            node_labels = {USER_NODE_LABEL: user["username"]}
+            node_labels[USER_NODE_LABEL] = user["username"]
             time.sleep(5)
         except Exception as e:
             console.log(f"[red]Error when joining network: {str(e)}")
@@ -637,6 +639,7 @@ def pool__join(token, *others, node_name=None, ip_address: str=None):
     node_labels = {
         STORAGE_CLASS_LABEL: is_storage_compatible()
     }
+    user = None
     if public_location is not None:
         console.log("Joining private network")
         try:
@@ -645,7 +648,7 @@ def pool__join(token, *others, node_name=None, ip_address: str=None):
                 user_cookie=USER_COOKIE)
             subnet = vpn["subnet"]
             user = user_login(user_cookie=USER_COOKIE)
-            node_labels = {USER_NODE_LABEL: user["username"]}
+            node_labels[USER_NODE_LABEL] = user["username"]
             time.sleep(5)
         except Exception as e:
             console.log(f"[red]Error when joining network: {str(e)}")
@@ -975,7 +978,7 @@ def storage__create(name=DEFAULT_STORAGE_NAME, storage=DEFAULT_STORAGE_SIZE, *ot
             server_creds=USER_LOCAL_SERVER_FILE,
             user_cookie=USER_COOKIE
         )
-        console.log(f"Storage {name} ({storage}) created")
+        console.log(f"Storage {name} ({storage}Gi) created")
     except Exception as e:
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
 
@@ -1248,16 +1251,17 @@ def job__run(template_name, *others, values=None):
     
     # expose lws with nodeport template if required
     if expose:
+        deployment_name = values_dict["deployment_name"]
         data = {
-            "name": template_name,
-            "labels": {TEMPLATE_LABEL: template_name},
+            "name": f"{deployment_name}-serve",
+            "labels": {TEMPLATE_LABEL: deployment_name},
             "selector_labels": {
-                TEMPLATE_LABEL: template_name,
+                TEMPLATE_LABEL: deployment_name,
                 "role": "leader"
             },
             "service_type": "NodePort",
             "ports": [
-                {"name": "http", "port": "8080", "protocol": "TCP", "target_port": 8080}
+                {"name": "http", "port": 8080, "protocol": "TCP", "target_port": 8080}
             ]
         }
         try:
@@ -1268,7 +1272,6 @@ def job__run(template_name, *others, values=None):
                 server_creds=USER_LOCAL_SERVER_FILE,
                 user_cookie=USER_COOKIE
             )
-            console.log(result)
             console.log("Service deployed")
         except Exception as e:
             console.log(f"[red]Error when connecting to kalavai service: {str(e)}")

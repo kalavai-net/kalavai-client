@@ -42,11 +42,13 @@ releases:
   - name: kalavai-watcher
     namespace: kalavai
     chart: kalavai/kalavai-watcher
-    version: "0.2.6"
+    version: "0.2.8"
     installed: true
     set:
     - name: namespace
       value: kalavai
+    - name: replicas
+      value: 2
     - name: deployment.in_cluster
       value: "True"
     - name: deployment.use_auth_key
