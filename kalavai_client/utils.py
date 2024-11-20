@@ -4,10 +4,11 @@ import os
 import requests
 from pathlib import Path
 from urllib.parse import urljoin
-from string import Template 
 import shutil
 import urllib.request
 import subprocess
+
+from jinja2 import Template, meta, Environment
 
 from rich.table import Table
 import yaml
@@ -368,15 +369,24 @@ def store_server_info(server_ip, auth_key, watcher_service, file, node_name, clu
         }, f)
     return True
 
-def load_template(template_path, values):
+def load_template(template_path, values, default_values_path=None):
+
     if not Path(template_path).exists():
         raise FileNotFoundError(f"{template_path} does not exist")
     with open(template_path, 'r') as f:
         yaml_template = "".join(f.readlines())
-    
+
+    # substitute missing values with defaults
+    if default_values_path is not None:
+        with open(default_values_path, 'r') as f:
+            default_values = yaml.safe_load(f)
+        for default in default_values:
+            if default["name"] not in values:
+                values[default['name']] = default['default']
+        
     template = Template(yaml_template)
 
-    return template.substitute(values)
+    return template.render(values)
 
 
 def user_confirm(question: str, options: list, multiple: bool=False) -> int:

@@ -23,7 +23,6 @@ We wish to deploy [Qwen/Qwen1.5-0.5B-Chat-AWQ](https://huggingface.co/Qwen/Qwen1
 
 1. Create `values.yaml` file and paste the following:
 ```yaml
-template_values:
 - name: deployment_name
   value: qwen-awq-1
   default: aphrodite-1
@@ -69,14 +68,9 @@ template_values:
   default: "1"
   description: "GPUs per single worker (final one = gpus * num_workers)"
 
-- name: gpu_vram
-  value: "4000"
-  default: "4000"
-  description: "vRAM per GPU (total one = num_workers * gpus * gpu_vram)"
-
 - name: memory
-  value: "8Gi"
-  default: "8Gi"
+  value: "8"
+  default: "8"
   description: "RAM memory per single worker (final one = memory * num_workers)"
 
 - name: tensor_parallel_size

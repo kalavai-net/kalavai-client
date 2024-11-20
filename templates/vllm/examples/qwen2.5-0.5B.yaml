@@ -1,4 +1,3 @@
-template_values:
 - name: deployment_name
   value: vllm-deployment-1
   default: vllm-deployment-1

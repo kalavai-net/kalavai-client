@@ -9,6 +9,7 @@ authors     = ["Carlos Fernandez Musoles <carlos@kalavai.net>"]
 python                          = "> 3.7.2"
 requests                        = { version = ">= 2.25" }
 psutil                          = { version = "5.9.8" }
+jinja2                          = { version = "3.1.4" }
 pyyaml                          = { version = "6.0.2" }
 rich                            = { version = "13.7.1" }
 schedule                        = { version = "1.2.1" }

@@ -1,24 +1,24 @@
 apiVersion: leaderworkerset.x-k8s.io/v1
 kind: LeaderWorkerSet
 metadata:
-  name: $deployment_name
+  name: {{deployment_name}}
   labels:
     # must have this label
-    kalavai.lws.name: $deployment_name
+    kalavai.lws.name: {{deployment_name}}
 spec:
-  replicas: $replicas
+  replicas: {{replicas}}
   leaderWorkerTemplate:
-    size: $num_workers
+    size: {{num_workers}}
     restartPolicy: RecreateGroupOnPodRestart
     leaderTemplate:
       metadata:
         annotations:
           # must have these annotations
-          $nouse_gputype
-          $use_gputype
+          {{nouse_gputype}}
+          {{use_gputype}}
         labels:
           role: leader
-          kalavai.lws.name: $deployment_name
+          kalavai.lws.name: {{deployment_name}}
       spec:
         runtimeClassName: nvidia
         containers:
@@ -26,7 +26,7 @@ spec:
           image: docker.io/bundenth/ray-vllm:v1.1.4
           env:
           - name: HF_TOKEN
-            value: $hf_token
+            value: {{hf_token}}
           - name: HF_HOME
             value: /home/ray/cache
           - name: TMPDIR
@@ -34,25 +34,25 @@ spec:
           command:
             - sh
             - -c
-            - "/home/ray/workspace/ray_init.sh leader --ray_cluster_size=$num_workers --ray_object_store_memory=$shmem_size;
+            - "/home/ray/workspace/ray_init.sh leader --ray_cluster_size={{num_workers}} --ray_object_store_memory={{shmem_size}};
                 sleep 30;
                 nvidia-smi;
                 ray status;
                 /home/ray/workspace/run_model.sh \
-                  --model_id=$model_id \
-                  --extra='$extra' \
-                  --tensor_parallel_size=$tensor_parallel_size \
-                  --pipeline_parallel_size=$pipeline_parallel_size;
+                  --model_id={{model_id}} \
+                  --extra='{{extra}}' \
+                  --tensor_parallel_size={{tensor_parallel_size}} \
+                  --pipeline_parallel_size={{pipeline_parallel_size}};
                 sleep 30"
           resources:
             requests:
-              cpu: "$cpus"
-              memory: $memory
-              nvidia.com/gpu: "$gpus"
+              cpu: "{{cpus}}"
+              memory: {{memory}}Gi
+              nvidia.com/gpu: "{{gpus}}"
             limits:
-              cpu: "$cpus"
-              memory: $memory
-              nvidia.com/gpu: "$gpus"
+              cpu: "{{cpus}}"
+              memory: {{memory}}Gi
+              nvidia.com/gpu: "{{gpus}}"
           ports:
           # if use 8080 as exposed port (if required)
           - containerPort: 8080
@@ -70,16 +70,16 @@ spec:
         - name: dshm
           emptyDir:
             medium: Memory
-            sizeLimit: $shmem_size
+            sizeLimit: {{shmem_size}}
         - name: cache
           persistentVolumeClaim:
-            claimName: $storage
+            claimName: {{storage}}
     workerTemplate:
       metadata:
         annotations:
           # must have these annotations
-          $nouse_gputype
-          $use_gputype
+          {{nouse_gputype}}
+          {{use_gputype}}
       spec:
         runtimeClassName: nvidia
         containers:
@@ -87,7 +87,7 @@ spec:
           image: docker.io/bundenth/ray-vllm:v1.1.4
           env:
           - name: HF_TOKEN
-            value: $hf_token
+            value: {{hf_token}}
           - name: HF_HOME
             value: /home/ray/cache
           - name: TMPDIR
@@ -96,16 +96,16 @@ spec:
             - sh
             - -c
             - "nvidia-smi;
-                RAY_BACKEND_LOG_LEVEL=error /home/ray/workspace/ray_init.sh worker --ray_address=$$LWS_LEADER_ADDRESS --ray_object_store_memory=$shmem_size --ray_block=1"
+                RAY_BACKEND_LOG_LEVEL=error /home/ray/workspace/ray_init.sh worker --ray_address=$LWS_LEADER_ADDRESS --ray_object_store_memory={{shmem_size}} --ray_block=1"
           resources:
             requests:
-              cpu: "$cpus"
-              memory: $memory
-              nvidia.com/gpu: "$gpus"
+              cpu: "{{cpus}}"
+              memory: {{memory}}Gi
+              nvidia.com/gpu: "{{gpus}}"
             limits:
-              cpu: "$cpus"
-              memory: $memory
-              nvidia.com/gpu: "$gpus"
+              cpu: "{{cpus}}"
+              memory: {{memory}}Gi
+              nvidia.com/gpu: "{{gpus}}"
           volumeMounts:
             - mountPath: /dev/shm
               name: dshm
@@ -113,4 +113,4 @@ spec:
         - name: dshm
           emptyDir:
             medium: Memory
-            sizeLimit: $shmem_size
+            sizeLimit: {{shmem_size}}

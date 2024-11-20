@@ -23,7 +23,6 @@ We wish to deploy [Phi 1_5](https://huggingface.co/microsoft/phi-1_5) on a singl
 
 1. Create `values.yaml` file and paste the following:
 ```yaml
-template_values:
 - name: deployment_name
   value: vllm-phi-1
   default: vllm-phi-1
@@ -61,8 +60,8 @@ template_values:
   default: "4000"
   description: "vRAM per GPU (total one = num_workers * gpus * gpu_vram)"
 - name: memory
-  value: "6Gi"
-  default: "6Gi"
+  value: "6"
+  default: "6"
   description: "RAM memory per single worker (final one = memory * num_workers)"
 - name: tensor_parallel_size
   value: "1"

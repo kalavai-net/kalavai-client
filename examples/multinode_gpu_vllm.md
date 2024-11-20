@@ -26,7 +26,6 @@ kalavai job defaults vllm > values.yaml
 
 2. Edit the values.yaml file with the following:
 ```yaml
-template_values:
 - name: deployment_name
   value: vllm-gemma-1
   default: vllm-gemma-1
@@ -59,13 +58,9 @@ template_values:
   value: "1"
   default: "1"
   description: "GPUs per single worker (final one = gpus * num_workers)"
-- name: gpu_vram
-  value: "4000"
-  default: "4000"
-  description: "vRAM per GPU (total one = num_workers * gpus * gpu_vram)"
 - name: memory
-  value: "4Gi"
-  default: "4Gi"
+  value: "4"
+  default: "4"
   description: "RAM memory per single worker (final one = memory * num_workers)"
 - name: tensor_parallel_size
   value: "2"

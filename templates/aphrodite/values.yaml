@@ -1,4 +1,3 @@
-template_values:
 - name: deployment_name
   value: aphrodite-1
   default: aphrodite-1
@@ -45,8 +44,8 @@ template_values:
   description: "GPUs per single worker (final one = gpus * num_workers)"
 
 - name: memory
-  value: "8Gi"
-  default: "8Gi"
+  value: "8"
+  default: "8"
   description: "RAM memory per single worker (final one = memory * num_workers)"
 
 - name: tensor_parallel_size

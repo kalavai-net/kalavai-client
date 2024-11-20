@@ -1185,16 +1185,19 @@ def job__run(template_name, *others, values=None):
     
     path = paths[available_templates.index(template_name)]
     template_path = os.path.join(path, template_name, "template.yaml")
+    default_values_path = os.path.join(path, template_name, "values.yaml")
 
-    if values is None or not Path(values).is_file():
-        console.log(f"[red]Values file {values} was not found")
+    if values is None:
+        values_dict = {}
+    else:
+        if not Path(values).is_file():
+            console.log(f"[red]Values file {values} was not found")
 
-    with open(values, "r") as f:
-        raw_values = yaml.load(f, Loader=yaml.SafeLoader)
-        values_dict = {variable["name"]: variable['value'] for variable in raw_values["template_values"]}
+        with open(values, "r") as f:
+            raw_values = yaml.load(f, Loader=yaml.SafeLoader)
+            values_dict = {variable["name"]: variable['value'] for variable in raw_values}
     
     # Inject hardware information if not present in the template
-
     def generate_gpu_annotation(input_message, values, value_key, annotation_key):
         if value_key not in values:
             selection = select_gpus(message=input_message)
@@ -1221,7 +1224,8 @@ def job__run(template_name, *others, values=None):
 
     template_yaml = load_template(
         template_path=template_path,
-        values=values_dict)
+        values=values_dict,
+        default_values_path=default_values_path)
 
     # deploy template with kube-watcher
     data = {

@@ -25,16 +25,16 @@ releases:
     namespace: kalavai
     chart: longhorn/longhorn
     installed: true
-    set:
-    # security issue! enable for testing only
-    - name: service.ui.type
-      value: NodePort
-    - name: service.ui.nodePort
-      value: $longhorn_ui_port
-    - name: service.manager.type
-      value: NodePort
-    - name: service.manager.nodePort
-      value: $longhorn_manager_port
+    # set:
+    # # security issue! enable for testing only
+    # - name: service.ui.type
+    #   value: NodePort
+    # - name: service.ui.nodePort
+    #   value: $longhorn_ui_port
+    # - name: service.manager.type
+    #   value: NodePort
+    # - name: service.manager.nodePort
+    #   value: $longhorn_manager_port
   - name: lws
     namespace: kalavai
     chart: kalavai/lws
@@ -90,12 +90,16 @@ releases:
     chart: kalavai/hami
     installed: true
     set:
+    - name: resourceCores
+      value: "nvidia.com/gpucores"
     - name: devicePlugin.runtimeClassName
       value: "nvidia"
     - name: scheduler.defaultSchedulerPolicy.nodeSchedulerPolicy
       value: "binpack"
     - name: scheduler.defaultSchedulerPolicy.gpuSchedulerPolicy
       value: "binpack"
+    - name: scheduler.defaultCores
+      value: "100"
     - name: scheduler.kubeScheduler.imageTag
       value: v1.31.1
     - name: devicePlugin.deviceMemoryScaling
