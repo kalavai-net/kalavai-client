@@ -1,4 +1,3 @@
-template_values:
 # place all your template variables under here
 - name: deployment_name
   value: kalavai-dummy-template

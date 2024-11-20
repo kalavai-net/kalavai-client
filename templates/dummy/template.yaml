@@ -2,10 +2,10 @@
 apiVersion: leaderworkerset.x-k8s.io/v1
 kind: LeaderWorkerSet
 metadata:
-  name: $deployment_name
+  name: {{deployment_name}}
   labels:
     # must have this label
-    kalavai.lws.name: $deployment_name
+    kalavai.lws.name: {{deployment_name}}
 spec:
   # number of copies for this deployment
   replicas: 1
