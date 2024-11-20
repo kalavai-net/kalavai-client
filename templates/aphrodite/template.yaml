@@ -40,7 +40,7 @@ spec:
                 ray status;
                 /home/ray/workspace/run_model.sh \
                   --repo_id={{repo_id}} \
-                  --model_filename=$model_filename \
+                  --model_filename={{model_filename}} \
                   --extra='{{extra}}' \
                   --tensor_parallel_size={{tensor_parallel_size}} \
                   --pipeline_parallel_size={{pipeline_parallel_size}} \
