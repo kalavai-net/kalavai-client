@@ -36,11 +36,7 @@ USER_API_KEY = "user_api_key"
 READONLY_AUTH_KEY = "watcher_readonly_key"
 WATCHER_SERVICE_KEY = "watcher_service"
 WATCHER_PORT_KEY = "watcher_port"
-LONGHORN_UI_PORT_KEY = "longhorn_ui_port"
-LONGHORN_MANAGER_PORT_KEY = "longhorn_manager_port"
-DEPLOY_HELIOS_KEY = "deploy_helios"
 IS_PUBLIC_POOL_KEY = "is_public_pool"
-KALAVAI_API_ENDPOINT_KEY = "kalavai_api_endpoint"
 MANDATORY_TOKEN_FIELDS = [
     CLUSTER_IP_KEY,
     CLUSTER_TOKEN_KEY,
@@ -369,7 +365,10 @@ def store_server_info(server_ip, auth_key, watcher_service, file, node_name, clu
         }, f)
     return True
 
-def load_template(template_path, values, default_values_path=None):
+def populate_template(template_str, values_dict):
+    return Template(template_str).render(values_dict)
+
+def load_template(template_path, values, default_values_path=None, force_defaults=False):
 
     if not Path(template_path).exists():
         raise FileNotFoundError(f"{template_path} does not exist")
@@ -381,12 +380,10 @@ def load_template(template_path, values, default_values_path=None):
         with open(default_values_path, 'r') as f:
             default_values = yaml.safe_load(f)
         for default in default_values:
-            if default["name"] not in values:
+            if not force_defaults or default["name"] not in values:
                 values[default['name']] = default['default']
         
-    template = Template(yaml_template)
-
-    return template.render(values)
+    return populate_template(template_str=yaml_template, values_dict=values)
 
 
 def user_confirm(question: str, options: list, multiple: bool=False) -> int:

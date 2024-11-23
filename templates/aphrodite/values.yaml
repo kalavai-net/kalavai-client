@@ -8,15 +8,15 @@
   default: "pool-cache"
   description: "Pool storage to use to cache model weights"
 
-- name: replicas
-  value: "1"
-  default: "1"
-  description: "How many replicas to deploy for the model"
+- name: queue_name
+  value: "default"
+  default: "default"
+  description: "Name of the kalavai queue to use"
 
-- name: num_workers
-  value: "1"
-  default: "1"
-  description: "Workers per deployment (for tensor parallelism)"
+- name: remote_workers
+  value: "0"
+  default: "0"
+  description: "Number of remote workers (for tensor and pipeline parallelism). This is in addition to the main node"
 
 - name: repo_id
   value: null

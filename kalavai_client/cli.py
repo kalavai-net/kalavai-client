@@ -3,7 +3,6 @@ import math
 import os
 import json
 import uuid
-from string import Template
 import time
 import socket
 from pathlib import Path
@@ -54,10 +53,6 @@ from kalavai_client.utils import (
     WATCHER_PORT_KEY,
     MANDATORY_TOKEN_FIELDS,
     USER_NODE_LABEL_KEY,
-    DEPLOY_HELIOS_KEY,
-    LONGHORN_UI_PORT_KEY,
-    LONGHORN_MANAGER_PORT_KEY,
-    KALAVAI_API_ENDPOINT_KEY,
     IS_PUBLIC_POOL_KEY
 )
 from kalavai_client.cluster import (
@@ -66,26 +61,26 @@ from kalavai_client.cluster import (
 
 
 KALAVAI_PLATFORM_URL = os.getenv("KALAVAI_PLATFORM_URL", "https://platform.kalavai.net")
-KALAVAI_API_ENDPOINT = os.getenv("KALAVAI_API_ENDPOINT", "https://platform.kalavai.net/_/api")
 LOCAL_TEMPLATES_DIR = os.getenv("LOCAL_TEMPLATES_DIR", None)
 VERSION = 1
 RESOURCE_EXCLUDE = ["ephemeral-storage", "hugepages-1Gi", "hugepages-2Mi", "pods"]
 CORE_NAMESPACES = ["lws-system", "kube-system", "gpu-operator", "kalavai"]
-TEMPLATE_LABEL = "kalavai.lws.name"
+TEMPLATE_LABEL = "kalavai.job.name"
 RAY_LABEL = "kalavai.ray.name"
 PVC_NAME_LABEL = "kalavai.storage.name"
+POOL_CONFIG_TEMPLATE = resource_path("assets/pool_config_template.yaml")
+POOL_CONFIG_DEFAULT_VALUES = resource_path("assets/pool_config_values.yaml")
 STORAGE_CLASS_NAME = "longhorn-rwx"
 STORAGE_CLASS_LABEL = "kalavai.storage.enabled"
 DEFAULT_STORAGE_NAME = "pool-cache"
 DEFAULT_STORAGE_SIZE = 5
-DEFAULT_STORAGE_REPLICAS = 1
 USER_NODE_LABEL = "kalavai.cluster.user"
 KUBE_VERSION = os.getenv("KALAVAI_KUBE_VERSION", "v1.31.1+k3s1")
 DEFAULT_FLANNEL_IFACE = os.getenv("KALAVAI_FLANNEL_IFACE", "netmaker")
 FORBIDEDEN_IPS = ["127.0.0.1"]
 # kalavai templates
 HELM_APPS_FILE = resource_path("assets/apps.yaml")
-STORAGE_CLASS_TEMPLATE_FILE = resource_path("assets/storage_class_template.yaml")
+HELM_APPS_VALUES = resource_path("assets/apps_values.yaml")
 # user specific config files
 USER_HELM_APPS_FILE = user_path("apps.yaml")
 USER_KUBECONFIG_FILE = user_path("kubeconfig")
@@ -191,6 +186,30 @@ def init_user_workspace():
             console.log(f"[green]Worskpace created")
         except Exception as e:
             console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
+
+def pool_init():
+    """Deploy configured objects to initialise pool"""
+    # load template config and populate with values
+    sidecar_template_yaml = load_template(
+        template_path=POOL_CONFIG_TEMPLATE,
+        values={},
+        default_values_path=POOL_CONFIG_DEFAULT_VALUES)
+
+    try:
+        result = request_to_server(
+            method="post",
+            endpoint="/v1/deploy_generic_model",
+            data={"config": sidecar_template_yaml},
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        if len(result['failed']) > 0:
+            console.log(f"[red]Error when deploying pool config\n\n{result['failed']}")
+        if len(result['successful']) > 0:
+            console.log(f"[green]Deployed pool config!")
+    except Exception as e:
+        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
+    
 
 def select_ip_address(subnet=None):
     ips = []
@@ -414,7 +433,7 @@ def pool__list(*others, user_only=False):
     console.log("[white]Use [yellow]kalavai pool join <join key> [white]to join a public pool")
 
 @arguably.command
-def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None):
+def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None, app_values: str=HELM_APPS_VALUES):
     """
     Start Kalavai pool and start/resume sharing resources.
 
@@ -455,8 +474,6 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
     write_auth_key = str(uuid.uuid4())
     readonly_auth_key = str(uuid.uuid4())
     watcher_port = 31000
-    longhorn_ui_port = 30000
-    longhorn_manager_port = 30001
     watcher_service = f"{ip_address}:{watcher_port}"
     values = {
         CLUSTER_NAME_KEY: cluster_name,
@@ -465,13 +482,9 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
         READONLY_AUTH_KEY: readonly_auth_key,
         WRITE_AUTH_KEY: write_auth_key,
         WATCHER_PORT_KEY: watcher_port,
-        LONGHORN_UI_PORT_KEY: longhorn_ui_port,
-        LONGHORN_MANAGER_PORT_KEY: longhorn_manager_port,
         WATCHER_SERVICE_KEY: watcher_service,
         USER_NODE_LABEL_KEY: USER_NODE_LABEL,
-        DEPLOY_HELIOS_KEY: location is not None,
-        IS_PUBLIC_POOL_KEY: location is not None,
-        KALAVAI_API_ENDPOINT_KEY: KALAVAI_API_ENDPOINT
+        IS_PUBLIC_POOL_KEY: location is not None
     }
     
     # 1. start k3s server
@@ -499,12 +512,14 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
     
     console.log("Install dependencies...")
     # set template values in helmfile
-    with open(HELM_APPS_FILE, "r") as f:
-        config = Template(f.read())
-        config = config.substitute(values)
+    helm_yaml = load_template(
+        template_path=HELM_APPS_FILE,
+        values=values,
+        default_values_path=app_values,
+        force_defaults=True)
     
     with open(USER_HELM_APPS_FILE, "w") as f:
-        f.write(config)
+        f.write(helm_yaml)
     CLUSTER.update_dependencies(
         dependencies_file=USER_HELM_APPS_FILE
     )
@@ -526,8 +541,8 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
             break
     console.log("Initialise user workspace...")
     init_user_workspace()
-    console.log(f"Initialising storage: {DEFAULT_STORAGE_NAME} ({DEFAULT_STORAGE_SIZE}Gi)...")  
-    storage__init()
+    console.log(f"Initialising pool config...")  
+    pool_init()
     storage__create()
 
     return None
@@ -914,40 +929,6 @@ def pool__status(*others, log_file=None):
             console.log(f"{log}\n")
 
 @arguably.command
-def storage__init(replicas=DEFAULT_STORAGE_REPLICAS, *others):
-    """
-    Create storage for the cluster
-    """
-    try:
-        CLUSTER.validate_cluster()
-    except Exception as e:
-        console.log(f"[red]Problems with your pool: {str(e)}")
-        return
-    
-    sidecar_template_yaml = load_template(
-        template_path=STORAGE_CLASS_TEMPLATE_FILE,
-        values={
-            "sc_name": STORAGE_CLASS_NAME,
-            "sc_label_selector": f"{STORAGE_CLASS_LABEL}:True",
-            "sc_replicas": replicas
-        }
-    )
-    try:
-        result = request_to_server(
-            method="post",
-            endpoint="/v1/deploy_generic_model",
-            data={"config": sidecar_template_yaml},
-            server_creds=USER_LOCAL_SERVER_FILE,
-            user_cookie=USER_COOKIE
-        )
-        if len(result['failed']) > 0:
-            console.log(f"[red]Error when creating storage class\n\n{result['failed']}")
-        if len(result['successful']) > 0:
-            console.log(f"[green]Created storage class: {STORAGE_CLASS_NAME} ({replicas} replicas)")
-    except Exception as e:
-        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
-
-@arguably.command
 def storage__create(name=DEFAULT_STORAGE_NAME, storage=DEFAULT_STORAGE_SIZE, *others):
     """
     Create storage for the cluster
@@ -1230,9 +1211,12 @@ def job__run(template_name, *others, values=None):
     # deploy template with kube-watcher
     data = {
         "object": {
-            "group": "leaderworkerset.x-k8s.io",
-            "api_version": "v1",
-            "plural": "leaderworkersets"
+            "group": "batch.volcano.sh",
+            "api_version": "v1alpha1",
+            "plural": "jobs"
+            # "group": "leaderworkerset.x-k8s.io",
+            # "api_version": "v1",
+            # "plural": "leaderworkersets"
         },
         "body": template_yaml
     }
@@ -1366,9 +1350,12 @@ def job__list(*others):
         return
 
     data = {
-        "group": "leaderworkerset.x-k8s.io",
-        "api_version": "v1",
-        "plural": "leaderworkersets",
+        "group": "batch.volcano.sh",
+        "api_version": "v1alpha1",
+        "plural": "jobs"
+        # "group": "leaderworkerset.x-k8s.io",
+        # "api_version": "v1",
+        # "plural": "leaderworkersets",
     }
     try:
         result = request_to_server(
@@ -1378,7 +1365,7 @@ def job__list(*others):
             server_creds=USER_LOCAL_SERVER_FILE,
             user_cookie=USER_COOKIE
         )
-        deployment_names = [d["metadata"]["name"] for d in result["items"]]
+        deployment_names = [d["metadata"]["labels"][TEMPLATE_LABEL] for d in result["items"]]
 
     except Exception as e:
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
@@ -1394,9 +1381,12 @@ def job__list(*others):
         try:
             # get status for deployment
             data = {
-                "group": "leaderworkerset.x-k8s.io",
-                "api_version": "v1",
-                "plural": "leaderworkersets",
+                "group": "batch.volcano.sh",
+                "api_version": "v1alpha1",
+                "plural": "jobs",
+                # "group": "leaderworkerset.x-k8s.io",
+                # "api_version": "v1",
+                # "plural": "leaderworkersets",
                 "name": deployment
             }
             result = request_to_server(
@@ -1408,14 +1398,15 @@ def job__list(*others):
             )
             if len(result) > 0:
                 last = result[-1]
-                statuses = f"{last['type']}: {last['message']}"
+                statuses = f"[{last['lastTransitionTime']}] {last['status']}"
             else:
                 statuses = "Unknown"
             # get pod statuses
             data = {
-                "label": "leaderworkerset.sigs.k8s.io/name",
+                "label": TEMPLATE_LABEL,
                 "value": deployment
             }
+            # TODO
             result = request_to_server(
                 method="post",
                 endpoint="/v1/get_pods_status_for_label",
@@ -1458,7 +1449,7 @@ def job__list(*others):
 
 
 @arguably.command
-def job__logs(name, *others, pod_name=None, stream=False):
+def job__logs(name, *others, pod_name=None, stream=False, tail=100):
     """
     Get logs for a specific job
     """
@@ -1469,11 +1460,12 @@ def job__logs(name, *others, pod_name=None, stream=False):
         return
     
     data = {
-        "label": "leaderworkerset.sigs.k8s.io/name",
+        "label": TEMPLATE_LABEL,
         "value": name
     }
     while True:
         try:
+            # send tail as parameter (fetch only last _tail_ lines)
             result = request_to_server(
                 method="post",
                 endpoint="/v1/get_logs_for_label",
@@ -1515,7 +1507,7 @@ def job__manifest(*others, name):
         return
     
     data = {
-        "label": "leaderworkerset.sigs.k8s.io/name",
+        "label": TEMPLATE_LABEL,
         "value": name
     }
     try:

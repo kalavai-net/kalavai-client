@@ -1,16 +1,23 @@
-apiVersion: leaderworkerset.x-k8s.io/v1
-kind: LeaderWorkerSet
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
 metadata:
   name: {{deployment_name}}
   labels:
     # must have this label
-    kalavai.lws.name: {{deployment_name}}
+    kalavai.job.name: {{deployment_name}}
 spec:
-  replicas: {{replicas}}
-  leaderWorkerTemplate:
-    size: {{num_workers}}
-    restartPolicy: RecreateGroupOnPodRestart
-    leaderTemplate:
+  queue: default
+  schedulerName: volcano
+  plugins:
+    env: []
+    svc: []
+  policies: 
+  - event: PodEvicted # Restart the job when a pod is evicted.
+    action: RestartJob
+  tasks:
+  - replicas: 1   # One ps pod specified
+    name: ps
+    template: # Definition of the ps pod
       metadata:
         annotations:
           # must have these annotations
@@ -18,11 +25,25 @@ spec:
           {{use_gputype}}
         labels:
           role: leader
-          kalavai.lws.name: {{deployment_name}}
+          kalavai.job.name: {{deployment_name}}
       spec:
         runtimeClassName: nvidia
         containers:
-        - name: vllm-leader
+        - command:
+          - sh
+          - -c
+          - |
+            RAY_BACKEND_LOG_LEVEL=error /home/ray/workspace/ray_init.sh leader --ray_cluster_size=$(({{remote_workers}}+1)) --ray_object_store_memory={{shmem_size}};
+              sleep 30;
+              nvidia-smi;
+              ray status;
+              /home/ray/workspace/run_model.sh \
+                --model_id={{model_id}} \
+                --extra='{{extra}}' \
+                --tensor_parallel_size={{tensor_parallel_size}} \
+                --pipeline_parallel_size={{pipeline_parallel_size}};
+              sleep 30
+          name: vllm-leader
           image: docker.io/bundenth/ray-vllm:v1.1.4
           env:
           - name: HF_TOKEN
@@ -31,36 +52,23 @@ spec:
             value: /home/ray/cache
           - name: TMPDIR
             value: /home/ray/cache/tmp
-          command:
-            - sh
-            - -c
-            - "/home/ray/workspace/ray_init.sh leader --ray_cluster_size={{num_workers}} --ray_object_store_memory={{shmem_size}};
-                sleep 30;
-                nvidia-smi;
-                ray status;
-                /home/ray/workspace/run_model.sh \
-                  --model_id={{model_id}} \
-                  --extra='{{extra}}' \
-                  --tensor_parallel_size={{tensor_parallel_size}} \
-                  --pipeline_parallel_size={{pipeline_parallel_size}};
-                sleep 30"
-          resources:
-            requests:
-              cpu: "{{cpus}}"
-              memory: {{memory}}Gi
-              nvidia.com/gpu: "{{gpus}}"
-            limits:
-              cpu: "{{cpus}}"
-              memory: {{memory}}Gi
-              nvidia.com/gpu: "{{gpus}}"
           ports:
-          # if use 8080 as exposed port (if required)
           - containerPort: 8080
+            name: model-port
           readinessProbe:
             tcpSocket:
               port: 8080
             initialDelaySeconds: 90
             periodSeconds: 30
+          resources:
+            requests:
+              cpu: {{cpus}}
+              memory: {{memory}}Gi
+              nvidia.com/gpu: {{gpus}}
+            limits:
+              cpu: {{cpus}}
+              memory: {{memory}}Gi
+              nvidia.com/gpu: {{gpus}}
           volumeMounts:
             - mountPath: /dev/shm
               name: dshm   
@@ -73,18 +81,34 @@ spec:
             sizeLimit: {{shmem_size}}
         - name: cache
           persistentVolumeClaim:
-            claimName: {{storage}}
-    workerTemplate:
+            claimName: pool-cache
+        restartPolicy: Never
+  - replicas: {{remote_workers}}
+    name: worker
+    policies:
+    - event: TaskCompleted  # The job will be marked as completed when two worker pods finish tasks.
+      action: CompleteJob
+    template: # Definition of worker pods
       metadata:
         annotations:
           # must have these annotations
           {{nouse_gputype}}
           {{use_gputype}}
+        labels:
+          kalavai.job.name: {{deployment_name}}
       spec:
         runtimeClassName: nvidia
         containers:
         - name: vllm-worker
           image: docker.io/bundenth/ray-vllm:v1.1.4
+          command:
+          - sh
+          - -c
+          - |
+            PS_HOST=`head /etc/volcano/ps.host`;
+            WORKER_HOST=`cat /etc/volcano/worker.host | sed 's/$/&/g' | sed 's/^/"/;s/$/"/' | tr "\n" ","`;
+            nvidia-smi;
+            RAY_BACKEND_LOG_LEVEL=error /home/ray/workspace/ray_init.sh worker --ray_address=$PS_HOST --ray_port=6379 --ray_object_store_memory={{shmem_size}} --ray_block=1
           env:
           - name: HF_TOKEN
             value: {{hf_token}}
@@ -92,20 +116,15 @@ spec:
             value: /home/ray/cache
           - name: TMPDIR
             value: /home/ray/cache/tmp
-          command:
-            - sh
-            - -c
-            - "nvidia-smi;
-                RAY_BACKEND_LOG_LEVEL=error /home/ray/workspace/ray_init.sh worker --ray_address=$LWS_LEADER_ADDRESS --ray_object_store_memory={{shmem_size}} --ray_block=1"
           resources:
             requests:
-              cpu: "{{cpus}}"
+              cpu: {{cpus}}
               memory: {{memory}}Gi
-              nvidia.com/gpu: "{{gpus}}"
+              nvidia.com/gpu: {{gpus}}
             limits:
-              cpu: "{{cpus}}"
+              cpu: {{cpus}}
               memory: {{memory}}Gi
-              nvidia.com/gpu: "{{gpus}}"
+              nvidia.com/gpu: {{gpus}}
           volumeMounts:
             - mountPath: /dev/shm
               name: dshm
@@ -114,3 +133,4 @@ spec:
           emptyDir:
             medium: Memory
             sizeLimit: {{shmem_size}}
+        restartPolicy: Never

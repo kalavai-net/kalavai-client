@@ -8,10 +8,10 @@
   default: "pool-cache"
   description: "Pool storage to use to cache model weights"
 
-- name: num_workers
-  value: "1"
-  default: "1"
-  description: "Workers per deployment (for tensor parallelism)"
+- name: remote_workers
+  value: "0"
+  default: "0"
+  description: "Number of remote workers (for tensor and pipeline parallelism). This is in addition to the main node"
 
 - name: repo_id
   value: Qwen/Qwen2.5-0.5B-Instruct

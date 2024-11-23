@@ -1,18 +1,24 @@
-# Specs and examples: https://github.com/kubernetes-sigs/lws/blob/main/docs/examples/sample/README.md
-apiVersion: leaderworkerset.x-k8s.io/v1
-kind: LeaderWorkerSet
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
 metadata:
   name: {{deployment_name}}
   labels:
     # must have this label
-    kalavai.lws.name: {{deployment_name}}
+    kalavai.job.name: {{deployment_name}}
 spec:
-  # number of copies for this deployment
-  replicas: 1
-  leaderWorkerTemplate:
-    # how many workers (distributed nodes)
-    size: 2
-    workerTemplate:
+  queue: default
+  #minAvailable: 2
+  schedulerName: volcano
+  plugins:
+    env: []
+    svc: []
+  policies: 
+  - event: PodEvicted # Restart the job when a pod is evicted.
+    action: RestartJob
+  tasks:
+  - replicas: 1   # One ps pod specified
+    name: ps
+    template: # Definition of the ps pod
       spec:
         containers:
         - name: nginx
@@ -31,3 +37,4 @@ spec:
           ports:
           # what port to make available
           - containerPort: 8080
+        restartPolicy: Never
