@@ -10,8 +10,47 @@ repositories:
   #   url: https://project-hami.github.io/HAMi/
   - name: longhorn
     url: https://charts.longhorn.io
+  - name: volcano-sh
+    url: https://volcano-sh.github.io/helm-charts
+  - name: prometheus
+    url: https://prometheus-community.github.io/helm-charts
+  - name: opencost-charts
+    url: https://opencost.github.io/opencost-helm-chart
 
 releases:
+  - name: helios
+    namespace: kalavai
+    chart: kalavai/kalavai-helios
+    version: "0.1.8"
+    installed: {{is_public_pool}}
+    set:
+    - name: deployment.watcher_endpoint
+      value: "http://{{watcher_service}}"
+    - name: deployment.watcher_auth_key
+      value: "{{watcher_readonly_key}}"
+    - name: deployment.kalavai_api_endpoint
+      value: {{kalavai_api_endpoint}}
+    - name: deployment.user_node_label
+      value: "{{user_node_label}}"
+    - name: deployment.sleep_interval
+      value: {{helios_harvest_interval}}
+  - name: opencost
+    namespace: opencost
+    chart: opencost-charts/opencost
+    installed: {{is_public_pool}}
+  - name: prometheus
+    namespace: prometheus-system
+    chart: prometheus/prometheus
+    installed: {{is_public_pool}}
+    set:
+    - name: prometheus-pushgateway.enabled
+      value: false
+    - name: alertmanager.enabled
+      value: false
+  - name: volcano-sh
+    namespace: kalavai
+    chart: volcano-sh/volcano
+    installed: true
   - name: kuberay
     namespace: kuberay
     chart: kuberay/kuberay-operator
@@ -25,24 +64,24 @@ releases:
     namespace: kalavai
     chart: longhorn/longhorn
     installed: true
-    # set:
-    # # security issue! enable for testing only
-    # - name: service.ui.type
-    #   value: NodePort
-    # - name: service.ui.nodePort
-    #   value: $longhorn_ui_port
-    # - name: service.manager.type
-    #   value: NodePort
-    # - name: service.manager.nodePort
-    #   value: $longhorn_manager_port
+    set:
+    # security issue! enable for testing only
+    - name: service.ui.type
+      value: NodePort
+    - name: service.ui.nodePort
+      value: {{longhorn_ui_port}}
+    - name: service.manager.type
+      value: NodePort
+    - name: service.manager.nodePort
+      value: {{longhorn_manager_port}}
   - name: lws
     namespace: kalavai
     chart: kalavai/lws
-    installed: true
+    installed: false
   - name: kalavai-watcher
     namespace: kalavai
     chart: kalavai/kalavai-watcher
-    version: "0.2.8"
+    version: "0.2.15"
     installed: true
     set:
     - name: namespace
@@ -54,37 +93,25 @@ releases:
     - name: deployment.use_auth_key
       value: "True"
     - name: deployment.admin_key
-      value: "$watcher_admin_key"
+      value: "{{watcher_admin_key}}"
     - name: deployment.write_key
-      value: "$watcher_write_key"
+      value: "{{watcher_write_key}}"
     - name: deployment.readonly_key
-      value: "$watcher_readonly_key"
+      value: "{{watcher_readonly_key}}"
     - name: deployment.is_public_pool
-      value: $is_public_pool
+      value: {{is_public_pool}}
     - name: deployment.kalavai_api_endpoint
-      value: $kalavai_api_endpoint
+      value: {{kalavai_api_endpoint}}
+    - name: deployment.prometheus_endpoint
+      value: {{prometheus_endpoint}}
+    - name: deployment.opencost_endpoint
+      value: {{opencost_endpoint}}
     - name: service.nodePort
-      value: $watcher_port
+      value: {{watcher_port}}
   - name: nvidia-gpu-operator
     namespace: kalavai
     chart: kalavai/gpu
-    installed: true
-  - name: helios
-    namespace: kalavai
-    chart: kalavai/kalavai-helios
-    installed: $deploy_helios
-    set:
-    - name: deployment.watcher_endpoint
-      value: "http://$watcher_service"
-    - name: deployment.watcher_auth_key
-      value: "$watcher_readonly_key"
-    - name: deployment.kalavai_api_endpoint
-      value: "https://platform.kalavai.net/_/api"
-    - name: deployment.user_node_label
-      value: "$user_node_label"
-    - name: deployment.sleep_interval
-      value: 600
-    
+    installed: true    
   - name: hami-vgpu
     namespace: kalavai
     chart: kalavai/hami

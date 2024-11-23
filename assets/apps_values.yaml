@@ -1,0 +1,30 @@
+# TODO: add helm versions here
+
+- name: kalavai_api_endpoint
+  default: https://platform.kalavai.net/_/api
+  description: ""
+
+- name: prometheus_endpoint
+  default: http://prometheus-server.prometheus-system.svc.cluster.local:80
+  description: ""
+
+- name: opencost_endpoint
+  default: http://opencost.opencost.svc.cluster.local:9003
+  description: ""
+
+- name: helios_harvest_interval
+  default: 60
+  description: "Interval (minutes) at which to report resource usage in public pools"
+
+- name: longhorn_ui_port
+  default: "" #31010
+  description: ""
+
+- name: longhorn_manager_port
+  default: "" #31011
+  description: ""
+
+# - name: is_public_pool
+#   default: false
+#   description: "Interval (minutes) at which to report resource usage in public pools"
+

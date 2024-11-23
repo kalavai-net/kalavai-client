@@ -1,0 +1,26 @@
+# STORAGE #
+- name: sc_label_selector
+  default: "kalavai.storage.enabled:True"
+  description: ""
+
+- name: sc_replicas
+  default: 3
+  description: ""
+
+# QUEUE # 
+# - name: queue_reclaimable
+#   default: "true"
+#   description: ""
+
+# - name: queue_max_cpus
+#   default: 1000000
+#   description: ""
+
+# - name: queue_max_gpus
+#   default: 1000000
+#   description: ""
+
+# - name: queue_max_memory
+#   default: 1000000
+#   description: ""
+
