@@ -81,7 +81,7 @@ spec:
             sizeLimit: {{shmem_size}}
         - name: cache
           persistentVolumeClaim:
-            claimName: pool-cache
+            claimName: {{storage}}
         restartPolicy: Never
   - replicas: {{remote_workers}}
     name: worker
