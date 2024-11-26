@@ -12,12 +12,16 @@
   default: http://opencost.opencost.svc.cluster.local:9003
   description: ""
 
+- name: longhorn_manager_endpoint
+  default: http://longhorn-backend.kalavai.svc.cluster.local:9500
+  description: ""
+
 - name: helios_harvest_interval
   default: 60
   description: "Interval (minutes) at which to report resource usage in public pools"
 
 - name: longhorn_ui_port
-  default: "" #31010
+  default: 30000
   description: ""
 
 - name: longhorn_manager_port
@@ -26,5 +30,5 @@
 
 # - name: is_public_pool
 #   default: false
-#   description: "Interval (minutes) at which to report resource usage in public pools"
+#   description: ""
 

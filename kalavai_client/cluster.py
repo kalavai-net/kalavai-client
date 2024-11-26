@@ -180,15 +180,24 @@ class k3sCluster(Cluster):
         run_cmd(command)
         
 
-    def update_dependencies(self, dependencies_file=None, debug=False):
+    def update_dependencies(self, dependencies_file=None, debug=False, retries=3):
         if dependencies_file is not None:
             self.dependencies_file = dependencies_file
         if debug:
             output = ""
         else:
             output = " >/dev/null 2>&1"
-        run_cmd(f"helmfile sync --file {self.dependencies_file} --kubeconfig {self.kubeconfig_file} {output}")
-
+        while True:
+            try:
+                run_cmd(f"helmfile sync --file {self.dependencies_file} --kubeconfig {self.kubeconfig_file} {output}")
+                break
+            except Exception as e:
+                if retries > 0:
+                    retries -= 1
+                    print(f"[{retries}] Dependencies failed. Retrying...")
+                else:
+                    raise Exception(f"Dependencies failed. Are you connected to the internet?\n\nTrace: {str(e)}")
+                
 
     def remove_agent(self):
         try:

@@ -520,9 +520,14 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
     
     with open(USER_HELM_APPS_FILE, "w") as f:
         f.write(helm_yaml)
-    CLUSTER.update_dependencies(
-        dependencies_file=USER_HELM_APPS_FILE
-    )
+    
+    try:
+        CLUSTER.update_dependencies(
+            dependencies_file=USER_HELM_APPS_FILE
+        )
+    except Exception as e:
+        console.log(f"Error: {str(e)}")
+        exit(-1)
     
     fetch_remote_templates()
     console.log("[green]Your cluster is ready! Grow your cluster by sharing your joining token with others. Run [yellow]kalavai pool token[green] to generate one.")
@@ -543,7 +548,7 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
     init_user_workspace()
     console.log(f"Initialising pool config...")  
     pool_init()
-    storage__create()
+    storage__create(name=DEFAULT_STORAGE_NAME, storage=DEFAULT_STORAGE_SIZE)
 
     return None
 
@@ -929,7 +934,7 @@ def pool__status(*others, log_file=None):
             console.log(f"{log}\n")
 
 @arguably.command
-def storage__create(name=DEFAULT_STORAGE_NAME, storage=DEFAULT_STORAGE_SIZE, *others):
+def storage__create(name, storage, *others):
     """
     Create storage for the cluster
     """
@@ -979,6 +984,7 @@ def storage__list(*other):
         "label": "kalavai.resource",
         "value": "storage"
     }
+    all_storages = []
     try:
         result = request_to_server(
             method="post",
@@ -987,10 +993,36 @@ def storage__list(*other):
             server_creds=USER_LOCAL_SERVER_FILE,
             user_cookie=USER_COOKIE
         )
-        for resource, items in result.items():
-            console.log(f"[yellow]{resource}s available in the pool")
+        for _, items in result.items():
+            console.log(f"[yellow]Storages available in the pool")
             for name, values in items.items():
-                console.log(f"\t{name} ({values['creation_timestamp']})")
+                console.log(f"+ \t{name} ({values['creation_timestamp']})")
+                all_storages.append(name)
+        
+    except Exception as e:
+        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
+    
+    try:
+        result = request_to_server(
+            method="post",
+            endpoint="/v1/get_storage_usage",
+            data={}, #{"names": all_storages},
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        if len(result) == 0:
+            console.log("[green] Storages have not been claimed yet (did you deploy any job using them?)")
+            return
+        columns = []
+        rows = []
+        for name, values in result.items():
+            columns = list(values.keys())
+            rows.append([name] + [f"{v:.2f} MB" if "capacity" in k else str(v) for k, v in values.items()])
+        columns = ["Name"] + columns
+        table = generate_table(columns=columns, rows=rows)
+        console.log(table)
+
+        
     except Exception as e:
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
     
@@ -1339,6 +1371,38 @@ def job__delete(name, *others):
 
 
 @arguably.command
+def job__status(name, *others):
+
+    try:
+        # get pod statuses
+        data = {
+            "label": TEMPLATE_LABEL,
+            "value": name
+        }
+        result = request_to_server(
+            method="post",
+            endpoint="/v1/get_pods_status_for_label",
+            data=data,
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        workers_status = defaultdict(int)
+        workers_conditions = {}
+        for pod_name, values in result.items():
+            workers_status[values["status"]] += 1
+            workers_conditions[pod_name] = values["conditions"]
+        workers = "\n".join([f"{k}: {v}" for k, v in workers_status.items()])
+        
+        console.log("Workers conditions")
+        for worker, conditions in workers_conditions.items():
+            console.log(f"[yellow]{worker}")
+            console.log(conditions)
+        console.log(f"[yellow]Total workers: {workers} out of {len(workers_status)}")
+    except Exception as e:
+        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
+        return
+
+@arguably.command
 def job__list(*others):
     """
     List jobs in the cluster
@@ -1406,7 +1470,6 @@ def job__list(*others):
                 "label": TEMPLATE_LABEL,
                 "value": deployment
             }
-            # TODO
             result = request_to_server(
                 method="post",
                 endpoint="/v1/get_pods_status_for_label",
@@ -1414,10 +1477,10 @@ def job__list(*others):
                 server_creds=USER_LOCAL_SERVER_FILE,
                 user_cookie=USER_COOKIE
             )
-            workers = defaultdict(int)
-            for _, status in result.items():
-                workers[status] += 1
-            workers = "\n".join([f"{k}: {v}" for k, v in workers.items()])
+            workers_status = defaultdict(int)
+            for _, values in result.items():
+                workers_status[values["status"]] += 1
+            workers = "\n".join([f"{k}: {v}" for k, v in workers_status.items()])
             # get URL details
             data = {
                 "label": TEMPLATE_LABEL,

@@ -21,7 +21,7 @@ releases:
   - name: helios
     namespace: kalavai
     chart: kalavai/kalavai-helios
-    version: "0.1.8"
+    version: "0.1.9"
     installed: {{is_public_pool}}
     set:
     - name: deployment.watcher_endpoint
@@ -33,7 +33,7 @@ releases:
     - name: deployment.user_node_label
       value: "{{user_node_label}}"
     - name: deployment.sleep_interval
-      value: {{helios_harvest_interval}}
+      value: "{{helios_harvest_interval}}"
   - name: opencost
     namespace: opencost
     chart: opencost-charts/opencost
@@ -81,7 +81,7 @@ releases:
   - name: kalavai-watcher
     namespace: kalavai
     chart: kalavai/kalavai-watcher
-    version: "0.2.15"
+    version: "0.2.22"
     installed: true
     set:
     - name: namespace
@@ -106,6 +106,8 @@ releases:
       value: {{prometheus_endpoint}}
     - name: deployment.opencost_endpoint
       value: {{opencost_endpoint}}
+    - name: deployment.longhorn_manager_endpoint
+      value: {{longhorn_manager_endpoint}}
     - name: service.nodePort
       value: {{watcher_port}}
   - name: nvidia-gpu-operator

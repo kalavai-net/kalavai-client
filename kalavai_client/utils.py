@@ -380,7 +380,7 @@ def load_template(template_path, values, default_values_path=None, force_default
         with open(default_values_path, 'r') as f:
             default_values = yaml.safe_load(f)
         for default in default_values:
-            if not force_defaults or default["name"] not in values:
+            if force_defaults or default["name"] not in values:
                 values[default['name']] = default['default']
         
     return populate_template(template_str=yaml_template, values_dict=values)

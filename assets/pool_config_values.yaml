@@ -4,7 +4,7 @@
   description: ""
 
 - name: sc_replicas
-  default: 3
+  default: 2
   description: ""
 
 # QUEUE # 
