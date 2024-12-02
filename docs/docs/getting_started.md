@@ -4,7 +4,6 @@ tags:
   - cli
   - install
   - requirements
-  - quick start
 ---
 
 # Getting started
@@ -70,3 +69,6 @@ kalavai pool pause
 kalavai pool resume
 ```
 
+## What's next
+
+Now that you have your client up and running, you are ready to [create](local_pool.md) and join computing pools. The easiest way to get started is by [joining a public pool](public_pool.md), so we'll look at that next. 
