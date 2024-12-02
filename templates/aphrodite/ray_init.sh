@@ -64,27 +64,27 @@ case "$subcommand" in
   leader)
     ray_cluster_size=""
     while [ $# -gt 0 ]; do
-          case "$1" in
-            --ray_port=*)
-              ray_port="${1#*=}"
-              ;;
-            --ray_object_store_memory=*)
-              ray_object_store_memory="${1#*=}"
-              ;;
-            --ray_block=*)
-              ray_block="--block"
-              ;;
-            --ray_cluster_size=*)
-              ray_cluster_size="${1#*=}"
-              ;;
-            --ray_init_timeout=*)
-              ray_init_timeout="${1#*=}"
-              ;;
-            *)
-              echo "unknown argument: $1"
-              exit 1
-          esac
-          shift
+      case "$1" in
+        --ray_port=*)
+          ray_port="${1#*=}"
+          ;;
+        --ray_object_store_memory=*)
+          ray_object_store_memory="${1#*=}"
+          ;;
+        --ray_block=*)
+          ray_block="--block"
+          ;;
+        --ray_cluster_size=*)
+          ray_cluster_size="${1#*=}"
+          ;;
+        --ray_init_timeout=*)
+          ray_init_timeout="${1#*=}"
+          ;;
+        *)
+          echo "unknown argument: $1"
+          exit 1
+      esac
+      shift
     done
 
     if [ -z "$ray_cluster_size" ]; then
@@ -95,7 +95,7 @@ case "$subcommand" in
     # start the ray daemon
     memory=$(echo "$ray_object_store_memory*0.75" | bc -l)
     round_mem=$(round ${memory} 0)
-    RAY_BACKEND_LOG_LEVEL=error ray start --head --port=$ray_port --object-store-memory=$round_mem $ray_block
+    RAY_BACKEND_LOG_LEVEL=error ray start --head --include-dashboard=True --dashboard-host=0.0.0.0 --port=$ray_port --object-store-memory=$round_mem $ray_block
 
     # wait until all workers are active
     for (( i=0; i < $ray_init_timeout; i+=5 )); do

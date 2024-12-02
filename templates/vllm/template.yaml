@@ -44,7 +44,7 @@ spec:
                 --pipeline_parallel_size={{pipeline_parallel_size}};
               sleep 30
           name: vllm-leader
-          image: docker.io/bundenth/ray-vllm:v1.1.4
+          image: docker.io/bundenth/ray-vllm:latest #v1.1.4
           env:
           - name: HF_TOKEN
             value: {{hf_token}}
@@ -55,11 +55,8 @@ spec:
           ports:
           - containerPort: 8080
             name: model-port
-          # readinessProbe:
-          #   tcpSocket:
-          #     port: 8080
-          #   initialDelaySeconds: 90
-          #   periodSeconds: 30
+          - containerPort: 8265
+            name: dashboard-port
           resources:
             requests:
               cpu: {{cpus}}
@@ -100,7 +97,7 @@ spec:
         runtimeClassName: nvidia
         containers:
         - name: vllm-worker
-          image: docker.io/bundenth/ray-vllm:v1.1.4
+          image: docker.io/bundenth/ray-vllm:latest #v1.1.4
           command:
           - sh
           - -c

@@ -46,7 +46,7 @@ spec:
               --pipeline_parallel_size={{pipeline_parallel_size}} \
               --local_dir=/home/ray/cache;
             sleep 30
-          image: docker.io/bundenth/ray-aphrodite:v1.0.11
+          image: docker.io/bundenth/ray-aphrodite:latest  #v1.0.11
           name: aphrodite
           env:
           - name: HF_TOKEN
@@ -58,6 +58,8 @@ spec:
           ports:
           - containerPort: 8080
             name: model-port
+          - containerPort: 8265
+            name: dashboard-port
           resources:
             requests:
               cpu: {{cpus}}
@@ -105,7 +107,7 @@ spec:
             WORKER_HOST=`cat /etc/volcano/worker.host | sed 's/$/&/g' | sed 's/^/"/;s/$/"/' | tr "\n" ","`;
             nvidia-smi;
             RAY_BACKEND_LOG_LEVEL=error /home/ray/workspace/ray_init.sh worker --ray_address=$PS_HOST --ray_port=6379 --ray_object_store_memory={{shmem_size}} --ray_block=1
-          image: docker.io/bundenth/ray-aphrodite:v1.0.11
+          image: docker.io/bundenth/ray-aphrodite:latest  #v1.0.11
           env:
           - name: HF_TOKEN
             value: {{hf_token}}
