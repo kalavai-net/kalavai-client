@@ -37,6 +37,7 @@ READONLY_AUTH_KEY = "watcher_readonly_key"
 WATCHER_SERVICE_KEY = "watcher_service"
 WATCHER_PORT_KEY = "watcher_port"
 IS_PUBLIC_POOL_KEY = "is_public_pool"
+ENDPOINT_PORTS_KEY = "endpoint_ports"
 MANDATORY_TOKEN_FIELDS = [
     CLUSTER_IP_KEY,
     CLUSTER_TOKEN_KEY,
@@ -336,6 +337,7 @@ def request_to_server(
         json=data,
         headers=headers
     )
+
     result = response.json()
     return result
 

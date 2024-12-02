@@ -12,8 +12,6 @@ class KalavaiAuthClient:
         anvil.server.connect(AUTH_UPLINK_KEY, quiet=True)
         self.user_cookie_file = user_cookie_file
         user = self.load_user_session()
-        if user is not None:
-            print(f"[KalavaiAuthClient]Logged in as {user['username']}")
 
     def login(self, username, password):
         try:

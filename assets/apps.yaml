@@ -81,7 +81,7 @@ releases:
   - name: kalavai-watcher
     namespace: kalavai
     chart: kalavai/kalavai-watcher
-    version: "0.2.22"
+    version: "0.2.24"
     installed: true
     set:
     - name: namespace

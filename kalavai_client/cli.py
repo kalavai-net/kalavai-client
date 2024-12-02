@@ -53,7 +53,8 @@ from kalavai_client.utils import (
     WATCHER_PORT_KEY,
     MANDATORY_TOKEN_FIELDS,
     USER_NODE_LABEL_KEY,
-    IS_PUBLIC_POOL_KEY
+    IS_PUBLIC_POOL_KEY,
+    ENDPOINT_PORTS_KEY
 )
 from kalavai_client.cluster import (
     k3sCluster
@@ -253,11 +254,11 @@ def select_gpus(message):
     gpu_models_full = ["Any/None"]
     available_gpus = fetch_gpus()
     for _, gpus in available_gpus:
-        for gpu in gpus:
-            status = "free" if "ready" in gpu else "busy"
+        for gpu in gpus["gpus"]:
+            #status = "free" if "ready" in gpu else "busy"
             memory = math.floor(int(gpu['memory'])/1000)
             gpu_models.append(gpu['model'])
-            gpu_models_full.append(f"{gpu['model']} ({memory}GB) ({status})" )
+            gpu_models_full.append(f"{gpu['model']} ({memory}GB) (in use: {gpus['available'] == 0})" )
     
     while True:
         options = user_confirm(
@@ -803,16 +804,16 @@ def pool__gpus(*others, available=False):
         columns, rows = [], []
         for node, gpus in data:
             row_gpus = []
-            for gpu in gpus:
+            for gpu in gpus["gpus"]:
                 status = gpu["ready"] if "ready" in gpu else True
                 if available and not status:
                     continue
                 row_gpus.append( (f"{gpu['model']} ({math.floor(int(gpu['memory'])/1000)} GBs)", str(status)))
             if len(row_gpus) > 0:
                 models, statuses = zip(*row_gpus)
-                rows.append([node, str(len(row_gpus)), "\n".join(models), "\n".join(statuses)])
+                rows.append([node, "\n".join(statuses), "\n".join(models), str(gpus["available"]), str(gpus["capacity"])])
 
-            columns = ["Quantity", "GPU(s)", "Ready"]
+            columns = ["Ready", "GPU(s)", "Available", "Total"]
         columns = ["Node"] + columns
         console.print(
             generate_table(columns=columns, rows=rows,end_sections=[n for n in range(len(rows))])
@@ -1171,7 +1172,7 @@ def job__reload(*others):
 
 
 @arguably.command
-def job__run(template_name, *others, values=None):
+def job__run(template_name, *others, values: str=None):
     """
     Deploy and run a template job.
 
@@ -1223,13 +1224,13 @@ def job__run(template_name, *others, values=None):
     GPU_TYPES_KEY = "use_gputype"
     GPU_NOTYPES_KEY = "nouse_gputype"
     generate_gpu_annotation(
-        input_message="SELECT Target GPUs for the job",
+        input_message="SELECT Target GPUs for the job (loading models)",
         values=values_dict,
         value_key=GPU_TYPES_KEY,
         annotation_key="nvidia.com/use-gputype"
     )
     generate_gpu_annotation(
-        input_message="AVOID Target GPUs for the job",
+        input_message="AVOID Target GPUs for the job (loading models)",
         values=values_dict,
         value_key=GPU_NOTYPES_KEY,
         annotation_key="nvidia.com/nouse-gputype"
@@ -1270,8 +1271,9 @@ def job__run(template_name, *others, values=None):
         return
     
     # expose lws with nodeport template if required
-    if expose:
+    if ENDPOINT_PORTS_KEY in values_dict:
         deployment_name = values_dict["deployment_name"]
+        ports = [int(port) for port in values_dict[ENDPOINT_PORTS_KEY].split(",")]
         data = {
             "name": f"{deployment_name}-serve",
             "labels": {TEMPLATE_LABEL: deployment_name},
@@ -1281,7 +1283,7 @@ def job__run(template_name, *others, values=None):
             },
             "service_type": "NodePort",
             "ports": [
-                {"name": "http", "port": 8080, "protocol": "TCP", "target_port": 8080}
+                {"name": f"http-{port}", "port": port, "protocol": "TCP", "target_port": port} for port in ports
             ]
         }
         try:
@@ -1397,7 +1399,7 @@ def job__status(name, *others):
         for worker, conditions in workers_conditions.items():
             console.log(f"[yellow]{worker}")
             console.log(conditions)
-        console.log(f"[yellow]Total workers: {workers} out of {len(workers_status)}")
+        console.log(f"[yellow]{workers}\nTotal: {len(workers_status)}")
     except Exception as e:
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
         return
@@ -1494,7 +1496,7 @@ def job__list(*others):
                 server_creds=USER_LOCAL_SERVER_FILE,
                 user_cookie=USER_COOKIE
             )
-            node_ports = [p["node_port"] for s in result.values() for p in s["ports"]]
+            node_ports = [f"{p['node_port']} (mapped to {p['port']})" for s in result.values() for p in s["ports"]]
 
             urls = [f"http://{load_server_info(data_key=SERVER_IP_KEY, file=USER_LOCAL_SERVER_FILE)}:{node_port}" for node_port in node_ports]
             rows.append((deployment, statuses, workers, "\n".join(urls)))
@@ -1507,8 +1509,8 @@ def job__list(*others):
         generate_table(columns=columns, rows=rows)
     )
         
+    console.log("Check detailed status with [yellow]kalavai job status <name of deployment>")
     console.log("Get logs with [yellow]kalavai job logs <name of deployment> [white](note it only works when the deployment is complete)")
-    console.log("Get full job manifest with [yellow]kalavai job manifest <name of deployment> [white](note it only works when the deployment is complete)")
 
 
 @arguably.command
