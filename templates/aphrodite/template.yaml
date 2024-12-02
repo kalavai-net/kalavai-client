@@ -58,11 +58,6 @@ spec:
           ports:
           - containerPort: 8080
             name: model-port
-          readinessProbe:
-            tcpSocket:
-              port: 8080
-            initialDelaySeconds: 90
-            periodSeconds: 30
           resources:
             requests:
               cpu: {{cpus}}
@@ -119,9 +114,6 @@ spec:
           - name: TMPDIR
             value: /home/ray/cache/tmp
           name: aphrodite
-          # ports:
-          # - containerPort: 2222
-          #   name: ray-port
           resources:
             requests:
               cpu: {{cpus}}

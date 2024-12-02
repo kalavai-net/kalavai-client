@@ -55,11 +55,11 @@ spec:
           ports:
           - containerPort: 8080
             name: model-port
-          readinessProbe:
-            tcpSocket:
-              port: 8080
-            initialDelaySeconds: 90
-            periodSeconds: 30
+          # readinessProbe:
+          #   tcpSocket:
+          #     port: 8080
+          #   initialDelaySeconds: 90
+          #   periodSeconds: 30
           resources:
             requests:
               cpu: {{cpus}}
