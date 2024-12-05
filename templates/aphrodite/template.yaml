@@ -11,7 +11,7 @@ spec:
   schedulerName: volcano
   plugins:
     env: []
-    svc: []
+    svc: ["--disable-network-policy=true"]
   policies: 
   - event: PodEvicted # Restart the job when a pod is evicted.
     action: RestartJob
