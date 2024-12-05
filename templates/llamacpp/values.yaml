@@ -1,0 +1,60 @@
+- name: deployment_name
+  value: llamacpp-1
+  default: llamacpp-1
+  description: "Name of the deployment job"
+
+- name: storage
+  value: "pool-cache"
+  default: "pool-cache"
+  description: "Pool storage to use to cache model weights"
+
+- name: workers
+  value: "1"
+  default: "1"
+  description: "Number of remote workers"
+
+- name: repo_id
+  value: null
+  default: null
+  description: "Huggingface model id to load"
+
+- name: model_filename
+  value: "None"
+  default: "None"
+  description: "Specific model file to use (handy for quantized models such as gguf)"
+
+- name: hf_token
+  value: <yout token>
+  default: null
+  description: "Huggingface token, required to load model weights"
+
+- name: cpus
+  value: "4"
+  default: "4"
+  description: "CPUs per single worker (final one = cpus * num_workers)"
+
+- name: gpus
+  value: "1"
+  default: "1"
+  description: "GPUs per single worker (final one = gpus * num_workers)"
+
+- name: memory
+  value: "4"
+  default: "4"
+  description: "RAM memory per single worker (final one = memory * num_workers)"
+
+- name: rpc_port
+  value: "50052"
+  default: "50052"
+  description: "RAM memory per single worker (final one = memory * num_workers)"
+
+- name: extra
+  value: ""
+  default: ""
+  description: ""
+
+# must contain the list of ports to enable in the leader node
+- name: endpoint_ports
+  value: "8080"
+  default: "8080"
+  description: "[DO NOT CHANGE] Ports opened on master node (will be shown as endpoints for the job)"

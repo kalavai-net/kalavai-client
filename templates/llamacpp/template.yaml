@@ -1,0 +1,100 @@
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: {{deployment_name}}
+  labels:
+    # must have this label
+    kalavai.job.name: {{deployment_name}}
+spec:
+  queue: default
+  schedulerName: volcano
+  plugins:
+    env: []
+    svc: ["--disable-network-policy=true"]
+  policies: 
+  - event: PodEvicted # Restart the job when a pod is evicted.
+    action: RestartJob
+  tasks:
+  - replicas: 1   # One ps pod specified
+    name: server
+    template: # Definition of the ps pod
+      metadata:
+        labels:
+          role: leader
+          kalavai.job.name: {{deployment_name}}
+      spec:
+        containers:
+        - name: llamacpp-leader
+          image: docker.io/bundenth/llamacpp-server:latest
+          command:
+          - sh
+          - -c
+          - |
+            /workspace/build.sh leader;
+            WORKER_HOST=`head /etc/volcano/worker.host`;
+            /workspace/run_api_server.sh \
+              --repo_id={{repo_id}} \
+              --model_filename={{model_filename}} \
+              --local_dir=/cache \
+              --port=8080 \
+              --rpc_servers="${WORKER_HOST}" \
+              --rpc_port={{rpc_port}} \
+              --extra='{{extra}}'
+          env:
+          - name: HF_TOKEN
+            value: {{hf_token}}
+          ports:
+          - containerPort: 8080
+            name: model-port
+          resources:
+            requests:
+              cpu: 2
+              memory: 4Gi
+            limits:
+              cpu: 2
+              memory: 4Gi
+          volumeMounts:
+            - name: cache
+              mountPath: /cache
+        volumes:
+        - name: cache
+          persistentVolumeClaim:
+            claimName: {{storage}}
+        restartPolicy: Never
+  - replicas: {{workers}}
+    name: worker
+    policies:
+    - event: TaskCompleted  # The job will be marked as completed when two worker pods finish tasks.
+      action: CompleteJob
+    template: # Definition of worker pods
+      metadata:
+        annotations:
+          # must have these annotations
+          {{nouse_gputype}}
+          {{use_gputype}}
+        labels:
+          kalavai.job.name: {{deployment_name}}
+      spec:
+        runtimeClassName: nvidia
+        containers:
+        - name: llamacpp-worker
+          image: docker.io/bundenth/llamacpp-worker:latest
+          command:
+          - sh
+          - -c
+          - |
+            /workspace/build.sh worker;
+            /workspace/run_rpc.sh --rpc_port={{rpc_port}}
+          env:
+          - name: HF_TOKEN
+            value: {{hf_token}}
+          resources:
+            requests:
+              cpu: {{cpus}}
+              memory: {{memory}}Gi
+              nvidia.com/gpu: {{gpus}}
+            limits:
+              cpu: {{cpus}}
+              memory: {{memory}}Gi
+              nvidia.com/gpu: {{gpus}}
+        restartPolicy: Never

@@ -1,0 +1,17 @@
+FROM python:3.10-slim AS builder
+
+RUN apt-get update && apt-get install --yes cmake g++ iputils-ping
+
+RUN mkdir /workspace
+WORKDIR /workspace
+
+# build python env
+RUN python3 -m venv /workspace/env
+RUN . /workspace/env/bin/activate && \
+    pip3 install huggingface-hub --no-cache-dir
+
+COPY run_api_server.sh .
+COPY build.sh .
+
+RUN chmod +x /workspace/run_api_server.sh
+RUN chmod +x /workspace/build.sh
