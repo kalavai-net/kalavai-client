@@ -18,7 +18,7 @@
 
 <div align="center">
 
-<a href="https://www.producthunt.com/posts/kalavai?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-kalavai" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=610197&theme=neutral" alt="Kalavai - The&#0032;first&#0032;platform&#0032;to&#0032;crowdsource&#0032;AI&#0032;computation | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+<a href="https://www.producthunt.com/products/kalavai/reviews?utm_source=badge-product_review&utm_medium=badge&utm_souce=badge-kalavai" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/product_review.svg?product_id=720725&theme=neutral" alt="Kalavai - The&#0032;first&#0032;platform&#0032;to&#0032;crowdsource&#0032;AI&#0032;computation | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
 </div>
 
@@ -46,9 +46,11 @@ Both versions can be managed using our free [kalavai CLI](#getting-started) tool
 
 ### News updates
 
-- 22 October 2024: Announcement of our [world record largest distributed LLM inference](https://kalavainet.substack.com/p/setting-a-new-world-record-the-worlds)
-- 30 October 2024: Release of our [public pool platform](https://platform.kalavai.net)
+- 24 November 2024: Common pools with private user spaces
 - 31 October 2024: [Help needed](https://kalavainet.substack.com/p/llm-world-record-testing-the-waters) to test public pools!
+- 30 October 2024: Release of our [public pool platform](https://platform.kalavai.net)
+- 22 October 2024: Announcement of our [world record largest distributed LLM inference](https://kalavainet.substack.com/p/setting-a-new-world-record-the-worlds)
+
 
 
 ## Getting started

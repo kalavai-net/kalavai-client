@@ -1185,8 +1185,6 @@ def job__run(template_name, *others, values: str=None):
         console.log(f"[red]Problems with your pool: {str(e)}")
         return
 
-    expose = True
-
     paths, available_templates = zip(*get_all_templates(
         local_path=USER_TEMPLATES_FOLDER,
         templates_path=LOCAL_TEMPLATES_DIR)
