@@ -74,7 +74,7 @@ POOL_CONFIG_DEFAULT_VALUES = resource_path("assets/pool_config_values.yaml")
 STORAGE_CLASS_NAME = "longhorn-rwx"
 STORAGE_CLASS_LABEL = "kalavai.storage.enabled"
 DEFAULT_STORAGE_NAME = "pool-cache"
-DEFAULT_STORAGE_SIZE = 5
+DEFAULT_STORAGE_SIZE = 20
 USER_NODE_LABEL = "kalavai.cluster.user"
 KUBE_VERSION = os.getenv("KALAVAI_KUBE_VERSION", "v1.31.1+k3s1")
 DEFAULT_FLANNEL_IFACE = os.getenv("KALAVAI_FLANNEL_IFACE", "netmaker")
@@ -434,7 +434,7 @@ def pool__list(*others, user_only=False):
     console.log("[white]Use [yellow]kalavai pool join <join key> [white]to join a public pool")
 
 @arguably.command
-def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None, app_values: str=HELM_APPS_VALUES):
+def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None, app_values: str=HELM_APPS_VALUES, default_storage_size: int=DEFAULT_STORAGE_SIZE):
     """
     Start Kalavai pool and start/resume sharing resources.
 
@@ -549,7 +549,7 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
     init_user_workspace()
     console.log(f"Initialising pool config...")  
     pool_init()
-    storage__create(name=DEFAULT_STORAGE_NAME, storage=DEFAULT_STORAGE_SIZE)
+    storage__create(name=DEFAULT_STORAGE_NAME, storage=default_storage_size)
 
     return None
 

@@ -16,4 +16,4 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-/workspace/llama.cpp/bin/rpc-server -p $rpc_port -H 0.0.0.0
+/workspace/llama.cpp/build/bin/rpc-server -p $rpc_port -H 0.0.0.0

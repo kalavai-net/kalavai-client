@@ -2,8 +2,22 @@
 
 https://github.com/ggerganov/llama.cpp/tree/master/examples/rpc
 
-Two docker images:
-- server: llama-cpp-python API server that serves the model and connects to the RPC workers
-- worker: llama-cpp built with RPC=ON.
-
 To support GPU, worker image must be built against adequate drivers.
+
+
+
+Full list of parameters: https://github.com/ggerganov/llama.cpp/tree/master/examples/server
+- -np X (concurrent requests)
+
+
+curl http://0.0.0.0:8080/completions \
+    -H "Content-Type: application/json" \
+    -d '{
+        "prompt": "I would walk 500",
+        "max_tokens": 100,
+        "temperature": 0.2
+    }'
+
+
+LocalAI
+- https://localai.io/features/distribute/

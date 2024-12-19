@@ -18,6 +18,11 @@
   default: null
   description: "Huggingface model id to load"
 
+- name: lora_modules
+  value: ""
+  default: ""
+  description: "LoRa adaptor(s) to load; semi-colon separated list of huggingface repos of the lora adaptors to load"
+
 - name: hf_token
   value: <yout token>
   default: null

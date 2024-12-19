@@ -16,7 +16,7 @@ spec:
     action: RestartJob
   tasks:
   - replicas: 1   # One ps pod specified
-    name: ps
+    name: server
     template: # Definition of the ps pod
       metadata:
         annotations:
@@ -29,7 +29,9 @@ spec:
       spec:
         runtimeClassName: nvidia
         containers:
-        - command:
+        - name: vllm-leader
+          image: docker.io/bundenth/ray-vllm:latest #v1.1.4
+          command:
           - sh
           - -c
           - |
@@ -41,10 +43,10 @@ spec:
                 --model_id={{model_id}} \
                 --extra='{{extra}}' \
                 --tensor_parallel_size={{tensor_parallel_size}} \
-                --pipeline_parallel_size={{pipeline_parallel_size}};
+                --pipeline_parallel_size={{pipeline_parallel_size}} \
+                --cache_dir=/home/ray/cache \
+                --lora_modules="{{lora_modules}}";
               sleep 30
-          name: vllm-leader
-          image: docker.io/bundenth/ray-vllm:latest #v1.1.4
           env:
           - name: HF_TOKEN
             value: {{hf_token}}
@@ -102,8 +104,7 @@ spec:
           - sh
           - -c
           - |
-            PS_HOST=`head /etc/volcano/ps.host`;
-            WORKER_HOST=`cat /etc/volcano/worker.host | sed 's/$/&/g' | sed 's/^/"/;s/$/"/' | tr "\n" ","`;
+            PS_HOST=`head /etc/volcano/server.host`;
             nvidia-smi;
             RAY_BACKEND_LOG_LEVEL=error /home/ray/workspace/ray_init.sh worker --ray_address=$PS_HOST --ray_port=6379 --ray_object_store_memory={{shmem_size}} --ray_block=1
           env:

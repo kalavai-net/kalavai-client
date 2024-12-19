@@ -19,27 +19,34 @@ spec:
     name: server
     template: # Definition of the ps pod
       metadata:
+        annotations:
+          # must have these annotations
+          {{nouse_gputype}}
+          {{use_gputype}}
         labels:
           role: leader
           kalavai.job.name: {{deployment_name}}
       spec:
+        runtimeClassName: nvidia
         containers:
         - name: llamacpp-leader
-          image: docker.io/bundenth/llamacpp-server:latest
+          image: docker.io/bundenth/llamacpp-gpu:latest
           command:
           - sh
           - -c
           - |
-            /workspace/build.sh leader;
-            WORKER_HOST=`head /etc/volcano/worker.host`;
+            /workspace/build.sh server_gpu;
+            /workspace/merge.sh --cpu-workers=/etc/volcano/cpu.host --gpu-workers=/etc/volcano/gpu.host --output=/workspace/all.host;
+            HOSTS=`head /workspace/all.host`;
+            cat /workspace/all.host;
+            export WORKERS=$(/workspace/get_workers_address.sh --rpc_port={{rpc_port}} --rpc_servers="${HOSTS}")
             /workspace/run_api_server.sh \
               --repo_id={{repo_id}} \
               --model_filename={{model_filename}} \
               --local_dir=/cache \
               --port=8080 \
-              --rpc_servers="${WORKER_HOST}" \
-              --rpc_port={{rpc_port}} \
-              --extra='{{extra}}'
+              --rpc_servers=$WORKERS \
+              --extra='{{server_extra}}'
           env:
           - name: HF_TOKEN
             value: {{hf_token}}
@@ -48,11 +55,13 @@ spec:
             name: model-port
           resources:
             requests:
-              cpu: 2
-              memory: 4Gi
+              cpu: {{cpus}}
+              memory: {{memory}}Gi
+              nvidia.com/gpu: {{gpus}}
             limits:
-              cpu: 2
-              memory: 4Gi
+              cpu: {{cpus}}
+              memory: {{memory}}Gi
+              nvidia.com/gpu: {{gpus}}
           volumeMounts:
             - name: cache
               mountPath: /cache
@@ -61,8 +70,38 @@ spec:
           persistentVolumeClaim:
             claimName: {{storage}}
         restartPolicy: Never
-  - replicas: {{workers}}
-    name: worker
+  - replicas: {{cpu_workers}}
+    name: cpu
+    policies:
+    - event: TaskCompleted  # The job will be marked as completed when two worker pods finish tasks.
+      action: CompleteJob
+    template: # Definition of worker pods
+      metadata:
+        labels:
+          kalavai.job.name: {{deployment_name}}
+      spec:
+        containers:
+        - name: llamacpp-worker
+          image: docker.io/bundenth/llamacpp-cpu:latest
+          command:
+          - sh
+          - -c
+          - |
+            /workspace/build.sh cpu;
+            /workspace/run_rpc_worker.sh --rpc_port={{rpc_port}}
+          env:
+          - name: HF_TOKEN
+            value: {{hf_token}}
+          resources:
+            requests:
+              cpu: {{cpus}}
+              memory: {{memory}}Gi
+            limits:
+              cpu: {{cpus}}
+              memory: {{memory}}Gi
+        restartPolicy: Never
+  - replicas: {{gpu_workers}}
+    name: gpu
     policies:
     - event: TaskCompleted  # The job will be marked as completed when two worker pods finish tasks.
       action: CompleteJob
@@ -78,13 +117,13 @@ spec:
         runtimeClassName: nvidia
         containers:
         - name: llamacpp-worker
-          image: docker.io/bundenth/llamacpp-worker:latest
+          image: docker.io/bundenth/llamacpp-gpu:latest
           command:
           - sh
           - -c
           - |
-            /workspace/build.sh worker;
-            /workspace/run_rpc.sh --rpc_port={{rpc_port}}
+            /workspace/build.sh gpu;
+            /workspace/run_rpc_worker.sh --rpc_port={{rpc_port}}
           env:
           - name: HF_TOKEN
             value: {{hf_token}}

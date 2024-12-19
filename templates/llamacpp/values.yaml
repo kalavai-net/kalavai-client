@@ -8,7 +8,12 @@
   default: "pool-cache"
   description: "Pool storage to use to cache model weights"
 
-- name: workers
+- name: cpu_workers
+  value: "1"
+  default: "1"
+  description: "Number of remote workers"
+
+- name: gpu_workers
   value: "1"
   default: "1"
   description: "Number of remote workers"
@@ -33,11 +38,6 @@
   default: "4"
   description: "CPUs per single worker (final one = cpus * num_workers)"
 
-- name: gpus
-  value: "1"
-  default: "1"
-  description: "GPUs per single worker (final one = gpus * num_workers)"
-
 - name: memory
   value: "4"
   default: "4"
@@ -48,10 +48,10 @@
   default: "50052"
   description: "RAM memory per single worker (final one = memory * num_workers)"
 
-- name: extra
+- name: server_extra
   value: ""
   default: ""
-  description: ""
+  description: "Extra parameters for deployment. See https://github.com/ggerganov/llama.cpp/tree/master/examples/server"
 
 # must contain the list of ports to enable in the leader node
 - name: endpoint_ports

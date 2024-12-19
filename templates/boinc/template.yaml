@@ -1,0 +1,132 @@
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: {{deployment_name}}
+  labels:
+    # must have this label
+    kalavai.job.name: {{deployment_name}}
+spec:
+  queue: {{queue_name}}
+  minAvailable: 2
+  schedulerName: volcano
+  plugins:
+    env: []
+    svc: ["--disable-network-policy=true"]
+  policies: 
+  - event: PodEvicted # Restart the job when a pod is evicted.
+    action: RestartJob
+  tasks:
+  - replicas: 1  # One ps pod specified
+    name: manager
+    template: # Definition of the ps pod
+      metadata:
+        labels:
+          role: leader
+          kalavai.job.name: {{deployment_name}}
+      spec:
+        containers:
+        - image: docker.io/bundenth/boinc-cpu:latest
+          name: boinc
+          command:
+          - sh
+          - -c
+          - |
+            /workspace/merge.sh --cpu-workers=/etc/volcano/cpu.host --gpu-workers=/etc/volcano/gpu.host --output=/workspace/all.host;
+            WORKERS=`head /workspace/all.host`;
+            /workspace/setup_workers.sh \
+              --workers="$WORKERS" \
+              --boinc_password=$BOINC_GUI_RPC_PASSWORD \
+              --email={{email}} \
+              --password={{password}};
+            tail -f /dev/null;
+          env:
+          - name: BOINC_GUI_RPC_PASSWORD
+            value: "123"
+          resources:
+            requests:
+              cpu: 2
+              memory: 2Gi
+            limits:
+              cpu: 2
+              memory: 2Gi
+        restartPolicy: Never
+  - replicas: {{gpu_workers}}  # One ps pod specified
+    name: gpu
+    template: # Definition of the ps pod
+      metadata:
+        annotations:
+          # must have these annotations
+          {{nouse_gputype}}
+          {{use_gputype}}
+        labels:
+          kalavai.job.name: {{deployment_name}}
+      spec:
+        runtimeClassName: nvidia
+        containers:
+        - image: docker.io/bundenth/boinc-gpu:latest
+          name: boinc
+          command:
+          - sh
+          - -c
+          - |
+            BOINC_REMOTE_HOST=`head /etc/volcano/manager.host`;
+            /workspace/wait_for_hosts.sh --hosts=$BOINC_REMOTE_HOST
+            /usr/bin/start-boinc.sh;
+          env:
+          # - name: BOINC_CMD_LINE_OPTIONS
+          #   value: "--allow_remote_gui_rpc"
+          - name: BOINC_GUI_RPC_PASSWORD
+            value: "123"
+          resources:
+            requests:
+              cpu: {{cpus}}
+              memory: {{memory}}Gi
+              nvidia.com/gpu: {{gpus}}
+            limits:
+              cpu: {{cpus}}
+              memory: {{memory}}Gi
+              nvidia.com/gpu: {{gpus}}
+          volumeMounts:
+            - mountPath: /var/lib/boinc
+              name: temp-volume
+        volumes:
+        - name: temp-volume
+          emptyDir:
+            medium: "" # default to disk; "Memory" for RAM usage
+        restartPolicy: Never
+  - replicas: {{cpu_workers}}  # One ps pod specified
+    name: cpu
+    template: # Definition of the ps pod
+      metadata:
+        annotations:
+        labels:
+          kalavai.job.name: {{deployment_name}}
+      spec:
+        containers:
+        - image: docker.io/bundenth/boinc-cpu:latest
+          name: boinc
+          command:
+          - sh
+          - -c
+          - |
+            BOINC_REMOTE_HOST=`head /etc/volcano/manager.host`;
+            /workspace/wait_for_hosts.sh --hosts=$BOINC_REMOTE_HOST
+            /usr/bin/start-boinc.sh;
+          env:
+          - name: BOINC_GUI_RPC_PASSWORD
+            value: "123"
+          resources:
+            requests:
+              cpu: {{cpus}}
+              memory: {{memory}}Gi
+            limits:
+              cpu: {{cpus}}
+              memory: {{memory}}Gi
+          volumeMounts:
+            - mountPath: /var/lib/boinc
+              name: temp-volume
+        volumes:
+        - name: temp-volume
+          emptyDir:
+            medium: "" # default to disk; "Memory" for RAM usage
+        restartPolicy: Never
