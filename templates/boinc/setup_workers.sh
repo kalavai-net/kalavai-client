@@ -31,7 +31,7 @@ while :
 do
   for worker in "${addresses[@]}"
   do
-      sleep 10
+      sleep 1
       if [ -z $worker ]; then
         continue
       fi
@@ -44,12 +44,13 @@ do
       then
         # do nothing, worker already setup
         echo $worker" is ready"
+        sleep 10
       else
         # connect and configure
         # retry if requested
         while [[ $(boinccmd --host $worker --passwd $boinc_password --acct_mgr attach https://scienceunited.org $email $password 2>&1) == *'retry'* ]]
         do
-            sleep 5
+            sleep 10
         done
       fi
   done

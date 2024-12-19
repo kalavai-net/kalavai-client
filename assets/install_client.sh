@@ -122,6 +122,9 @@ install_core_dependencies() {
     $SUDO mkdir -p /opt/cni/bin
     $SUDO tar Cxzvf /opt/cni/bin cni-plugins-linux-amd64-v1.5.1.tgz
 
+    # fix netclient version
+    netclient use v0.24.3
+    
     # cleanup
     rm containerd-1.7.18-linux-amd64.tar.gz
     rm cni-plugins-linux-amd64-v1.5.1.tgz

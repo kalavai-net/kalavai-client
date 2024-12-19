@@ -104,7 +104,7 @@ spec:
           - sh
           - -c
           - |
-            PS_HOST=`head /etc/volcano/server.host`;
+            PS_HOST=`cat /etc/volcano/server.host`;
             nvidia-smi;
             RAY_BACKEND_LOG_LEVEL=error /home/ray/workspace/ray_init.sh worker --ray_address=$PS_HOST --ray_port=6379 --ray_object_store_memory={{shmem_size}} --ray_block=1
           env:

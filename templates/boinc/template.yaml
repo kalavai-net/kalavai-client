@@ -32,7 +32,7 @@ spec:
           - -c
           - |
             /workspace/merge.sh --cpu-workers=/etc/volcano/cpu.host --gpu-workers=/etc/volcano/gpu.host --output=/workspace/all.host;
-            WORKERS=`head /workspace/all.host`;
+            WORKERS=`cat /workspace/all.host`;
             /workspace/setup_workers.sh \
               --workers="$WORKERS" \
               --boinc_password=$BOINC_GUI_RPC_PASSWORD \
@@ -69,7 +69,7 @@ spec:
           - sh
           - -c
           - |
-            BOINC_REMOTE_HOST=`head /etc/volcano/manager.host`;
+            BOINC_REMOTE_HOST=`cat /etc/volcano/manager.host`;
             /workspace/wait_for_hosts.sh --hosts=$BOINC_REMOTE_HOST
             /usr/bin/start-boinc.sh;
           env:

@@ -37,7 +37,7 @@ spec:
           - |
             /workspace/build.sh server_gpu;
             /workspace/merge.sh --cpu-workers=/etc/volcano/cpu.host --gpu-workers=/etc/volcano/gpu.host --output=/workspace/all.host;
-            HOSTS=`head /workspace/all.host`;
+            HOSTS=`cat /workspace/all.host`;
             cat /workspace/all.host;
             export WORKERS=$(/workspace/get_workers_address.sh --rpc_port={{rpc_port}} --rpc_servers="${HOSTS}")
             /workspace/run_api_server.sh \
