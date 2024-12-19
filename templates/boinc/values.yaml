@@ -19,8 +19,8 @@
   description: "Maximum number of workers to spawn in the cluster"
 
 - name: password
-  value: "I3k30pru"
-  default: "I3k30pru"
+  value: "kalavaipool"
+  default: "kalavaipool"
   description: "Maximum number of workers to spawn in the cluster"
 
 - name: cpus
