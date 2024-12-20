@@ -1,0 +1,55 @@
+- name: deployment_name
+  value: petals-worker-1
+  default: petals-worker-1
+  description: "Name of the deployment job"
+
+- name: mount_path
+  value: ""
+  default: ""
+  description: "Path where the weights (chat pod) will be loaded onto (empty for /)"
+
+- name: max_workers
+  value: "1"
+  default: "1"
+  description: "Maximum number of workers to spawn in the cluster"
+
+- name: hf_token
+  value: <your token here>
+  default: null
+  description: "Huggingface token, required to load model weights"
+
+- name: cpus
+  value: "4"
+  default: "4"
+  description: "CPUs per single worker (final one = cpus * num_workers)"
+
+- name: memory
+  value: "8"
+  default: "8"
+  description: "RAM memory per single worker (final one = memory * num_workers)"
+
+- name: ephemeral_storage
+  value: "25"
+  default: "25"
+  description: "Storage reserved per worker to download model shards weights"
+
+- name: gpus
+  value: "1"
+  default: "1"
+  description: "GPUs per single worker (final one = gpus * num_workers)"
+
+- name: model_id
+  value: "mistralai/Mixtral-8x22B-Instruct-v0.1"
+  default: "mistralai/Mixtral-8x22B-Instruct-v0.1"
+  description: ""
+
+- name: initial_peers
+  value: ""
+  default: ""
+  description: ""
+
+# must contain the list of ports to enable in the leader node
+- name: endpoint_ports
+  value: "5000,5001"
+  default: "5000,5001"
+  description: "[DO NOT CHANGE] Ports opened on master node (will be shown as endpoints for the job)"

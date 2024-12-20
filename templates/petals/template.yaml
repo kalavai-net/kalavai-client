@@ -1,0 +1,158 @@
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: {{deployment_name}}
+  labels:
+    # must have this label
+    kalavai.job.name: {{deployment_name}}
+spec:
+  queue: {{queue_name}}
+  minAvailable: 1
+  schedulerName: volcano
+  plugins:
+    env: []
+    svc: ["--disable-network-policy=true"]
+  policies: 
+  - event: PodEvicted # Restart the job when a pod is evicted.
+    action: RestartJob
+  tasks:
+  - replicas: 1   # One ps pod specified
+    name: sidecar
+    template: # Definition of the ps pod
+      metadata:
+        annotations:
+          # hack to land chat pod in nodes with large storage
+          storage: large
+        labels:
+          role: leader
+          kalavai.job.name: {{deployment_name}}
+      spec:
+        containers:
+        - image: docker.io/bundenth/health.petals:latest
+          name: petals-health
+          command:
+          - sh
+          - -c
+          - |
+            # set initial peers on config.py
+            if [ -z "{{initial_peers}}" ]
+            then
+              echo "Public peers"
+            else
+              echo "Private peers"
+              cat _health_config.py | awk '{gsub(/INITIAL_PEERS=PUBLIC_INITIAL_PEERS/,"INITIAL_PEERS=[\"{{initial_peers}}\"]")}1' > config.py
+            fi
+            gunicorn app:app --bind 0.0.0.0:5000 --worker-class gthread --threads 1 --timeout 1000
+          ports:
+          - containerPort: 5000
+            name: health-port
+          resources:
+            requests:
+              cpu: 1
+              memory: 1Gi
+            limits:
+              cpu: 1
+              memory: 1Gi
+        - image: docker.io/bundenth/chat.petals:latest
+          name: petals-chat
+          command:
+          - sh
+          - -c
+          - |
+            # set initial peers on config.py
+            if [ -z "{{initial_peers}}" ]
+            then
+              echo "Public peers"
+              cat _chat_config.py | awk '{gsub(/MODEL_ID/,"{{model_id}}")}1' > config.py
+            else
+              echo "Private peers"
+              cat _chat_config.py | awk '{gsub(/INITIAL_PEERS=PUBLIC_INITIAL_PEERS/,"INITIAL_PEERS=[\"{{initial_peers}}\"]")}1' > _config.py
+              cat _config.py | awk '{gsub(/MODEL_ID/,"{{model_id}}")}1' > config.py
+            fi
+            gunicorn app:app --bind 0.0.0.0:5001 --worker-class gthread --threads 1 --timeout 1000
+          ports:
+          - containerPort: 5001
+            name: chat-port
+          env:
+          - name: HF_HOME
+            value: /cache
+          - name: HF_TOKEN
+            value: {{hf_token}}
+          resources:
+            requests:
+              cpu: 1
+              memory: 3Gi
+            limits:
+              cpu: 1
+              memory: 3Gi
+          volumeMounts:
+            - name: cache
+              mountPath: /cache
+        volumes:
+        # host path, persistent in local node, but cannot limit capacity
+        - name: cache
+          hostPath:
+            path: {{mount_path}}/kalavai
+            type: DirectoryOrCreate
+        # - name: cache
+        #   persistentVolumeClaim:
+        #     claimName: {{storage}}
+        restartPolicy: Never
+  - replicas: {{max_workers}}   # One ps pod specified
+    name: worker
+    template: # Definition of the ps pod
+      metadata:
+        annotations:
+          # must have these annotations
+          {{nouse_gputype}}
+          {{use_gputype}}
+        labels:
+          kalavai.job.name: {{deployment_name}}
+      spec:
+        runtimeClassName: nvidia
+        containers:
+        - image: docker.io/learningathome/petals:main
+          name: petals-worker
+          command:
+          - sh
+          - -c
+          - |
+            if [ -z "{{initial_peers}}" ]
+            then
+              INITIAL_PEERS=""
+            else
+              INITIAL_PEERS="--initial_peers {{initial_peers}}"
+            fi
+            python -m petals.cli.run_server \
+              {{model_id}} \
+              --cache_dir /cache/hub \
+              --public_name kalavai.net $INITIAL_PEERS
+          env:
+          - name: HF_TOKEN
+            value: {{hf_token}}
+          - name: HF_HOME
+            value: /cache
+          resources:
+            requests:
+              cpu: {{cpus}}
+              memory: {{memory}}Gi
+              nvidia.com/gpu: {{gpus}}
+              ephemeral-storage: "{{ephemeral_storage}}Gi"
+            limits:
+              cpu: {{cpus}}
+              memory: {{memory}}Gi
+              nvidia.com/gpu: {{gpus}}
+              ephemeral-storage: "{{ephemeral_storage}}Gi"
+          volumeMounts:
+          - name: temp-volume
+            mountPath: /cache
+        volumes:
+        - name: temp-volume
+          emptyDir:
+            medium: "" # default to disk; "Memory" for RAM usage
+        # host path, persistent in local node, but cannot limit capacity
+        # - name: temp-volume
+        #   hostPath:
+        #     path: {{mount_path}}/kalavai
+        #     type: DirectoryOrCreate
+        restartPolicy: Never
