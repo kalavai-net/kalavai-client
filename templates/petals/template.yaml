@@ -20,13 +20,13 @@ spec:
     name: sidecar
     template: # Definition of the ps pod
       metadata:
-        annotations:
-          # hack to land chat pod in nodes with large storage
-          storage: large
         labels:
           role: leader
           kalavai.job.name: {{deployment_name}}
       spec:
+        nodeSelector:
+          # hack to land chat pod in nodes with large storage
+          storage: large
         containers:
         - image: docker.io/bundenth/health.petals:latest
           name: petals-health
