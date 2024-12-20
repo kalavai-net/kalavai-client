@@ -84,7 +84,8 @@ spec:
           - -c
           - |
             BOINC_REMOTE_HOST=`cat /etc/volcano/manager.host`;
-            /workspace/wait_for_hosts.sh --hosts=$BOINC_REMOTE_HOST
+            /workspace/wait_for_hosts.sh --hosts=$BOINC_REMOTE_HOST;
+            cp /workspace/global_prefs_override.xml /var/lib/boinc/;
             /usr/bin/start-boinc.sh;
           env:
           # - name: BOINC_CMD_LINE_OPTIONS
@@ -124,7 +125,8 @@ spec:
           - -c
           - |
             BOINC_REMOTE_HOST=`head /etc/volcano/manager.host`;
-            /workspace/wait_for_hosts.sh --hosts=$BOINC_REMOTE_HOST
+            /workspace/wait_for_hosts.sh --hosts=$BOINC_REMOTE_HOST;
+            cp /workspace/global_prefs_override.xml /var/lib/boinc/;
             /usr/bin/start-boinc.sh;
           env:
           - name: BOINC_GUI_RPC_PASSWORD

@@ -12,6 +12,7 @@ WORKDIR /workspace
 COPY setup_workers.sh .
 COPY wait_for_hosts.sh .
 COPY merge.sh .
+COPY global_prefs_override.xml .
 
 RUN chmod +x /workspace/merge.sh
 RUN chmod +x /workspace/setup_workers.sh
