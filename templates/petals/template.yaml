@@ -51,7 +51,7 @@ spec:
               cpu: 0.5
               memory: 1Gi
             limits:
-              cpu: 0.5
+              cpu: 1
               memory: 1Gi
         - image: docker.io/bundenth/chat.petals:latest
           name: petals-chat
@@ -80,7 +80,7 @@ spec:
             value: {{hf_token}}
           resources:
             requests:
-              cpu: 1
+              cpu: 0.5
               memory: 4Gi
             limits:
               cpu: 1
