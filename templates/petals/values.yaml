@@ -3,10 +3,10 @@
   default: petals-worker-1
   description: "Name of the deployment job"
 
-- name: mount_path
-  value: ""
-  default: ""
-  description: "Path where the weights (chat pod) will be loaded onto (empty for /)"
+- name: storage
+  value: "pool-cache"
+  default: "pool-cache"
+  description: "Pool storage to use to cache partial weights for serving the model"
 
 - name: max_workers
   value: "1"

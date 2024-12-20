@@ -24,9 +24,6 @@ spec:
           role: leader
           kalavai.job.name: {{deployment_name}}
       spec:
-        nodeSelector:
-          # hack to land chat pod in nodes with large storage
-          storage: large
         containers:
         - image: docker.io/bundenth/health.petals:latest
           name: petals-health
@@ -90,13 +87,13 @@ spec:
               mountPath: /cache
         volumes:
         # host path, persistent in local node, but cannot limit capacity
-        - name: cache
-          hostPath:
-            path: {{mount_path}}/kalavai
-            type: DirectoryOrCreate
         # - name: cache
-        #   persistentVolumeClaim:
-        #     claimName: {{storage}}
+        #   hostPath:
+        #     path: {{mount_path}}/kalavai
+        #     type: DirectoryOrCreate
+        - name: cache
+          persistentVolumeClaim:
+            claimName: {{storage}}
         restartPolicy: Never
   - replicas: {{max_workers}}   # One ps pod specified
     name: worker
