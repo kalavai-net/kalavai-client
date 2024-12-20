@@ -45,7 +45,7 @@ spec:
             name: health-port
           resources:
             requests:
-              cpu: 0.5
+              cpu: 1
               memory: 1Gi
             limits:
               cpu: 1
@@ -77,10 +77,10 @@ spec:
             value: {{hf_token}}
           resources:
             requests:
-              cpu: 0.5
+              cpu: 2
               memory: 4Gi
             limits:
-              cpu: 1
+              cpu: 2
               memory: 4Gi
           volumeMounts:
             - name: cache
@@ -94,7 +94,7 @@ spec:
         - name: cache
           persistentVolumeClaim:
             claimName: {{storage}}
-        restartPolicy: Never
+        restartPolicy: OnFailure
   - replicas: {{max_workers}}   # One ps pod specified
     name: worker
     template: # Definition of the ps pod
@@ -152,4 +152,4 @@ spec:
         #   hostPath:
         #     path: {{mount_path}}/kalavai
         #     type: DirectoryOrCreate
-        restartPolicy: Never
+        restartPolicy: OnFailure

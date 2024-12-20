@@ -58,11 +58,11 @@ spec:
             periodSeconds: 30
           resources:
             requests:
-              cpu: 2
-              memory: 2Gi
+              cpu: 1
+              memory: 1Gi
             limits:
-              cpu: 2
-              memory: 2Gi
+              cpu: 1
+              memory: 1Gi
         restartPolicy: OnFailure
   - replicas: {{gpu_workers}}  # One ps pod specified
     name: gpu
