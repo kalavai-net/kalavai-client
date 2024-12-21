@@ -33,11 +33,6 @@
   default: "4"
   description: "RAM memory per single worker (final one = memory * num_workers)"
 
-- name: min_ephemeral_storage
-  value: "25"
-  default: "25"
-  description: "Storage reserved per worker to download model shards weights"
-
 - name: max_cpus
   value: "12"
   default: "12"
@@ -48,9 +43,9 @@
   default: "16"
   description: "RAM memory per single worker (final one = memory * num_workers)"
 
-- name: max_ephemeral_storage
-  value: "50"
-  default: "50"
+- name: ephemeral_storage
+  value: "30"
+  default: "30"
   description: "Storage reserved per worker to download model shards weights"
 
 - name: gpus
