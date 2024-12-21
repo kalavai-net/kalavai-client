@@ -68,6 +68,11 @@
   default: ""
   description: ""
 
+- name: extra
+  value: ""
+  default: ""
+  description: "Extra parameters for Petals cli"
+
 # must contain the list of ports to enable in the leader node
 - name: endpoint_ports
   value: "5000,5001"

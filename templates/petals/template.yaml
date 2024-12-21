@@ -123,7 +123,8 @@ spec:
             python -m petals.cli.run_server \
               {{model_id}} \
               --cache_dir /cache/hub \
-              --public_name kalavai.net $INITIAL_PEERS
+              --public_name kalavai.net $INITIAL_PEERS \
+              {{extra}}
           env:
           - name: HF_TOKEN
             value: {{hf_token}}
