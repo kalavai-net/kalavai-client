@@ -3,6 +3,11 @@
   default: petals-worker-1
   description: "Name of the deployment job"
 
+- name: priority
+  value: high-priority
+  default: high-priority
+  description: "Priority for this job"
+
 - name: storage
   value: "pool-cache"
   default: "pool-cache"

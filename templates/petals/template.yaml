@@ -9,6 +9,7 @@ spec:
   queue: {{queue_name}}
   minAvailable: 1
   schedulerName: volcano
+  priorityClassName: {{priority}}
   plugins:
     env: []
     svc: ["--disable-network-policy=true"]
