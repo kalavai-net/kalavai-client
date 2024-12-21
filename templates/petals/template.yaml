@@ -133,23 +133,23 @@ spec:
             requests:
               cpu: {{min_cpus}}
               memory: {{min_memory}}Gi
-              nvidia.com/gpu: {{min_gpus}}
-              ephemeral-storage: "{{min_ephemeral_storage}}Gi"
+              nvidia.com/gpu: {{gpus}}
+              #ephemeral-storage: "{{min_ephemeral_storage}}Gi"
             limits:
               cpu: {{max_cpus}}
               memory: {{max_memory}}Gi
-              nvidia.com/gpu: {{max_gpus}}
-              ephemeral-storage: "{{max_ephemeral_storage}}Gi"
+              nvidia.com/gpu: {{gpus}}
+              #ephemeral-storage: "{{max_ephemeral_storage}}Gi"
           volumeMounts:
           - name: temp-volume
             mountPath: /cache
         volumes:
-        - name: temp-volume
-          emptyDir:
-            medium: "" # default to disk; "Memory" for RAM usage
-        # host path, persistent in local node, but cannot limit capacity
         # - name: temp-volume
-        #   hostPath:
-        #     path: {{mount_path}}/kalavai
-        #     type: DirectoryOrCreate
+        #   emptyDir:
+        #     medium: "" # default to disk; "Memory" for RAM usage
+        # host path, persistent in local node, but cannot limit capacity
+        - name: temp-volume
+          hostPath:
+            path: {{mount_path}}/kalavai
+            type: DirectoryOrCreate
         restartPolicy: OnFailure
