@@ -1,0 +1,49 @@
+- name: deployment_name
+  value: llama3-8b
+  default: llama3-8b
+  description: "Name of the deployment job"
+
+- name: storage
+  value: "pool-cache"
+  default: "pool-cache"
+  description: "Pool storage to use to cache partial weights for serving the model"
+
+- name: max_workers
+  value: "3"
+  default: "1"
+  description: "Maximum number of workers to spawn in the cluster"
+
+- name: min_cpus
+  value: "2"
+  default: "2"
+  description: "CPUs per single worker (final one = cpus * num_workers)"
+
+- name: min_memory
+  value: "4"
+  default: "4"
+  description: "RAM memory per single worker (final one = memory * num_workers)"
+
+- name: gpus
+  value: "1"
+  default: "1"
+  description: "GPUs per single worker (final one = gpus * num_workers)"
+
+- name: max_cpus
+  value: "12"
+  default: "12"
+  description: "CPUs per single worker (final one = cpus * num_workers)"
+
+- name: max_memory
+  value: "16"
+  default: "16"
+  description: "RAM memory per single worker (final one = memory * num_workers)"
+
+- name: ephemeral_storage
+  value: "20"
+  default: "20"
+  description: "Storage reserved per worker to download model shards weights"
+
+- name: model_id
+  value: "meta-llama/Llama-3.1-8B-Instruct"
+  default: "meta-llama/Llama-3.1-8B-Instruct"
+  description: ""
