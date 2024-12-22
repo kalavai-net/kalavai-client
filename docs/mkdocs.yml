@@ -7,6 +7,8 @@ nav:
   - Create AI pools:
     - Local pools: local_pool.md
     - Public pools: public_pool.md
+  - Community computing:
+    - Petals swarm: petals.md
   - Applications: 
     - Templates: templates.md
     - Ray: ray.md
