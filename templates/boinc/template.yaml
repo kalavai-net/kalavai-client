@@ -94,12 +94,12 @@ spec:
             value: "123"
           resources:
             requests:
-              cpu: {{cpus}}
-              memory: {{memory}}Gi
+              cpu: {{min_cpus}}
+              memory: {{min_memory}}Gi
               nvidia.com/gpu: {{gpus}}
             limits:
-              cpu: {{cpus}}
-              memory: {{memory}}Gi
+              cpu: {{max_cpus}}
+              memory: {{max_memory}}Gi
               nvidia.com/gpu: {{gpus}}
           volumeMounts:
             - mountPath: /var/lib/boinc
@@ -133,11 +133,11 @@ spec:
             value: "123"
           resources:
             requests:
-              cpu: {{cpus}}
-              memory: {{memory}}Gi
+              cpu: {{min_cpus}}
+              memory: {{min_memory}}Gi
             limits:
-              cpu: {{cpus}}
-              memory: {{memory}}Gi
+              cpu: {{max_cpus}}
+              memory: {{max_memory}}Gi
           volumeMounts:
             - mountPath: /var/lib/boinc
               name: temp-volume

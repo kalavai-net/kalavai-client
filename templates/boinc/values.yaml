@@ -23,20 +23,30 @@
   default: "kalavaipool"
   description: "Maximum number of workers to spawn in the cluster"
 
-- name: cpus
+- name: min_cpus
   value: "4"
   default: "4"
   description: "CPUs per single worker (final one = cpus * num_workers)"
+
+- name: max_cpus
+  value: "16"
+  default: "16"
+  description: "CPUs per single worker (final one = cpus * num_workers)"
+
+- name: min_memory
+  value: "4"
+  default: "4"
+  description: "RAM memory per single worker (final one = memory * num_workers)"
+
+- name: memory
+  value: "16"
+  default: "16"
+  description: "RAM memory per single worker (final one = memory * num_workers)"
 
 - name: gpus
   value: "1"
   default: "1"
   description: "GPUs per single worker (final one = gpus * num_workers)"
-
-- name: memory
-  value: "8"
-  default: "8"
-  description: "RAM memory per single worker (final one = memory * num_workers)"
 
 # - name: endpoint_ports
 #   value: "8080"
