@@ -38,7 +38,7 @@
   default: "4"
   description: "RAM memory per single worker (final one = memory * num_workers)"
 
-- name: memory
+- name: max_memory
   value: "16"
   default: "16"
   description: "RAM memory per single worker (final one = memory * num_workers)"
