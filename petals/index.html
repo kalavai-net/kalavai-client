@@ -910,8 +910,18 @@
 </code></pre>
 <h2 id="check-petals-health">Check Petals health</h2>
 <p>Kalavai's pool connects directly to the public swarm on Petals, which means we can use their <a href="https://health.petals.dev/">public health check UI</a> to see how much we are contributing and what models are ready to use.</p>
-<p><img alt="alt text" src="/docs/docs/assets/images/petals_health.png" /></p>
+<p><img alt="swarm health" src="/docs/docs/assets/images/petals_health.png" /></p>
 <p>Models with at least one copy of each shard (a green dot in each column) are ready to be used. If not, wait for more workers to join in.</p>
+<p>Using the kalavai client you can monitor the state of the pool and all of the connected nodes:</p>
+<pre><code class="language-bash">$ kalavai pool status
+
+# Displays the status of the pool
+
+$ kalavai node list
+
+# Displays the list of connected nodes, and their current status
+</code></pre>
+<p>The command <code>kalavai node list</code> is useful to see if our node has any issues and whether it's currently online.</p>
 <h2 id="how-to-use-the-models">How to use the models</h2>
 <p>For all public swarms you can use the Petals SDK in the <a href="https://github.com/bigscience-workshop/petals">usual way</a>. Here is an example:</p>
 <pre><code class="language-python">from transformers import AutoTokenizer
