@@ -29,9 +29,9 @@ Hardware requirements
 
 2. Install the kalavai client following the instructions [here](https://kalavai-net.github.io/kalavai-client/getting_started/). Currently we support Linux distros and Windows.
 
-3. Get the joining token. Visit our [platform](https://platform.kalavai.net) and go to `Compute pools`. Then click `Join` on the `Petals` Pool to reveal the joining details. Copy the command (including the token).
+3. Get the joining token. Visit our [platform](https://platform.kalavai.net) and go to `Community pools`. Then click `Join` on the `Petals` Pool to reveal the joining details. Copy the command (including the token).
 
-![Join Petals](/assets/images/join.png)
+![Join Petals](/docs/docs/assets/images/join.png)
 
 4. From the computer you want to share work with, run the joining command:
 
@@ -52,9 +52,23 @@ $ kalavai pool join <token>
 
 Kalavai's pool connects directly to the public swarm on Petals, which means we can use their [public health check UI](https://health.petals.dev/) to see how much we are contributing and what models are ready to use.
 
-![alt text](/assets/images/petals_health.png)
+![swarm health](/docs/docs/assets/images/petals_health.png)
 
 Models with at least one copy of each shard (a green dot in each column) are ready to be used. If not, wait for more workers to join in.
+
+Using the kalavai client you can monitor the state of the pool and all of the connected nodes:
+
+```bash
+$ kalavai pool status
+
+# Displays the status of the pool
+
+$ kalavai node list
+
+# Displays the list of connected nodes, and their current status
+```
+
+The command `kalavai node list` is useful to see if our node has any issues and whether it's currently online.
 
 ## How to use the models
 
