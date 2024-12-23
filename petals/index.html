@@ -895,7 +895,18 @@
 </ol>
 <p><img alt="Join Petals" src="/docs/docs/assets/images/join.png" /></p>
 <ol>
-<li>From the computer you want to share work with, run the joining command:</li>
+<li>Authenticate the computer you want to use as worker:</li>
+</ol>
+<pre><code class="language-bash">$ kalavai login
+
+[10:33:16] Kalavai account details. If you don't have an account, create one at https://platform.kalavai.net                                                                 
+User email: &lt;your email&gt;
+Password: &lt;your password&gt;
+
+[10:33:25] &lt;email&gt; logged in successfully
+</code></pre>
+<ol>
+<li>Join the pool with the following command:</li>
 </ol>
 <pre><code class="language-bash">$ kalavai pool join &lt;token&gt;
 
@@ -939,7 +950,7 @@ inputs = tokenizer(&quot;A cat sat&quot;, return_tensors=&quot;pt&quot;)[&quot;i
 outputs = model.generate(inputs, max_new_tokens=5)
 print(tokenizer.decode(outputs[0]))  # A cat sat on a mat...
 </code></pre>
-<p>This path is great if you are a dev with python installed, and don't mind installing the Petals SDK. If you want an install-free path, Kalavai deploys a single endpoint for models, which allows you to do inference via gRPC and HTTP requests. Here is a request example:</p>
+<p>This path is great if you are a dev with python installed, and don't mind installing the Petals SDK. If you want an install-free path, Kalavai deploys a single endpoint for models, which allows you to do inference via gRPC and HTTP requests. Substitute KALAVAI_ENDPOINT with the endpoint displayed under the <a href="https://platform.kalavai.net"><code>Community Pools</code> page</a>. Here is a request example:</p>
 <pre><code class="language-python">&quot;&quot;&quot;
 More info: https://github.com/petals-infra/chat.petals.dev
 
@@ -951,12 +962,12 @@ import websockets
 import asyncio
 
 
-URL = &quot;192.168.68.67:31220&quot; # &lt;-- change for the kalavai endpoint
+KALAVAI_ENDPOINT = &quot;192.168.68.67:31220&quot; # &lt;-- change for the kalavai endpoint
 MODEL_NAME = &quot;mistralai/Mixtral-8x22B-Instruct-v0.1&quot; # &lt;-- change for the models available in Kalavai PETALS pool.
 
 
 async def ws_generate(text, max_length=100, temperature=0.1):
-    async with websockets.connect(f&quot;ws://{URL}/api/v2/generate&quot;) as websocket:
+    async with websockets.connect(f&quot;ws://{KALAVAI_ENDPOINT}/api/v2/generate&quot;) as websocket:
         try:
             await websocket.send(
                 json.dumps({&quot;model&quot;: MODEL_NAME, &quot;type&quot;: &quot;open_inference_session&quot;, &quot;max_length&quot;: max_length})
