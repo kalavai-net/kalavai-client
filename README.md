@@ -39,13 +39,14 @@ Both versions can be managed using our free [kalavai CLI](#getting-started) tool
 
 ### Want to know more?
 
-- Get a free [Kalavai account](https://platform.kalavai.net) and start sharing.
-- Full [documentation](https://kalavai-net.github.io/kalavai-client/) (WIP) for the project.
+- Get a free [Kalavai account](https://platform.kalavai.net) and access unlimited AI.
+- Full [documentation](https://kalavai-net.github.io/kalavai-client/) for the project.
 - [Join our Substack](https://kalavainet.substack.com/) for updates and be part of our community
 
 
 ### News updates
 
+- 23 December 2024: Release of [public petals swarm](/docs/docs/petals.md)
 - 24 November 2024: Common pools with private user spaces
 - 31 October 2024: [Help needed](https://kalavainet.substack.com/p/llm-world-record-testing-the-waters) to test public pools!
 - 30 October 2024: Release of our [public pool platform](https://platform.kalavai.net)
@@ -299,5 +300,3 @@ To run the unit tests, use:
 ```bash
 python -m unittest
 ```
-
-
