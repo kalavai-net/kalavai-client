@@ -33,7 +33,18 @@ Hardware requirements
 
 ![Join Petals](/docs/docs/assets/images/join.png)
 
-4. From the computer you want to share work with, run the joining command:
+4. Authenticate the computer you want to use as worker:
+```bash
+$ kalavai login
+
+[10:33:16] Kalavai account details. If you don't have an account, create one at https://platform.kalavai.net                                                                 
+User email: <your email>
+Password: <your password>
+
+[10:33:25] <email> logged in successfully
+```
+
+5. Join the pool with the following command:
 
 ```bash
 $ kalavai pool join <token>
@@ -91,7 +102,7 @@ outputs = model.generate(inputs, max_new_tokens=5)
 print(tokenizer.decode(outputs[0]))  # A cat sat on a mat...
 ```
 
-This path is great if you are a dev with python installed, and don't mind installing the Petals SDK. If you want an install-free path, Kalavai deploys a single endpoint for models, which allows you to do inference via gRPC and HTTP requests. Here is a request example:
+This path is great if you are a dev with python installed, and don't mind installing the Petals SDK. If you want an install-free path, Kalavai deploys a single endpoint for models, which allows you to do inference via gRPC and HTTP requests. Substitute KALAVAI_ENDPOINT with the endpoint displayed under the [`Community Pools` page](https://platform.kalavai.net). Here is a request example:
 
 ```python
 """
@@ -105,12 +116,12 @@ import websockets
 import asyncio
 
 
-URL = "192.168.68.67:31220" # <-- change for the kalavai endpoint
+KALAVAI_ENDPOINT = "192.168.68.67:31220" # <-- change for the kalavai endpoint
 MODEL_NAME = "mistralai/Mixtral-8x22B-Instruct-v0.1" # <-- change for the models available in Kalavai PETALS pool.
 
 
 async def ws_generate(text, max_length=100, temperature=0.1):
-    async with websockets.connect(f"ws://{URL}/api/v2/generate") as websocket:
+    async with websockets.connect(f"ws://{KALAVAI_ENDPOINT}/api/v2/generate") as websocket:
         try:
             await websocket.send(
                 json.dumps({"model": MODEL_NAME, "type": "open_inference_session", "max_length": max_length})
