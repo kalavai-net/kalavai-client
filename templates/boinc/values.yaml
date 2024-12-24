@@ -3,6 +3,11 @@
   default: boinc-1
   description: "Name of the deployment job"
 
+- name: mount_path
+  value: ""
+  default: ""
+  description: "Local storage for boinic projects (workers). Empty for root ('/') "
+
 - name: cpu_workers
   value: "1"
   default: "2"

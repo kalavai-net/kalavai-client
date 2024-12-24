@@ -105,9 +105,13 @@ spec:
             - mountPath: /var/lib/boinc
               name: temp-volume
         volumes:
+        # - name: temp-volume
+        #   emptyDir:
+        #     medium: "" # default to disk; "Memory" for RAM usage
         - name: temp-volume
-          emptyDir:
-            medium: "" # default to disk; "Memory" for RAM usage
+          hostPath:
+            path: {{mount_path}}/kalavai
+            type: DirectoryOrCreate
         restartPolicy: OnFailure
   - replicas: {{cpu_workers}}  # One ps pod specified
     name: cpu
@@ -142,7 +146,11 @@ spec:
             - mountPath: /var/lib/boinc
               name: temp-volume
         volumes:
+        # - name: temp-volume
+        #   emptyDir:
+        #     medium: "" # default to disk; "Memory" for RAM usage
         - name: temp-volume
-          emptyDir:
-            medium: "" # default to disk; "Memory" for RAM usage
+          hostPath:
+            path: {{mount_path}}/kalavai
+            type: DirectoryOrCreate
         restartPolicy: OnFailure
