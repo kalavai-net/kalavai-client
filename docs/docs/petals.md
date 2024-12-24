@@ -6,7 +6,8 @@ tags:
 
 # Public Petals Swarm: BitTorrent-style LLMs
 
-Contribute to the public Petals swarm and help deploy and fine tune Large Language Models across consumer-grade devices. See more about the Petals projecyt [here](https://github.com/bigscience-workshop/petals). You'll get:
+Contribute to the public Petals swarm and help deploy and fine tune Large Language Models across consumer-grade devices. See more about the Petals project [here](https://github.com/bigscience-workshop/petals). You'll get:
+
 - Eternal kudos from the community!
 - Access to all the models in the server
 - Easy access for inference (via Petals SDK and installation-free Kalavai endpoint).
@@ -18,6 +19,7 @@ Contribute to the public Petals swarm and help deploy and fine tune Large Langua
 - A computer with the minimum requirements (see below)
 
 Hardware requirements
+
 - 1+ NVIDIA GPU
 - 2+ CPUs
 - 4GB+ RAM
@@ -183,6 +185,11 @@ kalavai pool stop
 
 
 ## FAQs
+
+### Something isn't right
+
+Growing pains! Please report any issues in our [github repository](https://github.com/kalavai-net/kalavai-client/issues).
+
 
 ### Can I join (and leave) whenever I want?
 

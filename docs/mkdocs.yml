@@ -9,6 +9,7 @@ nav:
     - Public pools: public_pool.md
   - Community computing:
     - Petals swarm: petals.md
+    - BOINC: boinc.md
   - Applications: 
     - Templates: templates.md
     - Ray: ray.md
