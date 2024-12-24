@@ -4,6 +4,7 @@
     <run_if_user_active>1</run_if_user_active>
     <run_gpu_if_user_active>1</run_gpu_if_user_active>
     <suspend_cpu_usage>90.000000</suspend_cpu_usage>
+    <vm_max_used_pct>100.000000</vm_max_used_pct>
     <max_ncpus_pct>100.000000</max_ncpus_pct>
     <disk_interval>60.000000</disk_interval>
     <disk_max_used_gb>100.000000</disk_max_used_gb>
