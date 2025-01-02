@@ -187,13 +187,13 @@ def init_user_workspace():
     except Exception as e:
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
 
-def pool_init(default_pool_config_values=POOL_CONFIG_DEFAULT_VALUES):
+def pool_init(pool_config_values=POOL_CONFIG_DEFAULT_VALUES):
     """Deploy configured objects to initialise pool"""
     # load template config and populate with values
     sidecar_template_yaml = load_template(
         template_path=POOL_CONFIG_TEMPLATE,
         values={},
-        default_values_path=default_pool_config_values)
+        default_values_path=pool_config_values)
 
     try:
         result = request_to_server(
