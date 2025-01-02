@@ -1,26 +1,37 @@
 # STORAGE #
-- name: sc_label_selector
-  default: "kalavai.storage.enabled:True"
+# - name: sc_label_selector
+#   default: "kalavai.storage.enabled:True"
+#   description: ""
+
+# - name: sc_replicas
+#   default: 2
+#   description: ""
+
+- name: dataset_secret_name
+  default: "kalavai-s3-secret"
   description: ""
 
-- name: sc_replicas
-  default: 1
+- name: dataset_access_key_id
+  default: "admin"
   description: ""
 
-# QUEUE # 
-# - name: queue_reclaimable
-#   default: "true"
-#   description: ""
+- name: dataset_secret_access_key
+  default: "password"
+  description: ""
 
-# - name: queue_max_cpus
-#   default: 1000000
-#   description: ""
+- name: dataset_name
+  default: "models-hub"
+  description: ""
 
-# - name: queue_max_gpus
-#   default: 1000000
-#   description: ""
+- name: dataset_endpoint
+  default: "http://minio.minio.svc.cluster.local:9000" #"http://192.168.68.67:32000"
+  description: ""
 
-# - name: queue_max_memory
-#   default: 1000000
-#   description: ""
+- name: dataset_bucket
+  default: "llm-storage"
+  description: ""
+
+- name: dataset_readonly
+  default: "false"
+  description: ""
 

@@ -1,27 +1,35 @@
-kind: StorageClass
-apiVersion: storage.k8s.io/v1
-metadata:
-  name: longhorn-rwx
-provisioner: driver.longhorn.io
-allowVolumeExpansion: true
-reclaimPolicy: Delete
-volumeBindingMode: WaitForFirstConsumer
-parameters:
-  shareManagerNodeSelector: {{sc_label_selector}}
-  numberOfReplicas: "{{sc_replicas}}"
-  staleReplicaTimeout: "2880"
-  fromBackup: ""
-  fsType: "ext4"
-# ---
-# apiVersion: scheduling.volcano.sh/v1beta1
-# kind: Queue
+# kind: StorageClass
+# apiVersion: storage.k8s.io/v1
 # metadata:
-#   name: default-queue
-# spec:
-#   weight: 1
-#   reclaimable: {{queue_reclaimable}}
-#   capability:
-#     cpu: {{queue_max_cpus}}
-#     memory: {{queue_max_memory}}Gi
-#     nvidia.com/gpu: {{queue_max_gpus}}
-
+#   name: longhorn-rwx
+# provisioner: driver.longhorn.io
+# allowVolumeExpansion: true
+# reclaimPolicy: Delete
+# volumeBindingMode: WaitForFirstConsumer
+# parameters:
+#   shareManagerNodeSelector: {{sc_label_selector}}
+#   numberOfReplicas: "{{sc_replicas}}"
+#   staleReplicaTimeout: "2880"
+#   fromBackup: ""
+#   fsType: "ext4"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{dataset_secret_name}}
+stringData:
+  accessKeyID: "{{dataset_access_key_id}}"
+  secretAccessKey: "{{dataset_secret_access_key}}"
+---
+apiVersion: datashim.io/v1alpha1
+kind: Dataset
+metadata:
+  name: {{dataset_name}}
+spec:
+  local:
+    type: "COS"
+    secret-name: {{dataset_secret_name}}
+    endpoint: "{{dataset_endpoint}}"
+    bucket: {{dataset_bucket}}
+    readonly: "{{dataset_readonly}}"
+---

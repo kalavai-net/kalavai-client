@@ -20,6 +20,15 @@
   default: 60
   description: "Interval (minutes) at which to report resource usage in public pools"
 
+- name: watcher_allow_unregistered_user
+  default: "True"
+  description: "Unregistered users can use the API"
+
+- name: watcher_is_shared_pool
+  default: "True"
+  description: "All users see each other's work"
+
+## Longhorn
 - name: longhorn_ui_port
   default: 30000
   description: ""
@@ -28,7 +37,51 @@
   default: "" #31011
   description: ""
 
-# - name: is_public_pool
-#   default: false
-#   description: ""
+- name: longhorn_minimal_available_percentage
+  default: 5
+  description: ""
 
+- name: longhorn_label_selector_key
+  default: "kalavai.storage.enabled"
+  description: ""
+
+- name: longhorn_label_selector
+  default: "True"
+  description: ""
+
+- name: longhorn_replicas
+  default: 1
+  description: ""
+
+## MinIO
+- name: minio_replicas
+  default: 2
+  description: ""
+
+- name: minio_resources_memory
+  default: "2Gi"
+  description: ""
+
+- name: minio_persistence_storageClass
+  default: "longhorn"
+  description: ""
+
+- name: minio_persistence_size
+  default: "10Gi"
+  description: ""
+
+- name: minio_service_port
+  default: 32000
+  description: ""
+
+- name: minio_console_port
+  default: 32001
+  description: ""
+
+- name: minio_rootUser
+  default: "admin"
+  description: ""
+
+- name: minio_rootPassword
+  default: "password"
+  description: ""

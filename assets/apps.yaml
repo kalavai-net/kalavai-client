@@ -1,4 +1,6 @@
----
+helmDefaults:
+  timeout: 1200
+
 repositories:
   - name: kuberay
     url: https://ray-project.github.io/kuberay-helm/
@@ -16,8 +18,58 @@ repositories:
     url: https://prometheus-community.github.io/helm-charts
   - name: opencost-charts
     url: https://opencost.github.io/opencost-helm-chart
+  - name: minio
+    url: https://charts.min.io/
 
 releases:
+  - name: datashim
+    namespace: dlf
+    chart: kalavai/kalavai-datashim
+    version: "0.4.0"
+    installed: true
+  - name: minio
+    needs: 
+    - kalavai/longhorn
+    namespace: minio
+    chart: minio/minio
+    installed: true
+    set:
+    - name: replicas
+      value: {{minio_replicas}}
+    - name: resources.requests.memory
+      value: "{{minio_resources_memory}}"
+    - name: persistence.enabled
+      value: true
+    - name: persistence.storageClass
+      value: {{minio_persistence_storageClass}}
+    - name: persistence.size
+      value: "{{minio_persistence_size}}"
+    - name: persistence.accessMode
+      value: "ReadWriteMany"
+    - name: rootUser
+      value: {{minio_rootUser}}
+    - name: rootPassword
+      value: {{minio_rootPassword}}
+    - name: service.type
+      value: "NodePort"
+    - name: service.nodePort
+      value: {{minio_service_port}}
+    - name: consoleService.type
+      value: "NodePort"
+    - name: consoleService.nodePort
+      value: {{minio_console_port}}
+    - name: buckets[0].name
+      value: "llm-storage"
+    - name: buckets[0].policy
+      value: "public"
+    - name: buckets[0].purge
+      value: false
+    # - name: svcaccts[0].accessKey
+    #   value: "readwritekey"
+    # - name: svcaccts[0].secretKeys
+    #   value: "accesspassword"
+    # - name: svcaccts[0].user
+    #   value: "admin"
   - name: helios
     namespace: kalavai
     chart: kalavai/kalavai-helios
@@ -60,7 +112,7 @@ releases:
     namespace: kuberay
     chart: kuberay/kuberay-apiserver
     installed: false
-  - name: longhorn-system
+  - name: longhorn
     namespace: kalavai
     chart: longhorn/longhorn
     installed: true
@@ -74,6 +126,14 @@ releases:
       value: NodePort
     - name: service.manager.nodePort
       value: {{longhorn_manager_port}}
+    - name: persistence.defaultClassReplicaCount
+      value: {{longhorn_replicas}}
+    - name: global.nodeSelector.{{longhorn_label_selector_key}}
+      value: "{{longhorn_label_selector_value}}"
+    - name: defaultSettings.storageMinimalAvailablePercentage
+      value: {{longhorn_minimal_available_percentage}}
+    # - name: persistence.migratable
+    #   value: true
   - name: lws
     namespace: kalavai
     chart: kalavai/lws
@@ -81,7 +141,7 @@ releases:
   - name: kalavai-watcher
     namespace: kalavai
     chart: kalavai/kalavai-watcher
-    version: "0.2.24"
+    version: "0.3.4"
     installed: true
     set:
     - name: namespace
@@ -98,8 +158,10 @@ releases:
       value: "{{watcher_write_key}}"
     - name: deployment.readonly_key
       value: "{{watcher_readonly_key}}"
-    - name: deployment.is_public_pool
-      value: {{is_public_pool}}
+    - name: deployment.is_shared_pool
+      value: {{watcher_is_shared_pool}}
+    - name: deployment.allow_unregistered_user
+      value: "{{watcher_allow_unregistered_user}}"
     - name: deployment.kalavai_api_endpoint
       value: {{kalavai_api_endpoint}}
     - name: deployment.prometheus_endpoint
