@@ -21,7 +21,7 @@
   description: "Interval (minutes) at which to report resource usage in public pools"
 
 - name: watcher_allow_unregistered_user
-  default: "True"
+  default: "False"
   description: "Unregistered users can use the API"
 
 - name: watcher_is_shared_pool
