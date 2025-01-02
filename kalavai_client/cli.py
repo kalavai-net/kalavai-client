@@ -187,13 +187,13 @@ def init_user_workspace():
     except Exception as e:
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
 
-def pool_init():
+def pool_init(default_pool_config_values=POOL_CONFIG_DEFAULT_VALUES):
     """Deploy configured objects to initialise pool"""
     # load template config and populate with values
     sidecar_template_yaml = load_template(
         template_path=POOL_CONFIG_TEMPLATE,
         values={},
-        default_values_path=POOL_CONFIG_DEFAULT_VALUES)
+        default_values_path=default_pool_config_values)
 
     try:
         result = request_to_server(
@@ -433,7 +433,7 @@ def pool__list(*others, user_only=False):
     console.log("[white]Use [yellow]kalavai pool join <join key> [white]to join a public pool")
 
 @arguably.command
-def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None, app_values: str=HELM_APPS_VALUES):
+def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None, app_values: str=HELM_APPS_VALUES, pool_config_values: str=POOL_CONFIG_DEFAULT_VALUES):
     """
     Start Kalavai pool and start/resume sharing resources.
 
@@ -546,7 +546,7 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
     console.log("Initialise user workspace...")
     init_user_workspace()
     console.log(f"Initialising pool config...")  
-    pool_init()
+    pool_init(pool_config_values=pool_config_values)
     #storage__create(name=DEFAULT_STORAGE_NAME, storage=default_storage_size)
 
     return None

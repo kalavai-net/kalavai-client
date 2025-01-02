@@ -15,6 +15,7 @@
   default: "admin"
   description: ""
 
+# must match minio password
 - name: dataset_secret_access_key
   default: "password"
   description: ""
