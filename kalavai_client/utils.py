@@ -7,6 +7,7 @@ from urllib.parse import urljoin
 import shutil
 import urllib.request
 import subprocess
+import re
 
 from jinja2 import Template, meta, Environment
 
@@ -36,8 +37,9 @@ USER_API_KEY = "user_api_key"
 READONLY_AUTH_KEY = "watcher_readonly_key"
 WATCHER_SERVICE_KEY = "watcher_service"
 WATCHER_PORT_KEY = "watcher_port"
-IS_PUBLIC_POOL_KEY = "is_public_pool"
 ENDPOINT_PORTS_KEY = "endpoint_ports"
+TEMPLATE_ID_FIELD = "id_field"
+TEMPLATE_ID_KEY = "deployment_id"
 MANDATORY_TOKEN_FIELDS = [
     CLUSTER_IP_KEY,
     CLUSTER_TOKEN_KEY,
@@ -128,7 +130,7 @@ def load_user_session(user_cookie):
         user_cookie_file=user_cookie
     )
     if not auth.is_logged_in():
-        raise ValueError("User is not authenticated")
+        return None
     return auth.load_user_session()
 
 def get_public_vpns(user_cookie):
@@ -325,11 +327,9 @@ def request_to_server(
         "X-API-KEY": auth_key
     }
 
-    is_public_pool = load_server_info(data_key=IS_PUBLIC_POOL_KEY, file=server_creds)
-    if is_public_pool:
-        user = load_user_session(user_cookie=user_cookie)
-        headers["USER-KEY"] = load_server_info(data_key=USER_API_KEY, file=server_creds)
-        headers["USER"] = user["username"]
+    user = load_user_session(user_cookie=user_cookie)
+    headers["USER-KEY"] = load_server_info(data_key=USER_API_KEY, file=server_creds)
+    headers["USER"] = user["username"] if user is not None else None
 
     response = requests.request(
         method=method,
@@ -337,7 +337,6 @@ def request_to_server(
         json=data,
         headers=headers
     )
-
     result = response.json()
     return result
 
@@ -362,13 +361,15 @@ def store_server_info(server_ip, auth_key, watcher_service, file, node_name, clu
             NODE_NAME_KEY: node_name,
             CLUSTER_NAME_KEY: cluster_name,
             PUBLIC_LOCATION_KEY: public_location,
-            USER_API_KEY: user_api_key,
-            IS_PUBLIC_POOL_KEY: public_location is not None
+            USER_API_KEY: user_api_key
         }, f)
     return True
 
 def populate_template(template_str, values_dict):
     return Template(template_str).render(values_dict)
+
+def escape_field(text):
+    return re.sub('[^0-9a-z]+', '-', text.lower())
 
 def load_template(template_path, values, default_values_path=None, force_defaults=False):
 
@@ -376,12 +377,15 @@ def load_template(template_path, values, default_values_path=None, force_default
         raise FileNotFoundError(f"{template_path} does not exist")
     with open(template_path, 'r') as f:
         yaml_template = "".join(f.readlines())
-
+    
     # substitute missing values with defaults
     if default_values_path is not None:
         with open(default_values_path, 'r') as f:
             default_values = yaml.safe_load(f)
         for default in default_values:
+            if default["name"] == TEMPLATE_ID_FIELD:
+                values[TEMPLATE_ID_KEY] = escape_field(values[default["default"]])
+                continue
             if force_defaults or default["name"] not in values:
                 values[default['name']] = default['default']
         
