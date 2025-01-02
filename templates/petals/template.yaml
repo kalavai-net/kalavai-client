@@ -1,10 +1,10 @@
 apiVersion: batch.volcano.sh/v1alpha1
 kind: Job
 metadata:
-  name: {{deployment_name}}
+  name: {{deployment_id}}
   labels:
     # must have this label
-    kalavai.job.name: {{deployment_name}}
+    kalavai.job.name: {{deployment_id}}
 spec:
   queue: {{queue_name}}
   minAvailable: 1
@@ -23,7 +23,7 @@ spec:
       metadata:
         labels:
           role: leader
-          kalavai.job.name: {{deployment_name}}
+          kalavai.job.name: {{deployment_id}}
       spec:
         containers:
         - image: docker.io/bundenth/health.petals:latest
@@ -88,6 +88,10 @@ spec:
               mountPath: /cache
         volumes:
         # host path, persistent in local node, but cannot limit capacity
+        # - name: temp-volume
+        #   emptyDir:
+        #     medium: "" # default to disk; "Memory" for RAM usage
+        #     sizeLimit: 10Gi
         - name: cache
           hostPath:
             path: {{mount_path}}/kalavai
@@ -105,7 +109,7 @@ spec:
           {{nouse_gputype}}
           {{use_gputype}}
         labels:
-          kalavai.job.name: {{deployment_name}}
+          kalavai.job.name: {{deployment_id}}
       spec:
         runtimeClassName: nvidia
         containers:
@@ -149,6 +153,7 @@ spec:
         # - name: temp-volume
         #   emptyDir:
         #     medium: "" # default to disk; "Memory" for RAM usage
+        #     sizeLimit: 10Gi
         # host path, persistent in local node, but cannot limit capacity
         - name: temp-volume
           hostPath:

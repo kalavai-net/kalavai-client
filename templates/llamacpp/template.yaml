@@ -1,10 +1,10 @@
 apiVersion: batch.volcano.sh/v1alpha1
 kind: Job
 metadata:
-  name: {{deployment_name}}
+  name: {{deployment_id}}
   labels:
     # must have this label
-    kalavai.job.name: {{deployment_name}}
+    kalavai.job.name: {{deployment_id}}
 spec:
   queue: default
   schedulerName: volcano
@@ -25,7 +25,7 @@ spec:
           {{use_gputype}}
         labels:
           role: leader
-          kalavai.job.name: {{deployment_name}}
+          kalavai.job.name: {{deployment_id}}
       spec:
         runtimeClassName: nvidia
         containers:
@@ -35,7 +35,7 @@ spec:
           - sh
           - -c
           - |
-            /workspace/build.sh server_gpu;
+            /workspace/build.sh server_cpu;
             /workspace/merge.sh --cpu-workers=/etc/volcano/cpu.host --gpu-workers=/etc/volcano/gpu.host --output=/workspace/all.host;
             HOSTS=`cat /workspace/all.host`;
             cat /workspace/all.host;
@@ -78,7 +78,7 @@ spec:
     template: # Definition of worker pods
       metadata:
         labels:
-          kalavai.job.name: {{deployment_name}}
+          kalavai.job.name: {{deployment_id}}
       spec:
         containers:
         - name: llamacpp-worker
@@ -112,7 +112,7 @@ spec:
           {{nouse_gputype}}
           {{use_gputype}}
         labels:
-          kalavai.job.name: {{deployment_name}}
+          kalavai.job.name: {{deployment_id}}
       spec:
         runtimeClassName: nvidia
         containers:

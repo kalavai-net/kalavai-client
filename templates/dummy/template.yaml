@@ -1,10 +1,10 @@
 apiVersion: batch.volcano.sh/v1alpha1
 kind: Job
 metadata:
-  name: {{deployment_name}}
+  name: {{deployment_id}}
   labels:
     # must have this label
-    kalavai.job.name: {{deployment_name}}
+    kalavai.job.name: {{deployment_id}}
 spec:
   queue: default
   #minAvailable: 2

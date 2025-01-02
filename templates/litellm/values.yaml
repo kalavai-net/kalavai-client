@@ -1,0 +1,74 @@
+############################
+### MUST HAVE THIS FIELDS ##
+# Either id_field pointing to another existing field
+- name: id_field
+  value: deployment_name
+  default: deployment_name
+  description: "Field that contains the ID of the job"
+
+# must contain the list of ports to enable in the leader node
+- name: endpoint_ports
+  value: "4000"
+  default: "4000"
+  description: "[DO NOT CHANGE] Ports opened on master node (will be shown as endpoints for the job)"
+############################
+
+- name: replicas
+  value: "1"
+  default: "1"
+  description: "Number of replicas to deploy"
+
+- name: master_key
+  value: "sk-1234"
+  default: "sk-1234"
+  description: ""
+
+- name: salt_key
+  value: "sk-1234567890"
+  default: "sk-1234567890"
+  description: ""
+
+- name: disable_admin_ui
+  value: "False"
+  default: "False"
+  description: ""
+
+- name: ui_username
+  value: "admin"
+  default: "admin"
+  description: ""
+
+- name: ui_password
+  value: "mypassword"
+  default: "mypassword"
+  description: ""
+
+- name: db_storage
+  value: ""
+  default: ""
+  description: "Storage name for the postgres database (backend)"
+
+- name: postgres_db
+  value: ""
+  default: ""
+  description: "Storage name for the postgres database (backend)"
+
+- name: postgres_user
+  value: ""
+  default: ""
+  description: "Storage name for the postgres database (backend)"
+
+- name: postgres_password
+  value: ""
+  default: ""
+  description: "Storage name for the postgres database (backend)"
+
+- name: cpus
+  value: "2"
+  default: "2"
+  description: "CPUs per single worker (final one = cpus * num_workers)"
+
+- name: memory
+  value: "2"
+  default: "2"
+  description: "RAM memory per single worker (final one = memory * num_workers)"

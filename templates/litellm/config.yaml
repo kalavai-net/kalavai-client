@@ -1,0 +1,52 @@
+# model_list:
+# - model_name: qwen2.5
+#   litellm_params:
+#     model: hosted_vllm/Qwen/Qwen2.5-0.5B-Instruct
+#     api_base: http://192.168.68.67:31520/v1
+#     api_key: "sk-1234"
+
+cache: false
+
+litellm_settings:
+  num_retries: 3
+
+general_settings:
+  disable_prisma_schema_update: false
+  # database_connection_pool_limit: {{ .Values.litellm.general_settings.database_connection_pool_limit }}
+  # database_connection_timeout: {{ .Values.litellm.general_settings.database_connection_timeout }}
+  # allow_requests_on_db_unavailable: {{ .Values.litellm.general_settings.allow_requests_on_db_unavailable }}
+
+# env:
+#   - name: DISABLE_SCHEMA_UPDATE
+#     value: "true"
+
+# general_settings:
+#   master_key: sk-1234      # enter your own master key, ensure it starts with 'sk-'
+#   #alerting: ["slack"]      # Setup slack alerting - get alerts on LLM exceptions, Budget Alerts, Slow LLM Responses
+#   proxy_batch_write_at: 60 # Batch write spend updates every 60s
+#   database_connection_pool_limit: 10 # limit the number of database connections to = MAX Number of DB Connections/Number of instances of litellm proxy (Around 10-20 is good number)
+
+#   # OPTIONAL Best Practices
+#   disable_spend_logs: True # turn off writing each transaction to the db. We recommend doing this is you don't need to see Usage on the LiteLLM UI and are tracking metrics via Prometheus
+#   disable_error_logs: True # turn off writing LLM Exceptions to DB
+#   allow_requests_on_db_unavailable: True # Only USE when running LiteLLM on your VPC. Allow requests to still be processed even if the DB is unavailable. We recommend doing this if you're running LiteLLM on VPC that cannot be accessed from the public internet.
+
+# litellm_settings:
+#   request_timeout: 600    # raise Timeout error if call takes longer than 600 seconds. Default value is 6000seconds if not set
+#   set_verbose: False      # Switch off Debug Logging, ensure your logs do not have any debugging on
+#   json_logs: true         # Get debug logs in json format
+#   cache: True
+#   cache_params:
+#     type: redis
+#     host: os.environ/REDIS_HOST
+#     port: os.environ/REDIS_PORT
+#     password: os.environ/REDIS_PASSWORD
+
+# # if using redis
+# router_settings:
+#   routing_strategy: usage-based-routing-v2 
+#   # redis_url: "os.environ/REDIS_URL"
+#   redis_host: os.environ/REDIS_HOST
+#   redis_port: os.environ/REDIS_PORT
+#   redis_password: os.environ/REDIS_PASSWORD
+  

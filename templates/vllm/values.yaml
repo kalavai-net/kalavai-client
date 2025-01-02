@@ -1,17 +1,36 @@
-- name: deployment_name
-  value: vllm-deployment-1
-  default: vllm-deployment-1
-  description: "Name of the deployment job"
+############################
+### MUST HAVE THESE FIELDS ##
+- name: id_field
+  value: model_id
+  default: model_id
+  description: "Field that contains the ID of the job"
+
+# must contain the list of ports to enable in the leader node
+# - name: endpoint_ports
+#   value: "8080"
+#   default: "8080"
+#   description: "[DO NOT CHANGE] Ports opened on master node (will be shown as endpoints for the job)"
+############################
+
+- name: litellm_base_url
+  value: "http://litellm-1.default.svc.cluster.local:4000" #"http://192.168.68.67:30219"
+  default: "http://litellm-1.default.svc.cluster.local:4000"
+  description: "Base URL of the LiteLLM service (central registry)"
+
+- name: litellm_key
+  value: ""
+  default: "sk-1234"
+  description: "Master key of the LiteLLM service (central registry)"
 
 - name: storage
-  value: "pool-cache"
-  default: "pool-cache"
+  value: "models-hub"
+  default: "models-hub"
   description: "Pool storage to use to cache model weights"
 
-- name: remote_workers
-  value: "0"
-  default: "0"
-  description: "Number of remote workers (for tensor and pipeline parallelism). This is in addition to the main node"
+- name: workers
+  value: "1"
+  default: "1"
+  description: "Number of workers (for tensor and pipeline parallelism)"
 
 - name: model_id
   value: null
@@ -29,8 +48,8 @@
   description: "Huggingface token, required to load model weights"
 
 - name: cpus
-  value: "4"
-  default: "4"
+  value: "2"
+  default: "2"
   description: "CPUs per single worker (final one = cpus * num_workers)"
 
 - name: gpus
@@ -54,17 +73,11 @@
   description: "Pipeline parallelism (use the number of nodes)"
 
 - name: shmem_size
-  value: "4000000000"
-  default: "4000000000"
-  description: "Size of the shared memory volume (in bytes; 1GB is 1000000000)"
+  value: "4"
+  default: "4"
+  description: "Size of the shared memory volume (in GBs)"
 
 - name: extra
-  value: "--dtype float16 --enforce-eager --swap-space 0"
-  default: --dtype float16 --enforce-eager --swap-space 0
+  value: "--dtype float16 --enforce-eager"
+  default: --dtype float16 --enforce-eager
   description: "Extra parameters to pass to the vLLM server. See https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html#command-line-arguments-for-the-server"
-
-# must contain the list of ports to enable in the leader node
-- name: endpoint_ports
-  value: "8080"
-  default: "8080"
-  description: "[DO NOT CHANGE] Ports opened on master node (will be shown as endpoints for the job)"

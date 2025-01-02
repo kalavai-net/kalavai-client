@@ -57,7 +57,6 @@ To check the health UI, point your browser to `http://192.168.68.67:31820`. You 
 Once the shards are all in green you should be able to [use the model for inference](#use-the-models).
 
 
-
 ## Private swarm
 
 **Coming soon!**
@@ -95,4 +94,12 @@ Alternatively, Kalavai deploys a helper API endpoint along with the workers that
 ```bash
 URL = "192.168.68.67:30224"
 MODEL_NAME = "meta-llama/Llama-3.1-8B-Instruct"
+```
+
+## Delete deployment
+
+Remove the job with the usual:
+
+```bash
+kalavai job delete llama3-8b
 ```

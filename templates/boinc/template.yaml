@@ -1,10 +1,10 @@
 apiVersion: batch.volcano.sh/v1alpha1
 kind: Job
 metadata:
-  name: {{deployment_name}}
+  name: {{deployment_id}}
   labels:
     # must have this label
-    kalavai.job.name: {{deployment_name}}
+    kalavai.job.name: {{deployment_id}}
 spec:
   queue: {{queue_name}}
   minAvailable: 2
@@ -22,7 +22,7 @@ spec:
       metadata:
         labels:
           role: leader
-          kalavai.job.name: {{deployment_name}}
+          kalavai.job.name: {{deployment_id}}
       spec:
         containers:
         - image: docker.io/bundenth/boinc-cpu:latest
@@ -73,7 +73,7 @@ spec:
           {{nouse_gputype}}
           {{use_gputype}}
         labels:
-          kalavai.job.name: {{deployment_name}}
+          kalavai.job.name: {{deployment_id}}
       spec:
         runtimeClassName: nvidia
         containers:
@@ -119,7 +119,7 @@ spec:
       metadata:
         annotations:
         labels:
-          kalavai.job.name: {{deployment_name}}
+          kalavai.job.name: {{deployment_id}}
       spec:
         containers:
         - image: docker.io/bundenth/boinc-cpu:latest

@@ -1,3 +1,17 @@
+############################
+## MUST HAVE THESE FIELDS ##
+- name: id_field
+  value: deployment_name
+  default: deployment_name
+  description: "Field that contains the ID of the job"
+
+# must contain the list of ports to enable in the leader node
+- name: endpoint_ports
+  value: "5000,5001"
+  default: "5000,5001"
+  description: "[DO NOT CHANGE] Ports opened on master node (will be shown as endpoints for the job)"
+############################
+
 - name: deployment_name
   value: petals-worker-1
   default: petals-worker-1
@@ -73,8 +87,3 @@
   default: ""
   description: "Extra parameters for Petals cli"
 
-# must contain the list of ports to enable in the leader node
-- name: endpoint_ports
-  value: "5000,5001"
-  default: "5000,5001"
-  description: "[DO NOT CHANGE] Ports opened on master node (will be shown as endpoints for the job)"

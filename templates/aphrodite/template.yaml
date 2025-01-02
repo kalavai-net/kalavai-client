@@ -1,10 +1,10 @@
 apiVersion: batch.volcano.sh/v1alpha1
 kind: Job
 metadata:
-  name: {{deployment_name}}
+  name: {{deployment_id}}
   labels:
     # must have this label
-    kalavai.job.name: {{deployment_name}}
+    kalavai.job.name: {{deployment_id}}
 spec:
   queue: {{queue_name}}
   #minAvailable: 2
@@ -26,7 +26,7 @@ spec:
           {{use_gputype}}
         labels:
           role: leader
-          kalavai.job.name: {{deployment_name}}
+          kalavai.job.name: {{deployment_id}}
       spec:
         runtimeClassName: nvidia
         containers:
@@ -34,7 +34,7 @@ spec:
           - sh
           - -c
           - |
-            RAY_BACKEND_LOG_LEVEL=error /home/ray/workspace/ray_init.sh leader --ray_cluster_size=$(({{remote_workers}}+1)) --ray_port=6379 --ray_object_store_memory={{shmem_size}};
+            RAY_BACKEND_LOG_LEVEL=error /home/ray/workspace/ray_init.sh leader --ray_cluster_size=$(({{workers}})) --ray_port=6379 --ray_object_store_memory={{shmem_size * 1000000000}};
             sleep 30;
             nvidia-smi;
             ray status;
@@ -78,12 +78,12 @@ spec:
         - name: dshm
           emptyDir:
             medium: Memory
-            sizeLimit: {{shmem_size}}
+            sizeLimit: {{shmem_size}}Gi
         - name: cache
           persistentVolumeClaim:
             claimName: {{storage}}
         restartPolicy: Never
-  - replicas: {{remote_workers}}
+  - replicas: {{workers - 1}}
     name: worker
     policies:
     - event: TaskCompleted  # The job will be marked as completed when two worker pods finish tasks.
@@ -95,7 +95,7 @@ spec:
           {{nouse_gputype}}
           {{use_gputype}}
         labels:
-          kalavai.job.name: {{deployment_name}}
+          kalavai.job.name: {{deployment_id}}
       spec:
         runtimeClassName: nvidia
         containers:
@@ -106,7 +106,7 @@ spec:
             PS_HOST=`head /etc/volcano/ps.host`;
             WORKER_HOST=`cat /etc/volcano/worker.host | sed 's/$/&/g' | sed 's/^/"/;s/$/"/' | tr "\n" ","`;
             nvidia-smi;
-            RAY_BACKEND_LOG_LEVEL=error /home/ray/workspace/ray_init.sh worker --ray_address=$PS_HOST --ray_port=6379 --ray_object_store_memory={{shmem_size}} --ray_block=1
+            RAY_BACKEND_LOG_LEVEL=error /home/ray/workspace/ray_init.sh worker --ray_address=$PS_HOST --ray_port=6379 --ray_object_store_memory={{ * 1000000000}} --ray_block=1
           image: docker.io/bundenth/ray-aphrodite:latest  #v1.0.11
           env:
           - name: HF_TOKEN
@@ -132,5 +132,5 @@ spec:
         - name: dshm
           emptyDir:
             medium: Memory
-            sizeLimit: {{shmem_size}}
+            sizeLimit: {{shmem_size}}Gi
         restartPolicy: Never

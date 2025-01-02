@@ -4,6 +4,9 @@ cache_dir="/cache"
 
 while [ $# -gt 0 ]; do
   case "$1" in
+    --model_path=*)
+      model_path="${1#*=}"
+      ;;
     --model_id=*)
       model_id="${1#*=}"
       ;;
@@ -15,9 +18,6 @@ while [ $# -gt 0 ]; do
       ;;
     --lora_modules=*)
       lora_modules="${1#*=}"
-      ;;
-    --cache_dir=*)
-      cache_dir="${1#*=}"
       ;;
     --extra=*)
       extra="${1#*=}"
@@ -66,8 +66,10 @@ else
   lora="--enable-lora --lora-modules "$(join_by " " "${all_loras[@]}")
 fi
 
+HF_HUB_OFFLINE=1
 python -m vllm.entrypoints.openai.api_server \
-  --model $model_id \
+  --model $model_path \
+  --served-model-name $model_id \
   --host 0.0.0.0 --port 8080 \
   --tensor-parallel-size $tensor_parallel_size \
   --pipeline-parallel-size $pipeline_parallel_size \
