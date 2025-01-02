@@ -28,8 +28,8 @@
   description: "Pool storage to use to cache model weights"
 
 - name: workers
-  value: "1"
-  default: "1"
+  value: 1
+  default: 1
   description: "Number of workers (for tensor and pipeline parallelism)"
 
 - name: model_id
@@ -63,18 +63,18 @@
   description: "RAM memory per single worker (final one = memory * num_workers)"
 
 - name: tensor_parallel_size
-  value: "1"
-  default: "1"
+  value: 1
+  default: 1
   description: "Tensor parallelism (use the number of GPUs per node)"
 
 - name: pipeline_parallel_size
-  value: "1"
-  default: "1"
+  value: 1
+  default: 1
   description: "Pipeline parallelism (use the number of nodes)"
 
 - name: shmem_size
-  value: "4"
-  default: "4"
+  value: 4
+  default: 4
   description: "Size of the shared memory volume (in GBs)"
 
 - name: extra
