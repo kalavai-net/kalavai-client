@@ -147,6 +147,7 @@ install_core_dependencies() {
 
     # TODO: check if this has been added already
     echo "# TACKLE "too many files open" in kubernetes pods
+fs.inotify.max_queued_events = 16384
 fs.inotify.max_user_watches = 655360
 fs.inotify.max_user_instances = 1280"  | sudo tee -a /etc/sysctl.conf
 

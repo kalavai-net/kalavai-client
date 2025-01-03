@@ -143,11 +143,11 @@ spec:
                   fi
           resources:
             requests:
-              cpu: 0.5
-              memory: 0.5Gi
+              cpu: 0.1
+              memory: 0.1Gi
             limits:
-              cpu: 0.5
-              memory: 0.5Gi
+              cpu: 0.1
+              memory: 0.1Gi
         restartPolicy: OnFailure
   - replicas: {{workers - 1}}
     name: worker

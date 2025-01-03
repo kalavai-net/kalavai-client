@@ -55,7 +55,8 @@ from kalavai_client.utils import (
     MANDATORY_TOKEN_FIELDS,
     USER_NODE_LABEL_KEY,
     ENDPOINT_PORTS_KEY,
-    TEMPLATE_ID_KEY
+    TEMPLATE_ID_KEY,
+    ALLOW_UNREGISTERED_USER_KEY
 )
 from kalavai_client.cluster import (
     k3sCluster
@@ -70,8 +71,10 @@ CORE_NAMESPACES = ["lws-system", "kube-system", "gpu-operator", "kalavai"]
 TEMPLATE_LABEL = "kalavai.job.name"
 RAY_LABEL = "kalavai.ray.name"
 PVC_NAME_LABEL = "kalavai.storage.name"
-POOL_CONFIG_TEMPLATE = resource_path("assets/pool_config_template.yaml")
-POOL_CONFIG_DEFAULT_VALUES = resource_path("assets/pool_config_values.yaml")
+POOL_CONFIG_TEMPLATE = None #resource_path("assets/pool_config_template.yaml")
+POOL_CONFIG_DEFAULT_VALUES = None #resource_path("assets/pool_config_values.yaml")
+USER_WORKSPACE_TEMPLATE = resource_path("assets/user_workspace.yaml")
+DEFAULT_USER_WORKSPACE_VALUES = resource_path("assets/user_workspace_values.yaml")
 STORAGE_CLASS_NAME = "longhorn"
 STORAGE_CLASS_LABEL = "kalavai.storage.enabled"
 DEFAULT_STORAGE_NAME = "pool-cache"
@@ -172,28 +175,37 @@ def set_schedulable(schedulable, node_name=load_server_info(data_key=NODE_NAME_K
     except Exception as e:
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
 
+
 def init_user_workspace():
     set_schedulable(schedulable=True)
+    
+    # load template config and populate with values
+    sidecar_template_yaml = load_template(
+        template_path=USER_WORKSPACE_TEMPLATE,
+        values={},
+        default_values_path=DEFAULT_USER_WORKSPACE_VALUES)
 
     try:
-        res = request_to_server(
+        result = request_to_server(
             method="post",
             endpoint="/v1/create_user_space",
-            data=None,
+            data={"config": sidecar_template_yaml},
             server_creds=USER_LOCAL_SERVER_FILE,
             user_cookie=USER_COOKIE
         )
-        console.log(f"[green]Workspace created")
+        console.log(f"Workspace creation (ignore already created warnings): {result}" )
     except Exception as e:
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
 
-def pool_init(pool_config_values=POOL_CONFIG_DEFAULT_VALUES):
+def pool_init(pool_config_values):
     """Deploy configured objects to initialise pool"""
+    if POOL_CONFIG_DEFAULT_VALUES is None:
+        return
     # load template config and populate with values
     sidecar_template_yaml = load_template(
         template_path=POOL_CONFIG_TEMPLATE,
-        values={},
-        default_values_path=pool_config_values)
+        values=pool_config_values,
+        default_values_path=POOL_CONFIG_DEFAULT_VALUES)
 
     try:
         result = request_to_server(
@@ -433,7 +445,7 @@ def pool__list(*others, user_only=False):
     console.log("[white]Use [yellow]kalavai pool join <join key> [white]to join a public pool")
 
 @arguably.command
-def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None, app_values: str=HELM_APPS_VALUES, pool_config_values: str=POOL_CONFIG_DEFAULT_VALUES):
+def pool__start(cluster_name, *others,  only_registered_users: bool=False, ip_address: str=None, location: str=None, app_values: str=HELM_APPS_VALUES, pool_config_values: str=POOL_CONFIG_DEFAULT_VALUES):
     """
     Start Kalavai pool and start/resume sharing resources.
 
@@ -444,10 +456,18 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
     if CLUSTER.is_cluster_init():
         console.log(f"[white] You are already connected to {load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE)}. Enter [yellow]kalavai pool stop[white] to exit and join another one.")
         return
+    
+    # if only registered users are allowed, check user has logged in
+    if only_registered_users or location is not None:
+        user = user_login(user_cookie=USER_COOKIE)
+        if user is None:
+            console.log("[white]--only-registered-users [red]or [white]--location[red] can only be used if the host is authenticated. Run [yellow]kalavai login[red] to authenticate")
+            exit()
+    else:
+        user = None
 
     # join private network if provided
     subnet = None
-    user = None
     node_labels = {
         STORAGE_CLASS_LABEL: is_storage_compatible()
     }
@@ -458,7 +478,6 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
                 location=location,
                 user_cookie=USER_COOKIE)
             subnet = vpn["subnet"]
-            user = user_login(user_cookie=USER_COOKIE)
             node_labels[USER_NODE_LABEL] = user["username"]
             time.sleep(5)
         except Exception as e:
@@ -483,7 +502,8 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
         WRITE_AUTH_KEY: write_auth_key,
         WATCHER_PORT_KEY: watcher_port,
         WATCHER_SERVICE_KEY: watcher_service,
-        USER_NODE_LABEL_KEY: USER_NODE_LABEL
+        USER_NODE_LABEL_KEY: USER_NODE_LABEL,
+        ALLOW_UNREGISTERED_USER_KEY: not only_registered_users
     }
     
     # 1. start k3s server
@@ -526,7 +546,7 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
         )
     except Exception as e:
         console.log(f"Error: {str(e)}")
-        exit(-1)
+        exit()
     
     fetch_remote_templates()
     console.log("[green]Your cluster is ready! Grow your cluster by sharing your joining token with others. Run [yellow]kalavai pool token[green] to generate one.")
@@ -544,9 +564,9 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
         if is_watcher_alive(server_creds=USER_LOCAL_SERVER_FILE, user_cookie=USER_COOKIE):
             break
     console.log("Initialise user workspace...")
-    init_user_workspace()
-    console.log(f"Initialising pool config...")  
     pool_init(pool_config_values=pool_config_values)
+    init_user_workspace()
+    
     #storage__create(name=DEFAULT_STORAGE_NAME, storage=default_storage_size)
 
     return None
@@ -935,7 +955,7 @@ def pool__status(*others, log_file=None):
             console.log(f"{log}\n")
 
 @arguably.command
-def storage__create(name, storage, *others):
+def storage__create(name, storage, *others, force_namespace: str=None):
     """
     Create storage for the cluster
     """
@@ -944,6 +964,9 @@ def storage__create(name, storage, *others):
     except Exception as e:
         console.log(f"[red]Problems with your pool: {str(e)}")
         return
+    
+    if force_namespace is not None:
+        console.log("[WARNING][yellow]--force_namespace [white]requires an admin key. Request will fail if you are not an admin.")
 
     # Deploy PVC
     data = {
@@ -956,6 +979,8 @@ def storage__create(name, storage, *others):
         "storage_class_name": STORAGE_CLASS_NAME,
         "storage_size": storage
     }
+    if force_namespace is not None:
+        data["force_namespace"] = force_namespace
 
     try:
         result = request_to_server(
@@ -1015,15 +1040,20 @@ def storage__list(*other):
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
     
 @arguably.command
-def storage__delete(name, *others):
+def storage__delete(name, *others, force_namespace: str=None):
     """
     Delete storage by name
     """
+    if force_namespace is not None:
+        console.log("[WARNING][yellow]--force_namespace [white]requires an admin key. Request will fail if you are not an admin.")
+
     # deploy template with kube-watcher
     data = {
         "label": PVC_NAME_LABEL,
         "value": name
     }
+    if force_namespace is not None:
+        data["force_namespace"] = force_namespace
     try:
         result = request_to_server(
             method="post",
@@ -1159,7 +1189,7 @@ def job__reload(*others):
 
 
 @arguably.command
-def job__run(template_name, *others, values: str=None):
+def job__run(template_name, *others, values: str=None, force_namespace: str=None):
     """
     Deploy and run a template job.
 
@@ -1171,6 +1201,9 @@ def job__run(template_name, *others, values: str=None):
     except Exception as e:
         console.log(f"[red]Problems with your pool: {str(e)}")
         return
+    
+    if force_namespace is not None:
+        console.log("[WARNING][yellow]--force_namespace [white]requires an admin key. Request will fail if you are not an admin.")
 
     paths, available_templates = zip(*get_all_templates(
         local_path=USER_TEMPLATES_FOLDER,
@@ -1208,6 +1241,7 @@ def job__run(template_name, *others, values: str=None):
             values[value_key] = ""
     GPU_TYPES_KEY = "use_gputype"
     GPU_NOTYPES_KEY = "nouse_gputype"
+    console.log("Checking current GPU stock...")
     generate_gpu_annotation(
         input_message="SELECT Target GPUs for the job (loading models)",
         values=values_dict,
@@ -1238,6 +1272,9 @@ def job__run(template_name, *others, values: str=None):
         },
         "body": template_yaml
     }
+    if force_namespace is not None:
+        data["force_namespace"] = force_namespace
+
     try:
         result = request_to_server(
             method="post",
@@ -1271,6 +1308,8 @@ def job__run(template_name, *others, values: str=None):
                 {"name": f"http-{port}", "port": port, "protocol": "TCP", "target_port": port} for port in ports
             ]
         }
+        if force_namespace is not None:
+            data["force_namespace"] = force_namespace
         try:
             result = request_to_server(
                 method="post",
@@ -1329,7 +1368,7 @@ def job__describe(template_name, *others):
 
 
 @arguably.command
-def job__delete(name, *others):
+def job__delete(name, *others, force_namespace: str=None):
     """
     Delete job in the cluster
     """
@@ -1338,12 +1377,17 @@ def job__delete(name, *others):
     except Exception as e:
         console.log(f"[red]Problems with your pool: {str(e)}")
         return
-
+    
+    if force_namespace is not None:
+        console.log("[WARNING][yellow]--force_namespace [white]requires an admin key. Request will fail if you are not an admin.")
+    
     # deploy template with kube-watcher
     data = {
         "label": TEMPLATE_LABEL, # this ensures that both lws template and services are deleted
         "value": name
     }
+    if force_namespace is not None:
+        data["force_namespace"] = force_namespace
     try:
         result = request_to_server(
             method="post",
@@ -1540,7 +1584,7 @@ def job__list(*others, detailed=False):
 
 
 @arguably.command
-def job__logs(name, *others, pod_name=None, stream=False, tail=100):
+def job__logs(name, *others, pod_name=None, stream=False, tail=100, force_namespace: str=None):
     """
     Get logs for a specific job
     """
@@ -1550,10 +1594,16 @@ def job__logs(name, *others, pod_name=None, stream=False, tail=100):
         console.log(f"[red]Problems with your pool: {str(e)}")
         return
     
+    if force_namespace is not None:
+        console.log("[WARNING][yellow]--force_namespace [white]requires an admin key. Request will fail if you are not an admin.")
+    
     data = {
         "label": TEMPLATE_LABEL,
-        "value": name
+        "value": name,
+        "tail": tail
     }
+    if force_namespace is not None:
+        data["force_namespace"] = force_namespace
     while True:
         try:
             # send tail as parameter (fetch only last _tail_ lines)
@@ -1564,7 +1614,6 @@ def job__logs(name, *others, pod_name=None, stream=False, tail=100):
                 server_creds=USER_LOCAL_SERVER_FILE,
                 user_cookie=USER_COOKIE
             )
-            print(result)
             if not stream:
                 for pod, logs in result.items():
                     if pod_name is not None and pod_name != pod:
@@ -1588,7 +1637,7 @@ def job__logs(name, *others, pod_name=None, stream=False, tail=100):
             return
 
 @arguably.command
-def job__manifest(*others, name):
+def job__manifest(*others, name, force_namespace: str=None):
     """
     Get job manifest description
     """
@@ -1598,10 +1647,15 @@ def job__manifest(*others, name):
         console.log(f"[red]Problems with your pool: {str(e)}")
         return
     
+    if force_namespace is not None:
+        console.log("[WARNING][yellow]--force_namespace [white]requires an admin key. Request will fail if you are not an admin.")
+    
     data = {
         "label": TEMPLATE_LABEL,
-        "value": name
+        "value": name,
     }
+    if force_namespace is not None:
+        data["force_namespace"] = force_namespace
     try:
         result = request_to_server(
             method="post",

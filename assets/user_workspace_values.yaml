@@ -25,7 +25,7 @@
   description: ""
 
 - name: dataset_endpoint
-  default: "http://minio.minio.svc.cluster.local:9000" #"http://192.168.68.67:32000"
+  default: "http://minio.minio.svc.cluster.local:9000"
   description: ""
 
 - name: dataset_bucket

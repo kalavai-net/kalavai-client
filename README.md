@@ -244,6 +244,7 @@ Currently not compatible:
 - [x] [TEMPLATE] Distributed LLM deployment
 - [x] Kalavai client on Windows (with WSL2)
 - [x] Public pools
+- [x] Collaborative LLM deployment
 - [ ] [TEMPLATE] Distributed LLM fine tuning
 - [ ] Kalavai client on Mac
 - [x] Ray cluster support

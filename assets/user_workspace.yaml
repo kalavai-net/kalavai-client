@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{dataset_secret_name}}
+stringData:
+  accessKeyID: "{{dataset_access_key_id}}"
+  secretAccessKey: "{{dataset_secret_access_key}}"
+---
+apiVersion: datashim.io/v1alpha1
+kind: Dataset
+metadata:
+  name: {{dataset_name}}
+spec:
+  local:
+    type: "COS"
+    secret-name: {{dataset_secret_name}}
+    endpoint: "{{dataset_endpoint}}"
+    bucket: {{dataset_bucket}}
+    readonly: "{{dataset_readonly}}"

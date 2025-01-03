@@ -2,8 +2,8 @@
 # Test LiteLLM API
 MODEL_NAME="qwen-qwen2-5-0-5b-instruct"
 MODEL_ID="2fc88960-6dc9-439c-a5ae-6363aa65306b"
-MASTER_KEY="sk-06EkGxEJS6_cHS_C1QE1nA"
-LITELLM_URL="http://192.168.68.67:31471"
+MASTER_KEY="sk-DDu75G698CXDEm7a2f8EwQ"
+LITELLM_URL="http://192.168.68.67:31819"
 LLM_API_BASE="http://vllm-1:8080"
 
 subcommand=$1

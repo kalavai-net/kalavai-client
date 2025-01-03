@@ -6,6 +6,8 @@ tags:
 
 # Public pools: crowdsource community resources
 
+> Coming soon!
+
 Our public platform expands local pools in two key aspects:
 - Worker nodes **no longer have to be in the same local network**
 - Users can **tap into community resources**: inspire others in the community to join their projects with their resources
