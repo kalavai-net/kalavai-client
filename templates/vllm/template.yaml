@@ -96,11 +96,17 @@ spec:
         containers:
         - name: vllm-leader
           image: docker.io/bundenth/kalavai-utils:latest
+          env:
+          - name: VC_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
           command:
           - sh
           - -c
           - |
             if [ ! -z "{{litellm_base_url}}" ]; then
+              echo $VC_NAMESPACE;
               # wait for model to be served
               echo "Waiting for model service..."
               PS_HOST=`cat /etc/volcano/server.host`;
@@ -109,7 +115,7 @@ spec:
               PS_HOST=`cat /etc/volcano/server.host`;
               LITELLM_MODEL_NAME="{{deployment_id}}";
               echo "Creating new entry on LiteLLM: (host: $PS_HOST) - (model id: $LITELLM_MODEL_NAME)";
-              API_BASE="http://"$PS_HOST":8080/v1";
+              API_BASE="http://"$PS_HOST"."$VC_NAMESPACE":8080/v1";
               /workspace/register_model.sh \
                 --litellm_base_url={{litellm_base_url}} \
                 --litellm_key={{litellm_key}} \
