@@ -13,6 +13,11 @@
   description: "[DO NOT CHANGE] Ports opened on master node (will be shown as endpoints for the job)"
 ############################
 
+- name: deployment_name
+  value: litellm-1
+  default: litellm-1
+  description: "Name of the deployment job"
+  
 - name: replicas
   value: "1"
   default: "1"
