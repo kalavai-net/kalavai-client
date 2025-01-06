@@ -8,6 +8,7 @@ import socket
 from pathlib import Path
 from getpass import getpass
 import ipaddress
+from sys import exit
 
 import yaml
 import netifaces as ni
@@ -966,7 +967,7 @@ def storage__create(name, storage, *others, force_namespace: str=None):
         return
     
     if force_namespace is not None:
-        console.log("[WARNING][yellow]--force_namespace [white]requires an admin key. Request will fail if you are not an admin.")
+        console.log("[WARNING][yellow]--force-namespace [white]requires an admin key. Request will fail if you are not an admin.")
 
     # Deploy PVC
     data = {
@@ -1045,7 +1046,7 @@ def storage__delete(name, *others, force_namespace: str=None):
     Delete storage by name
     """
     if force_namespace is not None:
-        console.log("[WARNING][yellow]--force_namespace [white]requires an admin key. Request will fail if you are not an admin.")
+        console.log("[WARNING][yellow]--force-namespace [white]requires an admin key. Request will fail if you are not an admin.")
 
     # deploy template with kube-watcher
     data = {
@@ -1203,7 +1204,7 @@ def job__run(template_name, *others, values: str=None, force_namespace: str=None
         return
     
     if force_namespace is not None:
-        console.log("[WARNING][yellow]--force_namespace [white]requires an admin key. Request will fail if you are not an admin.")
+        console.log("[WARNING][yellow]--force-namespace [white]requires an admin key. Request will fail if you are not an admin.")
 
     paths, available_templates = zip(*get_all_templates(
         local_path=USER_TEMPLATES_FOLDER,
@@ -1255,10 +1256,14 @@ def job__run(template_name, *others, values: str=None, force_namespace: str=None
         annotation_key="nvidia.com/nouse-gputype"
     )
 
-    template_yaml = load_template(
-        template_path=template_path,
-        values=values_dict,
-        default_values_path=default_values_path)
+    try:
+        template_yaml = load_template(
+            template_path=template_path,
+            values=values_dict,
+            default_values_path=default_values_path)
+    except Exception as e:
+        console.log(f"[red]Error: {str(e)}")
+        exit()
 
     # deploy template with kube-watcher
     data = {
@@ -1379,7 +1384,7 @@ def job__delete(name, *others, force_namespace: str=None):
         return
     
     if force_namespace is not None:
-        console.log("[WARNING][yellow]--force_namespace [white]requires an admin key. Request will fail if you are not an admin.")
+        console.log("[WARNING][yellow]--force-namespace [white]requires an admin key. Request will fail if you are not an admin.")
     
     # deploy template with kube-watcher
     data = {
@@ -1595,7 +1600,7 @@ def job__logs(name, *others, pod_name=None, stream=False, tail=100, force_namesp
         return
     
     if force_namespace is not None:
-        console.log("[WARNING][yellow]--force_namespace [white]requires an admin key. Request will fail if you are not an admin.")
+        console.log("[WARNING][yellow]--force-namespace [white]requires an admin key. Request will fail if you are not an admin.")
     
     data = {
         "label": TEMPLATE_LABEL,
@@ -1648,7 +1653,7 @@ def job__manifest(*others, name, force_namespace: str=None):
         return
     
     if force_namespace is not None:
-        console.log("[WARNING][yellow]--force_namespace [white]requires an admin key. Request will fail if you are not an admin.")
+        console.log("[WARNING][yellow]--force-namespace [white]requires an admin key. Request will fail if you are not an admin.")
     
     data = {
         "label": TEMPLATE_LABEL,

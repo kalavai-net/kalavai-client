@@ -385,6 +385,8 @@ def load_template(template_path, values, default_values_path=None, force_default
             default_values = yaml.safe_load(f)
         for default in default_values:
             if default["name"] == TEMPLATE_ID_FIELD:
+                if default["default"] not in values:
+                    raise ValueError(f"Key value '{default['default']}' missing from values")
                 values[TEMPLATE_ID_KEY] = escape_field(values[default["default"]])
                 continue
             if force_defaults or default["name"] not in values:
