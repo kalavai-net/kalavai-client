@@ -321,6 +321,27 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../choose_job_resources/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Choosing job resources
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1228,17 +1249,10 @@ Template templates/vllm/template.yaml successfully deployed!
 <p>Your model will appear listed under your user (<user>) ownership. <strong>Note</strong> once all workers are listed as Ready, the model still needs to be loaded onto the machines and thus it may take some time for it to be available through the LiteLLM API. You can check the workers progress:</p>
 <pre><code class="language-bash">kalavai job logs qwen-qwen2-5-1-5b-instruct
 </code></pre>
+<p>Note: <em>models may take several minutes to be ready, particularly if the model weights are large</em>. This is due to the time the system takes to 1) download the models from source and 2) distribute them to the memory of each device. This is an overhead that only happens once per deployment.</p>
 <p>Once the model is loaded, you can interact with it <a href="#a-use-existing-models">as you would with any other model via the LiteLLM API</a>.</p>
 <h4 id="how-many-resources-to-request">How many resources to request?</h4>
-<p>For this example we don't need to tweak resource parameters, but for other models you may need to up the number of workers, desired RAM, etc. More information in the internal documentation of the engine's template (<a href="https://github.com/kalavai-net/kalavai-client/tree/main/templates/vllm">vLLM</a>, <a href="https://github.com/kalavai-net/kalavai-client/tree/main/templates/llamacpp">llama.cpp</a>). If you want help on how much a model may require, you can use our internal estimation tool:</p>
-<p>kalavai job estimate <number of billion of parameters> --precision <precision></p>
-<p>For example, to deploy a 1B model at 16 floating point precision:</p>
-<pre><code class="language-bash">$ kalavai job estimate 0.5 --precision 16
-
-There are 3 GPUs available (24.576GBs) 
-A 1B model requires ~1.67GB vRAM at 16bits precision
-Looking at current capacity, use 1 GPU workers for a total 4.10 GB vRAM
-</code></pre>
+<p>For this job example we don't need to tweak resource parameters (the model fits in a single worker), but for other models you may need to up the number of workers, desired RAM, etc. For more details on how to choose resources for jobs, <a href="../choose_job_resources/">check out this guide</a>.</p>
 <h4 id="delete-deployment">Delete deployment</h4>
 <p>You are welcome to leave the model running for others, but if you wish to remove your deployment, you can do so at any time with the kalavai client:</p>
 <pre><code class="language-bash">kalavai job delete &lt;deployment name&gt;
