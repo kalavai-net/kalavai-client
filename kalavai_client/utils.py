@@ -274,8 +274,10 @@ def fetch_git_files(remote_folder):
 
 def fetch_templates(local_path):
     # get all templates
-    templates = []
-    for file in fetch_git_files(remote_folder=GITHUB_TEMPLATE_PATH):
+    templates = [] 
+    data = fetch_git_files(remote_folder=GITHUB_TEMPLATE_PATH)
+    
+    for file in data:
         if file['type'] == 'dir':
             templates.append((file['name'], file["path"]))
 
