@@ -1416,7 +1416,7 @@ def job__delete(name, *others, force_namespace: str=None):
 def job__estimate(billion_parameters, *others, precision=32):
     """Guesstimate of resources needed based on required memory and current resources"""
     average_vram = 8
-    required_memory = int(billion_parameters) * (precision / 8) / 1.2
+    required_memory = float(billion_parameters) * (precision / 8) / 1.2
     available_gpus = fetch_gpus()
     vrams = []
     for _, gpus in available_gpus:
