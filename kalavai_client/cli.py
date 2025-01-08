@@ -187,10 +187,13 @@ def init_user_workspace(force_namespace=None):
         default_values_path=DEFAULT_USER_WORKSPACE_VALUES)
 
     try:
+        data = {"config": sidecar_template_yaml}
+        if force_namespace is not None:
+            data["force_namespace"] = force_namespace
         result = request_to_server(
             method="post",
             endpoint="/v1/create_user_space",
-            data={"config": sidecar_template_yaml, "force_namespace": force_namespace},
+            data=data,
             server_creds=USER_LOCAL_SERVER_FILE,
             user_cookie=USER_COOKIE
         )
