@@ -8,7 +8,7 @@ nav:
     - Local pools: local_pool.md
     - Public pools: public_pool.md
   - Community computing:
-    - Shared LLM pool: shared_llm_pool.md
+    - Public LLM pool: public_llm_pool.md
     - Petals swarm: petals.md
     - BOINC: boinc.md
   - Applications: 
