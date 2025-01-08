@@ -610,6 +610,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#how-many-resources-to-request" class="md-nav__link">
+    <span class="md-ellipsis">
+      How many resources to request?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#delete-deployment" class="md-nav__link">
     <span class="md-ellipsis">
       Delete deployment
@@ -924,6 +933,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#how-many-resources-to-request" class="md-nav__link">
+    <span class="md-ellipsis">
+      How many resources to request?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#delete-deployment" class="md-nav__link">
     <span class="md-ellipsis">
       Delete deployment
@@ -1211,6 +1229,16 @@ Template templates/vllm/template.yaml successfully deployed!
 <pre><code class="language-bash">kalavai job logs qwen-qwen2-5-1-5b-instruct
 </code></pre>
 <p>Once the model is loaded, you can interact with it <a href="#a-use-existing-models">as you would with any other model via the LiteLLM API</a>.</p>
+<h4 id="how-many-resources-to-request">How many resources to request?</h4>
+<p>For this example we don't need to tweak resource parameters, but for other models you may need to up the number of workers, desired RAM, etc. More information in the internal documentation of the engine's template (<a href="https://github.com/kalavai-net/kalavai-client/tree/main/templates/vllm">vLLM</a>, <a href="https://github.com/kalavai-net/kalavai-client/tree/main/templates/llamacpp">llama.cpp</a>). If you want help on how much a model may require, you can use our internal estimation tool:</p>
+<p>kalavai job estimate <number of billion of parameters> --precision <precision></p>
+<p>For example, to deploy a 1B model at 16 floating point precision:</p>
+<pre><code class="language-bash">$ kalavai job estimate 0.5 --precision 16
+
+There are 3 GPUs available (24.576GBs) 
+A 1B model requires ~1.67GB vRAM at 16bits precision
+Looking at current capacity, use 1 GPU workers for a total 4.10 GB vRAM
+</code></pre>
 <h4 id="delete-deployment">Delete deployment</h4>
 <p>You are welcome to leave the model running for others, but if you wish to remove your deployment, you can do so at any time with the kalavai client:</p>
 <pre><code class="language-bash">kalavai job delete &lt;deployment name&gt;
