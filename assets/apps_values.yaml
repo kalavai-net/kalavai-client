@@ -55,7 +55,7 @@
   description: ""
 
 - name: minio_resources_memory
-  default: "2Gi"
+  default: "1Gi"
   description: ""
 
 - name: minio_persistence_storageClass

@@ -74,7 +74,7 @@ releases:
     namespace: kalavai
     chart: kalavai/kalavai-helios
     version: "0.1.9"
-    installed: {{is_public_pool}}
+    installed: {{not watcher_allow_unregistered_user}}
     set:
     - name: deployment.watcher_endpoint
       value: "http://{{watcher_service}}"
@@ -89,11 +89,11 @@ releases:
   - name: opencost
     namespace: opencost
     chart: opencost-charts/opencost
-    installed: {{is_public_pool}}
+    installed: {{not watcher_allow_unregistered_user}}
   - name: prometheus
     namespace: prometheus-system
     chart: prometheus/prometheus
-    installed: {{is_public_pool}}
+    installed: {{not watcher_allow_unregistered_user}}
     set:
     - name: prometheus-pushgateway.enabled
       value: false
