@@ -1415,6 +1415,12 @@ def job__delete(name, *others, force_namespace: str=None):
 @arguably.command
 def job__estimate(billion_parameters, *others, precision=32):
     """Guesstimate of resources needed based on required memory and current resources"""
+    try:
+        CLUSTER.validate_cluster()
+    except Exception as e:
+        console.log(f"[red]Problems with your pool: {str(e)}")
+        return
+    
     average_vram = 8
     required_memory = float(billion_parameters) * (precision / 8) / 1.2
     available_gpus = fetch_gpus()
