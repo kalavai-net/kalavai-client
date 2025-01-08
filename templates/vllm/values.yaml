@@ -6,10 +6,10 @@
   description: "Field that contains the ID of the job"
 
 # must contain the list of ports to enable in the leader node
-# - name: endpoint_ports
-#   value: "8080"
-#   default: "8080"
-#   description: "[DO NOT CHANGE] Ports opened on master node (will be shown as endpoints for the job)"
+- name: endpoint_ports
+  value: "8080"
+  default: "8080"
+  description: "[DO NOT CHANGE] Ports opened on master node (will be shown as endpoints for the job)"
 ############################
 
 - name: litellm_base_url
@@ -75,4 +75,4 @@
 - name: extra
   value: "--dtype float16 --enforce-eager"
   default: --dtype float16 --enforce-eager
-  description: "Extra parameters to pass to the vLLM server. See https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html#command-line-arguments-for-the-server"
+  description: "Extra parameters to pass to the vLLM server. See https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html#cli-reference"

@@ -6,10 +6,10 @@
   description: "Field that contains the ID of the job"
 
 # must contain the list of ports to enable in the leader node
-# - name: endpoint_ports
-#   value: "8080"
-#   default: "8080"
-#   description: "[DO NOT CHANGE] Ports opened on master node (will be shown as endpoints for the job)"
+- name: endpoint_ports
+  value: "8080"
+  default: "8080"
+  description: "[DO NOT CHANGE] Ports opened on master node (will be shown as endpoints for the job)"
 ############################
 
 - name: storage
@@ -26,7 +26,6 @@
   value: ""
   default: "sk-1234"
   description: "Master key of the LiteLLM service (central registry)"
-
 
 - name: cpu_workers
   value: 1
