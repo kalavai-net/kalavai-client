@@ -9,11 +9,12 @@ shift
 case "$subcommand" in
   server_cpu)
     source /workspace/env/bin/activate
-    CMAKE_ARGS="-DGGML_RPC=on" pip3 install llama-cpp-python[server]
+    # issue with streaming: https://github.com/abetlen/llama-cpp-python/issues/1861
+    CMAKE_ARGS="-DGGML_RPC=on" pip3 install "llama-cpp-python[server]==0.3.2" --force-reinstall --no-cache-dir --ignore-installed
     ;;
   server_gpu)
     source /workspace/env/bin/activate
-    CMAKE_ARGS="-DGGML_RPC=on -DGGML_CUDA=on" pip3 install llama-cpp-python[server]
+    CMAKE_ARGS="-DGGML_RPC=on -DGGML_CUDA=on" pip3 install "llama-cpp-python[server]==0.3.2" --force-reinstall --no-cache-dir --ignore-installed
     ;;
   cpu)
     cd /workspace/llama.cpp

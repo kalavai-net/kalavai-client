@@ -1,0 +1,43 @@
+############################
+## MUST HAVE THESE FIELDS ##
+- name: id_field
+  value: deployment_name
+  default: deployment_name
+  description: "Field that contains the ID of the job"
+
+# must contain the list of ports to enable in the leader node
+- name: endpoint_ports
+  value: "8080"
+  default: "8080"
+  description: "[DO NOT CHANGE] Ports opened on master node will be shown as endpoints for the job"
+############################
+
+- name: deployment_name
+  value: "webui-1" 
+  default: "webui-1"
+  description: "Name of the job"
+
+- name: data_storage
+  value: ""
+  default: "default-storage"
+  description: "Storage name for the data_dir cache"
+
+- name: litellm_base_url
+  value: "http://litellm-1.default.svc.cluster.local:4000"
+  default: "http://litellm-1.default.svc.cluster.local:4000"
+  description: "Base URL of the LiteLLM service (central registry)"
+
+- name: litellm_key
+  value: ""
+  default: "sk-1234"
+  description: "Master key of the LiteLLM service (central registry)"
+
+- name: cpus
+  value: "2"
+  default: "2"
+  description: "CPUs per single worker (final one = cpus * num_workers)"
+
+- name: memory
+  value: "4"
+  default: "4"
+  description: "RAM memory per single worker (final one = memory * num_workers)"

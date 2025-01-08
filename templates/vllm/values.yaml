@@ -13,8 +13,8 @@
 ############################
 
 - name: litellm_base_url
-  value: "http://litellm-1.default.svc.cluster.local:4000" #"http://192.168.68.67:30219"
-  default: "http://litellm-1.default.svc.cluster.local:4000"
+  value: "http://litellm.default.svc.cluster.local:4000" #"http://192.168.68.67:30219"
+  default: "http://litellm.default.svc.cluster.local:4000"
   description: "Base URL of the LiteLLM service (central registry)"
 
 - name: litellm_key
@@ -58,8 +58,8 @@
   description: "GPUs per single worker (final one = gpus * num_workers)"
 
 - name: memory
-  value: "4"
-  default: "4"
+  value: 8
+  default: 8
   description: "RAM memory per single worker (final one = memory * num_workers)"
 
 - name: tensor_parallel_size
@@ -71,11 +71,6 @@
   value: 1
   default: 1
   description: "Pipeline parallelism (use the number of nodes)"
-
-- name: shmem_size
-  value: 4
-  default: 4
-  description: "Size of the shared memory volume (in GBs)"
 
 - name: extra
   value: "--dtype float16 --enforce-eager"

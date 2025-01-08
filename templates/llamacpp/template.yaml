@@ -26,6 +26,11 @@ spec:
         containers:
         - name: llamacpp-registrar
           image: docker.io/bundenth/kalavai-utils:latest
+          env:
+          - name: VC_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
           command:
           - sh
           - -c
@@ -39,15 +44,15 @@ spec:
               PS_HOST=`cat /etc/volcano/server.host`;
               LITELLM_MODEL_NAME="{{deployment_id}}";
               echo "Creating new entry on LiteLLM: (host: $PS_HOST) - (model id: $LITELLM_MODEL_NAME)";
-              API_BASE="http://"$PS_HOST":8080/v1";
+              API_BASE="http://"$PS_HOST"."$VC_NAMESPACE":8080/v1";
               /workspace/register_model.sh \
                 --litellm_base_url={{litellm_base_url}} \
                 --litellm_key={{litellm_key}} \
                 --litellm_model_name="$LITELLM_MODEL_NAME" \
-                --model_id={{model_id}} \
+                --model_id={{model_filename}} \
                 --provider=openai \
                 --api_base=$API_BASE \
-                --model_info='{"extra": "{{extra}}", "cpus": "{{cpus}}", "gpus": "{{gpus}}", "memory": "{{memory}}", "cpu_workers": "{{cpu_workers}}", , "gpu_workers": "{{gpu_workers}}"}'
+                --model_info='{"extra": "llamacpp parameters: {{server_extra}}", "cpus": "{{cpus}}", "gpus": "{{gpus}}", "memory": "{{memory}}", "cpu_workers": "{{cpu_workers}}", "gpu_workers": "{{gpu_workers}}"}'
             else
               echo "[Warning] Missing LiteLLM base url. Model not publicly registered"
               tail -f /dev/null
@@ -91,10 +96,10 @@ spec:
           role: leader
           kalavai.job.name: {{deployment_id}}
       spec:
-        runtimeClassName: nvidia
+        #runtimeClassName: nvidia
         containers:
         - name: llamacpp-leader
-          image: docker.io/bundenth/llamacpp-gpu:latest
+          image: docker.io/bundenth/llamacpp-cpu:latest
           command:
           - sh
           - -c
@@ -121,11 +126,11 @@ spec:
             requests:
               cpu: {{cpus}}
               memory: {{memory}}Gi
-              nvidia.com/gpu: {{gpus}}
+              #nvidia.com/gpu: {{gpus}}
             limits:
               cpu: {{cpus}}
               memory: {{memory}}Gi
-              nvidia.com/gpu: {{gpus}}
+              #nvidia.com/gpu: {{gpus}}
           volumeMounts:
             - name: cache
               mountPath: /cache

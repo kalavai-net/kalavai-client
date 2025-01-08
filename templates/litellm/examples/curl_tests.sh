@@ -1,9 +1,9 @@
 #!/bin/bash
 # Test LiteLLM API
-MODEL_NAME="qwen-qwen2-5-0-5b-instruct"
+MODEL_NAME="qwen2-5-0-5b-instruct-q2-k-gguf"
 MODEL_ID="2fc88960-6dc9-439c-a5ae-6363aa65306b"
-MASTER_KEY="sk-DDu75G698CXDEm7a2f8EwQ"
-LITELLM_URL="http://192.168.68.67:31819"
+MASTER_KEY="sk-1234"
+LITELLM_URL="http://192.168.68.67:31558"
 LLM_API_BASE="http://vllm-1:8080"
 
 subcommand=$1

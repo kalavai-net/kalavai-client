@@ -6,10 +6,10 @@
   description: "Field that contains the ID of the job"
 
 # must contain the list of ports to enable in the leader node
-- name: endpoint_ports
-  value: "8080"
-  default: "8080"
-  description: "[DO NOT CHANGE] Ports opened on master node (will be shown as endpoints for the job)"
+# - name: endpoint_ports
+#   value: "8080"
+#   default: "8080"
+#   description: "[DO NOT CHANGE] Ports opened on master node (will be shown as endpoints for the job)"
 ############################
 
 - name: storage
@@ -18,8 +18,8 @@
   description: "Pool storage to use to cache model weights"
 
 - name: litellm_base_url
-  value: "http://litellm-1.default.svc.cluster.local:4000" #"http://192.168.68.67:30219"
-  default: "http://litellm-1.default.svc.cluster.local:4000"
+  value: "http://litellm.default.svc.cluster.local:4000" #"http://192.168.68.67:30219"
+  default: "http://litellm.default.svc.cluster.local:4000"
   description: "Base URL of the LiteLLM service (central registry)"
 
 - name: litellm_key
