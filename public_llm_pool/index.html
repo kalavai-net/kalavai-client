@@ -9,10 +9,10 @@
       
       
       
-        <link rel="prev" href="../public_llm_pool/">
+        <link rel="prev" href="../public_pool/">
       
       
-        <link rel="next" href="../boinc/">
+        <link rel="next" href="../petals/">
       
       
       <link rel="icon" href="../assets/icons/browser.png">
@@ -20,7 +20,7 @@
     
     
       
-        <title>Petals swarm - Kalavai Documentation</title>
+        <title>Public LLM pool - Kalavai Documentation</title>
       
     
     
@@ -72,7 +72,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#public-petals-swarm-bittorrent-style-llms" class="md-skip">
+        <a href="#deploy-and-share-large-language-models-with-community-devices" class="md-skip">
           Skip to content
         </a>
       
@@ -107,7 +107,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Petals swarm
+              Public LLM pool
             
           </span>
         </div>
@@ -463,27 +463,6 @@
                 
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="../public_llm_pool/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Public LLM pool
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
     
   
   
@@ -500,7 +479,7 @@
           
   
   <span class="md-ellipsis">
-    Petals swarm
+    Public LLM pool
   </span>
   
 
@@ -511,7 +490,7 @@
         
   
   <span class="md-ellipsis">
-    Petals swarm
+    Public LLM pool
   </span>
   
 
@@ -533,47 +512,119 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#requirements" class="md-nav__link">
+  <a href="#pre-requisites" class="md-nav__link">
     <span class="md-ellipsis">
-      Requirements
+      Pre-requisites
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#how-to-join" class="md-nav__link">
+  <a href="#join-in" class="md-nav__link">
     <span class="md-ellipsis">
-      How to join
+      Join in
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#check-petals-health" class="md-nav__link">
+  <a href="#what-can-you-do-in-the-pool" class="md-nav__link">
     <span class="md-ellipsis">
-      Check Petals health
+      What can you do in the pool?
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What can you do in the pool?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-use-existing-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      A. Use existing models
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A. Use existing models">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ui-playground" class="md-nav__link">
+    <span class="md-ellipsis">
+      UI Playground
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#how-to-use-the-models" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#single-api-endpoint" class="md-nav__link">
     <span class="md-ellipsis">
-      How to use the models
+      Single API endpoint
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#stop-sharing" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#check-available-llms" class="md-nav__link">
     <span class="md-ellipsis">
-      Stop sharing
+      Check available LLMs
     </span>
   </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      Use models
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#b-deploy-new-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      B. Deploy new models
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="B. Deploy new models">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#new-vllm-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      New vLLM model
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Delete deployment
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -588,45 +639,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#something-isnt-right" class="md-nav__link">
+  <a href="#why-is-it-free" class="md-nav__link">
     <span class="md-ellipsis">
-      Something isn't right
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#can-i-join-and-leave-whenever-i-want" class="md-nav__link">
-    <span class="md-ellipsis">
-      Can I join (and leave) whenever I want?
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#what-is-in-it-for-me" class="md-nav__link">
-    <span class="md-ellipsis">
-      What is in it for me?
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#is-my-data-secured-private" class="md-nav__link">
-    <span class="md-ellipsis">
-      Is my data secured / private?
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#is-my-gpu-constantly-being-used" class="md-nav__link">
-    <span class="md-ellipsis">
-      Is my GPU constantly being used?
+      Why is it free?
     </span>
   </a>
   
@@ -641,6 +656,27 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../petals/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Petals swarm
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -790,47 +826,119 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#requirements" class="md-nav__link">
+  <a href="#pre-requisites" class="md-nav__link">
     <span class="md-ellipsis">
-      Requirements
+      Pre-requisites
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#how-to-join" class="md-nav__link">
+  <a href="#join-in" class="md-nav__link">
     <span class="md-ellipsis">
-      How to join
+      Join in
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#check-petals-health" class="md-nav__link">
+  <a href="#what-can-you-do-in-the-pool" class="md-nav__link">
     <span class="md-ellipsis">
-      Check Petals health
+      What can you do in the pool?
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What can you do in the pool?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-use-existing-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      A. Use existing models
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A. Use existing models">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ui-playground" class="md-nav__link">
+    <span class="md-ellipsis">
+      UI Playground
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#how-to-use-the-models" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#single-api-endpoint" class="md-nav__link">
     <span class="md-ellipsis">
-      How to use the models
+      Single API endpoint
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#stop-sharing" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#check-available-llms" class="md-nav__link">
     <span class="md-ellipsis">
-      Stop sharing
+      Check available LLMs
     </span>
   </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      Use models
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#b-deploy-new-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      B. Deploy new models
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="B. Deploy new models">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#new-vllm-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      New vLLM model
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Delete deployment
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -845,45 +953,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#something-isnt-right" class="md-nav__link">
+  <a href="#why-is-it-free" class="md-nav__link">
     <span class="md-ellipsis">
-      Something isn't right
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#can-i-join-and-leave-whenever-i-want" class="md-nav__link">
-    <span class="md-ellipsis">
-      Can I join (and leave) whenever I want?
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#what-is-in-it-for-me" class="md-nav__link">
-    <span class="md-ellipsis">
-      What is in it for me?
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#is-my-data-secured-private" class="md-nav__link">
-    <span class="md-ellipsis">
-      Is my data secured / private?
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#is-my-gpu-constantly-being-used" class="md-nav__link">
-    <span class="md-ellipsis">
-      Is my GPU constantly being used?
+      Why is it free?
     </span>
   </a>
   
@@ -913,183 +985,273 @@
     
     
     
-      <span class="md-tag">petals</span>
+      <span class="md-tag">crowdsource</span>
     
   
     
     
     
-      <span class="md-tag">share</span>
+      <span class="md-tag">public</span>
+    
+  
+    
+    
+    
+      <span class="md-tag">shared llm</span>
     
   
 </nav>
 
 
 
-<h1 id="public-petals-swarm-bittorrent-style-llms">Public Petals Swarm: BitTorrent-style LLMs</h1>
-<p>Contribute to the public Petals swarm and help deploy and fine tune Large Language Models across consumer-grade devices. See more about the Petals project <a href="https://github.com/bigscience-workshop/petals">here</a>. You'll get:</p>
-<ul>
-<li>Eternal kudos from the community!</li>
-<li>Access to all the models in the server</li>
-<li>Easy access for inference (via Petals SDK and installation-free Kalavai endpoint).</li>
-</ul>
-<h2 id="requirements">Requirements</h2>
-<ul>
-<li>A free Kalavai account. Create one <a href="https://platform.kalavai.net">here</a>.</li>
-<li>A computer with the minimum requirements (see below)</li>
-</ul>
-<p>Hardware requirements</p>
-<ul>
-<li>1+ NVIDIA GPU</li>
-<li>2+ CPUs</li>
-<li>4GB+ RAM</li>
-<li>Free space 4x available VRAM (for an 8GB VRAM GPU, you'll need ~32GB free space in your disk)</li>
-</ul>
-<h2 id="how-to-join">How to join</h2>
+<h1 id="deploy-and-share-large-language-models-with-community-devices">Deploy and share Large Language Models with community devices</h1>
+<blockquote>
+<p>Beta feature: we are trialing shared pools. If you encounter any issues, please <a href="https://github.com/kalavai-net/kalavai-client/issues">submit a ticket in our GitHub repo</a>.</p>
+</blockquote>
+<p>Shared pools in <code>Kalavai</code> are an easy way to expand your computing power beyond a single machine, with zero-devops knowledge. Kalavai <strong>aggregates the GPUs, CPUs and RAM memory</strong> from any compatible machine and makes it ready for LLM workflows. All you need is three steps to get your supercomputing cluster going:</p>
 <ol>
-<li>
-<p>Create a <a href="https://platform.kalavai.net">free account</a> with Kalavai.</p>
-</li>
-<li>
-<p>Install the kalavai client following the instructions <a href="https://kalavai-net.github.io/kalavai-client/getting_started/">here</a>. Currently we support Linux distros and Windows.</p>
-</li>
-<li>
-<p>Get the joining token. Visit our <a href="https://platform.kalavai.net">platform</a> and go to <code>Community pools</code>. Then click <code>Join</code> on the <code>Petals</code> Pool to reveal the joining details. Copy the command (including the token).</p>
-</li>
+<li>Start a pool with the kalavai client</li>
+<li>Use the joining token to connect other machines to the pool</li>
+<li>Deploy LLMs with ready-made templates!</li>
 </ol>
-<p><img alt="Join Petals" src="/docs/docs/assets/images/join.png" /></p>
-<ol>
-<li>Authenticate the computer you want to use as worker:</li>
-</ol>
+<p>In this guide, we'll show <strong>how to join our public shared pool</strong>, ideal for AI developers that want to go beyond the hardware they have access to. This will manage step 1, so you can jump ahead to step 2 and 3. If you are interested in <strong>hosting your own private shared pool</strong>, check out <a href="../private_llm_pool/">this one</a>.</p>
+<h2 id="pre-requisites">Pre-requisites</h2>
+<ul>
+<li>Install the <a href="../getting_started/"><code>kalavai</code> client</a> in a <a href="../getting_started/#requirements">compatible</a> computer.</li>
+<li>Create a free account on <a href="https://platform.kalavai.net">our platform</a>.</li>
+</ul>
+<h2 id="join-in">Join in</h2>
+<p>Authenticate your computer using the kalavai client:</p>
 <pre><code class="language-bash">$ kalavai login
 
-[10:33:16] Kalavai account details. If you don't have an account, create one at https://platform.kalavai.net                                                                 
-User email: &lt;your email&gt;
-Password: &lt;your password&gt;
-
-[10:33:25] &lt;email&gt; logged in successfully
+Kalavai account details. If you don't have an account, create one at https://platform.kalavai.net                                                                  
+User email: &lt;your.account@email.com&gt;
+Password: 
+[10:56:05] &lt;your.account@email.com&gt; logged in successfully  
 </code></pre>
+<p>Get the joining token from <a href="https://platform.kalavai.net">our platform</a>, under Community Pools page. Find the <code>Public-LLMs</code> pool and click JOIN to reveal the joining token. Copy and paste the command on your computer:</p>
+<pre><code class="language-bash">kalavai pool join &lt;TOKEN&gt;
+</code></pre>
+<p>That's it! Not only you are sharing your computing time with the community, but now you can tap into a large pool of resources (GPUs, CPUs, RAM...), <strong>and</strong> any LLM deployed on them.</p>
+<h2 id="what-can-you-do-in-the-pool">What can you do in the pool?</h2>
+<p>Public shared pools are both <strong>public</strong> (anyone can join in) and <strong>shared</strong> (raw resources and deployments are accessible by all). This means any user that is part of the pool can check out the models already present in it, run inference on them, an deploy new ones with the resources available.</p>
+<h3 id="a-use-existing-models">A. Use existing models</h3>
+<p>All users can interact with models within the pool in two ways:</p>
 <ol>
-<li>Join the pool with the following command:</li>
+<li>Single API endpoint for HTTP requests</li>
+<li>Unified ChatGPT-like UI playground</li>
 </ol>
-<pre><code class="language-bash">$ kalavai pool join &lt;token&gt;
+<h4 id="ui-playground">UI Playground</h4>
+<p>The pool comes with an OpenWebUI deployment to make it easy to test model inference with LLMs via the browser. To check the endpoint, use the kalavai client to locate the playground deployment:</p>
+<pre><code class="language-bash">$ kalavai job list
 
-[16:28:14] Token format is correct
-           Joining private network
-
-[16:28:24] Scanning for valid IPs...
-           Using 100.10.0.8 address for worker
-           Connecting to PETALS @ 100.10.0.9 (this may take a few minutes)...
-[16:29:41] Worskpace created
-           You are connected to PETALS
+┏━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Owner   ┃ Deployment ┃ Workers  ┃ Endpoint                                 ┃
+┡━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ default │ playground │ Ready: 1 │ http://100.10.0.5:31912 (mapped to 8080) │
+└─────────┴────────────┴──────────┴──────────────────────────────────────────┘
 </code></pre>
-<h2 id="check-petals-health">Check Petals health</h2>
-<p>Kalavai's pool connects directly to the public swarm on Petals, which means we can use their <a href="https://health.petals.dev/">public health check UI</a> to see how much we are contributing and what models are ready to use.</p>
-<p><img alt="swarm health" src="/docs/docs/assets/images/petals_health.png" /></p>
-<p>Models with at least one copy of each shard (a green dot in each column) are ready to be used. If not, wait for more workers to join in.</p>
-<p>Using the kalavai client you can monitor the state of the pool and all of the connected nodes:</p>
-<pre><code class="language-bash">$ kalavai pool status
+<p>Within the UI you can select the model you wish to test and have a chat.</p>
+<p><img alt="Playground UI" src="../assets/images/webui.png" /></p>
+<p><em><strong>Note:</strong> the playground is a shared instance to help users test models without code and should not be used in production. You need to create a playground account to access it. This can be different to your Kalavai account details. The creation of a new user is necessary to keep things like user chat history and preferences.</em></p>
+<h4 id="single-api-endpoint">Single API endpoint</h4>
+<p>All interactions to models in the pool are brokered by a <a href="https://docs.litellm.ai/docs/">LiteLLM endpoint</a> that is installed in the system. To interact with it you need a LITELLM_URL and a LITELLM_KEY.</p>
+<p>The <code>LITELLM_URL</code> can be found using the kalavai client, as the endpoint of the <code>litellm-1</code> deployment:</p>
+<pre><code class="language-bash">$ kalavai job list
 
-# Displays the status of the pool
-
-$ kalavai node list
-
-# Displays the list of connected nodes, and their current status
+┏━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Owner   ┃ Deployment ┃ Workers  ┃ Endpoint                                 ┃
+┡━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ default │ litellm    │ Ready: 3 │ http://100.10.0.5:30916 (mapped to 4000) │
+└─────────┴────────────┴──────────┴──────────────────────────────────────────┘
 </code></pre>
-<p>The command <code>kalavai node list</code> is useful to see if our node has any issues and whether it's currently online.</p>
-<h2 id="how-to-use-the-models">How to use the models</h2>
-<p>For all public swarms you can use the Petals SDK in the <a href="https://github.com/bigscience-workshop/petals">usual way</a>. Here is an example:</p>
-<pre><code class="language-python">from transformers import AutoTokenizer
-from petals import AutoDistributedModelForCausalLM
-
-# Choose any model available at https://health.petals.dev
-model_name = &quot;mistralai/Mixtral-8x22B-Instruct-v0.1&quot;
-
-# Connect to a distributed network hosting model layers
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoDistributedModelForCausalLM.from_pretrained(model_name)
-
-# Run the model as if it were on your computer
-inputs = tokenizer(&quot;A cat sat&quot;, return_tensors=&quot;pt&quot;)[&quot;input_ids&quot;]
-outputs = model.generate(inputs, max_new_tokens=5)
-print(tokenizer.decode(outputs[0]))  # A cat sat on a mat...
+<p>The <code>LITELLM_KEY</code> is shown on the Community Pool page of <a href="https://platform.kalavai.net">our platform</a>.</p>
+<p><img alt="LiteLLM key shown" src="../assets/images/litellm_key.png" /></p>
+<p>In this example:</p>
+<ul>
+<li><code>LITELLM_URL=http://100.10.0.5:30916</code></li>
+<li><code>LITELLM_KEY=sk-qoQC5lijoaBwXoyi_YP1xA</code></li>
+</ul>
+<h4 id="check-available-llms">Check available LLMs</h4>
+<p>Using cURL:</p>
+<pre><code class="language-bash">curl -X GET &quot;&lt;LITELLM_URL&gt;/v1/models&quot; \
+  -H 'Authorization: Bearer &lt;LITELLM_KEY&gt;' \
+  -H &quot;accept: application/json&quot; \
+  -H &quot;Content-Type: application/json&quot;
 </code></pre>
-<p>This path is great if you are a dev with python installed, and don't mind installing the Petals SDK. If you want an install-free path, Kalavai deploys a single endpoint for models, which allows you to do inference via gRPC and HTTP requests. Substitute KALAVAI_ENDPOINT with the endpoint displayed under the <a href="https://platform.kalavai.net"><code>Community Pools</code> page</a>. Here is a request example:</p>
-<pre><code class="language-python">&quot;&quot;&quot;
-More info: https://github.com/petals-infra/chat.petals.dev
+<p>Using python:</p>
+<pre><code class="language-python">import requests
 
-Required: pip install websockets
-&quot;&quot;&quot;
-import time
-import json
-import websockets
-import asyncio
+LITELLM_URL = &quot;http://100.10.0.5:30916&quot;
+LITELLM_KEY = &quot;sk-qoQC5lijoaBwXoyi_YP1xA&quot;
 
 
-KALAVAI_ENDPOINT = &quot;192.168.68.67:31220&quot; # &lt;-- change for the kalavai endpoint
-MODEL_NAME = &quot;mistralai/Mixtral-8x22B-Instruct-v0.1&quot; # &lt;-- change for the models available in Kalavai PETALS pool.
-
-
-async def ws_generate(text, max_length=100, temperature=0.1):
-    async with websockets.connect(f&quot;ws://{KALAVAI_ENDPOINT}/api/v2/generate&quot;) as websocket:
-        try:
-            await websocket.send(
-                json.dumps({&quot;model&quot;: MODEL_NAME, &quot;type&quot;: &quot;open_inference_session&quot;, &quot;max_length&quot;: max_length})
-            )
-            response = await websocket.recv()
-            result = json.loads(response)
-
-            if result[&quot;ok&quot;]:
-                await websocket.send(
-                    json.dumps({
-                        &quot;type&quot;: &quot;generate&quot;,
-                        &quot;model&quot;: MODEL_NAME,
-                        &quot;inputs&quot;: text,
-                        &quot;max_length&quot;: max_length,
-                        &quot;temperature&quot;: temperature
-                    })
-                )
-                response = await websocket.recv()
-                return json.loads(response)
-            else:
-                return response
-        except Exception as e:
-            return {&quot;error&quot;: str(e)}
+def list_models():
+    response = requests.get(
+        f&quot;{LITELLM_URL}/v1/models&quot;,
+        headers={&quot;Authorization&quot;: f&quot;Bearer {LITELLM_KEY}&quot;}
+    )
+    return response.json()
 
 
 if __name__ == &quot;__main__&quot;:
-    t = time.time()
-    output = asyncio.get_event_loop().run_until_complete(
-        ws_generate(text=&quot;Tell me a story: &quot;)
+    print(
+        list_models()
     )
-    final_time = time.time() - t
-    print(f&quot;[{final_time:.2f} secs]&quot;, output)
-    print(f&quot;{output['token_count'] / final_time:.2f}&quot;, &quot;tokens/s&quot;)
 </code></pre>
-<p><strong>NOTE</strong>: the endpoints are only available within worker nodes, not from any other computer.</p>
-<h2 id="stop-sharing">Stop sharing</h2>
-<p>You can either pause sharing, or stop and leave the pool altogether (don't worry, you can rejoin using the same steps above anytime). </p>
-<p>To pause sharing (but remain on the pool), run the following command:</p>
-<pre><code class="language-bash">kalavai pool pause
+<h4 id="use-models">Use models</h4>
+<p>Using cURL:</p>
+<pre><code class="language-bash">curl --location '&lt;LITELLM_URL&gt;/chat/completions' \
+  --header 'Authorization: Bearer &lt;LITELLM_KEY&gt;' \
+  --header 'Content-Type: application/json' \
+  --data '{
+      &quot;model&quot;: &quot;&lt;MODEL_NAME&gt;&quot;,
+      &quot;messages&quot;: [
+          {
+          &quot;role&quot;: &quot;user&quot;,
+          &quot;content&quot;: &quot;what llm are you&quot;
+          }
+      ]
+  }'
 </code></pre>
-<p>When you are ready to resume sharing, run:</p>
-<pre><code class="language-bash">kalavai pool resume
+<p>Using python:</p>
+<pre><code class="language-python">import requests
+
+LITELLM_URL = &quot;http://206.189.19.245:30916&quot;
+LITELLM_KEY = &quot;sk-qoQC5lijoaBwXoyi_YP1xA&quot;
+
+def model_inference():
+    response = requests.post(
+        f&quot;{LITELLM_URL}/chat/completions&quot;,
+        headers={&quot;Authorization&quot;: f&quot;Bearer {LITELLM_KEY}&quot;},
+        json={
+            &quot;model&quot;: &quot;&lt;MODEL_NAME&gt;&quot;,
+            &quot;messages&quot;: [
+            {
+                &quot;role&quot;: &quot;user&quot;,
+                &quot;content&quot;: &quot;what llm are you&quot;
+            }]
+        }
+    )
+    return response.json()
+
+
+if __name__ == &quot;__main__&quot;:
+    print(
+        model_inference()
+    )
 </code></pre>
-<p>To stop and leave the pool, run the following:</p>
-<pre><code class="language-bash">kalavai pool stop
+<p>For more details on the endpoint(s) parameters, check out <a href="https://docs.litellm.ai/docs/simple_proxy">LiteLLM documentation</a> and the <a href="https://litellm-api.up.railway.app/">Swagger API</a></p>
+<h3 id="b-deploy-new-models">B. Deploy new models</h3>
+<p>Kalavai makes deployment of new models easy with the use of <a href="https://github.com/kalavai-net/kalavai-client/tree/main/templates">templates</a> (no-code recipes for model engines). At the moment we support the following engines:</p>
+<ul>
+<li><a href="https://docs.vllm.ai/en/latest/index.html">vLLM</a></li>
+<li><a href="https://github.com/ggerganov/llama.cpp">llama.cpp</a></li>
+</ul>
+<p>We are constantly adding new templates, so if your favourite one is not yet available, request it in our <a href="https://github.com/kalavai-net/kalavai-client/issues">issues page</a>.</p>
+<h4 id="new-vllm-model">New vLLM model</h4>
+<p>Here we'll deploy an LLM across 2 machines using vLLM. Check our <a href="https://github.com/kalavai-net/kalavai-client/tree/main/templates/vllm">template documentation</a> or our <a href="https://github.com/kalavai-net/kalavai-client/blob/main/examples/multinode_gpu_vllm.md">multi-node deployment guide</a> for more details and parameters with vLLM. Deploying with <a href="https://github.com/kalavai-net/kalavai-client/blob/main/templates/llamacpp/README.md">llama.cpp</a> is similar too.</p>
+<p>You need the LiteLLM KEY of the pool. See <a href="#a-use-existing-models">here for details on how to get it</a>.</p>
+<p>Create a <code>values.yaml</code> file that will include the parameters to pass to the vLLM engine:</p>
+<pre><code class="language-yaml">- name: litellm_key
+  value: &quot;&lt;LITELLM_KEY&gt;&quot;
+  default: &quot;&quot;
+  description: &quot;Master key of the LiteLLM service (central registry)&quot;
+
+- name: workers
+  value: 2
+  default: 1
+  description: &quot;Number of remote workers (for tensor and pipeline parallelism). This is in addition to the main node&quot;
+
+- name: model_id
+  value: Qwen/Qwen2.5-1.5B-Instruct
+  default: null
+  description: &quot;Huggingface model id to load&quot;
+
+- name: pipeline_parallel_size
+  value: 2
+  default: 1
+  description: &quot;Pipeline parallelism (use the number of nodes)&quot;
 </code></pre>
+<p>Use the kalavai client to deploy your model. Choose option <code>0</code> to let kalavai select any available GPU device in the pool:</p>
+<pre><code class="language-bash">$ kalavai job run vllm --values values.yaml
+
+Checking current GPU stock...
+
+SELECT Target GPUs for the job (loading models)   
+0) Any/None
+1) NVIDIA-NVIDIA GeForce RTX 2070 (8GB) (in use: False)
+2) NVIDIA-NVIDIA GeForce RTX 3060 (12GB) (in use: False)
+3) NVIDIA-NVIDIA GeForce RTX 3050 Ti Laptop GPU (4GB) (in use: False)
+--&gt;  : 0
+
+AVOID Target GPUs for the job (loading models) 
+0) Any/None
+1) NVIDIA-NVIDIA GeForce RTX 2070 (8GB) (in use: False)
+2) NVIDIA-NVIDIA GeForce RTX 3060 (12GB) (in use: False)
+3) NVIDIA-NVIDIA GeForce RTX 3050 Ti Laptop GPU (4GB) (in use: False)
+--&gt;  : 0
+
+Template templates/vllm/template.yaml successfully deployed!  
+</code></pre>
+<p>Check progress of your deployment:</p>
+<pre><code class="language-bash">$ kalavai job list
+
+┏━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Owner   ┃ Deployment                 ┃ Workers    ┃ Endpoint                                 ┃
+┡━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ default │ litellm-1                  │ Ready: 3   │ http://100.10.0.5:30916 (mapped to 4000) │
+├─────────┼────────────────────────────┼────────────┼──────────────────────────────────────────┤
+│ &lt;user&gt;  │ qwen-qwen2-5-1-5b-instruct │ Ready: 1   │                                          │
+│         │                            │ Pending: 2 │                                          │
+└─────────┴────────────────────────────┴────────────┴──────────────────────────────────────────┘
+</code></pre>
+<p>Your model will appear listed under your user (<user>) ownership. <strong>Note</strong> once all workers are listed as Ready, the model still needs to be loaded onto the machines and thus it may take some time for it to be available through the LiteLLM API. You can check the workers progress:</p>
+<pre><code class="language-bash">kalavai job logs qwen-qwen2-5-1-5b-instruct
+</code></pre>
+<p>Once the model is loaded, you can interact with it <a href="#a-use-existing-models">as you would with any other model via the LiteLLM API</a>.</p>
+<h4 id="delete-deployment">Delete deployment</h4>
+<p>You are welcome to leave the model running for others, but if you wish to remove your deployment, you can do so at any time with the kalavai client:</p>
+<pre><code class="language-bash">kalavai job delete &lt;deployment name&gt;
+</code></pre>
+<p>where the <deployment name> is the name listed under <code>kalavai job list</code>.</p>
 <h2 id="faqs">FAQs</h2>
-<h3 id="something-isnt-right">Something isn't right</h3>
-<p>Growing pains! Please report any issues in our <a href="https://github.com/kalavai-net/kalavai-client/issues">github repository</a>.</p>
-<h3 id="can-i-join-and-leave-whenever-i-want">Can I join (and leave) whenever I want?</h3>
-<p>Yes, you can, and we won't hold a grudge if you need to use your computer. You can pause or quit altogether as indicated <a href="#stop-sharing">here</a>.</p>
-<h3 id="what-is-in-it-for-me">What is in it for me?</h3>
-<p>If you decide to share your compute with the community, not only you'll get access to all the models we deploy in it, but you will also gather credits in Kalavai, which will be redeemable for computing in any other public pool (this feature is coming really soon).</p>
-<h3 id="is-my-data-secured-private">Is my data secured / private?</h3>
-<p>The public pool in Kalavai has the same level of privacy and security than the general Petals public swarm. See their privacy details <a href="https://github.com/bigscience-workshop/petals/wiki/Security,-privacy,-and-AI-safety">here</a>. In the future we will improve support for private swarms; at the moment private swarms are a beta feature for all kalavai pools that can be used via the <a href="/templates/petals/README.md">petals template</a>.</p>
-<h3 id="is-my-gpu-constantly-being-used">Is my GPU constantly being used?</h3>
-<p>Yes and no. The model weights for the shard you are responsible for are loaded in GPU memory for as long as your machine is sharing. However, this does not mean the GPU is active (doing computing) constantly; computation (and hence the vast majority of energy comsumption) only happens when your shard is summoned to process inference requests.</p>
-<p>If at any point you need your GPU memory back, <a href="#stop-sharing">pause or stop sharing</a> and come back when you are free.</p>
+<blockquote>
+<p>Work in Progress!</p>
+</blockquote>
+<h3 id="why-is-it-free">Why is it free?</h3>
+<p>We thought the community may be interested in a public version, so we have created a public shared pool that anyone can join. It is truly public (anyone can join) and shared (resources are pooled together, and anyone can see and use each other's LLMs).</p>
+<p>We are committed to advancing community computing, and that's why not only we are showing how anyone can create their own pool with their devices, but access to the public instance is free.</p>
+<!-- ### What happens if there are not enough resources to deploy my model?
+
+
+### What if I deploy a model that is already present in the pool?
+
+
+### I love sharing resources, but I want to deploy a model just for myself
+
+
+
+### Can I set boundaries on what I share?
+
+
+
+### Can I use my computer whilst sharing?
+
+
+
+### Can I stop sharing for a bit and come back later?
+
+
+
+### How is this different to X
+
+exo, petals, boinc
+
+
+### What if there are not enough resources for my model?
+
+### What happens when a machine becomes offline? -->
 
 
 
