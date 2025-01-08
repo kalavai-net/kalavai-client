@@ -10,11 +10,11 @@
 </div>
 
 
-# Kalavai: the first platform to crowdsource AI computation
+# Kalavai: the first platform to crowdsource end to end LLM deployment.
 
-### Run large AI projects that you couldn't with your own hardware alone
+### Taming the adoption of Large Language Models
 
-> Kalavai is an **open source** platform that turns **everyday devices** into your very own AI supercomputer. We help you aggregate resources from multiple machines: home desktops, gaming laptops, work computers, cloud VMs... When you need to **go beyond**, Kalavai **facilitates matchmaking** of resources so anyone in our community can tap into a larger pool of devices by **inspiring others to join** your cause.
+> Kalavai is an **open source** tool that turns **everyday devices** into your very own LLM platform. It aggregates resources from multiple machines, including desktops and laptops, and is compatible with most model engines to make LLM deployment and orchestration simple. When you need to **go beyond**, Kalavai public pools **facilitate matchmaking** of resources so anyone in our community can tap into a larger pool of devices. [Potluck](https://en.wikipedia.org/wiki/Potluck#:~:text=A%20potluck%20is%20a%20communal,a%20potluck%20in%20Alberta%2C%20Canada) computing.
 
 <div align="center">
 
@@ -22,19 +22,35 @@
 
 </div>
 
-![Overview of Kalavai](/docs/docs/assets/images/overview_diagram.png)
+<!-- ![Overview of Kalavai](/docs/docs/assets/images/overview_diagram.png) -->
 
 ## What can Kalavai do?
 
-Kalavai's goal is to make AI hardware accessible and affordable to all. We do it in two ways:
+Kalavai's goal is to make using LLMs in real applications accessible and affordable to all. We do it in two ways:
 
-1. The open source version can be used to pool any devices, for _commercial and non-commercial_ purposes. This is perfect as **a management layer for research groups and organisations** that already have hardware lying around and wish to unlock its power, without requiring a devops team. This AI pools are free, secure and totally private.
+1. The open source version can be used to pool any devices, for _commercial and non-commercial_ purposes. This is perfect as **a management layer for research groups and organisations** that already have hardware lying around and wish to unlock its power, without requiring a devops team. This LLM pools are free, secure and totally private.
 
-2. Our [managed version](https://platform.kalavai.net) acts as a **platform to crowdsource AI computing between its members**, facilitating users to connect with the community's resources. _Think Reddit, but instead of memes, users share resources with inspiring projects._
+2. Our [Public pools](https://kalavai-net.github.io/kalavai-client/public_llm_pool/) act as a **platform to crowdsource LLM deployment between its members**, facilitating users to connect with the community's resources.
 
 Both versions can be managed using our free [kalavai CLI](#getting-started) tool.
 
 > Kalavai is at a **very early stage** of its development. We encourage people to use it and give us feedback! Although we are trying to minimise breaking changes, these may occur until we have a stable version (v1.0).
+
+### Support for LLM engines
+
+We currently support out of the box the following LLM engines:
+
+- [vLLM](templates/vllm/README.md)
+- [llama.cpp](templates/llamacpp/README.md)
+- [Petals](templates/petals/README.md)
+
+Coming soon:
+
+- [Aphrodite Engine](https://github.com/aphrodite-engine/aphrodite-engine)
+- [exo](https://github.com/exo-explore/exo)
+- [RayServe](https://docs.ray.io/en/latest/serve/index.html)
+
+Not what you were looking for? [Tell us](https://github.com/kalavai-net/kalavai-client/issues) what engines you'd like to see.
 
 
 ### Want to know more?
@@ -42,16 +58,18 @@ Both versions can be managed using our free [kalavai CLI](#getting-started) tool
 - Get a free [Kalavai account](https://platform.kalavai.net) and access unlimited AI.
 - Full [documentation](https://kalavai-net.github.io/kalavai-client/) for the project.
 - [Join our Substack](https://kalavainet.substack.com/) for updates and be part of our community
+- [Join our discord community](https://discord.gg/6VJWGzxg)
 
 
 ### News updates
 
+- 8 January 2025: Release of [a free, public, shared pool](/docs/docs/public_llm_pool.md) for community LLM deployment
+- 24 December 2024: Release of [public BOINC pool](/docs/docs/boinc.md) to donate computing to scientific projects
 - 23 December 2024: Release of [public petals swarm](/docs/docs/petals.md)
 - 24 November 2024: Common pools with private user spaces
 - 31 October 2024: [Help needed](https://kalavainet.substack.com/p/llm-world-record-testing-the-waters) to test public pools!
 - 30 October 2024: Release of our [public pool platform](https://platform.kalavai.net)
 - 22 October 2024: Announcement of our [world record largest distributed LLM inference](https://kalavainet.substack.com/p/setting-a-new-world-record-the-worlds)
-
 
 
 ## Getting started
@@ -115,8 +133,14 @@ kalavai pool pause
 kalavai pool resume
 ```
 
+## Public pools: crowdsource community resources
 
-## Createa a local pool
+This is the **easiest and most powerful** way to experience Kalavai. It affords users the full resource capabilities of the community and access to all its deployed LLMs, via an [OpenAI-compatible endpoint](https://kalavai-net.github.io/kalavai-client/public_llm_pool/#single-api-endpoint) as well as a [UI-based playground](https://kalavai-net.github.io/kalavai-client/public_llm_pool/#ui-playground).
+
+Check out [our guide](https://kalavai-net.github.io/kalavai-client/public_llm_pool/) on how to join and start deploying LLMs.
+
+
+## Createa a local, private pool
 
 Kalavai is **free to use, no caps, for both commercial and non-commercial purposes**. All you need to get started is one or more computers that can see each other (i.e. within the same network), and you are good to go. If you wish to join computers in different locations / networks, check [managed kalavai](#public-pools-crowdsource-community-resources).
 
@@ -130,7 +154,7 @@ kalavai pool start <pool-name>
 
 Now you are ready to add worker nodes to this seed. To do so, generate a joining token:
 ```bash
-$ kalavai pool token
+$ kalavai pool token --user
 
 Join token: <token>
 ```
@@ -146,51 +170,6 @@ kalavai pool join <token>
 ```
 
 
-## Public pools: crowdsource community resources
-
-Our public platform expands local pools in two key aspects:
-- Worker nodes **no longer have to be in the same local network**
-- Users can **tap into community resources**: inspire others in the community to join their projects with their resources
-
-To get started, you need is a [free account on our platform](https://platform.kalavai.net).
-
-
-### A) Tap into community resources
-
-Create a new pool, using a public location provided by Kalavai:
-```bash
-# Authenticate with your kalavai account
-kalavai login
-
-# Get available public locations
-kalavai location list
-
-┏━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓  
-┃ VPN ┃ location    ┃ subnet        ┃          
-┡━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━┩
-│ 0   │ uk_london_1 │ 100.10.0.0/16 │
-└─────┴─────────────┴───────────────┘
-
-# Create and publish your pool
-kalavai pool start <pool-name> --location uk_london_1
-```
-
-If all goes well, your pool will be created and published on the `Public Seeds` section of our [platform](https://platform.kalavai.net)
-
-![Public seeds](/docs/docs/assets/images/public_seeds.png)
-
-Note: to be able to publish pools your account needs to have sufficient karma points. Earn karma by [sharing your resources](#b-share-resources-with-inspiring-community-projects) with others.
-
-
-### B) Share resources with inspiring community projects
-
-Have idle computing resources? Wish to be part of exciting public projects? Want to give back to the community? Earn social credit (both literally and metaphorically) by sharing your computer with others within the community.
-
-All you need is a public joining key. Get them in our platform, on the list of published pools. Press `Join` and follow the instructions
-
-![alt text](/docs/docs/assets/images/join_public_pool.png)
-
-
 ## What next?
 
 Within a pool, you can monitor the nodes connected and the resources available:
@@ -201,6 +180,9 @@ kalavai node list
 
 # Get all resources within the pool (CPUs, RAM, GPUs...)
 kalavai pool resources
+
+# Get GPUs
+kalavai pool gpus
 ```
 
 ### Enough already, let's run stuff!
