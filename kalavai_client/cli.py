@@ -177,8 +177,8 @@ def set_schedulable(schedulable, node_name=load_server_info(data_key=NODE_NAME_K
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
 
 
-def init_user_workspace():
-    set_schedulable(schedulable=True)
+def init_user_workspace(force_namespace=None):
+    #set_schedulable(schedulable=True)
     
     # load template config and populate with values
     sidecar_template_yaml = load_template(
@@ -190,7 +190,7 @@ def init_user_workspace():
         result = request_to_server(
             method="post",
             endpoint="/v1/create_user_space",
-            data={"config": sidecar_template_yaml},
+            data={"config": sidecar_template_yaml, "force_namespace": force_namespace},
             server_creds=USER_LOCAL_SERVER_FILE,
             user_cookie=USER_COOKIE
         )
@@ -566,8 +566,12 @@ def pool__start(cluster_name, *others,  only_registered_users: bool=False, ip_ad
             break
     console.log("Initialise user workspace...")
     pool_init(pool_config_values=pool_config_values)
-    init_user_workspace()
-    
+    # init default namespace
+    init_user_workspace(force_namespace="default")
+    if only_registered_users:
+        # init user namespace
+        init_user_workspace()
+
     #storage__create(name=DEFAULT_STORAGE_NAME, storage=default_storage_size)
 
     return None
