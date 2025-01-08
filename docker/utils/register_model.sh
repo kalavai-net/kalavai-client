@@ -34,7 +34,6 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-echo $data_string
 result=$(curl -X POST "$litellm_base_url/model/new" \
     -H 'Authorization: Bearer '$litellm_key \
     -H "accept: application/json" \
@@ -42,7 +41,7 @@ result=$(curl -X POST "$litellm_base_url/model/new" \
     -d '{
           "model_name": "'$litellm_model_name'",
           "model_info": '"$model_info"',
-          "litellm_params": {"model": "'$provider'/'$model_id'", "api_base": "'$api_base'"}
+          "litellm_params": {"model": "'$provider'/'$model_id'", "api_base": "'$api_base'", "api_key": "DUMMY"}
         }' 2>&1)
 
 
