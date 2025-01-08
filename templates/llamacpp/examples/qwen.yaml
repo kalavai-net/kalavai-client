@@ -26,7 +26,7 @@
   description: "Specific model file to use (handy for quantized models such as gguf)"
 
 - name: hf_token
-  value: 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
+  value: <your HF token>
   default: null
   description: "Huggingface token, required to load model weights"
 

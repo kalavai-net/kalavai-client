@@ -4,6 +4,7 @@ nav:
     - Welcome to Kalavai: index.md
     - Concepts: concepts.md
     - Getting started: getting_started.md
+    - Choosing job resources: choose_job_resources.md
   - Create AI pools:
     - Local pools: local_pool.md
     - Public pools: public_pool.md

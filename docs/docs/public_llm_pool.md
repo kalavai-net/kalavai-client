@@ -198,6 +198,8 @@ Kalavai makes deployment of new models easy with the use of [templates](https://
 - [vLLM](https://docs.vllm.ai/en/latest/index.html)
 - [llama.cpp](https://github.com/ggerganov/llama.cpp)
 
+Kalavai supports any of the models each of the engines does. For more information, check out [vLLM](https://docs.vllm.ai/en/latest/models/supported_models.html) and [llama.cpp](https://github.com/ggerganov/llama.cpp) support lists. 
+
 We are constantly adding new templates, so if your favourite one is not yet available, request it in our [issues page](https://github.com/kalavai-net/kalavai-client/issues).
 
 #### New vLLM model
@@ -275,7 +277,14 @@ Your model will appear listed under your user (<user>) ownership. **Note** once 
 kalavai job logs qwen-qwen2-5-1-5b-instruct
 ```
 
+Note: _models may take several minutes to be ready, particularly if the model weights are large_. This is due to the time the system takes to 1) download the models from source and 2) distribute them to the memory of each device. This is an overhead that only happens once per deployment.
+
 Once the model is loaded, you can interact with it [as you would with any other model via the LiteLLM API](#a-use-existing-models).
+
+
+#### How many resources to request?
+
+For this job example we don't need to tweak resource parameters (the model fits in a single worker), but for other models you may need to up the number of workers, desired RAM, etc. For more details on how to choose resources for jobs, [check out this guide](choose_job_resources.md).
 
 
 #### Delete deployment
