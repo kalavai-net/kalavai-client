@@ -32,6 +32,11 @@
   default: "sk-1234"
   description: "Master key of the LiteLLM service (central registry)"
 
+- name: replicas
+  value: 1
+  default: 1
+  description: "Number of replicas for the deployment"
+
 - name: cpus
   value: "2"
   default: "2"

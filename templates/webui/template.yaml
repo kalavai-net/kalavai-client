@@ -15,7 +15,7 @@ spec:
   - event: PodEvicted # Restart the job when a pod is evicted.
     action: RestartJob
   tasks:
-  - replicas: 1   # One ps pod specified
+  - replicas: {{replicas}}   # One ps pod specified
     name: server
     template: # Definition of the ps pod
       metadata:
