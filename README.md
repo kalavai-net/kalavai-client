@@ -10,11 +10,11 @@
 </div>
 
 
-# Kalavai: the first platform to crowdsource end to end LLM deployment.
+# Kalavai: the first platform to crowdsource end to end LLM deployment at scale
 
 ### Taming the adoption of Large Language Models
 
-> Kalavai is an **open source** tool that turns **everyday devices** into your very own LLM platform. It aggregates resources from multiple machines, including desktops and laptops, and is compatible with most model engines to make LLM deployment and orchestration simple. When you need to **go beyond**, Kalavai public pools **facilitate matchmaking** of resources so anyone in our community can tap into a larger pool of devices. [Potluck](https://en.wikipedia.org/wiki/Potluck#:~:text=A%20potluck%20is%20a%20communal,a%20potluck%20in%20Alberta%2C%20Canada) computing.
+> Kalavai is an **open source** tool that turns **everyday devices** into your very own LLM platform. It aggregates resources from multiple machines, including desktops and laptops, and is **compatible with most model engines** to make LLM deployment and orchestration simple. When you need to **go beyond**, Kalavai public pools **facilitate matchmaking** of resources so anyone in our community can tap into a larger pool of devices. [Potluck](https://en.wikipedia.org/wiki/Potluck#:~:text=A%20potluck%20is%20a%20communal,a%20potluck%20in%20Alberta%2C%20Canada) computing.
 
 <div align="center">
 
@@ -22,11 +22,21 @@
 
 </div>
 
-<!-- ![Overview of Kalavai](/docs/docs/assets/images/overview_diagram.png) -->
+### News updates
+
+- 9 January 2025: Added support for [Aphrodite Engine](https://github.com/aphrodite-engine/aphrodite-engine) models
+- 8 January 2025: Release of [a free, public, shared pool](/docs/docs/public_llm_pool.md) for community LLM deployment
+- 24 December 2024: Release of [public BOINC pool](/docs/docs/boinc.md) to donate computing to scientific projects
+- 23 December 2024: Release of [public petals swarm](/docs/docs/petals.md)
+- 24 November 2024: Common pools with private user spaces
+- 30 October 2024: Release of our [public pool platform](https://platform.kalavai.net)
+
 
 ## What can Kalavai do?
 
-Kalavai's goal is to make using LLMs in real applications accessible and affordable to all. We do it in two ways:
+Kalavai's goal is to make using LLMs in real applications accessible and affordable to all. It's a _magic box_ that **integrates all the components required to make LLM useful in the age of massive computing**, from sourcing computing power, managing distributed infrastructure and storage, using industry-standard model engines and orchestration of LLMs. 
+
+We do it in two ways:
 
 1. The open source version can be used to pool any devices, for _commercial and non-commercial_ purposes. This is perfect as **a management layer for research groups and organisations** that already have hardware lying around and wish to unlock its power, without requiring a devops team. This LLM pools are free, secure and totally private.
 
@@ -42,11 +52,11 @@ We currently support out of the box the following LLM engines:
 
 - [vLLM](templates/vllm/README.md)
 - [llama.cpp](templates/llamacpp/README.md)
+- [Aphrodite Engine](https://github.com/aphrodite-engine/aphrodite-engine)
 - [Petals](templates/petals/README.md)
 
 Coming soon:
 
-- [Aphrodite Engine](https://github.com/aphrodite-engine/aphrodite-engine)
 - [exo](https://github.com/exo-explore/exo)
 - [RayServe](https://docs.ray.io/en/latest/serve/index.html)
 
@@ -59,17 +69,6 @@ Not what you were looking for? [Tell us](https://github.com/kalavai-net/kalavai-
 - Full [documentation](https://kalavai-net.github.io/kalavai-client/) for the project.
 - [Join our Substack](https://kalavainet.substack.com/) for updates and be part of our community
 - [Join our discord community](https://discord.gg/6VJWGzxg)
-
-
-### News updates
-
-- 8 January 2025: Release of [a free, public, shared pool](/docs/docs/public_llm_pool.md) for community LLM deployment
-- 24 December 2024: Release of [public BOINC pool](/docs/docs/boinc.md) to donate computing to scientific projects
-- 23 December 2024: Release of [public petals swarm](/docs/docs/petals.md)
-- 24 November 2024: Common pools with private user spaces
-- 31 October 2024: [Help needed](https://kalavainet.substack.com/p/llm-world-record-testing-the-waters) to test public pools!
-- 30 October 2024: Release of our [public pool platform](https://platform.kalavai.net)
-- 22 October 2024: Announcement of our [world record largest distributed LLM inference](https://kalavainet.substack.com/p/setting-a-new-world-record-the-worlds)
 
 
 ## Getting started
