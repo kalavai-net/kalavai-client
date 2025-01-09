@@ -13,16 +13,17 @@ List of supported model architectures [here](https://aphrodite.pygmalion.chat/pa
 
 ## Key template variables
 
-- `storage`: Pool storage to use to cache model weights. Useful to persist weights across jobs. Pools have a default storage named `pool-cache`, and you can create new ones with `kalavai storage create <name> <capacity>`.
-- `num_workers`: Number of workers per deployment (for tensor parallelism, i.e. how many pieces to divide the model into)
-- `repo_id`: Huggingface repository to load from [Huggingface](https://huggingface.co/models). This usually takes the form of `OrgName/ModelID`
-- `filename` (optional): if a repo contains multiple versions of a model, one can explicitly define which file to fetch. This is useful when downloading a GGUF model. Only the filename is requred (e.g. `Llama-3.1-8B-Lexi-Uncensored_V2_F16.gguf` on repository [Orenguteng/Llama-3.1-8B-Lexi-Uncensored-V2-GGUF](https://huggingface.co/Orenguteng/Llama-3.1-8B-Lexi-Uncensored-V2-GGUF/tree/main))
+- `workers`: Number of workers per deployment (for tensor and pipeline parallelism, i.e. how many pieces to divide the model into)
+- `model_id`: Huggingface repository to load from [Huggingface](https://huggingface.co/models). This usually takes the form of `OrgName/ModelID`
 - `hf_token` (optional): Huggingface token, required to load licensed model weights
-- `gpus`: GPUs per single worker (final one = gpus * num_workers)
-- `gpu_vram`: Minimum vRAM for each GPU requested (total one = gpus * num_workers * gpu_vram)
-- `extra` (optional): any extra parameters to pass to aphrodite engine. Expected format: `--parameter1_name parameter1_value --parameterX_name parameterX_value`
+- `extra` (optional): any [extra parameters](https://github.com/aphrodite-engine/aphrodite-engine/wiki/3.-Engine-Options) to pass to Aphrodite engine. Expected format: `--parameter1_name parameter1_value --parameterX_name parameterX_value`
 - `tensor_parallel_size`: Tensor parallelism (use the number of GPUs per node)
 - `pipeline_parallel_size`: Pipeline parallelism (use the number of nodes)
+
+If you have a [LiteLLM server](https://github.com/kalavai-net/kalavai-client/tree/main/templates/litellm) deployed in your pool (default for [public LLM pool](https://kalavai-net.github.io/kalavai-client/public_llm_pool/)), you can pass on the following parameters to rregister the model with it:
+
+- `litellm_key` as the API key.
+- `litellm_base_url` as the endpoint for the LiteLLM job.
 
 
 ## How to use
@@ -69,12 +70,11 @@ client = OpenAI(
     api_key=openai_api_key,
     base_url=openai_api_base,
 )
-completion = client.completions.create(model="qwen2.5-0.5B.yaml",
+completion = client.completions.create(model="Qwen/Qwen2.5-0.5B-Instruct",
                                       prompt="San Francisco is a")
 print("Completion result:", completion)
 ```
 
 ## Examples
 
-Check out [example](examples/) `values.yaml` ready for deployment
-- [qwen2.5-0.5B.yaml](examples/qwen2.5-0.5B.yaml)
+Check out the [qwen example](examples/qwen2.5-0.5B.yaml),ready for deployment.

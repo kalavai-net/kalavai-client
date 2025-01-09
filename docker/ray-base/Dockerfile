@@ -7,3 +7,10 @@ RUN sudo apt update && sudo apt install --no-install-recommends -y build-essenti
 RUN python3 -m venv $HOME/workspace/env
 RUN . $HOME/workspace/env/bin/activate && \
     pip3 install ray[serve-grpc,default]==2.39.0 --no-cache-dir
+
+COPY download_hf.py .
+COPY download_model.sh .
+COPY ray_init.sh .
+
+RUN sudo chmod +x $HOME/workspace/ray_init.sh
+RUN sudo chmod +x $HOME/workspace/download_model.sh

@@ -8,6 +8,9 @@ while [ $# -gt 0 ]; do
     # --local_dir=*)
     #   local_dir="${1#*=}"
     #   ;;
+    --model_filename=*)
+      model_filename="${1#*=}"
+      ;;
     --remote_dir=*)
       remote_dir="${1#*=}"
       ;;
@@ -22,10 +25,19 @@ done
 
 source /home/ray/workspace/env/bin/activate
 
-echo $model_id" downloading..."
-python /home/ray/workspace/download_hf.py \
-  --repo_id $model_id \
-  --local_dir $remote_dir/$model_id
+if [ -z "$model_filename" ]; then
+  echo $model_id" downloading..."
+  python /home/ray/workspace/download_hf.py \
+    --repo_id $model_id \
+    --local_dir $remote_dir/$model_id
+else
+  echo $model_id" -> "$model_filename" downloading..."
+  python /home/ray/workspace/download_hf.py \
+    --repo_id $repo_id \
+    --filename $model_filename \
+    --local_dir $remote_dir
+fi
+
 
 # check if model is already present
 # result=$(HF_HOME=$remote_dir huggingface-cli scan-cache -v | grep "$model_id")

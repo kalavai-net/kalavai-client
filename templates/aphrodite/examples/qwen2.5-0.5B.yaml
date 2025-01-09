@@ -1,39 +1,29 @@
-- name: deployment_name
-  value: aphrodite-1
-  default: aphrodite-1
-  description: "Name of the deployment job"
-
-- name: storage
-  value: "pool-cache"
-  default: "pool-cache"
-  description: "Pool storage to use to cache model weights"
-
-- name: remote_workers
-  value: "0"
-  default: "0"
+- name: workers
+  value: 1
+  default: 1
   description: "Number of remote workers (for tensor and pipeline parallelism). This is in addition to the main node"
 
-- name: repo_id
+- name: model_id
   value: Qwen/Qwen2.5-0.5B-Instruct
   default: null
   description: "Huggingface model id to load"
 
-- name: model_filename
-  value: "None"
-  default: "None"
-  description: "Specific model file to use (handy for quantized models such as gguf)"
-
-- name: gpus
-  value: "1"
-  default: "1"
-  description: "GPUs per single worker (final one = gpus * num_workers)"
-
 - name: memory
-  value: "8"
-  default: "8"
+  value: 10
+  default: 8
   description: "RAM memory per single worker (final one = memory * num_workers)"
 
+- name: tensor_parallel_size
+  value: "1"
+  default: "1"
+  description: "Tensor parallelism (use the number of GPUs per node)"
+
+- name: pipeline_parallel_size
+  value: "1"
+  default: "1"
+  description: "Pipeline parallelism (use the number of nodes)"
+
 - name: extra
-  value: "--dtype float16"
+  value: "--dtype float16 --launch-kobold-api"
   default: ""
   description: "Extra parameters to pass to the vLLM server. See https://aphrodite.pygmalion.chat/"
