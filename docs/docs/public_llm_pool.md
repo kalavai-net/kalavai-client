@@ -197,8 +197,9 @@ Kalavai makes deployment of new models easy with the use of [templates](https://
 
 - [vLLM](https://docs.vllm.ai/en/latest/index.html)
 - [llama.cpp](https://github.com/ggerganov/llama.cpp)
+- [Aphrodite Engine](https://github.com/aphrodite-engine/aphrodite-engine)
 
-Kalavai supports any of the models each of the engines does. For more information, check out [vLLM](https://docs.vllm.ai/en/latest/models/supported_models.html) and [llama.cpp](https://github.com/ggerganov/llama.cpp) support lists. 
+Kalavai supports any of the models each of the engines does. For more information, check out [vLLM](https://docs.vllm.ai/en/latest/models/supported_models.html), [llama.cpp](https://github.com/ggerganov/llama.cpp) and [Aphrodite Engine](https://aphrodite.pygmalion.chat/pages/usage/models.html) support lists. 
 
 We are constantly adding new templates, so if your favourite one is not yet available, request it in our [issues page](https://github.com/kalavai-net/kalavai-client/issues).
 
