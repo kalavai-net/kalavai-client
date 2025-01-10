@@ -37,6 +37,8 @@ spec:
             value: {{postgres_user}}
           - name: POSTGRES_PASSWORD
             value: {{postgres_password}}
+          - name: PGDATA
+            value: "/var/lib/postgresql/data/pgdata"
           resources:
             requests:
               cpu: {{cpu}}
@@ -45,7 +47,7 @@ spec:
               cpu: {{cpu}}
               memory: {{memory}}Gi
           volumeMounts:
-            - mountPath: /var/lib/postgresql
+            - mountPath: /var/lib/postgresql/data
               name: postgresdata
         volumes:
         - name: postgresdata
