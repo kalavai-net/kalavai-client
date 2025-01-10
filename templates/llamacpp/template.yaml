@@ -8,6 +8,14 @@ metadata:
 spec:
   queue: default
   schedulerName: volcano
+  volumes:
+  - mountPath: "/cache"
+    volumeClaim:
+      accessModes: [ "ReadWriteMany" ]
+      storageClassName: "longhorn"
+      resources:
+        requests:
+          storage: {{working_memory}}Gi
   plugins:
     env: []
     svc: ["--disable-network-policy=true"]
@@ -131,13 +139,10 @@ spec:
               cpu: {{cpus}}
               memory: {{memory}}Gi
               #nvidia.com/gpu: {{gpus}}
-          volumeMounts:
-            - name: cache
-              mountPath: /cache
-        volumes:
-        - name: cache
-          emptyDir:
-            sizeLimit: {{working_memory}}Gi
+          # volumeMounts:
+          #   - name: cache
+          #     mountPath: /cache
+        # volumes:
         # - name: cache
         #   persistentVolumeClaim:
         #     claimName: {{storage}}

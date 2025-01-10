@@ -8,6 +8,14 @@ metadata:
 spec:
   queue: default
   schedulerName: volcano
+  volumes:
+  - mountPath: "/home/ray/cache"
+    volumeClaim:
+      accessModes: [ "ReadWriteMany" ]
+      storageClassName: "longhorn"
+      resources:
+        requests:
+          storage: {{working_memory}}Gi
   plugins:
     env: []
     svc: ["--disable-network-policy=true"]
@@ -144,19 +152,11 @@ spec:
           volumeMounts:
             - mountPath: /dev/shm
               name: dshm
-            - name: cache
-              mountPath: /home/ray/cache
         volumes:
         - name: dshm
           emptyDir:
             medium: Memory
             sizeLimit: {{memory * 0.5}}Gi
-        - name: cache
-          emptyDir:
-            sizeLimit: {{working_memory}}Gi
-        # - name: cache
-        #   persistentVolumeClaim:
-        #     claimName: {{storage}}
         restartPolicy: OnFailure
   - replicas: {{workers - 1}}
     name: worker
@@ -198,16 +198,11 @@ spec:
           volumeMounts:
             - mountPath: /dev/shm
               name: dshm
-            - name: cache
-              mountPath: /home/ray/cache
         volumes:
         - name: dshm
           emptyDir:
             medium: Memory
             sizeLimit: {{memory * 0.5}}Gi
-        - name: cache
-          emptyDir:
-            sizeLimit: {{working_memory}}Gi
         # - name: cache
         #   persistentVolumeClaim:
         #     claimName: {{storage}}

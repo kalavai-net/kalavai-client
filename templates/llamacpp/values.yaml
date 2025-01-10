@@ -12,9 +12,9 @@
   description: "[DO NOT CHANGE] Ports opened on master node (will be shown as endpoints for the job)"
 ############################
 
-- name: working memory
-  value: 10
-  default: 10
+- name: working_memory
+  value: 5
+  default: 5
   description: "Temporary storage to use to cache model weights (in GB)"
 
 - name: litellm_base_url
