@@ -46,7 +46,7 @@
   description: ""
 
 - name: longhorn_replicas
-  default: 1
+  default: 3
   description: ""
 
 ## MinIO

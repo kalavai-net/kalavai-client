@@ -5,9 +5,6 @@ while [ $# -gt 0 ]; do
     --model_id=*)
       model_id="${1#*=}"
       ;;
-    # --local_dir=*)
-    #   local_dir="${1#*=}"
-    #   ;;
     --model_filename=*)
       model_filename="${1#*=}"
       ;;
@@ -37,19 +34,3 @@ else
     --filename $model_filename \
     --local_dir $remote_dir
 fi
-
-
-# check if model is already present
-# result=$(HF_HOME=$remote_dir huggingface-cli scan-cache -v | grep "$model_id")
-# if [ -z "${result}" ];
-# then
-#     echo $model_id" not present, downloading..."
-#     # model is not present, download
-#     # This workaround is required since it is not currently possible to download
-#     # models directly to s3 bucket (but it is possible to copy them over)
-#     HF_HOME=$local_dir huggingface-cli download $model_id --quiet
-#     cp -L -r $local_dir/* $remote_dir/
-#     rm -r $local_dir/*
-# else
-#     echo "present"
-# fi

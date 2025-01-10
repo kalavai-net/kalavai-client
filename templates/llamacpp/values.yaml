@@ -12,10 +12,10 @@
   description: "[DO NOT CHANGE] Ports opened on master node (will be shown as endpoints for the job)"
 ############################
 
-- name: storage
-  value: "models-hub"
-  default: "models-hub"
-  description: "Pool storage to use to cache model weights"
+- name: working memory
+  value: 10
+  default: 10
+  description: "Temporary storage to use to cache model weights (in GB)"
 
 - name: litellm_base_url
   value: "http://litellm.default.svc.cluster.local:4000" #"http://192.168.68.67:30219"
@@ -24,7 +24,7 @@
 
 - name: litellm_key
   value: ""
-  default: "sk-1234"
+  default: ""
   description: "Master key of the LiteLLM service (central registry)"
 
 - name: cpu_workers

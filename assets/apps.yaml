@@ -8,8 +8,6 @@ repositories:
     url: https://helm.ngc.nvidia.com/nvidia
   - name: kalavai
     url: https://kalavai-net.github.io/helm-charts/
-  # - name: hami-charts
-  #   url: https://project-hami.github.io/HAMi/
   - name: longhorn
     url: https://charts.longhorn.io
   - name: volcano-sh
@@ -26,13 +24,13 @@ releases:
     namespace: dlf
     chart: kalavai/kalavai-datashim
     version: "0.4.0"
-    installed: true
+    installed: false
   - name: minio
     needs: 
     - kalavai/longhorn
     namespace: minio
     chart: minio/minio
-    installed: true
+    installed: false
     set:
     - name: replicas
       value: {{minio_replicas}}
@@ -64,12 +62,6 @@ releases:
       value: "public"
     - name: buckets[0].purge
       value: false
-    # - name: svcaccts[0].accessKey
-    #   value: "readwritekey"
-    # - name: svcaccts[0].secretKeys
-    #   value: "accesspassword"
-    # - name: svcaccts[0].user
-    #   value: "admin"
   - name: helios
     namespace: kalavai
     chart: kalavai/kalavai-helios
@@ -132,8 +124,6 @@ releases:
       value: "{{longhorn_label_selector_value}}"
     - name: defaultSettings.storageMinimalAvailablePercentage
       value: {{longhorn_minimal_available_percentage}}
-    # - name: persistence.migratable
-    #   value: true
   - name: lws
     namespace: kalavai
     chart: kalavai/lws

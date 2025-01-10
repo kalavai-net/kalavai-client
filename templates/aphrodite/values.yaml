@@ -19,13 +19,13 @@
 
 - name: litellm_key
   value: ""
-  default: "sk-1234"
+  default: ""
   description: "Master key of the LiteLLM service (central registry)"
 
-- name: storage
-  value: "models-hub"
-  default: "models-hub"
-  description: "Pool storage to use to cache model weights"
+- name: working memory
+  value: 10
+  default: 10
+  description: "Temporary storage to use to cache model weights (in GB)"
 
 - name: workers
   value: 1

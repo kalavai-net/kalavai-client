@@ -1,12 +1,3 @@
-# STORAGE #
-# - name: sc_label_selector
-#   default: "kalavai.storage.enabled:True"
-#   description: ""
-
-# - name: sc_replicas
-#   default: 2
-#   description: ""
-
 - name: dataset_secret_name
   default: "kalavai-s3-secret"
   description: ""

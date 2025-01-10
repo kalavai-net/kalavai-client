@@ -18,6 +18,76 @@ spec:
     action: CompleteJob
   tasks:
   - replicas: 1   # One ps pod specified
+    name: registrar
+    template: # Definition of the ps pod
+      terminationGracePeriodSeconds: 30 #give enough time to the preStop hook
+      metadata:
+        labels:
+          kalavai.job.name: {{deployment_id}}
+      spec:
+        containers:
+        - name: aphrodite-registrar
+          image: docker.io/bundenth/kalavai-utils:latest
+          env:
+          - name: VC_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          command:
+          - sh
+          - -c
+          - |
+            if [ ! -z "{{litellm_base_url}}" ]; then
+              echo $VC_NAMESPACE;
+              # wait for model to be served
+              echo "Waiting for model service..."
+              PS_HOST=`cat /etc/volcano/server.host`;
+              /workspace/wait_for_service.sh --servers="$PS_HOST" --port=8080
+              # Register model with LiteLLM
+              PS_HOST=`cat /etc/volcano/server.host`;
+              LITELLM_MODEL_NAME={{deployment_id}};
+              echo "Creating new entry on LiteLLM: (host: $PS_HOST) - (model id: $LITELLM_MODEL_NAME)";
+              API_BASE="http://"$PS_HOST"."$VC_NAMESPACE":8080/v1";
+              /workspace/register_model.sh \
+                --litellm_base_url={{litellm_base_url}} \
+                --litellm_key={{litellm_key}} \
+                --litellm_model_name="$LITELLM_MODEL_NAME" \
+                --model_id={{model_id}} \
+                --provider=hosted_vllm \
+                --api_base=$API_BASE \
+                --model_info='{"extra": "{{extra}}", "cpus": "{{cpus}}", "gpus": "{{gpus}}", "memory": "{{memory}}", "tensor_parallel_size": "{{tensor_parallel_size}}", "pipeline_parallel_size": "{{pipeline_parallel_size}}"}'
+            else
+              echo "[Warning] Missing LiteLLM base url. Model not publicly registered"
+              tail -f /dev/null
+            fi
+          lifecycle:
+            preStop:
+              exec:
+                command: 
+                - sh
+                - -c
+                - |       
+                  if [ ! -z "{{litellm_key}}" ]; then
+                    LITELLM_MODEL_NAME={{deployment_id}};       
+                    MODEL_ID=$(python3 /workspace/get_litellm_id.py \
+                      --litellm_url={{litellm_base_url}} \
+                      --api_key={{litellm_key}} \
+                      --model_name="$LITELLM_MODEL_NAME");
+                    curl -X POST "{{litellm_base_url}}/model/delete" \
+                        -H 'Authorization: Bearer {{litellm_key}}' \
+                        -H "accept: application/json" \
+                        -H "Content-Type: application/json" \
+                        -d '{ "id": "'$MODEL_ID'"}';
+                  fi
+          resources:
+            requests:
+              cpu: 0.1
+              memory: 0.1Gi
+            limits:
+              cpu: 0.1
+              memory: 0.1Gi
+        restartPolicy: OnFailure
+  - replicas: 1   # One ps pod specified
     name: server
     template: # Definition of the ps pod
       metadata:
@@ -81,78 +151,11 @@ spec:
             medium: Memory
             sizeLimit: {{memory * 0.5}}Gi
         - name: cache
-          persistentVolumeClaim:
-            claimName: {{storage}}
-        restartPolicy: OnFailure
-  - replicas: 1   # One ps pod specified
-    name: registrar
-    template: # Definition of the ps pod
-      terminationGracePeriodSeconds: 30 #give enough time to the preStop hook
-      metadata:
-        labels:
-          kalavai.job.name: {{deployment_id}}
-      spec:
-        containers:
-        - name: aphrodite-registrar
-          image: docker.io/bundenth/kalavai-utils:latest
-          env:
-          - name: VC_NAMESPACE
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.namespace
-          command:
-          - sh
-          - -c
-          - |
-            if [ ! -z "{{litellm_base_url}}" ]; then
-              echo $VC_NAMESPACE;
-              # wait for model to be served
-              echo "Waiting for model service..."
-              PS_HOST=`cat /etc/volcano/server.host`;
-              /workspace/wait_for_service.sh --servers="$PS_HOST" --port=8080
-              # Register model with LiteLLM
-              PS_HOST=`cat /etc/volcano/server.host`;
-              LITELLM_MODEL_NAME={{deployment_id}};
-              echo "Creating new entry on LiteLLM: (host: $PS_HOST) - (model id: $LITELLM_MODEL_NAME)";
-              API_BASE="http://"$PS_HOST"."$VC_NAMESPACE":8080/v1";
-              /workspace/register_model.sh \
-                --litellm_base_url={{litellm_base_url}} \
-                --litellm_key={{litellm_key}} \
-                --litellm_model_name="$LITELLM_MODEL_NAME" \
-                --model_id={{model_id}} \
-                --provider=hosted_vllm \
-                --api_base=$API_BASE \
-                --model_info='{"extra": "{{extra}}", "cpus": "{{cpus}}", "gpus": "{{gpus}}", "memory": "{{memory}}", "tensor_parallel_size": "{{tensor_parallel_size}}", "pipeline_parallel_size": "{{pipeline_parallel_size}}"}'
-            else
-              echo "[Warning] Missing LiteLLM base url. Model not publicly registered"
-              tail -f /dev/null
-            fi
-          lifecycle:
-            preStop:
-              exec:
-                command: 
-                - sh
-                - -c
-                - |       
-                  if [ ! -z "{{litellm_base_url}}" ]; then
-                    LITELLM_MODEL_NAME={{deployment_id}};       
-                    MODEL_ID=$(python3 /workspace/get_litellm_id.py \
-                      --litellm_url={{litellm_base_url}} \
-                      --api_key={{litellm_key}} \
-                      --model_name="$LITELLM_MODEL_NAME");
-                    curl -X POST "{{litellm_base_url}}/model/delete" \
-                        -H 'Authorization: Bearer {{litellm_key}}' \
-                        -H "accept: application/json" \
-                        -H "Content-Type: application/json" \
-                        -d '{ "id": "'$MODEL_ID'"}';
-                  fi
-          resources:
-            requests:
-              cpu: 0.1
-              memory: 0.1Gi
-            limits:
-              cpu: 0.1
-              memory: 0.1Gi
+          emptyDir:
+            sizeLimit: {{working_memory}}Gi
+        # - name: cache
+        #   persistentVolumeClaim:
+        #     claimName: {{storage}}
         restartPolicy: OnFailure
   - replicas: {{workers - 1}}
     name: worker
@@ -202,6 +205,9 @@ spec:
             medium: Memory
             sizeLimit: {{memory * 0.5}}Gi
         - name: cache
-          persistentVolumeClaim:
-            claimName: {{storage}}
+          emptyDir:
+            sizeLimit: {{working_memory}}Gi
+        # - name: cache
+        #   persistentVolumeClaim:
+        #     claimName: {{storage}}
         restartPolicy: OnFailure

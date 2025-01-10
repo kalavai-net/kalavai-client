@@ -64,7 +64,7 @@ spec:
                 - sh
                 - -c
                 - |       
-                  if [ ! -z "{{litellm_base_url}}" ]; then
+                  if [ ! -z "{{litellm_key}}" ]; then
                     LITELLM_MODEL_NAME="{{deployment_id}}";         
                     MODEL_ID=$(python3 /workspace/get_litellm_id.py \
                       --litellm_url={{litellm_base_url}} \
@@ -136,8 +136,11 @@ spec:
               mountPath: /cache
         volumes:
         - name: cache
-          persistentVolumeClaim:
-            claimName: {{storage}}
+          emptyDir:
+            sizeLimit: {{working_memory}}Gi
+        # - name: cache
+        #   persistentVolumeClaim:
+        #     claimName: {{storage}}
         restartPolicy: OnFailure
   - replicas: {{cpu_workers}}
     name: cpu

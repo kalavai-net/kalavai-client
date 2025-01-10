@@ -18,74 +18,6 @@ spec:
     action: CompleteJob
   tasks:
   - replicas: 1   # One ps pod specified
-    name: server
-    template: # Definition of the ps pod
-      metadata:
-        annotations:
-          # must have these annotations
-          {{nouse_gputype}}
-          {{use_gputype}}
-        labels:
-          role: leader
-          kalavai.job.name: {{deployment_id}}
-      spec:
-        runtimeClassName: nvidia
-        containers:
-        - name: vllm-leader
-          image: docker.io/bundenth/ray-vllm:latest #v1.1.4
-          command:
-          - sh
-          - -c
-          - |
-            # Check if model is already on s3 or download
-            /home/ray/workspace/download_model.sh \
-              --model_id={{model_id}} \
-              --remote_dir="/home/ray/cache";
-            RAY_BACKEND_LOG_LEVEL=error /home/ray/workspace/ray_init.sh leader --ray_cluster_size=$(({{workers}})) --ray_object_store_memory={{memory * 500000000}};
-            sleep 30;
-            nvidia-smi;
-            ray status;
-            # Run model
-            /home/ray/workspace/run_model.sh \
-              --model_path="/home/ray/cache/{{model_id}}" \
-              --model_id={{model_id}} \
-              --extra='{{extra}}' \
-              --tensor_parallel_size={{tensor_parallel_size}} \
-              --pipeline_parallel_size={{pipeline_parallel_size}} \
-              --lora_modules="{{lora_modules}}";
-            exit 1
-          env:
-          - name: HF_TOKEN
-            value: {{hf_token}}
-          ports:
-          - containerPort: 8080
-            name: model-port
-          - containerPort: 8265
-            name: dashboard-port
-          resources:
-            requests:
-              cpu: {{cpus}}
-              memory: {{memory}}Gi
-              nvidia.com/gpu: {{gpus}}
-            limits:
-              cpu: {{cpus}}
-              memory: {{memory}}Gi
-              nvidia.com/gpu: {{gpus}}
-          volumeMounts:
-            - mountPath: /dev/shm
-              name: dshm
-            - name: cache
-              mountPath: /home/ray/cache
-        volumes:
-        - name: dshm
-          emptyDir:
-            medium: Memory
-            sizeLimit: {{memory * 0.5}}Gi
-        - name: cache
-          persistentVolumeClaim:
-            claimName: {{storage}}
-        restartPolicy: OnFailure
-  - replicas: 1   # One ps pod specified
     name: registrar
     template: # Definition of the ps pod
       terminationGracePeriodSeconds: 30 #give enough time to the preStop hook
@@ -135,7 +67,7 @@ spec:
                 - sh
                 - -c
                 - |       
-                  if [ ! -z "{{litellm_base_url}}" ]; then
+                  if [ ! -z "{{litellm_key}}" ]; then
                     LITELLM_MODEL_NAME="{{deployment_id}}";         
                     MODEL_ID=$(python3 /workspace/get_litellm_id.py \
                       --litellm_url={{litellm_base_url}} \
@@ -154,6 +86,77 @@ spec:
             limits:
               cpu: 0.1
               memory: 0.1Gi
+        restartPolicy: OnFailure
+  - replicas: 1   # One ps pod specified
+    name: server
+    template: # Definition of the ps pod
+      metadata:
+        annotations:
+          # must have these annotations
+          {{nouse_gputype}}
+          {{use_gputype}}
+        labels:
+          role: leader
+          kalavai.job.name: {{deployment_id}}
+      spec:
+        runtimeClassName: nvidia
+        containers:
+        - name: vllm-leader
+          image: docker.io/bundenth/ray-vllm:latest
+          command:
+          - sh
+          - -c
+          - |
+            # Download model weights
+            /home/ray/workspace/download_model.sh \
+              --model_id={{model_id}} \
+              --remote_dir="/home/ray/cache";
+            RAY_BACKEND_LOG_LEVEL=error /home/ray/workspace/ray_init.sh leader --ray_cluster_size=$(({{workers}})) --ray_object_store_memory={{memory * 500000000}};
+            sleep 30;
+            nvidia-smi;
+            ray status;
+            # Run model
+            /home/ray/workspace/run_model.sh \
+              --model_path="/home/ray/cache/{{model_id}}" \
+              --model_id={{model_id}} \
+              --extra='{{extra}}' \
+              --tensor_parallel_size={{tensor_parallel_size}} \
+              --pipeline_parallel_size={{pipeline_parallel_size}} \
+              --lora_modules="{{lora_modules}}";
+            exit 1
+          env:
+          - name: HF_TOKEN
+            value: {{hf_token}}
+          ports:
+          - containerPort: 8080
+            name: model-port
+          - containerPort: 8265
+            name: dashboard-port
+          resources:
+            requests:
+              cpu: {{cpus}}
+              memory: {{memory}}Gi
+              nvidia.com/gpu: {{gpus}}
+            limits:
+              cpu: {{cpus}}
+              memory: {{memory}}Gi
+              nvidia.com/gpu: {{gpus}}
+          volumeMounts:
+            - mountPath: /dev/shm
+              name: dshm
+            - name: cache
+              mountPath: /home/ray/cache
+        volumes:
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: {{memory * 0.5}}Gi
+        - name: cache
+          emptyDir:
+            sizeLimit: {{working_memory}}Gi
+        # - name: cache
+        #   persistentVolumeClaim:
+        #     claimName: {{storage}}
         restartPolicy: OnFailure
   - replicas: {{workers - 1}}
     name: worker
@@ -203,6 +206,9 @@ spec:
             medium: Memory
             sizeLimit: {{memory * 0.5}}Gi
         - name: cache
-          persistentVolumeClaim:
-            claimName: {{storage}}
+          emptyDir:
+            sizeLimit: {{working_memory}}Gi
+        # - name: cache
+        #   persistentVolumeClaim:
+        #     claimName: {{storage}}
         restartPolicy: OnFailure
