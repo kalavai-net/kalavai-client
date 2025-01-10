@@ -709,7 +709,13 @@
 <p>Work in progress.</p>
 </blockquote>
 <h1 id="choosing-pool-resources-for-your-jobs">Choosing pool resources for your jobs</h1>
-<p>For this example we don't need to tweak resource parameters, but for other models you may need to up the number of workers, desired RAM, etc. More information in the internal documentation of the engine's template (<a href="https://github.com/kalavai-net/kalavai-client/tree/main/templates/vllm">vLLM</a>, <a href="https://github.com/kalavai-net/kalavai-client/tree/main/templates/llamacpp">llama.cpp</a>). If you want help on how much a model may require, you can use our internal estimation tool:</p>
+<p>Jobs describe the required resources for workers. All of these parameters have default values which are generally good for most cases, but more demanding LLMs will require extra resources. Here are the general resource parameters that are common to all jobs. For engine-specific information, check out the documentation for the job (<a href="https://github.com/kalavai-net/kalavai-client/tree/main/templates/vllm">vLLM</a>, <a href="https://github.com/kalavai-net/kalavai-client/tree/main/templates/llamacpp">llama.cpp</a>)</p>
+<ul>
+<li>working_memory </li>
+<li>cpus (per worker)</li>
+<li>memory (per worker RAM)</li>
+</ul>
+<p>If you want help on how much a model may require, you can use our internal estimation tool:</p>
 <p>kalavai job estimate <number of billion of parameters> --precision <precision></p>
 <p>For example, to deploy a 1B model at 16 floating point precision:</p>
 <pre><code class="language-bash">$ kalavai job estimate 1 --precision 16
