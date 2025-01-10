@@ -1,0 +1,12 @@
+# STORAGE #
+- name: storage_label_selector
+  default: "kalavai.storage.enabled:True"
+  description: ""
+
+- name: storage_class_name
+  default: "longhorn-model"
+  description: ""
+
+- name: storage_replicas
+  default: 1
+  description: ""

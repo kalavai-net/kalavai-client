@@ -12,7 +12,7 @@ spec:
   - mountPath: "/cache"
     volumeClaim:
       accessModes: [ "ReadWriteMany" ]
-      storageClassName: "longhorn"
+      storageClassName: "longhorn-model"
       resources:
         requests:
           storage: {{working_memory}}Gi
