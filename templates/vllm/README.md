@@ -10,6 +10,7 @@ This template makes heavy use of the [vLLM library](https://docs.vllm.ai/en/late
 
 - `workers`: Number of workers per deployment (for tensor and pipeline parallelism, i.e. how many pieces to divide the model into)
 - `model_id`: Huggingface repository to load from [Huggingface](https://huggingface.co/models). This usually takes the form of `OrgName/ModelID`
+- `working_memory`: Temporary disk space where model weights are placed for loading. Needs to be big enough to hold the entire model weights in a single worker node.
 - `hf_token` (optional): Huggingface token, required to load licensed model weights
 - `extra` (optional): any [extra parameters](https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html#cli-reference) to pass to vLLM engine. Expected format: `--parameter1_name parameter1_value --parameterX_name parameterX_value`
 - `tensor_parallel_size`: Tensor parallelism (use the number of GPUs per node)

@@ -2,20 +2,21 @@
 tags:
   - crowdsource
   - public
+  - LLM pool
   - shared llm
 ---
 
-# Deploy and share Large Language Models with community devices
+# LLM Pools: deploy and orchestrate Large Language Models
 
 > Beta feature: we are trialing shared pools. If you encounter any issues, please [submit a ticket in our GitHub repo](https://github.com/kalavai-net/kalavai-client/issues).
 
-Shared pools in `Kalavai` are an easy way to expand your computing power beyond a single machine, with zero-devops knowledge. Kalavai **aggregates the GPUs, CPUs and RAM memory** from any compatible machine and makes it ready for LLM workflows. All you need is three steps to get your supercomputing cluster going:
+LLM pools in `Kalavai` are an easy way to expand your computing power beyond a single machine, with zero-devops knowledge. Kalavai **aggregates the GPUs, CPUs and RAM memory** from any compatible machine and makes it ready for LLM workflows. All you need is three steps to get your supercomputing cluster going:
 
 1. Start a pool with the kalavai client
 2. Use the joining token to connect other machines to the pool
 3. Deploy LLMs with ready-made templates!
 
-In this guide, we'll show **how to join our public shared pool**, ideal for AI developers that want to go beyond the hardware they have access to. This will manage step 1, so you can jump ahead to step 2 and 3. If you are interested in **hosting your own private shared pool**, check out [this one](private_llm_pool.md).
+In this guide, we'll show **how to join our first public LLM pool**, ideal for AI developers that want to go beyond the hardware they have access to. This will manage step 1, so you can jump ahead to step 2 and 3. If you are interested in **hosting your own private shared pool**, check out [this one](private_llm_pool.md).
 
 
 ## Pre-requisites

@@ -15,6 +15,7 @@ List of supported model architectures [here](https://aphrodite.pygmalion.chat/pa
 
 - `workers`: Number of workers per deployment (for tensor and pipeline parallelism, i.e. how many pieces to divide the model into)
 - `model_id`: Huggingface repository to load from [Huggingface](https://huggingface.co/models). This usually takes the form of `OrgName/ModelID`
+- `working_memory`: Temporary disk space where model weights are placed for loading. Needs to be big enough to hold the entire model weights in a single worker node.
 - `hf_token` (optional): Huggingface token, required to load licensed model weights
 - `extra` (optional): any [extra parameters](https://github.com/aphrodite-engine/aphrodite-engine/wiki/3.-Engine-Options) to pass to Aphrodite engine. Expected format: `--parameter1_name parameter1_value --parameterX_name parameterX_value`
 - `tensor_parallel_size`: Tensor parallelism (use the number of GPUs per node)

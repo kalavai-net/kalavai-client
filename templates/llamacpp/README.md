@@ -13,6 +13,7 @@ This template makes heavy use of the [llama.cpp library](https://github.com/gger
 - `gpu_workers`: Number of GPU workers per deployment. You can mix and match both CPU and GPU workers.
 - `repo_id`: Huggingface repository to load from [Huggingface](https://huggingface.co/models). This usually takes the form of `OrgName/ModelID`
 - `model_filename`: Model filename within the repository load; this allows users to choose which quantized version to load.
+- `working_memory`: Temporary disk space where model weights are placed for loading. Needs to be big enough to hold the entire model weights in a single worker node.
 - `hf_token` (optional): Huggingface token, required to load licensed model weights
 - `server_extra` (optional): any [extra parameters](https://github.com/ggerganov/llama.cpp/tree/master/examples/server) to pass to the llama.cpp server. Expected format: `--parameter1_name parameter1_value --parameterX_name parameterX_value`
 
