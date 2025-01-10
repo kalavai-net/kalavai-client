@@ -201,15 +201,16 @@ def init_user_workspace(force_namespace=None):
     except Exception as e:
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
 
-def pool_init(pool_config_values):
+def pool_init(pool_config_values_path=None):
     """Deploy configured objects to initialise pool"""
-    if POOL_CONFIG_DEFAULT_VALUES is None:
+    if pool_config_values_path is None:
         return
+    
     # load template config and populate with values
     sidecar_template_yaml = load_template(
         template_path=POOL_CONFIG_TEMPLATE,
-        values=pool_config_values,
-        default_values_path=POOL_CONFIG_DEFAULT_VALUES)
+        values={},
+        default_values_path=pool_config_values_path)
 
     try:
         result = request_to_server(
@@ -568,7 +569,7 @@ def pool__start(cluster_name, *others,  only_registered_users: bool=False, ip_ad
         if is_watcher_alive(server_creds=USER_LOCAL_SERVER_FILE, user_cookie=USER_COOKIE):
             break
     console.log("Initialise user workspace...")
-    pool_init(pool_config_values=pool_config_values)
+    pool_init(pool_config_values_path=pool_config_values)
     # init default namespace
     init_user_workspace(force_namespace="default")
     if only_registered_users:
