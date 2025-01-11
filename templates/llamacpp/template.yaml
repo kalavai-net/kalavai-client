@@ -12,7 +12,7 @@ spec:
   - mountPath: "/cache"
     volumeClaim:
       accessModes: [ "ReadWriteMany" ]
-      storageClassName: "longhorn-model"
+      storageClassName: "longhorn"
       resources:
         requests:
           storage: {{working_memory}}Gi
@@ -96,10 +96,10 @@ spec:
     name: server
     template: # Definition of the ps pod
       metadata:
-        annotations:
-          # must have these annotations
-          {{nouse_gputype}}
-          {{use_gputype}}
+        # annotations:
+        #   # must have these annotations
+        #   {{nouse_gputype}}
+        #   {{use_gputype}}
         labels:
           role: leader
           kalavai.job.name: {{deployment_id}}

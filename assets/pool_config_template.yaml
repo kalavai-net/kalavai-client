@@ -4,12 +4,16 @@ apiVersion: storage.k8s.io/v1
 metadata:
   name: {{storage_class_name}}
 provisioner: driver.longhorn.io
-allowVolumeExpansion: false
+allowVolumeExpansion: true
 reclaimPolicy: Delete
-volumeBindingMode: WaitForFirstConsumer
+volumeBindingMode: Immediate
 parameters:
   shareManagerNodeSelector: {{storage_label_selector}}
   numberOfReplicas: "{{storage_replicas}}"
   staleReplicaTimeout: "10"
   fromBackup: ""
   fsType: "ext4"
+  dataLocality: "disabled"
+  unmapMarkSnapChainRemoved: "ignored"
+  disableRevisionCounter: "true"
+  dataEngine: "v1"

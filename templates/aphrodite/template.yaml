@@ -12,7 +12,7 @@ spec:
   - mountPath: "/home/ray/cache"
     volumeClaim:
       accessModes: [ "ReadWriteMany" ]
-      storageClassName: "longhorn-model"
+      storageClassName: "longhorn"
       resources:
         requests:
           storage: {{working_memory}}Gi
