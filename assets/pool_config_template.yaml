@@ -10,6 +10,6 @@ volumeBindingMode: WaitForFirstConsumer
 parameters:
   shareManagerNodeSelector: {{storage_label_selector}}
   numberOfReplicas: "{{storage_replicas}}"
-  staleReplicaTimeout: "2880"
+  staleReplicaTimeout: "10"
   fromBackup: ""
   fsType: "ext4"

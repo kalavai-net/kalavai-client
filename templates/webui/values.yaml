@@ -23,8 +23,8 @@
   description: "Storage name for the data_dir cache"
 
 - name: litellm_base_url
-  value: "http://litellm-1.default.svc.cluster.local:4000"
-  default: "http://litellm-1.default.svc.cluster.local:4000"
+  value: "http://litellm.default.svc.cluster.local:4000"
+  default: "http://litellm.default.svc.cluster.local:4000"
   description: "Base URL of the LiteLLM service (central registry)"
 
 - name: litellm_key
