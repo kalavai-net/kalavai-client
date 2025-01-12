@@ -8,14 +8,6 @@ metadata:
 spec:
   queue: default
   schedulerName: volcano
-  volumes:
-  - mountPath: "/home/ray/cache"
-    volumeClaim:
-      accessModes: [ "ReadWriteMany" ]
-      storageClassName: "longhorn"
-      resources:
-        requests:
-          storage: {{working_memory}}Gi
   plugins:
     env: []
     svc: ["--disable-network-policy=true"]
@@ -145,14 +137,20 @@ spec:
               cpu: {{cpus}}
               memory: {{memory}}Gi
               nvidia.com/gpu: {{gpus}}
+              ephemeral-storage: {{working_memory}}Gi
             limits:
               cpu: {{cpus}}
               memory: {{memory}}Gi
               nvidia.com/gpu: {{gpus}}
+              ephemeral-storage: {{working_memory}}Gi
           volumeMounts:
             - mountPath: /dev/shm
               name: dshm
+            - name: cache
+              mountPath: /home/ray/cache
         volumes:
+        - name: cache
+          emptyDir: {}
         - name: dshm
           emptyDir:
             medium: Memory
@@ -181,6 +179,10 @@ spec:
           - -c
           - |
             PS_HOST=`cat /etc/volcano/server.host`;
+            # Download model weights
+            /home/ray/workspace/download_model.sh \
+              --model_id={{model_id}} \
+              --remote_dir="/home/ray/cache";
             nvidia-smi;
             RAY_BACKEND_LOG_LEVEL=error /home/ray/workspace/ray_init.sh worker --ray_address=$PS_HOST --ray_port=6379 --ray_object_store_memory={{memory * 500000000}} --ray_block=1
           env:
@@ -191,19 +193,22 @@ spec:
               cpu: {{cpus}}
               memory: {{memory}}Gi
               nvidia.com/gpu: {{gpus}}
+              ephemeral-storage: {{working_memory}}Gi
             limits:
               cpu: {{cpus}}
               memory: {{memory}}Gi
               nvidia.com/gpu: {{gpus}}
+              ephemeral-storage: {{working_memory}}Gi
           volumeMounts:
             - mountPath: /dev/shm
               name: dshm
+            - name: cache
+              mountPath: /home/ray/cache
         volumes:
+        - name: cache
+          emptyDir: {}
         - name: dshm
           emptyDir:
             medium: Memory
             sizeLimit: {{memory * 0.5}}Gi
-        # - name: cache
-        #   persistentVolumeClaim:
-        #     claimName: {{storage}}
         restartPolicy: OnFailure
