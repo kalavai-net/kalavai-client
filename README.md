@@ -48,25 +48,6 @@ https://github.com/user-attachments/assets/92185e7f-5ea0-4c2e-9002-20deb789ee06
 
 https://github.com/user-attachments/assets/97e894f4-3c6f-4989-8a72-d8543fb058ea
 
-
-We do it in two ways:
-
-1. The open source version can be used to pool any devices, for _commercial and non-commercial_ purposes. This is perfect as **a management layer for research groups and organisations** that already have hardware lying around and wish to unlock its power, without requiring a devops team. This LLM pools are free, secure and totally private.
-
-2. Our [Public pools](https://kalavai-net.github.io/kalavai-client/public_llm_pool/) act as a **platform to crowdsource LLM deployment between its members**, facilitating users to connect with the community's resources.
-
-Both versions can be managed using our free [kalavai CLI](#getting-started) tool.
-
-> Kalavai is at a **very early stage** of its development. We encourage people to use it and give us feedback! Although we are trying to minimise breaking changes, these may occur until we have a stable version (v1.0).
-
-### Want to know more?
-
-- Get a free [Kalavai account](https://platform.kalavai.net) and access unlimited AI.
-- Full [documentation](https://kalavai-net.github.io/kalavai-client/) for the project.
-- [Join our Substack](https://kalavainet.substack.com/) for updates and be part of our community
-- [Join our discord community](https://discord.gg/6VJWGzxg)
-
-
 ### Support for LLM engines
 
 We currently support out of the box the following LLM engines:
@@ -83,6 +64,16 @@ Coming soon:
 - [RayServe](https://docs.ray.io/en/latest/serve/index.html)
 
 Not what you were looking for? [Tell us](https://github.com/kalavai-net/kalavai-client/issues) what engines you'd like to see.
+
+
+> Kalavai is at a **very early stage** of its development. We encourage people to use it and give us feedback! Although we are trying to minimise breaking changes, these may occur until we have a stable version (v1.0).
+
+## Want to know more?
+
+- Get a free [Kalavai account](https://platform.kalavai.net) and access unlimited AI.
+- Full [documentation](https://kalavai-net.github.io/kalavai-client/) for the project.
+- [Join our Substack](https://kalavainet.substack.com/) for updates and be part of our community
+- [Join our discord community](https://discord.gg/6VJWGzxg)
 
 
 ## Getting started
