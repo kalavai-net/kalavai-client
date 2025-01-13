@@ -22,7 +22,7 @@
   default: ""
   description: "Master key of the LiteLLM service (central registry)"
 
-- name: working memory
+- name: working_memory
   value: 10
   default: 10
   description: "Temporary storage to use to cache model weights (in GB)"
