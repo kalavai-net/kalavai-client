@@ -36,12 +36,12 @@
 
 Kalavai's goal is to make using LLMs in real applications accessible and affordable to all. It's a _magic box_ that **integrates all the components required to make LLM useful in the age of massive computing**, from sourcing computing power, managing distributed infrastructure and storage, using industry-standard model engines and orchestration of LLMs. 
 
+
 | Demo | Video |
 | ---- | ----- |
-| Access shared LLM pool | link |
-| Deploy a multi-GPU vLLM | link |
-| Deploy a llama.cpp model | link |
-| Multi instance GUI + API inference | link |
+| Access shared LLM pool | https://github.com/user-attachments/assets/008f8627-f866-4258-8698-0fd53d5029c5 |
+| Deploy a multi-GPU vLLM | https://github.com/user-attachments/assets/92185e7f-5ea0-4c2e-9002-20deb789ee06 |
+| Single endpooint GUI + API inference | https://github.com/user-attachments/assets/97e894f4-3c6f-4989-8a72-d8543fb058ea |
 
 
 We do it in two ways:
