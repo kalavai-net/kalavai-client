@@ -1,0 +1,36 @@
+
+
+- name: litellm_key
+  value: "sk-SUwfw5g8keIlBd80cV2nqg"
+  default: "sk-1234"
+  description: "Master key of the LiteLLM service (central registry)"
+
+- name: cpu_workers
+  value: 3
+  default: 1
+  description: "Number of remote workers"
+
+- name: working_memory
+  value: 8
+  default: 5
+  description: "Temporary storage to use to cache model weights (in GB)"
+
+- name: repo_id
+  value: bartowski/Meta-Llama-3.1-8B-Instruct-GGUF
+  default: null
+  description: "Huggingface model id to load"
+
+- name: model_filename
+  value: "Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf"
+  default: "None"
+  description: "Specific model file to use (handy for quantized models such as gguf)"
+
+- name: cpus
+  value: "8"
+  default: "2"
+  description: "CPUs per single worker (final one = cpus * num_workers)"
+
+- name: memory
+  value: "16"
+  default: "4"
+  description: "RAM memory per single worker (final one = memory * num_workers)"
