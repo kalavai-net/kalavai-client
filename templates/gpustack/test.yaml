@@ -1,0 +1,4 @@
+- name: deployment_name
+  value: "gpustack"
+  default: "gpustack"
+  description: "deployment name"

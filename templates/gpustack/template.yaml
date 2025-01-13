@@ -1,0 +1,113 @@
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: {{deployment_id}}
+  labels:
+    # must have this label
+    kalavai.job.name: {{deployment_id}}
+spec:
+  queue: default
+  schedulerName: volcano
+  plugins:
+    env: []
+    svc: ["--disable-network-policy=true"]
+  policies: 
+  - event: PodEvicted # Restart the job when a pod is evicted.
+    action: RestartJob
+  - event: TaskCompleted
+    action: CompleteJob
+  tasks:
+  - replicas: 1   # One ps pod specified
+    name: server
+    template: # Definition of the ps pod
+      metadata:
+        labels:
+          role: leader
+          kalavai.job.name: {{deployment_id}}
+      spec:
+        containers:
+        - name: gpustack-leader
+          image: docker.io/gpustack/gpustack:latest
+          command:
+          - sh
+          - -c
+          - |
+            gpustack start \
+              --host 0.0.0.0 \
+              --port 8080 \
+              --cache-dir /cache \
+              --token {{token}} \
+              --bootstrap-password {{admin_password}}
+              #--database_url <>
+          env:
+          - name: HF_TOKEN
+            value: {{hf_token}}
+          ports:
+          - containerPort: 8080
+            name: model-port
+          resources:
+            requests:
+              cpu: 2
+              memory: 2Gi
+              ephemeral-storage: {{working_memory}}Gi
+            limits:
+              cpu: 2
+              memory: 2Gi
+              ephemeral-storage: {{working_memory}}Gi
+          volumeMounts:
+            - name: cache
+              mountPath: /cache
+        volumes:
+        - name: cache
+          emptyDir: {}
+        restartPolicy: OnFailure
+  - replicas: {{workers}}
+    name: worker
+    policies:
+    - event: TaskCompleted  # The job will be marked as completed when two worker pods finish tasks.
+      action: CompleteJob
+    template: # Definition of worker pods
+      metadata:
+        annotations:
+          # must have these annotations
+          {{nouse_gputype}}
+          {{use_gputype}}
+        labels:
+          kalavai.job.name: {{deployment_id}}
+      spec:
+        runtimeClassName: nvidia
+        containers:
+        - name: gpustack-worker
+          image: docker.io/gpustack/gpustack:latest
+          command:
+          - sh
+          - -c
+          - |
+            PS_HOST=`cat /etc/volcano/server.host`;
+            echo $PS_HOST;
+            sleep 30;
+            gpustack start \
+              --server-url http://$PS_HOST:8080 \
+              --cache-dir /cache \
+              --token {{token}}
+          env:
+          - name: HF_TOKEN
+            value: {{hf_token}}
+          resources:
+            requests:
+              cpu: {{cpus}}
+              memory: {{memory}}Gi
+              nvidia.com/gpu: {{gpus}}
+              ephemeral-storage: {{working_memory}}Gi
+            limits:
+              cpu: {{cpus}}
+              memory: {{memory}}Gi
+              nvidia.com/gpu: {{gpus}}
+              ephemeral-storage: {{working_memory}}Gi
+          volumeMounts:
+            - name: cache
+              mountPath: /cache
+        volumes:
+        - name: cache
+          emptyDir: {}
+        restartPolicy: OnFailure
