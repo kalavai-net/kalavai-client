@@ -1,7 +1,7 @@
 
 
 - name: litellm_key
-  value: "sk-SUwfw5g8keIlBd80cV2nqg"
+  value: "sk-1234"
   default: "sk-1234"
   description: "Master key of the LiteLLM service (central registry)"
 
