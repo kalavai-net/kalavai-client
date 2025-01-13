@@ -36,6 +36,14 @@
 
 Kalavai's goal is to make using LLMs in real applications accessible and affordable to all. It's a _magic box_ that **integrates all the components required to make LLM useful in the age of massive computing**, from sourcing computing power, managing distributed infrastructure and storage, using industry-standard model engines and orchestration of LLMs. 
 
+| Demo | Video |
+| ---- | ----- |
+| Access shared LLM pool | link |
+| Deploy a multi-GPU vLLM | link |
+| Deploy a llama.cpp model | link |
+| Multi instance GUI + API inference | link |
+
+
 We do it in two ways:
 
 1. The open source version can be used to pool any devices, for _commercial and non-commercial_ purposes. This is perfect as **a management layer for research groups and organisations** that already have hardware lying around and wish to unlock its power, without requiring a devops team. This LLM pools are free, secure and totally private.
@@ -66,6 +74,7 @@ We currently support out of the box the following LLM engines:
 Coming soon:
 
 - [exo](https://github.com/exo-explore/exo)
+- [GPUstack](https://docs.gpustack.ai/0.4/overview/)
 - [RayServe](https://docs.ray.io/en/latest/serve/index.html)
 
 Not what you were looking for? [Tell us](https://github.com/kalavai-net/kalavai-client/issues) what engines you'd like to see.
