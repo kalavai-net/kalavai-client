@@ -37,6 +37,8 @@
 Kalavai's goal is to make using LLMs in real applications accessible and affordable to all. It's a _magic box_ that **integrates all the components required to make LLM useful in the age of massive computing**, from sourcing computing power, managing distributed infrastructure and storage, using industry-standard model engines and orchestration of LLMs. 
 
 
+https://github.com/user-attachments/assets/008f8627-f866-4258-8698-0fd53d5029c5
+
 | Demo | Video |
 | ---- | ----- |
 | Access shared LLM pool | https://github.com/user-attachments/assets/008f8627-f866-4258-8698-0fd53d5029c5 |
