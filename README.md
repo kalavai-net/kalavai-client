@@ -137,14 +137,14 @@ kalavai pool pause
 kalavai pool resume
 ```
 
-## Public pools: crowdsource community resources
+## Public LLM pools: crowdsource community resources
 
 This is the **easiest and most powerful** way to experience Kalavai. It affords users the full resource capabilities of the community and access to all its deployed LLMs, via an [OpenAI-compatible endpoint](https://kalavai-net.github.io/kalavai-client/public_llm_pool/#single-api-endpoint) as well as a [UI-based playground](https://kalavai-net.github.io/kalavai-client/public_llm_pool/#ui-playground).
 
 Check out [our guide](https://kalavai-net.github.io/kalavai-client/public_llm_pool/) on how to join and start deploying LLMs.
 
 
-## Createa a local, private pool
+## Createa a local, private LLM pool
 
 Kalavai is **free to use, no caps, for both commercial and non-commercial purposes**. All you need to get started is one or more computers that can see each other (i.e. within the same network), and you are good to go. If you wish to join computers in different locations / networks, check [managed kalavai](#public-pools-crowdsource-community-resources).
 
@@ -173,21 +173,6 @@ Copy the joining token. On the worker node, run:
 kalavai pool join <token>
 ```
 
-
-## What next?
-
-Within a pool, you can monitor the nodes connected and the resources available:
-
-```bash
-# Get all connected nodes
-kalavai node list
-
-# Get all resources within the pool (CPUs, RAM, GPUs...)
-kalavai pool resources
-
-# Get GPUs
-kalavai pool gpus
-```
 
 ### Enough already, let's run stuff!
 
