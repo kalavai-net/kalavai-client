@@ -37,7 +37,7 @@ spec:
           - sh
           - -c
           - |
-            if [ ! -z "{{litellm_base_url}}" ]; then
+            if [ ! -z "{{litellm_key}}" ]; then
               echo $VC_NAMESPACE;
               # wait for model to be served
               echo "Waiting for model service..."
