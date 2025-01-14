@@ -38,15 +38,15 @@ Kalavai's goal is to make using LLMs in real applications accessible and afforda
 
 ### Aggregate multiple devices in an LLM pool
 
-https://github.com/user-attachments/assets/008f8627-f866-4258-8698-0fd53d5029c5
+https://github.com/user-attachments/assets/4be59886-1b76-4400-ab5c-c803e3e414ec
 
 ### Deploy LLMs across the pool
 
-https://github.com/user-attachments/assets/92185e7f-5ea0-4c2e-9002-20deb789ee06
+https://github.com/user-attachments/assets/ea57a2ab-3924-4097-be2a-504e0988fbb1
 
 ### Single point of entry for all models (GUI + API)
 
-https://github.com/user-attachments/assets/97e894f4-3c6f-4989-8a72-d8543fb058ea
+https://github.com/user-attachments/assets/7df73bbc-d129-46aa-8ce5-0735177dedeb
 
 ### Support for LLM engines
 
