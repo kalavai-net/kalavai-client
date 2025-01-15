@@ -1,0 +1,1110 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      
+      
+      <link rel="icon" href="../assets/icons/browser.png">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.33">
+    
+    
+      
+        <title>Self-hosted LLM pools - Kalavai Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.3cba04c6.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#self-hosted-llm-pools" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Kalavai Documentation" class="md-header__button md-logo" aria-label="Kalavai Documentation" data-md-component="logo">
+      
+  <img src="../assets/icons/logo_no_background.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Kalavai Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Self-hosted LLM pools
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Kalavai Documentation" class="md-nav__button md-logo" aria-label="Kalavai Documentation" data-md-component="logo">
+      
+  <img src="../assets/icons/logo_no_background.png" alt="logo">
+
+    </a>
+    Kalavai Documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Getting started
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            Getting started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Welcome to Kalavai
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Concepts
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting_started/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Getting started
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../choose_job_resources/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Choosing job resources
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Community computing
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Community computing
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../public_llm_pool/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Public LLM pool
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../self_hosted_pool.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Self-hosted LLM pool
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../petals/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Petals swarm
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../boinc/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    BOINC
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Applications
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Applications
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../templates/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Templates
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ray/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ray
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#kalavai-and-our-llm-pools-are-open-source-and-therefore-free-to-use-in-both-commercial-and-non-commercial-purposes-if-you-find-it-useful-consider-supporting-us-by-staring-our-github-project-joining-our-discord-channel-follow-our-substack-and-give-us-a-review-on-product-hunt" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⭐⭐⭐ Kalavai and our LLM pools are open source, and therefore free to use in both commercial and non-commercial purposes. If you find it useful, consider supporting us by staring our GitHub project, joining our discord channel, follow our Substack and give us a review on Product Hunt.
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-youll-achieve" class="md-nav__link">
+    <span class="md-ellipsis">
+      What you'll achieve
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What you'll achieve">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pre-requisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pre-requisites
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-createa-a-local-pool" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Createa a local pool
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Createa a local pool">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-start-a-seed-node" class="md-nav__link">
+    <span class="md-ellipsis">
+      A. Start a seed node
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#b-add-worker-nodes" class="md-nav__link">
+    <span class="md-ellipsis">
+      B. Add worker nodes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#c-check-resources-available-across-the-pool" class="md-nav__link">
+    <span class="md-ellipsis">
+      C. Check resources available across the pool
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-optional-configure-unified-llm-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. (Optional) Configure unified LLM interface
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. (Optional) Configure unified LLM interface">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#unified-openai-like-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      Unified OpenAI-like API
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unified-ui-playground" class="md-nav__link">
+    <span class="md-ellipsis">
+      Unified UI Playground
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check-deployment-progress" class="md-nav__link">
+    <span class="md-ellipsis">
+      Check deployment progress
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-deploy-models-with-compatible-frameworks" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Deploy models with compatible frameworks
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-access-your-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Access your models
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-clean-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Clean up
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-whats-next" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. What's next?
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+  
+<nav class="md-tags" >
+  
+    
+    
+    
+      <span class="md-tag">private</span>
+    
+  
+    
+    
+    
+      <span class="md-tag">self-hosted</span>
+    
+  
+    
+    
+    
+      <span class="md-tag">LLM pool</span>
+    
+  
+    
+    
+    
+      <span class="md-tag">llamacpp</span>
+    
+  
+    
+    
+    
+      <span class="md-tag">openai-like api</span>
+    
+  
+    
+    
+    
+      <span class="md-tag">chatgpt-like ui</span>
+    
+  
+</nav>
+
+
+
+<h1 id="self-hosted-llm-pools">Self-hosted LLM pools</h1>
+<h3 id="kalavai-and-our-llm-pools-are-open-source-and-therefore-free-to-use-in-both-commercial-and-non-commercial-purposes-if-you-find-it-useful-consider-supporting-us-by-staring-our-github-project-joining-our-discord-channel-follow-our-substack-and-give-us-a-review-on-product-hunt">⭐⭐⭐ Kalavai and our LLM pools are open source, and therefore free to use in both commercial and non-commercial purposes. If you find it useful, consider supporting us by <a href="https://github.com/kalavai-net/kalavai-client">staring our GitHub project</a>, joining our <a href="https://discord.gg/HJ8FNapQ">discord channel</a>, follow our <a href="https://kalavainet.substack.com/">Substack</a> and give us a <a href="https://www.producthunt.com/products/kalavai/reviews/new">review on Product Hunt</a>.</h3>
+<p>Ideal for AI teams that want to supercharge their resources without opening it to the public.</p>
+<p>For easy-mode LLM pools, check out our <a href="../public_llm_pool/">Public LLM pool</a>, which comes with managed LiteLLM API and OpenWebUI playground for all models.</p>
+<p>This guide will show you how to start a <strong>self-hosted LLM pool</strong> with your own hardware, configure it with a <strong>single API and UI Playground</strong> for all your models and <strong>deploy and access</strong> a Llama 3.1 8B instance.</p>
+<h2 id="what-youll-achieve">What you'll achieve</h2>
+<ol>
+<li>Create a local pool</li>
+<li>Configure unified LLM interface</li>
+<li>Deploy a llamacpp model</li>
+<li>Access model via code and UI</li>
+</ol>
+<h3 id="pre-requisites">Pre-requisites</h3>
+<ul>
+<li><a href="../getting_started/#getting-started">Install kalavai CLI</a> on every machine</li>
+<li>Check out our <a href="https://github.com/kalavai-net/kalavai-client?tab=readme-ov-file#compatibility-matrix">compatibility matrix</a> for supported hardware and OS</li>
+</ul>
+<h2 id="1-createa-a-local-pool">1. Createa a local pool</h2>
+<p>All you need to get started is one or more computers that can see each other (i.e. within the same network), and you are good to go.</p>
+<h3 id="a-start-a-seed-node">A. Start a seed node</h3>
+<p>A seed node is the machine you use to start the LLM pool. Simply use the CLI to start your seed node. If your node has more than one IP available, choose the one that will be visible by the worker nodes:</p>
+<pre><code class="language-bash">$ kalavai pool start private-llm-pool
+
+Scanning for valid IPs...                                                         cli.py:493
+0) 192.168.68.67
+1) 10.0.3.1
+2) 172.17.0.1
+
+--&gt; Select IP to advertise the node (needs to be visible to other nodes): 0
+Using 192.168.68.67 address for server                                            cli.py:495
+Installing cluster seed                                                           cli.py:515
+Install dependencies...                                                           cli.py:537
+Your cluster is ready! Grow your cluster by sharing your joining token with others. Run kalavai pool token to generate one.                                             
+Waiting for core services to be ready, may take a few minutes...                  cli.py:567
+Initialise user workspace...                                                      cli.py:571
+Deployed pool config!                                                             cli.py:226
+Workspace creation (ignore already created warnings): {'status': 'success'} 
+</code></pre>
+<p>Now you are ready to add worker nodes to this seed. To do so, generate a joining token:</p>
+<pre><code class="language-bash">$ kalavai pool token &lt;access mode&gt;
+
+Join token: &lt;token&gt;
+</code></pre>
+<p>Access modes determine the level of access new nodes will have over the pool:
+- <code>--admin</code>: Same level of access than the seed node, including generating new joining tokens and deleting nodes.
+- <code>--user</code>: Can deploy jobs, but lacks admin access over nodes.
+- <code>--worker</code>: Workers carry on jobs, but cannot deploy their own jobs.</p>
+<p>To give user access:</p>
+<pre><code class="language-bash">kalavai pool token --user
+</code></pre>
+<h3 id="b-add-worker-nodes">B. Add worker nodes</h3>
+<p>Increase the power of your LLM pool by inviting others to join. You can do this at any stage, even after deploying models.</p>
+<p>Copy the joining token generated in the seed node. On each worker node, run:</p>
+<pre><code class="language-bash">$ kalavai pool join &lt;token&gt;
+
+Token format is correct                                                           cli.py:643
+Scanning for valid IPs...                                                         cli.py:724
+0) 192.168.68.66
+1) 172.17.0.1
+--&gt; Select IP to advertise the node (needs to be visible to other nodes): 0
+
+Using 192.168.68.66 address for worker                                            cli.py:726
+Connecting to private-llm-pool @ 192.168.68.67 (this may take a few minutes)...  cli.py:729
+Workspace creation (ignore already created warnings): {'status': 'success'}       cli.py:200
+You are connected to private-llm-pool 
+</code></pre>
+<h3 id="c-check-resources-available-across-the-pool">C. Check resources available across the pool</h3>
+<p>To see the available resources across the pool, you can use:</p>
+<pre><code class="language-bash">$ kalavai pool resources
+
+┏━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓
+┃           ┃ n_nodes ┃ cpu   ┃ memory       ┃ nvidia.com/gpu ┃
+┡━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━┩
+│ Available │ 2       │ 45.46 │ 150877769728 │ 1              │
+├───────────┼─────────┼───────┼──────────────┼────────────────┤
+│ Total     │ 2       │ 52    │ 151561441280 │ 1              │
+└───────────┴─────────┴───────┴──────────────┴────────────────┘
+
+$ kalavai pool gpus
+
+┏━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━┓
+┃ Node   ┃ Ready ┃ GPU(s)                                               ┃ Available ┃ Total ┃
+┡━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━┩
+│ pop-os │ True  │ NVIDIA-NVIDIA GeForce RTX 3050 Ti Laptop GPU (4 GBs) │ 1         │ 1     │
+└────────┴───────┴──────────────────────────────────────────────────────┴───────────┴───────┘
+</code></pre>
+<p><strong><em>Note: the following commands can be executed on any machine that is part of the pool, provided you have used <code>--admin</code> or <code>--user</code> access modes to generate the token. If you have used <code>--worker</code>, deployments are only allowed in the seed node.</em></strong></p>
+<h2 id="2-optional-configure-unified-llm-interface">2. (Optional) Configure unified LLM interface</h2>
+<p>This is an optional but highly recommended step that will help automatically register any model deployment centrally, so you can interact with any model through a single OpenAI-like API endpoint, or if you prefer UI testing, a single ChatGPT-like UI playground.</p>
+<p>We'll use our own template jobs for the task, so no code is required. Both jobs will require a permanent storage, which can be created easily in an LLM pool using <code>kalavai storage create &lt;db name&gt; &lt;size in GB&gt;</code>. Create two storage spaces:</p>
+<pre><code class="language-bash">$ kalavai storage create litellm-db 1
+
+Storage litellm-db (1Gi) created
+
+$ kalavai storage create webui-db 2
+
+Storage webui-db (2Gi) created
+</code></pre>
+<h3 id="unified-openai-like-api">Unified OpenAI-like API</h3>
+<p>Model templates deployed in LLM pools have an optional key parameter to register themselves with a LiteLLM instance. <a href="https://docs.litellm.ai/docs/">LiteLLM</a> is a powerful API that unifies all of your models into a single API, making developing apps with LLMs easier and more flexible.</p>
+<p>Our <a href="https://github.com/kalavai-net/kalavai-client/tree/main/templates/litellm">LiteLLM</a> template automates the deployment of the API across a pool, database included. To deploy it, simply:</p>
+<pre><code class="language-bash">kalavai job defaults litellm &gt; values.yaml 
+# Edit values.yaml
+#   set 'db_storage' value to &quot;litellm-db&quot;
+kalavai job run litellm --values values.yaml
+</code></pre>
+<p><code>kalavai job run</code> will prompt for what GPUs to use or avoid (if there are any available in the pool). This has no effect on jobs that do not use GPUs, as is the case for the ones deployed in this guide.</p>
+<p>Once the deployment is complete, you can identify the endpoint:</p>
+<pre><code class="language-bash">$ kalavai job list
+
+┏━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Owner   ┃ Deployment ┃ Workers  ┃ Endpoint                                    ┃
+┡━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ default │ litellm    │ Ready: 2 │ http://192.168.68.67:30535 (mapped to 4000) │
+└─────────┴────────────┴──────────┴─────────────────────────────────────────────┘
+</code></pre>
+<p>You will need a virtual key to register models with LiteLLM. For testing you can use the master key defined in your values.yaml under <code>master_key</code>, but it is recommended to generate a virtual one that does not have privilege access. The easiest way of doing so is via the admin UI, under http://192.168.68.67:30535/ui (see more details <a href="https://docs.litellm.ai/docs/proxy/virtual_keys">here</a>).</p>
+<pre><code>Example virtual key: sk-rDCm0Vd5hDOigaNbQSSsEQ
+</code></pre>
+<p><img alt="Create a virtual key" src="../assets/images/litellm_virtual_key.png" /></p>
+<h3 id="unified-ui-playground">Unified UI Playground</h3>
+<p><a href="https://docs.openwebui.com/">OpenWebUI</a> is a great ChatGPT-like app that helps testing LLMs. Our <a href="https://github.com/kalavai-net/kalavai-client/tree/main/templates/webui">WebUI template</a> manages the deployment of an OpenWebUI instance in your LLM pool, and links it to your LiteLLM instance, so any models deployed and registered with LiteLLM automatically appear in the playground.</p>
+<p>To deploy:</p>
+<pre><code class="language-bash">kalavai job defaults webui &gt; values.yaml 
+# Edit values.yaml
+#   set the 'litellm_key' to match your virtual key
+#   set 'data_storage' to &quot;webui-db&quot;
+kalavai job run webui --values values.yaml
+</code></pre>
+<p>Once it's ready, you can access the UI via its advertised endpoint, directly on your browser:</p>
+<pre><code class="language-bash">$ kalavai job list
+
+┏━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Owner   ┃ Deployment ┃ Workers  ┃ Endpoint                                    ┃
+┡━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ default │ litellm    │ Ready: 2 │ http://192.168.68.67:30535 (mapped to 4000) │
+├─────────┼────────────┼──────────┼─────────────────────────────────────────────┤
+│ default │ webui-1    │ Ready: 1 │ http://192.168.68.67:31141 (mapped to 8080) │
+└─────────┴────────────┴──────────┴─────────────────────────────────────────────┘
+</code></pre>
+<p>The first time you login you'll be able to create an admin user. Check the <a href="https://docs.openwebui.com/">official documentation</a> for more details on the app.</p>
+<p><img alt="Access playground UI" src="../assets/images/webui.png" /></p>
+<h3 id="check-deployment-progress">Check deployment progress</h3>
+<p>Jobs may take a while to deploy. Check the progress with:</p>
+<pre><code class="language-bash">$ kalavai job list
+
+┏━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Owner   ┃ Deployment ┃ Workers    ┃ Endpoint                                    ┃
+┡━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ default │ litellm    │ Ready: 2   │ http://192.168.68.67:30535 (mapped to 4000) │
+├─────────┼────────────┼────────────┼─────────────────────────────────────────────┤
+│ default │ webui-1    │ Pending: 1 │ http://192.168.68.67:31141 (mapped to 8080) │
+└─────────┴────────────┴────────────┴─────────────────────────────────────────────┘
+</code></pre>
+<p>In this case, <code>litellm</code> has been deployed but <code>webui-1</code> is still pending schedule. If a job cannot be scheduled due to lack of resources, consider adding more nodes or reducing the requested resources via the <code>values.yaml</code> files.</p>
+<h2 id="3-deploy-models-with-compatible-frameworks">3. Deploy models with compatible frameworks</h2>
+<p>Using a self-hosted LLM pool is the same as using a public one, with the only difference being access. Your self-hosted LLM pool is private and only those you give a joining token access to can see and use it. </p>
+<p>To deploy a multi-node, multi-GPU vLLM model, check out the <a href="../public_llm_pool/#new-vllm-model">section under Public LLM pools</a>.</p>
+<p>In this section, we'll look into how to deploy a model with another of our supported model engines: <a href="https://github.com/kalavai-net/kalavai-client/blob/main/templates/llamacpp/README.md">llama.cpp</a></p>
+<p>We provide an <a href="https://github.com/kalavai-net/kalavai-client/blob/main/examples/llms/llamacpp-llama-8b.yaml">example of template values to deploy Llama 3.1 8B model</a>. Copy its content in your machine into a <code>values.yaml</code> file. Feel free to modify its values. If you use the default values, the deployment will use the following parameters:</p>
+<ul>
+<li><code>litellm_key</code>: set it to your virtual key to automatically register it with both LiteLLM and OpenWebUI instances.</li>
+<li><code>cpu_workers</code>: the workload will be split across this many workers. Note that a worker is not necessarily a single node, but a set of <code>cpus</code> and <code>memory</code> RAM (if a node has enough memory and cpus, it will accommodate multiple workers).</li>
+<li><code>repo_id</code>: huggingface model id to deploy</li>
+<li><code>model_filename</code>: for gguf models, often repositories have multiple quantized versions. This parameter indicates the name of the file / version you wish to deploy.</li>
+</ul>
+<p>When you are ready, deploy:</p>
+<pre><code class="language-bash">$ kalavai job run llamacpp --values values.yaml
+
+Template /home/carlosfm/.cache/kalavai/templates/llamacpp/template.yaml successfully deployed!                                                                      
+Service deployed
+</code></pre>
+<p>Once it has been scheduled, check the progress with:</p>
+<pre><code class="language-bash">kalavai job logs meta-llama-3-1-8b-instruct-q4-k-m-gguf
+
+Pod meta-llama-3-1-8b-instruct-q4-k-m-gguf-cpu-0                                 cli.py:1640
+
+           -- The C compiler identification is GNU 12.2.0                                   cli.py:1641
+           -- The CXX compiler identification is GNU 12.2.0                                            
+           -- Detecting C compiler ABI info                                                            
+           -- Detecting C compiler ABI info - done                                                     
+           -- Check for working C compiler: /usr/bin/cc - skipped                                      
+
+           ...                                            
+
+           Pod meta-llama-3-1-8b-instruct-q4-k-m-gguf-cpu-1                                 cli.py:1640
+           -- The C compiler identification is GNU 12.2.0                                   cli.py:1641
+           -- The CXX compiler identification is GNU 12.2.0                                            
+           -- Detecting C compiler ABI info                                                            
+           -- Detecting C compiler ABI info - done                                                     
+           -- Check for working C compiler: /usr/bin/cc - skipped                                      
+           ...                                                      
+
+           Pod meta-llama-3-1-8b-instruct-q4-k-m-gguf-cpu-2                                 cli.py:1640
+           -- The C compiler identification is GNU 12.2.0                                   cli.py:1641
+           -- The CXX compiler identification is GNU 12.2.0                                            
+           -- Detecting C compiler ABI info                                                            
+           -- Detecting C compiler ABI info - done                                                     
+           -- Check for working C compiler: /usr/bin/cc - skipped                                      
+           ...                                                     
+
+           Pod meta-llama-3-1-8b-instruct-q4-k-m-gguf-registrar-0                           cli.py:1640
+           Waiting for model service...                                                     cli.py:1641
+           Waiting for                                                                                 
+           meta-llama-3-1-8b-instruct-q4-k-m-gguf-server-0.meta-llama-3-1-8b-instruct-q4-k-            
+           m-gguf:8080...                                                                              
+           ...Not ready, backoff                                                                       
+           ...Not ready, backoff                                                                       
+
+           Pod meta-llama-3-1-8b-instruct-q4-k-m-gguf-server-0                              cli.py:1640
+           Collecting llama-cpp-python==0.3.2                                               cli.py:1641
+             Downloading llama_cpp_python-0.3.2.tar.gz (65.0 MB)                                       
+                ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 65.0/65.0 MB 24.0 MB/s eta 0:00:00            
+             Installing build dependencies: started                                                    
+             ...
+</code></pre>
+<p>The logs include individual logs for each worker.</p>
+<h2 id="4-access-your-models">4. Access your models</h2>
+<p>Once they are donwloaded and loaded into memory, your models will be readily available both via the LiteLLM API as well as through the UI Playground. Check out our <a href="../public_llm_pool/#a-use-existing-models">full guide on how to access deployed models</a> via API and the playground.</p>
+<p><img alt="Accessing llamacpp model from UI" src="../assets/images/llama_webui.png" /></p>
+<h2 id="5-clean-up">5. Clean up</h2>
+<p>Remove models:</p>
+<pre><code class="language-bash">kalavai job delete &lt;name of the model&gt;
+</code></pre>
+<p>You can identify the name of the model by listing them with:</p>
+<pre><code class="language-bash">$ kalavai job list
+
+┏━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Owner   ┃ Deployment                           ┃ Workers    ┃ Endpoint                              ┃
+┡━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ default │ litellm                              │ Ready: 2   │ http://192.168.68.67:30535 (mapped to │
+│         │                                      │            │ 4000)                                 │
+├─────────┼──────────────────────────────────────┼────────────┼───────────────────────────────────────┤
+│ default │ meta-llama-3-1-8b-instruct-q4-k-m-gg │ Pending: 5 │ http://192.168.68.67:31645 (mapped to │
+│         │ uf                                   │            │ 8080)                                 │
+├─────────┼──────────────────────────────────────┼────────────┼───────────────────────────────────────┤
+│ default │ webui-1                              │ Ready: 1   │ http://192.168.68.67:31141 (mapped to │
+│         │                                      │            │ 8080)                                 │
+└─────────┴──────────────────────────────────────┴────────────┴───────────────────────────────────────┘
+</code></pre>
+<p>Disconnect a worker node and remove the pool:</p>
+<pre><code class="language-bash"># from a worker node
+kalavai pool stop
+
+# from the seed node
+kalavai pool stop
+</code></pre>
+<h2 id="6-whats-next">6. What's next?</h2>
+<p>Enjoy your new supercomputer, check out our <a href="https://github.com/kalavai-net/kalavai-client/tree/main/templates">templates</a> and <a href="https://github.com/kalavai-net/kalavai-client/tree/main/examples">examples</a> for more model engines and <a href="https://discord.gg/HJ8FNapQ">keep us posted</a> on what you achieve!</p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.sections", "navigation.instant", "navigation.instant.progress"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.af256bd8.min.js"></script>
+      
+    
+  </body>
+</html>
