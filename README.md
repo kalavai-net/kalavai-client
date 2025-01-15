@@ -48,6 +48,10 @@ https://github.com/user-attachments/assets/ea57a2ab-3924-4097-be2a-504e0988fbb1
 
 https://github.com/user-attachments/assets/7df73bbc-d129-46aa-8ce5-0735177dedeb
 
+### Self-hosted LLM pools
+
+https://github.com/user-attachments/assets/4edaa99e-006a-4116-815c-135c03774781
+
 ### Support for LLM engines
 
 We currently support out of the box the following LLM engines:
