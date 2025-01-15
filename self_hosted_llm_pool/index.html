@@ -9,6 +9,10 @@
       
       
       
+        <link rel="prev" href="../public_llm_pool/">
+      
+      
+        <link rel="next" href="../petals/">
       
       
       <link rel="icon" href="../assets/icons/browser.png">
@@ -16,7 +20,7 @@
     
     
       
-        <title>Self-hosted LLM pools - Kalavai Documentation</title>
+        <title>Self-hosted LLM pool - Kalavai Documentation</title>
       
     
     
@@ -103,7 +107,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Self-hosted LLM pools
+              Self-hosted LLM pool
             
           </span>
         </div>
@@ -349,8 +353,10 @@
       
   
   
+    
   
   
+  
     
     
     
@@ -360,11 +366,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
@@ -378,7 +384,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             Community computing
@@ -410,10 +416,30 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../self_hosted_pool.md" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Self-hosted LLM pool
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -422,6 +448,179 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#kalavai-and-our-llm-pools-are-open-source-and-therefore-free-to-use-in-both-commercial-and-non-commercial-purposes-if-you-find-it-useful-consider-supporting-us-by-staring-our-github-project-joining-our-discord-channel-follow-our-substack-and-give-us-a-review-on-product-hunt" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⭐⭐⭐ Kalavai and our LLM pools are open source, and therefore free to use in both commercial and non-commercial purposes. If you find it useful, consider supporting us by staring our GitHub project, joining our discord channel, follow our Substack and give us a review on Product Hunt.
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-youll-achieve" class="md-nav__link">
+    <span class="md-ellipsis">
+      What you'll achieve
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What you'll achieve">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pre-requisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pre-requisites
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-createa-a-local-pool" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Createa a local pool
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Createa a local pool">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-start-a-seed-node" class="md-nav__link">
+    <span class="md-ellipsis">
+      A. Start a seed node
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#b-add-worker-nodes" class="md-nav__link">
+    <span class="md-ellipsis">
+      B. Add worker nodes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#c-check-resources-available-across-the-pool" class="md-nav__link">
+    <span class="md-ellipsis">
+      C. Check resources available across the pool
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-optional-configure-unified-llm-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. (Optional) Configure unified LLM interface
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. (Optional) Configure unified LLM interface">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#unified-openai-like-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      Unified OpenAI-like API
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unified-ui-playground" class="md-nav__link">
+    <span class="md-ellipsis">
+      Unified UI Playground
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check-deployment-progress" class="md-nav__link">
+    <span class="md-ellipsis">
+      Check deployment progress
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-deploy-models-with-compatible-frameworks" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Deploy models with compatible frameworks
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-access-your-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Access your models
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-clean-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Clean up
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-whats-next" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. What's next?
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
