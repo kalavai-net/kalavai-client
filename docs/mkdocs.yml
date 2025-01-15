@@ -5,11 +5,9 @@ nav:
     - Concepts: concepts.md
     - Getting started: getting_started.md
     - Choosing job resources: choose_job_resources.md
-  - Create AI pools:
-    - Local pools: local_pool.md
-    - Public pools: public_pool.md
   - Community computing:
     - Public LLM pool: public_llm_pool.md
+    - Self-hosted LLM pool: self_hosted_pool.md
     - Petals swarm: petals.md
     - BOINC: boinc.md
   - Applications: 

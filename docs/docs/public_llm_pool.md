@@ -8,6 +8,8 @@ tags:
 
 # LLM Pools: deploy and orchestrate Large Language Models
 
+#### ⭐⭐⭐ Kalavai and our LLM pools are open source, and therefore free to use in both commercial and non-commercial purposes. If you find it useful, consider supporting us by [staring our GitHub project](https://github.com/kalavai-net/kalavai-client), joining our [discord channel](https://discord.gg/HJ8FNapQ), follow our [Substack](https://kalavainet.substack.com/) and give us a [review on Product Hunt](https://www.producthunt.com/products/kalavai/reviews/new).
+
 > Beta feature: we are trialing shared pools. If you encounter any issues, please [submit a ticket in our GitHub repo](https://github.com/kalavai-net/kalavai-client/issues).
 
 LLM pools in `Kalavai` are an easy way to expand your computing power beyond a single machine, with zero-devops knowledge. Kalavai **aggregates the GPUs, CPUs and RAM memory** from any compatible machine and makes it ready for LLM workflows. All you need is three steps to get your supercomputing cluster going:
@@ -16,7 +18,7 @@ LLM pools in `Kalavai` are an easy way to expand your computing power beyond a s
 2. Use the joining token to connect other machines to the pool
 3. Deploy LLMs with ready-made templates!
 
-In this guide, we'll show **how to join our first public LLM pool**, ideal for AI developers that want to go beyond the hardware they have access to. This will manage step 1, so you can jump ahead to step 2 and 3. If you are interested in **hosting your own private shared pool**, check out [this one](private_llm_pool.md).
+In this guide, we'll show **how to join our first public LLM pool**, ideal for AI developers that want to go beyond the hardware they have access to. This will manage step 1, so you can jump ahead to step 2 and 3. If you are interested in **hosting your own private shared pool**, check out [this one](self_hosted_llm_pool.md).
 
 
 ## Pre-requisites
@@ -282,6 +284,11 @@ kalavai job logs qwen-qwen2-5-1-5b-instruct
 Note: _models may take several minutes to be ready, particularly if the model weights are large_. This is due to the time the system takes to 1) download the models from source and 2) distribute them to the memory of each device. This is an overhead that only happens once per deployment.
 
 Once the model is loaded, you can interact with it [as you would with any other model via the LiteLLM API](#a-use-existing-models).
+
+
+#### What's next?
+
+Enjoy your new supercomputer, check out our [templates](https://github.com/kalavai-net/kalavai-client/tree/main/templates) and [examples](https://github.com/kalavai-net/kalavai-client/tree/main/examples) for more model engines and [keep us posted](https://discord.gg/HJ8FNapQ) on what you achieve!
 
 
 #### How many resources to request?
