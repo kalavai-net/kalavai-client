@@ -50,7 +50,7 @@ https://github.com/user-attachments/assets/7df73bbc-d129-46aa-8ce5-0735177dedeb
 
 ### Self-hosted LLM pools
 
-https://github.com/user-attachments/assets/4edaa99e-006a-4116-815c-135c03774781
+https://github.com/user-attachments/assets/0d2316f3-79ea-46ac-b41e-8ef720f52672
 
 ### Support for LLM engines
 
