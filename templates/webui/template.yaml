@@ -54,6 +54,8 @@ spec:
             value: "False"
           - name: ENABLE_COMMUNITY_SHARING
             value: "False"
+          - name: BYPASS_MODEL_ACCESS_CONTROL
+            value: "True"
           ports:
           - containerPort: 8080
             name: model-port

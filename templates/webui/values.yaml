@@ -18,8 +18,8 @@
   description: "Name of the job"
 
 - name: data_storage
-  value: ""
-  default: "default-storage"
+  value: "webui-db"
+  default: "webui-db"
   description: "Storage name for the data_dir cache"
 
 - name: litellm_base_url

@@ -49,23 +49,23 @@
   description: ""
 
 - name: db_storage
-  value: ""
-  default: "default-storage"
+  value: "litellm-db"
+  default: "litellm-db"
   description: "Storage name for the postgres database (backend)"
 
 - name: postgres_db
-  value: ""
-  default: ""
+  value: "ps_db"
+  default: "ps_db"
   description: "Storage name for the postgres database (backend)"
 
 - name: postgres_user
-  value: ""
-  default: ""
+  value: "ps_user"
+  default: "ps_user"
   description: "Storage name for the postgres database (backend)"
 
 - name: postgres_password
-  value: ""
-  default: ""
+  value: "ps_password"
+  default: "ps_password"
   description: "Storage name for the postgres database (backend)"
 
 - name: cpus

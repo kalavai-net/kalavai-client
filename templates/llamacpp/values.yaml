@@ -33,8 +33,8 @@
   description: "Number of remote workers"
 
 - name: gpu_workers
-  value: 1
-  default: 1
+  value: 0
+  default: 0
   description: "Number of remote workers"
 
 - name: repo_id
