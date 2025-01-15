@@ -7,7 +7,7 @@ nav:
     - Choosing job resources: choose_job_resources.md
   - Community computing:
     - Public LLM pool: public_llm_pool.md
-    - Self-hosted LLM pool: self_hosted_pool.md
+    - Self-hosted LLM pool: self_hosted_llm_pool.md
     - Petals swarm: petals.md
     - BOINC: boinc.md
   - Applications: 
