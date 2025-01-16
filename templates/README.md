@@ -9,7 +9,7 @@ Templates are like recipes, where **developers describe what worker nodes should
 
 ## List of available templates
 
-- [vLLM](templates/vllm): deploy your favourite LLMs in distributed machines.
+- [vLLM](./vllm): deploy your favourite LLMs in distributed machines.
 
 
 ## How to contribute
