@@ -18,7 +18,7 @@ The `kalavai` CLI is the main tool to interact with the Kalavai platform, to cre
 
 - A laptop, desktop or Virtual Machine
 - Admin / privileged access (eg. `sudo` access in linux or Administrator in Windows)
-- Running Windows or Linux (see more details in our [compatibility matrix](#compatibility-matrix))
+- Running Windows or Linux (see more details in our [compatibility matrix](./compatibility.md))
 
 
 ## Linux
@@ -68,6 +68,14 @@ kalavai pool resume
 kalavai pool pause
 kalavai pool resume
 ```
+
+
+### Hardware compatibility:
+- `amd64` or `x86_64` CPU architecture
+- (optional) NVIDIA GPU
+- AMD and Intel GPUs are currently not supported (yet!)
+
+
 
 ## What's next
 

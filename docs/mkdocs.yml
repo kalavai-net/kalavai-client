@@ -5,6 +5,7 @@ nav:
     - Concepts: concepts.md
     - Getting started: getting_started.md
     - Choosing job resources: choose_job_resources.md
+    - Compatibility: compatibility.md
   - Community computing:
     - Public LLM pool: public_llm_pool.md
     - Self-hosted LLM pool: self_hosted_llm_pool.md
