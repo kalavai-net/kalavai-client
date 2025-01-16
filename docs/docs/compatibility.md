@@ -53,3 +53,8 @@ kalavai pool resources > resources.log
 4. Create an [issue on our repo](https://github.com/kalavai-net/kalavai-client/issues) and share the results. Include the four log files (status.log, test_pool.log, resources.log and install.log) as well as a description of the system you are testing.
 
 5. If the system ends up being supported, you'll be invited to create a PR to add support to the compatibility matrix.
+
+
+## Help testing AMD GPUs
+
+If you are interested in testing AMD support within Kalavai and own an AMD GPU card, please [contact us](mailto:info@kalavai.net) or [create an issue](https://github.com/kalavai-net/kalavai-client/issues)!

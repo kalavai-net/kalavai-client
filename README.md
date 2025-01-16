@@ -214,7 +214,7 @@ Currently not compatible:
 
 - `amd64` or `x86_64` CPU architecture
 - NVIDIA GPU
-- AMD and Intel GPUs are currently not supported (yet!)
+- AMD and Intel GPUs are currently not supported ([interested in helping us test it?](https://kalavai-net.github.io/kalavai-client/compatibility/#help-testing-amd-gpus))
 
 
 ## Roadmap
