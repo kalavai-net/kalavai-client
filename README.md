@@ -199,7 +199,7 @@ Currently compatible and tested OS:
 - Pop! OS 22.04
 - Windows 10+ (using WSL2)
 
-Currently compatible (untested. [Interested in testing them?](mailto:info@kalavai.net)):
+Currently compatible (untested. [Interested in testing them?](https://kalavai-net.github.io/kalavai-client/compatibility/#help-testing-new-systems)):
 
 - Debian-based linux
 - Fedora
@@ -211,8 +211,9 @@ Currently not compatible:
 - MacOS
 
 ### Hardware compatibility:
+
 - `amd64` or `x86_64` CPU architecture
-- (optional) NVIDIA GPU
+- NVIDIA GPU
 - AMD and Intel GPUs are currently not supported (yet!)
 
 

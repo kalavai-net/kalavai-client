@@ -28,6 +28,12 @@ Currently not compatible:
 
 - MacOS
 
+### Hardware compatibility:
+
+- `amd64` or `x86_64` CPU architecture
+- NVIDIA GPU
+- AMD and Intel GPUs are currently not supported (yet!)
+
 
 ## Help testing new systems
 
