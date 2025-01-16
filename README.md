@@ -222,11 +222,16 @@ Currently not compatible:
 - [x] Kalavai client on Linux
 - [x] [TEMPLATE] Distributed LLM deployment
 - [x] Kalavai client on Windows (with WSL2)
-- [x] Public pools
+- [x] Public LLM pools
+- [x] Self-hosted LLM pools
 - [x] Collaborative LLM deployment
-- [ ] [TEMPLATE] Distributed LLM fine tuning
-- [ ] Kalavai client on Mac
 - [x] Ray cluster support
+- [ ] Kalavai client on Mac
+- [ ] [TEMPLATE] [GPUStack](https://github.com/gpustack/gpustack) support
+- [ ] [TEMPLATE] [exo](https://github.com/exo-explore/exo) support
+- [ ] Support for AMD GPUs
+- [ ] Docker install path
+
 
 Anything missing here? Give us a shout in the [discussion board](https://github.com/kalavai-net/kalavai-client/discussions)
 
