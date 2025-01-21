@@ -10,7 +10,7 @@
 ⭐⭐⭐ **Kalavai and our LLM pools are open source, and therefore free to use in both commercial and non-commercial purposes. If you find it useful, consider supporting us by [staring our GitHub project](https://github.com/kalavai-net/kalavai-client), joining our [discord channel](https://discord.gg/HJ8FNapQ), follow our [Substack](https://kalavainet.substack.com/) and give us a [review on Product Hunt](https://www.producthunt.com/products/kalavai/reviews/new).**
 
 
-# Kalavai: the first platform to crowdsource end to end LLM deployment at scale
+# Kalavai: turn your devices into a scalable LLM platform
 
 ### Taming the adoption of Large Language Models
 
@@ -285,3 +285,4 @@ To run the unit tests, use:
 ```bash
 python -m unittest
 ```
+
