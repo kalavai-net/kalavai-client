@@ -821,33 +821,33 @@
 </code></pre>
 <h2 id="windows">Windows</h2>
 <p>For Windows machines complete WSL configuration first before continuing. You must be running Windows 10 version 2004 and higher (Build 19041 and higher) or Windows 11 to use the commands below. <strong>If you are on earlier versions</strong> please see the <a href="https://learn.microsoft.com/en-us/windows/wsl/install-manual">manual install</a> page.</p>
-<ol>
+<ul>
 <li>
 <p>Open a PowerShell with administrative permissions (<em>Run as Administrator</em>)</p>
 </li>
 <li>
 <p>Install WSL2:</p>
 </li>
-</ol>
+</ul>
 <pre><code class="language-bash">wsl --install -d Ubuntu-24.04
 </code></pre>
-<ol>
+<ul>
 <li>Enable <code>systemd</code> by editing (or creating if required) a file <code>/etc/wsl.conf</code>. </li>
-</ol>
+</ul>
 <pre><code class="language-bash">echo &quot;
 [boot]
 systemd=true&quot; &gt; /etc/wsl.conf
 </code></pre>
-<ol>
+<ul>
 <li>Restart the WSL instance by exiting and logging back in:</li>
-</ol>
+</ul>
 <pre><code class="language-bash">exit
 wsl --shutdown
 wsl -d Ubuntu-24.04
 </code></pre>
-<ol>
+<ul>
 <li>Go back inside WSL and install Kalavai:</li>
-</ol>
+</ul>
 <pre><code class="language-bash">wsl
 # inside WSL
 curl -sfL https://raw.githubusercontent.com/kalavai-net/kalavai-client/main/assets/install_client.sh | bash -
