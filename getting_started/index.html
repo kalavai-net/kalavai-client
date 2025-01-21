@@ -832,10 +832,11 @@
 <pre><code class="language-bash">wsl --install -d Ubuntu-24.04
 </code></pre>
 <ol>
-<li>Make sure to enable <code>systemd</code> by editing (or creating if required) a file <code>/etc/wsl.conf</code></li>
+<li>Enable <code>systemd</code> by editing (or creating if required) a file <code>/etc/wsl.conf</code>. </li>
 </ol>
-<pre><code class="language-bash">[boot]
-systemd=true
+<pre><code class="language-bash">echo &quot;
+[boot]
+systemd=true&quot; &gt; /etc/wsl.conf
 </code></pre>
 <ol>
 <li>Restart the WSL instance by exiting and logging back in:</li>
@@ -845,9 +846,11 @@ wsl --shutdown
 wsl -d Ubuntu-24.04
 </code></pre>
 <ol>
-<li>Inside WSL, install Kalavai:</li>
+<li>Go back inside WSL and install Kalavai:</li>
 </ol>
-<pre><code class="language-bash">curl -sfL https://raw.githubusercontent.com/kalavai-net/kalavai-client/main/assets/install_client.sh | bash -
+<pre><code class="language-bash">wsl
+# inside WSL
+curl -sfL https://raw.githubusercontent.com/kalavai-net/kalavai-client/main/assets/install_client.sh | bash -
 </code></pre>
 <p><strong>Note</strong>: you <strong>must keep the WSL console window open</strong> to continue to share resources with an AI pool. If you restart your machine or close the console, you will need to resume kalavai as follows:</p>
 <pre><code class="language-bash">kalavai pool resume
