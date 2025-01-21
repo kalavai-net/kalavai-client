@@ -29,6 +29,10 @@ theme:
     - navigation.sections
     - navigation.instant
     - navigation.instant.progress
+    - content.action.edit
+    - content.action.view
+    - content.code.annotate
+    - content.code.copy
   palette:
   # Palette toggle for dark mode
     - scheme: default
