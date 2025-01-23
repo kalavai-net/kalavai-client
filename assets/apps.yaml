@@ -107,7 +107,7 @@ releases:
   - name: longhorn
     namespace: kalavai
     chart: longhorn/longhorn
-    installed: true
+    installed: false
     set:
     # security issue! enable for testing only
     - name: service.ui.type
