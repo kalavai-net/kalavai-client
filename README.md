@@ -266,6 +266,9 @@ sudo gem i fpm -f
 pip install -e .
 ```
 
+
+sudo apt install python3.10-venv
+
 ### Build
 
 Run the build process with:
@@ -286,3 +289,11 @@ To run the unit tests, use:
 python -m unittest
 ```
 
+### Versioning
+
+We use [BumpVer](https://pypi.org/project/bumpver/) to manage the versioning of the package.
+
+
+## Build and publish PyPI
+
+python -m build

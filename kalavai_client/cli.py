@@ -120,6 +120,7 @@ CLUSTER = dockerCluster(
 
 def cleanup_local():
     # disconnect from private network
+    console.log("Disconnecting from VPN...")
     try:
         vpns = leave_vpn()
         if vpns is not None:
@@ -772,19 +773,41 @@ def pool__join(token, *others, node_name=None, ip_address: str=None):
         console.log("Scanning for valid IPs...")
         ip_address = select_ip_address(subnet=subnet)
     console.log(f"Using {ip_address} address for worker")
-    
-    # local k3s agent join
-    console.log(f"[white] Connecting to {cluster_name} @ {kalavai_seed_ip} (this may take a few minutes)...")
-    # 1. Generate docker compose recipe
+        
+    # local agent join
+    # 1. Generate local cache files
+    console.log("Generating config files...")
     compose_yaml = generate_compose_config(
         role="agent",
-        server=kalavai_seed_ip,
+        server=f"https://{kalavai_seed_ip}:6443",
         token=kalavai_token,
         node_name=socket.gethostname(),
         ip_address=ip_address,
         node_labels=node_labels,
         is_public=public_location is not None)
+    store_server_info(
+        server_ip=kalavai_seed_ip,
+        auth_key=auth_key,
+        file=USER_LOCAL_SERVER_FILE,
+        watcher_service=watcher_service,
+        node_name=node_name,
+        cluster_name=cluster_name,
+        public_location=public_location,
+        user_api_key=user["api_key"] if user is not None else None)
+    
+    init_user_workspace()
+    fetch_remote_templates()
 
+    option = user_confirm(
+        question="Docker compose ready. Would you like Kalavai to deploy it?",
+        options=["no", "yes"]
+    )
+    if option == 0:
+        console.log("Manually deploy the worker with the following command:\n")
+        print(f"docker compose -f {USER_COMPOSE_FILE} up -d")
+        return
+    
+    console.log(f"[white] Connecting to {cluster_name} @ {kalavai_seed_ip} (this may take a few minutes)...")
     try:
         CLUSTER.start_worker_node()
     except Exception as e:
@@ -795,20 +818,8 @@ def pool__join(token, *others, node_name=None, ip_address: str=None):
     while not CLUSTER.is_agent_running():
         console.log("Waiting for worker to start...")
         time.sleep(10)
-    store_server_info(
-        server_ip=kalavai_seed_ip,
-        auth_key=auth_key,
-        file=USER_LOCAL_SERVER_FILE,
-        watcher_service=watcher_service,
-        node_name=node_name,
-        cluster_name=cluster_name,
-        public_location=public_location,
-        user_api_key=user["api_key"] if user is not None else None)
-    fetch_remote_templates()
     
     # set status to schedulable
-    time.sleep(10)
-    init_user_workspace()
     console.log(f"[green] You are connected to {cluster_name}")
 
 @arguably.command
@@ -1915,7 +1926,7 @@ def ray__manifest(*others, name):
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
         return
 
-if __name__ == "__main__":
+def app():
     user_path("", create_path=True)
     
     arguably.run()

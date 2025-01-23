@@ -10,6 +10,8 @@ services:
 {% if command == "agent" %}
         --server {{pool_ip}}
         --token {{token}}
+{% else %}
+        --flannel-backend wireguard-native
 {% endif %}
         --node-label role={{command}}
 {% if node_labels %}
@@ -20,7 +22,6 @@ services:
 {% else %}
         --node-label gpu=off
 {% endif %}
-        --flannel-backend wireguard-native
         --node-ip {{ip_address}}
         --node-external-ip {{ip_address}}
 {% if flannel_iface %}
