@@ -1,10 +1,10 @@
 import os
+import time
 from pathlib import Path
 from abc import ABC, abstractmethod
 
 from kalavai_client.utils import (
     run_cmd,
-    user_path,
     check_gpu_drivers,
     validate_poolconfig
 )
@@ -61,77 +61,116 @@ class Cluster(ABC):
     def validate_cluster(self) -> bool:
         raise NotImplementedError
     
-
-class k0sCluster(Cluster):
-
-    def __init__(self, kubeconfig_file, poolconfig_file, dependencies_file, kube_version="v1.31.1+k3s1", flannel_iface=None):
+class dockerCluster(Cluster):
+    def __init__(self, container_name, compose_file, kubeconfig_file, poolconfig_file, dependencies_file, kube_version="v1.31.1+k3s1", flannel_iface=None):
         self.kube_version = kube_version
-        self.flannel_iface = flannel_iface
+        self.container_name = container_name
+        self.compose_file = compose_file
         self.kubeconfig_file = kubeconfig_file
         self.poolconfig_file = poolconfig_file
         self.dependencies_file = dependencies_file
 
-    def start_seed_node(self, ip_address, cluster_config_file, labels):
-        run_cmd("curl -sSLf https://get.k0s.sh | sudo sh")
-        run_cmd("helm repo update")
+        if flannel_iface is not None:
+            self.default_flannel_iface = flannel_iface
+        else:
+            self.default_flannel_iface = ""
+        
+    def start_seed_node(self):
+        
+        run_cmd(f"docker compose -f {self.compose_file} up -d")
+        time.sleep(5)
+        run_cmd(f"docker cp {self.container_name}:/etc/rancher/k3s/k3s.yaml {self.kubeconfig_file}")
 
-        run_cmd(f"sudo k0s install controller -c {cluster_config_file} --enable-worker --no-taints")
-        run_cmd("sudo k0s start")
+    def start_worker_node(self):
+        run_cmd(f"docker compose -f {self.compose_file} up -d")
+        
 
-        run_cmd(f"sudo cp /var/lib/k0s/pki/admin.conf {self.kubeconfig_file}")
-        run_cmd(f"sudo chown $USER {self.kubeconfig_file}")
-
-
-    def start_worker_node(self, url, token, node_name, ip_address, labels):
-        temp_file = user_path(".token")
-        with open(temp_file, "w") as f:
-            f.write(token)
-        run_cmd("curl -sSLf https://get.k0s.sh | sudo sh")
-        run_cmd(f"sudo k0s install worker --token-file {temp_file}")
-        run_cmd("sudo k0s start")
-
-
-    def update_dependencies(self, dependencies_file=None):
-        if dependencies_file is None:
-            dependencies_file = self.dependencies_file
-        run_cmd(f"helmfile sync --file {dependencies_file} --kubeconfig {self.kubeconfig_file} >/dev/null 2>&1")
-
-
+    def update_dependencies(self, dependencies_file=None, debug=False, retries=3):
+        if dependencies_file is not None:
+            self.dependencies_file = dependencies_file
+        if debug:
+            output = ""
+        else:
+            output = " >/dev/null 2>&1"
+        while True:
+            try:
+                run_cmd(f"helmfile sync --file {self.dependencies_file} --kubeconfig {self.kubeconfig_file} {output}")
+                break
+            except Exception as e:
+                if retries > 0:
+                    retries -= 1
+                    print(f"[{retries}] Dependencies failed. Retrying...")
+                else:
+                    raise Exception(f"Dependencies failed. Are you connected to the internet?\n\nTrace: {str(e)}")
+                
     def remove_agent(self):
-        # send request to remove node on watcher
-        run_cmd("sudo k0s stop")
-        run_cmd("sudo k0s reset")
+        try:
+            run_cmd(f'docker compose -f {self.compose_file} down')
+            return True
+        except:
+            return False
 
     def is_agent_running(self):
-        status = 0 == os.system("sudo k0s status >/dev/null 2>&1")
+        if not os.path.isfile(self.compose_file):
+            return False
+        status = self.container_name in run_cmd(f"docker compose -f {self.compose_file} ps --services --status=running").decode()
         return status
 
     def is_seed_node(self):
-        return 0 == os.system("sudo k0s kubectl get nodes >/dev/null 2>&1")
-
+        if not os.path.isfile(self.compose_file):
+            return False
+        status = "server" in run_cmd(f"docker compose -f {self.compose_file} ps --services --status=running").decode()
+        return status
+    
     def is_cluster_init(self):
-        return 0 == os.system("command -v k0s >/dev/null 2>&1")
+        if not os.path.isfile(self.compose_file):
+            return False
+        status = self.container_name in run_cmd(f"docker compose -f {self.compose_file} ps --services --all").decode()
+        return status
 
     def pause_agent(self):
+        status = False
         try:
-            run_cmd("sudo k0s stop")
-            return True
+            run_cmd(f'docker compose -f {self.compose_file} stop')
+            status = True
         except:
-            return False
+            pass
+        return status
+
 
     def restart_agent(self):
         try:
-            run_cmd("sudo k0s start")
-            return True
+            run_cmd(f'docker compose -f {self.compose_file} start')
+
         except:
-            return False
+            pass
+        return self.is_agent_running()
 
     def get_cluster_token(self):
-        return run_cmd("sudo k0s token create --role=worker").decode("utf-8")
+        if self.is_seed_node():
+            return run_cmd(f"docker container exec {self.container_name} cat /var/lib/rancher/k3s/server/node-token").decode()
+            #return run_cmd("sudo k3s token create --kubeconfig /etc/rancher/k3s/k3s.yaml --ttl 0").decode()
+        else:
+            return None
     
     def diagnostics(self) -> str:
-        data = run_cmd("sudo k0s kubectl get pods -A -o wide").decode() + "\n\n" + run_cmd("sudo k0s kubectl get nodes").decode()
-        return data
+        # TODO: check cache files are in order
+        # get cluster status
+        if self.is_seed_node():
+            return run_cmd(f"docker exec {self.container_name} kubectl get pods -A -o wide").decode() + "\n\n" + run_cmd(f"docker exec {self.container_name} kubectl get nodes").decode()
+        else:
+            return None
+        
+    def validate_cluster(self) -> bool:
+        if not self.is_cluster_init():
+            raise ValueError("Pool not initialised")
+        if not self.is_agent_running():
+            raise ValueError("Pool initialised but agent is not running")
+        # # check cache files
+        # if self.is_seed_node():
+        #     if not validate_poolconfig(self.poolconfig_file):
+        #         raise ValueError("Cache missconfigured. Run 'kalavai pool stop' to clear.")
+        return True
 
 
 class k3sCluster(Cluster):

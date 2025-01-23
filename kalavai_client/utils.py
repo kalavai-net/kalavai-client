@@ -494,6 +494,14 @@ def user_path(relative_path, create_path=False):
     
     return full_path
 
-def safe_remove(filepath):
-    if os.path.exists(filepath):
-        os.remove(filepath)
+def safe_remove(filepath, force=True):
+    if not os.path.exists(filepath):
+        return
+    try:
+        if os.path.isfile(filepath):
+            os.remove(filepath)
+        if os.path.isdir(filepath):
+            shutil.rmtree(filepath)
+    except:
+        if force:
+            run_cmd(f"sudo rm -rf {filepath}")

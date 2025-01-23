@@ -16,6 +16,8 @@ import arguably
 from rich.console import Console
 
 from kalavai_client.utils import (
+    check_gpu_drivers,
+    run_cmd,
     user_path,
     decode_dict,
     generate_join_token,
@@ -60,7 +62,7 @@ from kalavai_client.utils import (
     ALLOW_UNREGISTERED_USER_KEY
 )
 from kalavai_client.cluster import (
-    k3sCluster
+    dockerCluster
 )
 
 
@@ -72,11 +74,13 @@ CORE_NAMESPACES = ["lws-system", "kube-system", "gpu-operator", "kalavai"]
 TEMPLATE_LABEL = "kalavai.job.name"
 RAY_LABEL = "kalavai.ray.name"
 PVC_NAME_LABEL = "kalavai.storage.name"
+DOCKER_COMPOSE_TEMPLATE = resource_path("assets/docker-compose-template.yaml")
 POOL_CONFIG_TEMPLATE = resource_path("assets/pool_config_template.yaml")
 POOL_CONFIG_DEFAULT_VALUES = resource_path("assets/pool_config_values.yaml")
 USER_WORKSPACE_TEMPLATE = resource_path("assets/user_workspace.yaml")
 DEFAULT_USER_WORKSPACE_VALUES = resource_path("assets/user_workspace_values.yaml")
-STORAGE_CLASS_NAME = "longhorn"
+STORAGE_CLASS_NAME = "local-path"
+STORAGE_ACCESS_MODE = ["ReadWriteOnce"]
 STORAGE_CLASS_LABEL = "kalavai.storage.enabled"
 DEFAULT_STORAGE_NAME = "pool-cache"
 DEFAULT_STORAGE_SIZE = 20
@@ -88,6 +92,9 @@ FORBIDEDEN_IPS = ["127.0.0.1"]
 HELM_APPS_FILE = resource_path("assets/apps.yaml")
 HELM_APPS_VALUES = resource_path("assets/apps_values.yaml")
 # user specific config files
+DEFAULT_CONTAINER_NAME = "kalavai-seed"
+CONTAINER_HOST_PATH = user_path("pool/", create_path=True)
+USER_COMPOSE_FILE = user_path("docker-compose.yaml")
 USER_HELM_APPS_FILE = user_path("apps.yaml")
 USER_KUBECONFIG_FILE = user_path("kubeconfig")
 USER_LOCAL_SERVER_FILE = user_path(".server")
@@ -96,9 +103,11 @@ USER_COOKIE = user_path(".user_cookie.pkl")
 
 
 console = Console()
-CLUSTER = k3sCluster(
+CLUSTER = dockerCluster(
+    container_name=DEFAULT_CONTAINER_NAME,
     kube_version=KUBE_VERSION,
     flannel_iface=DEFAULT_FLANNEL_IFACE,
+    compose_file=USER_COMPOSE_FILE,
     kubeconfig_file=USER_KUBECONFIG_FILE,
     poolconfig_file=USER_LOCAL_SERVER_FILE,
     dependencies_file=USER_HELM_APPS_FILE
@@ -119,8 +128,8 @@ def cleanup_local():
     except:
         # no vpn
         pass
-    safe_remove(USER_KUBECONFIG_FILE)
-    safe_remove(USER_LOCAL_SERVER_FILE)
+    console.log("Removing local cache files...")
+    safe_remove(user_path(""))
 
 def fetch_remote_templates():
     templates = get_all_templates(
@@ -145,16 +154,7 @@ def pre_join_check(node_name, server_url, server_key):
     except Exception as e:
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
         return False
-
-def restart():
-    console.log("[white] Restarting sharing (may take a few minutes)...")
-    success = CLUSTER.restart_agent()
-    if success:
-        console.log("[white] Kalava sharing resumed")
-        fetch_remote_templates()
-    else:
-        console.log("[red] Error when restarting. Please run [yellow]kalavai pool resume[white] again.")
-
+    
 def set_schedulable(schedulable, node_name=load_server_info(data_key=NODE_NAME_KEY, file=USER_LOCAL_SERVER_FILE)):
     """
     Delete job in the cluster
@@ -303,6 +303,39 @@ def select_token_type():
             break
     return {"admin": choice == 0, "user": choice == 1, "worker": choice == 2}
 
+def generate_compose_config(role, node_name, ip_address, node_labels, is_public, server=None, token=None):
+    num_gpus = 0
+    try:
+        has_gpus = check_gpu_drivers()
+        if has_gpus:
+            max_gpus = int(run_cmd("nvidia-smi -L | wc -l").decode())
+            num_gpus = user_confirm(
+                question=f"{max_gpus} NVIDIA GPU(s) detected. How many GPUs would you like to include?",
+                options=range(max_gpus+1)
+            ) 
+    except:
+        console.log(f"[red]WARNING: error when fetching NVIDIA GPU info. GPUs will not be used on this local machine")
+    compose_values = {
+        "service_name": DEFAULT_CONTAINER_NAME,
+        "pool_ip": server,
+        "token": token,
+        "hostname": node_name,
+        "command": role,
+        "storage_enabled": "True",
+        "ip_address": ip_address,
+        "num_gpus": num_gpus,
+        "k3s_path": f"{CONTAINER_HOST_PATH}/k3s",
+        "etc_path": f"{CONTAINER_HOST_PATH}/etc",
+        "node_labels": " ".join([f"--node-label {key}={value}" for key, value in node_labels.items()]),
+        "flannel_iface": DEFAULT_FLANNEL_IFACE if is_public else None
+    }
+    # generate local config files
+    compose_yaml = load_template(
+        template_path=DOCKER_COMPOSE_TEMPLATE,
+        values=compose_values)
+    with open(USER_COMPOSE_FILE, "w") as f:
+        f.write(compose_yaml)
+    return compose_yaml
 
 ##################
 ## CLI COMMANDS ##
@@ -449,6 +482,7 @@ def pool__list(*others, user_only=False):
         console.log("[yellow]************************************")
     console.log("[white]Use [yellow]kalavai pool join <join key> [white]to join a public pool")
 
+
 @arguably.command
 def pool__start(cluster_name, *others,  only_registered_users: bool=False, ip_address: str=None, location: str=None, app_values: str=HELM_APPS_VALUES, pool_config_values: str=POOL_CONFIG_DEFAULT_VALUES):
     """
@@ -460,6 +494,15 @@ def pool__start(cluster_name, *others,  only_registered_users: bool=False, ip_ad
 
     if CLUSTER.is_cluster_init():
         console.log(f"[white] You are already connected to {load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE)}. Enter [yellow]kalavai pool stop[white] to exit and join another one.")
+        return
+    
+    # User acknowledgement
+    option = user_confirm(
+        question="Kalavai will now deploy the pool using docker. This is safe and won't modify your system. Are you happy to proceed?",
+        options=["no", "yes"]
+    )
+    if option == 0:
+        console.log("Installation was cancelled and did not complete.")
         return
     
     # if only registered users are allowed, check user has logged in
@@ -510,14 +553,7 @@ def pool__start(cluster_name, *others,  only_registered_users: bool=False, ip_ad
         USER_NODE_LABEL_KEY: USER_NODE_LABEL,
         ALLOW_UNREGISTERED_USER_KEY: not only_registered_users
     }
-    
-    # 1. start k3s server
-    console.log("Installing cluster seed")
-    CLUSTER.start_seed_node(
-        ip_address=ip_address,
-        labels=node_labels,
-        is_public=location is not None)
-    
+
     store_server_info(
         server_ip=ip_address,
         auth_key=auth_key,
@@ -529,6 +565,30 @@ def pool__start(cluster_name, *others,  only_registered_users: bool=False, ip_ad
         cluster_name=cluster_name,
         public_location=location,
         user_api_key=user["api_key"] if user is not None else None)
+
+    # 1. Generate docker compose recipe
+    compose_yaml = generate_compose_config(
+        role="server",
+        node_name=socket.gethostname(),
+        ip_address=ip_address,
+        node_labels=node_labels,
+        is_public=location is not None
+    )
+    
+    # Generate helmfile recipe
+    helm_yaml = load_template(
+        template_path=HELM_APPS_FILE,
+        values=values,
+        default_values_path=app_values,
+        force_defaults=True)
+    with open(USER_HELM_APPS_FILE, "w") as f:
+        f.write(helm_yaml)
+    
+    console.log("[green]Config files have been generated in your local machine\n")
+
+    # # 1. start server
+    console.log("Installing cluster seed")
+    CLUSTER.start_seed_node()
     
     while not CLUSTER.is_agent_running():
         console.log("Waiting for seed to start...")
@@ -536,15 +596,6 @@ def pool__start(cluster_name, *others,  only_registered_users: bool=False, ip_ad
     
     console.log("Install dependencies...")
     # set template values in helmfile
-    helm_yaml = load_template(
-        template_path=HELM_APPS_FILE,
-        values=values,
-        default_values_path=app_values,
-        force_defaults=True)
-    
-    with open(USER_HELM_APPS_FILE, "w") as f:
-        f.write(helm_yaml)
-    
     try:
         CLUSTER.update_dependencies(
             dependencies_file=USER_HELM_APPS_FILE
@@ -561,9 +612,8 @@ def pool__start(cluster_name, *others,  only_registered_users: bool=False, ip_ad
         console.log("Registering public cluster with Kalavai...")
         pool__publish()
     
-    # create default local storage
+    # wait until the server is ready to create objects
     while True:
-        # wait until the server is ready to create objects
         console.log("Waiting for core services to be ready, may take a few minutes...")
         time.sleep(30)
         if is_watcher_alive(server_creds=USER_LOCAL_SERVER_FILE, user_cookie=USER_COOKIE):
@@ -575,8 +625,6 @@ def pool__start(cluster_name, *others,  only_registered_users: bool=False, ip_ad
     if only_registered_users:
         # init user namespace
         init_user_workspace()
-
-    #storage__create(name=DEFAULT_STORAGE_NAME, storage=default_storage_size)
 
     return None
 
@@ -727,14 +775,18 @@ def pool__join(token, *others, node_name=None, ip_address: str=None):
     
     # local k3s agent join
     console.log(f"[white] Connecting to {cluster_name} @ {kalavai_seed_ip} (this may take a few minutes)...")
+    # 1. Generate docker compose recipe
+    compose_yaml = generate_compose_config(
+        role="agent",
+        server=kalavai_seed_ip,
+        token=kalavai_token,
+        node_name=socket.gethostname(),
+        ip_address=ip_address,
+        node_labels=node_labels,
+        is_public=public_location is not None)
+
     try:
-        CLUSTER.start_worker_node(
-            url=kalavai_seed_ip,
-            token=kalavai_token,
-            node_name=node_name,
-            ip_address=ip_address,
-            labels=node_labels,
-            is_public=public_location is not None)
+        CLUSTER.start_worker_node()
     except Exception as e:
         console.log(f"[red] Error connecting to {cluster_name} @ {kalavai_seed_ip}. Check with the admin if the token is still valid.")
         leave_vpn()
@@ -771,14 +823,15 @@ def pool__stop(*others):
     # delete local node from server
     node__delete(load_server_info(data_key=NODE_NAME_KEY, file=USER_LOCAL_SERVER_FILE))
     # unpublish event (only if seed node)
-    try:
-        if CLUSTER.is_seed_node():
-            console.log("Unregistering pool...")
-            unregister_cluster(
-                name=load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE),
-                user_cookie=USER_COOKIE)
-    except Exception as e:
-        console.log(f"[red][WARNING]: (ignore if not a public pool) Error when unpublishing cluster. {str(e)}")
+    # TODO: no, this should be done via the platform!!!
+    # try:
+    #     if CLUSTER.is_seed_node():
+    #         console.log("Unregistering pool...")
+    #         unregister_cluster(
+    #             name=load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE),
+    #             user_cookie=USER_COOKIE)
+    # except Exception as e:
+    #     console.log(f"[red][WARNING]: (ignore if not a public pool) Error when unpublishing cluster. {str(e)}")
     # remove local node agent
     console.log("Removing agent and local cache")
     CLUSTER.remove_agent()
@@ -814,8 +867,12 @@ def pool__resume(*others):
     if not CLUSTER.is_cluster_init():
         console.log("[red] Kalavai app was not started before, please run [yellow]kalavai pool start[red] to start a pool or [yellow]kalavai pool join[red] to join one first")
         return
-    console.log("[white] Resuming kalavai app...")
-    restart()
+    console.log("[white] Restarting sharing (may take a few minutes)...")
+    if CLUSTER.restart_agent():
+        console.log("[white] Kalava sharing resumed")
+    else:
+        console.log("[red] Error when restarting. Please run [yellow]kalavai pool resume[white] again.")
+
 
 @arguably.command
 def pool__gpus(*others, available=False):
@@ -950,8 +1007,6 @@ def pool__status(*others, log_file=None):
     logs.append(f"App installed: {CLUSTER.is_cluster_init()}")
 
     logs.append(f"Agent running: {CLUSTER.is_agent_running()}")
-
-    logs.append(f"Containerd running: {is_service_running(service='containerd.service')}")
     
     if log_file is not None:
         with open(log_file, "w") as f:
@@ -984,7 +1039,7 @@ def storage__create(name, storage, *others, force_namespace: str=None):
             PVC_NAME_LABEL: name,
             "kalavai.resource": "storage"
         },
-        "access_modes": ["ReadWriteMany"],
+        "access_modes": STORAGE_ACCESS_MODE,
         "storage_class_name": STORAGE_CLASS_NAME,
         "storage_size": storage
     }
