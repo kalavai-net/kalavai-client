@@ -1,0 +1,40 @@
+services:
+   {{service_name}}-{{command}}:
+      image: bundenth/kalavai-runner:gpu-latest
+      container_name: {{service_name}}
+      hostname: {{hostname}}
+      privileged: true
+      network_mode: "host"
+      command: >
+        {{command}}
+{% if command == "agent" %}
+        --server {{pool_ip}}
+        --token {{token}}
+{% endif %}
+        --node-label role={{command}}
+{% if node_labels %}
+        {{node_labels}}
+{% endif %}
+{% if num_gpus and num_gpus > 0 %}
+        --node-label gpu=on
+{% else %}
+        --node-label gpu=off
+{% endif %}
+        --flannel-backend wireguard-native
+        --node-ip {{ip_address}}
+        --node-external-ip {{ip_address}}
+{% if flannel_iface %}
+        --flannel-iface {{flannel_iface}}
+{% endif %}
+      volumes:
+      - {{k3s_path}}:/var/lib/rancher/k3s # Persist data
+      - {{etc_path}}:/etc/rancher/k3s # Config files
+{% if num_gpus and num_gpus > 0 %}
+      deploy:
+        resources:
+          reservations:
+            devices:
+            - driver: nvidia
+              count: {{num_gpus}}
+              capabilities: [gpu]
+{% endif %}
