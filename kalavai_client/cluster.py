@@ -137,7 +137,6 @@ class dockerCluster(Cluster):
             pass
         return status
 
-
     def restart_agent(self):
         try:
             run_cmd(f'docker compose -f {self.compose_file} start')
@@ -162,15 +161,8 @@ class dockerCluster(Cluster):
             return None
         
     def validate_cluster(self) -> bool:
-        if not self.is_cluster_init():
-            raise ValueError("Pool not initialised")
-        if not self.is_agent_running():
-            raise ValueError("Pool initialised but agent is not running")
-        # # check cache files
-        # if self.is_seed_node():
-        #     if not validate_poolconfig(self.poolconfig_file):
-        #         raise ValueError("Cache missconfigured. Run 'kalavai pool stop' to clear.")
-        return True
+        # check if credentials are present
+        return os.path.isfile(self.poolconfig_file)
 
 
 class k3sCluster(Cluster):
@@ -277,7 +269,6 @@ class k3sCluster(Cluster):
             pass
         return status
 
-
     def restart_agent(self):
         try:
             run_cmd('sudo systemctl start k3s >/dev/null 2>&1')
@@ -312,4 +303,3 @@ class k3sCluster(Cluster):
             if not validate_poolconfig(self.poolconfig_file):
                 raise ValueError("Cache missconfigured. Run 'kalavai pool stop' to clear.")
         return True
-
