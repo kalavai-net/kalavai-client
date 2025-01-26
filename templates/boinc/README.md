@@ -1,3 +1,0 @@
-# Volunteer Scientific Computing 
-
-WIP
