@@ -24,6 +24,7 @@
 
 ### News updates
 
+- X January 2025: Support for accessing pools from remote computers
 - 9 January 2025: Added support for [Aphrodite Engine](https://github.com/aphrodite-engine/aphrodite-engine) models
 - 8 January 2025: Release of [a free, public, shared pool](/docs/docs/public_llm_pool.md) for community LLM deployment
 - 24 December 2024: Release of [public BOINC pool](/docs/docs/boinc.md) to donate computing to scientific projects
@@ -82,64 +83,31 @@ Not what you were looking for? [Tell us](https://github.com/kalavai-net/kalavai-
 
 ## Getting started
 
-The `kalavai` CLI is the main tool to interact with the Kalavai platform, to create and manage both local and public pools. Let's go over its installation
+The `kalavai` client is the main tool to interact with the Kalavai platform, to create and manage both local and public pools and also to interact with them (e.g. deploy models). Let's go over its installation. 
 
-<!--https://github.com/user-attachments/assets/af2ee15d-f18c-4802-8210-1873b0de07eb -->
+From release **v0.5.0, you can now install `kalavai` client in non-worker computers**. This means you can run a pool on a set of machines and have the client on a remote computer from which you access the LLM pool. Because the client only requires having python installed, this means more computers are now supported to run it.
 
-### Requirements
+
+### Requirements for a worker machine
 
 - A laptop, desktop or Virtual Machine
-- Admin / privileged access (eg. `sudo` access in linux or Administrator in Windows)
-- Running Windows or Linux (see more details in our [compatibility matrix](#compatibility-matrix))
+- Docker engine installed (for [linux](https://docs.docker.com/engine/install/), [Windows and MacOS](https://docs.docker.com/desktop/))
+- Admin / privileged access (eg. `sudo` access in linux/MacOS or Administrator in Windows)
 
 
-### Linux
+### Requirements to run the client
 
-Run the following command on your terminal:
+- Python 3.10+
+
+
+### Install the client
+
+The client is a python package and can be installed with one command:
 
 ```bash
-curl -sfL https://raw.githubusercontent.com/kalavai-net/kalavai-client/main/assets/install_client.sh | bash -
+pip install kalavai-client
 ```
 
-### Windows
-
-For Windows machines complete WSL configuration first before continuing. You must be running Windows 10 version 2004 and higher (Build 19041 and higher) or Windows 11 to use the commands below. **If you are on earlier versions** please see the [manual install](https://learn.microsoft.com/en-us/windows/wsl/install-manual) page.
-
-1. Open a PowerShell with administrative permissions (_Run as Administrator_)
-
-2. Install WSL2:
-```bash
-wsl --install -d Ubuntu-24.04
-```
-
-3. Make sure to enable `systemd` by editing (or creating if required) a file `/etc/wsl.conf`
-```bash
-[boot]
-systemd=true
-```
-
-4. Restart the WSL instance by exiting and logging back in:
-```bash
-exit
-wsl --shutdown
-wsl -d Ubuntu-24.04
-```
-
-5. Inside WSL, install Kalavai:
-```bash
-curl -sfL https://raw.githubusercontent.com/kalavai-net/kalavai-client/main/assets/install_client.sh | bash -
-```
-
-**Note**: you **must keep the WSL console window open** to continue to share resources with an AI pool. If you restart your machine or close the console, you will need to resume kalavai as follows:
-```bash
-kalavai pool resume
-```
-
-**Known issue**: if the above resume command hangs or fails, try to run the pause command before and then reattempt resuming:
-```bash
-kalavai pool pause
-kalavai pool resume
-```
 
 ## Public LLM pools: crowdsource community resources
 
@@ -193,7 +161,7 @@ If your system is not currently supported, [open an issue](https://github.com/ka
 
 ### OS compatibility
 
-Currently compatible and tested OS:
+Currently compatible and tested OS for both the kalavai CLI and workers:
 
 - Ubuntu (22.04, 24.04)
 - Pop! OS 22.04
@@ -204,7 +172,6 @@ Currently compatible (untested. [Interested in testing them?](https://kalavai-ne
 - Debian-based linux
 - Fedora
 - RedHat
-- Any distro capable of installing `.deb` and `.rpm` packages.
 
 Currently not compatible:
 
@@ -226,11 +193,11 @@ Currently not compatible:
 - [x] Self-hosted LLM pools
 - [x] Collaborative LLM deployment
 - [x] Ray cluster support
-- [ ] Kalavai client on Mac
+- [x] Kalavai client on Mac
 - [ ] [TEMPLATE] [GPUStack](https://github.com/gpustack/gpustack) support
 - [ ] [TEMPLATE] [exo](https://github.com/exo-explore/exo) support
 - [ ] Support for AMD GPUs
-- [ ] Docker install path
+- [x] Docker install path
 
 
 Anything missing here? Give us a shout in the [discussion board](https://github.com/kalavai-net/kalavai-client/discussions)
@@ -254,31 +221,29 @@ Anything missing here? Give us a shout in the [discussion board](https://github.
 
 ### Requirements
 
-Python version <= 3.10.
-
-On Ubuntu:
+Python version <= 3.12.
 
 ```bash
 virtualenv -p python3 env
 source env/bin/activate
-sudo apt install python3-tk python3-dev rpm squashfs-tools ruby-dev build-essential gcc -y
-sudo gem i fpm -f
-pip install -e .
+sudo apt install  python3.10-venv python3.10-dev -y
+pip install -e .[dev]
 ```
 
-
-sudo apt install python3.10-venv
-
-### Build
-
-Run the build process with:
+Build python wheels:
 ```bash
-bash build.sh
+bash publish.sh build
 ```
 
-This will produce two main assets:
-- `dist/kalavai` as the linux executable CLI application
-- `packages/kalavai-cli-*` for all compatible package installables.
+Publish test release (TestPyPI):
+```bash
+bash publish.sh test-release
+```
+
+Publish official release (PyPI):
+```bash
+bash publish.sh release
+```
 
 
 ### Unit tests
@@ -288,12 +253,3 @@ To run the unit tests, use:
 ```bash
 python -m unittest
 ```
-
-### Versioning
-
-We use [BumpVer](https://pypi.org/project/bumpver/) to manage the versioning of the package.
-
-
-## Build and publish PyPI
-
-python -m build

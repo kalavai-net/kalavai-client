@@ -1,6 +1,6 @@
 [project]
 name            = "kalavai-client"
-version         = "0.4.0"
+version         = "0.5.0"
 authors = [
   {name = "Carlos Fernandez Musoles", email = "carlos@kalavai.net"}
 ]
@@ -24,12 +24,12 @@ dependencies = [
     "Pillow==10.3.0",
     "setuptools<70.0.0",
     "netifaces==0.11.0",
-    "anvil-uplink==0.5.1"
+    "anvil-uplink==0.5.1",
+    "importlib_resources==6.5.2"
 ]
 
 [project.optional-dependencies]
 dev = [
-    "bumpver",
     "py2app==0.28.7",
     "pyinstaller==6.5.0",
     "build",
@@ -53,28 +53,10 @@ build-backend   = "poetry.core.masonry.api"
 [project.scripts]
 kalavai = "kalavai_client.cli:app"
 
-[tool.bumpver]
-current_version = "0.4.0"
-version_pattern = "MAJOR.MINOR.PATCH"
-commit_message = "bump version {old_version} -> {new_version}"
-tag_message = "{new_version}"
-tag_scope = "default"
-pre_commit_hook = ""
-post_commit_hook = ""
-commit = true
-tag = true
-push = true
-
-[tool.bumpver.file_patterns]
-"pyproject.toml" = [
-    'current_version = "{version}"',
-]
-"README.md" = [
-    "{version}",
-    "{pep440_version}",
-]
-"kalavai_client/__init__.py" = ["{version}"]
 
 
-[tool.check-manifest]
-ignore = [".yaml"]
+[tool.setuptools.packages.find]
+where = ["kalavai_client"]
+
+[tool.setuptools.package-data]
+assets = ["*.yaml"]
