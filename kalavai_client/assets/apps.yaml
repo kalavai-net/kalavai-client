@@ -131,13 +131,15 @@ releases:
   - name: kalavai-watcher
     namespace: kalavai
     chart: kalavai/kalavai-watcher
-    version: "0.3.4"
+    version: "0.3.5"
     installed: true
     set:
     - name: namespace
       value: kalavai
     - name: replicas
       value: 2
+    - name: version
+      value: "latest"
     - name: deployment.in_cluster
       value: "True"
     - name: deployment.use_auth_key
@@ -187,4 +189,13 @@ releases:
       value: "1"
     - name: devicePlugin.deviceSplitCount
       value: "1"
+    - name: scheduler.customWebhook.port
+      value: "30498"
+    - name: scheduler.service.schedulerPort
+      value: "30498"
+    - name: scheduler.service.monitorPort
+      value: "30493"
+    - name: devicePlugin.service.httpPort
+      value: "30492"
+    
 

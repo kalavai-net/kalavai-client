@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y curl \
     && apt-get update && apt-get install -y nvidia-container-toolkit \
     && nvidia-ctk runtime configure --runtime=containerd
 
+RUN apt-get install wireguard -y
 COPY --from=k3s / / --exclude=/bin
 COPY --from=k3s /bin /bin
 

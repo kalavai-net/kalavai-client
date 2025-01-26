@@ -4,14 +4,24 @@ services:
       container_name: {{service_name}}
       hostname: {{hostname}}
       privileged: true
-      network_mode: "host"
+      restart: unless-stopped
+      ports:
+      - "6443:6443" # kube server
+      - "8472:8472" # flannel vxlan
+      - "51820:51820" # flannel wireguard
+{% if command == "server" %}
+      - "30000-30500:30000-30500"
+{% endif %}
+      networks:
+      - custom-network
       command: >
         {{command}}
-{% if command == "agent" %}
+{% if command == "server" %}
+        --flannel-backend wireguard-native
+        --service-node-port-range "30000-30500"
+{% else %}
         --server {{pool_ip}}
         --token {{token}}
-{% else %}
-        --flannel-backend wireguard-native
 {% endif %}
         --node-label role={{command}}
 {% if node_labels %}
@@ -39,3 +49,7 @@ services:
               count: {{num_gpus}}
               capabilities: [gpu]
 {% endif %}
+
+networks:
+  custom-network:
+    driver: bridge
