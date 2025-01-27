@@ -225,7 +225,10 @@ Anything missing here? Give us a shout in the [discussion board](https://github.
 Python version <= 3.12.
 
 ```bash
-virtualenv -p python3 env
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt update
+sudo apt install python3.10 python3.10-dev
+virtualenv -p python3.10 env
 source env/bin/activate
 sudo apt install  python3.10-venv python3.10-dev -y
 pip install -e .[dev]
@@ -244,3 +247,4 @@ To run the unit tests, use:
 ```bash
 python -m unittest
 ```
+
