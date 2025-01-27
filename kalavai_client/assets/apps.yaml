@@ -131,15 +131,15 @@ releases:
   - name: kalavai-watcher
     namespace: kalavai
     chart: kalavai/kalavai-watcher
-    version: "0.3.5"
+    version: "0.3.6"
     installed: true
     set:
     - name: namespace
       value: kalavai
     - name: replicas
       value: 2
-    - name: version
-      value: "latest"
+    - name: image_tag
+      value: "v2025.01"
     - name: deployment.in_cluster
       value: "True"
     - name: deployment.use_auth_key
