@@ -55,8 +55,6 @@ from kalavai_client.utils import (
     WATCHER_PORT_KEY,
     MANDATORY_TOKEN_FIELDS,
     USER_NODE_LABEL_KEY,
-    ENDPOINT_PORTS_KEY,
-    TEMPLATE_ID_KEY,
     ALLOW_UNREGISTERED_USER_KEY
 )
 from kalavai_client.cluster import (
@@ -143,16 +141,6 @@ def check_seed_compatibility():
     """Check required packages to start pools"""
     logs = []
     console.log("[white]Checking system requirements...")
-    # helm
-    try:
-        run_cmd("helm version >/dev/null 2>&1")
-    except:
-        logs.append("[red]helm not installed. Install instructions: [yellow]https://github.com/helmfile/helmfile?tab=readme-ov-file#installation")
-    # helmfile
-    try:
-        run_cmd("helmfile version >/dev/null 2>&1")
-    except:
-        logs.append("[red]helmfile not installed. Install with: [yellow]curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash")
     # docker
     try:
         run_cmd("docker version >/dev/null 2>&1")
@@ -313,7 +301,7 @@ def select_ip_address(subnet=None):
                 pass
         if len(ips) == 1:
             return ips[0]
-        time.sleep(5)
+        time.sleep(2)
         retry -= 1
         if retry < 0:
             raise ValueError(f"No IPs available on subnet {subnet}")
@@ -390,6 +378,7 @@ def generate_compose_config(role, node_name, ip_address, node_labels, is_public,
     except:
         console.log(f"[red]WARNING: error when fetching NVIDIA GPU info. GPUs will not be used on this local machine")
     compose_values = {
+        "user_path": user_path(""),
         "service_name": DEFAULT_CONTAINER_NAME,
         "pool_ip": server,
         "token": token,
@@ -670,7 +659,7 @@ def pool__start(cluster_name, *others,  only_registered_users: bool=False, ip_ad
         console.log("Waiting for seed to start...")
         time.sleep(10)
     
-    console.log("Deploying dependencies...")
+    console.log("Setting pool dependencies...")
     # set template values in helmfile
     try:
         CLUSTER.update_dependencies(
@@ -1486,11 +1475,7 @@ def job__run(template_name, *others, values: str=None, force_namespace: str=None
             server_creds=USER_LOCAL_SERVER_FILE,
             user_cookie=USER_COOKIE
         )
-        if len(result['failed']) > 0:
-            console.log(f"[red]Error when deploying template\n\n{result['failed']}")
-            return
-        if len(result['successful']) > 0:
-            console.log(f"[green]Template {template_name} successfully deployed!")
+        console.log(f"[green]{template_name} job deployed")
     except Exception as e:
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
         return
@@ -1642,9 +1627,6 @@ def job__list(*others, detailed=False):
         "group": "batch.volcano.sh",
         "api_version": "v1alpha1",
         "plural": "jobs"
-        # "group": "leaderworkerset.x-k8s.io",
-        # "api_version": "v1",
-        # "plural": "leaderworkersets",
     }
     try:
         result = request_to_server(
@@ -1840,10 +1822,11 @@ def job__manifest(*others, name, force_namespace: str=None):
 
 
 @arguably.command
-def ray__create(template_path, *others):
+def ray__create(name, template_path, *others, force_namespace: str=None):
     """
     Create a cluster using KubeRay operator
     """
+
     try:
         CLUSTER.validate_cluster()
     except Exception as e:
@@ -1851,41 +1834,27 @@ def ray__create(template_path, *others):
         return
     
     with open(template_path, "r") as f:
-        template_yaml = yaml.safe_load(f)
-        # ensure deployment is labelled (for tracking and deletion)
-        if "metadata" not in template_yaml or "name" not in template_yaml["metadata"]:
-            console.log("[red]Cluster must contain a metadata field and include a name entry.")
-            return
-        name = template_yaml["metadata"]["name"]
-        if "labels" in template_yaml["metadata"]:
-            template_yaml["metadata"]["labels"][RAY_LABEL] = name
-        else:
-            template_yaml["metadata"]["labels"] = {
-                RAY_LABEL: name
-            }
-        template_yaml = json.dumps(template_yaml)
-
+        template_yaml = f.read()
+        
     data = {
-        "object": {
-            "group": "ray.io",
-            "api_version": "v1",
-            "plural": "rayclusters"
-        },
-        "body": template_yaml
+        "name": name,
+        "manifest": template_yaml
     }
+    if force_namespace is not None:
+        data["force_namespace"] = force_namespace
     try:
         result = request_to_server(
             method="post",
-            endpoint="/v1/deploy_custom_object",
+            endpoint="/v1/deploy_ray",
             data=data,
             server_creds=USER_LOCAL_SERVER_FILE,
             user_cookie=USER_COOKIE
         )
         if len(result['failed']) > 0:
-            console.log(f"[red]Error when deploying template\n\n{result['failed']}")
+            console.log(f"[red]Error when deploying ray manifest\n\n{result['failed']}")
             return
         if len(result['successful']) > 0:
-            console.log(f"[green]Template {template_path} successfully deployed!")
+            console.log(f"[green]Ray cluster {name} successfully deployed!")
     except Exception as e:
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
         return
@@ -1949,7 +1918,7 @@ def ray__list(*status):
     console.log(table)
 
 @arguably.command
-def ray__delete(*others, name):
+def ray__delete(*others, name, force_namespace=None):
     """
     Delete a ray cluster
     """
@@ -1964,6 +1933,8 @@ def ray__delete(*others, name):
         "label": RAY_LABEL, # this ensures that both raycluster and services are deleted
         "value": name
     }
+    if force_namespace is not None:
+        data["force_namespace"] = force_namespace
     try:
         result = request_to_server(
             method="post",
@@ -1977,7 +1948,7 @@ def ray__delete(*others, name):
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
 
 @arguably.command
-def ray__manifest(*others, name):
+def ray__manifest(*others, name, force_namespace=None):
     """
     Get ray cluster manifest description
     """
@@ -1991,6 +1962,8 @@ def ray__manifest(*others, name):
         "label": "ray.io/cluster",
         "value": name
     }
+    if force_namespace is not None:
+        data["force_namespace"] = force_namespace
     try:
         result = request_to_server(
             method="post",

@@ -1,11 +1,9 @@
 import json, base64
-import time
 import os
 import requests
 from pathlib import Path
 from urllib.parse import urljoin
 import shutil
-import urllib.request
 import subprocess
 import re
 
@@ -256,40 +254,6 @@ def leave_vpn():
         return left_vpns
     except:
         return None
-
-def is_service_running(service):
-    return 0 == os.system(f'sudo systemctl is-active --quiet {service}')
-
-
-def fetch_git_files(remote_folder):
-    response = requests.get(
-        f"https://api.github.com/repos/{GITHUB_ORG}/{GITHUB_REPO}/contents/{remote_folder}",
-        headers={
-            "X-GitHub-Api-Version": "2022-11-28",
-            "Accept": "application/vnd.github+json"
-        }
-    )
-    return response.json()
-
-
-def fetch_templates(local_path):
-    # get all templates
-    templates = [] 
-    data = fetch_git_files(remote_folder=GITHUB_TEMPLATE_PATH)
-    
-    for file in data:
-        if file['type'] == 'dir':
-            templates.append((file['name'], file["path"]))
-
-    # fetch files for each template
-    for template_name, template_path in templates:
-        user_path(template_path, create_path=True)
-        files = fetch_git_files(remote_folder=template_path)
-        for file in files:
-            if file["type"] == "file":
-                urllib.request.urlretrieve(
-                    file["download_url"],
-                    os.path.join(local_path, template_name, file["name"]))
 
 def request_to_server(
         method,

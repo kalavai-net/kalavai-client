@@ -6,7 +6,8 @@ from abc import ABC, abstractmethod
 from kalavai_client.utils import (
     run_cmd,
     check_gpu_drivers,
-    validate_poolconfig
+    validate_poolconfig,
+    user_path
 )
 
 
@@ -94,7 +95,9 @@ class dockerCluster(Cluster):
             output = " >/dev/null 2>&1"
         while True:
             try:
-                run_cmd(f"helmfile sync --file {self.dependencies_file} --kubeconfig {self.kubeconfig_file} {output}")
+                home = user_path("")
+                run_cmd(f"docker run --rm --net=host -v {home}:{home} ghcr.io/helmfile/helmfile:v0.169.2 helmfile sync --file {self.dependencies_file} --kubeconfig {self.kubeconfig_file} {output}")
+                #run_cmd(f"helmfile sync --file {self.dependencies_file} --kubeconfig {self.kubeconfig_file} {output}")
                 break
             except Exception as e:
                 if retries > 0:
@@ -102,7 +105,7 @@ class dockerCluster(Cluster):
                     print(f"[{retries}] Dependencies failed. Retrying...")
                 else:
                     raise Exception(f"Dependencies failed. Are you connected to the internet?\n\nTrace: {str(e)}")
-                
+
     def remove_agent(self):
         try:
             run_cmd(f'docker compose -f {self.compose_file} down')
