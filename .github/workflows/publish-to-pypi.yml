@@ -38,7 +38,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')  # only publish to PyPI on tag pushes
     needs:
     - build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment:
       name: pypi
       url: https://pypi.org/p/kalavai-client
@@ -97,26 +97,26 @@ jobs:
   #       "$GITHUB_REF_NAME" dist/**
   #       --repo "$GITHUB_REPOSITORY"
 
-  # publish-to-testpypi:
-  #   name: Publish Python 🐍 distribution 📦 to TestPyPI
-  #   needs:
-  #   - build
-  #   runs-on: ubuntu-latest
+  publish-to-testpypi:
+    name: Publish Python 🐍 distribution 📦 to TestPyPI
+    needs:
+    - build
+    runs-on: ubuntu-24.04
 
-  #   environment:
-  #     name: testpypi
-  #     url: https://test.pypi.org/p/kalavai-client
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/kalavai-client
 
-  #   permissions:
-  #     id-token: write  # IMPORTANT: mandatory for trusted publishing
+    permissions:
+      id-token: write  # IMPORTANT: mandatory for trusted publishing
 
-  #   steps:
-  #   - name: Download all the dists
-  #     uses: actions/download-artifact@v4
-  #     with:
-  #       name: python-package-distributions
-  #       path: dist/
-  #   - name: Publish distribution 📦 to TestPyPI
-  #     uses: pypa/gh-action-pypi-publish@release/v1
-  #     with:
-  #       repository-url: https://test.pypi.org/legacy/
+    steps:
+    - name: Download all the dists
+      uses: actions/download-artifact@v4
+      with:
+        name: python-package-distributions
+        path: dist/
+    - name: Publish distribution 📦 to TestPyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        repository-url: https://test.pypi.org/legacy/
