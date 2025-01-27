@@ -72,7 +72,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#core-concepts" class="md-skip">
+        <a href="#core-components" class="md-skip">
           Skip to content
         </a>
       
@@ -717,13 +717,19 @@
 <blockquote>
 <p>Work in progress</p>
 </blockquote>
-<h1 id="core-concepts">Core concepts</h1>
-<p><strong>Under construction</strong>. Come back soon!</p>
-<p>A platform to turn everyday devices into a powerful AI cloud</p>
+<h1 id="core-components">Core components</h1>
+<p>Kalavai <strong>turns devices into a scalable LLM platform</strong>. It connects multiple machines together and manages the distribution LLM workloads on them.</p>
+<p>There are three core components:</p>
+<ul>
+<li><strong>Kalavai client</strong>: python CLI program that lets users create and interact with LLM pools distributed across multiple machines.</li>
+<li><strong>Seed node</strong>: master / server machine that initialises and manages an LLM pool. This is the node where the client runs the start command (<code>kalavai pool start &lt;pool&gt;</code>)</li>
+<li><strong>Worker node</strong>: any machine that joins an LLM pool, where the LLM workload will be deployed to. This are nodes that run the join command (<code>kalavai pool join &lt;token&gt;</code>)</li>
+</ul>
+<p>Typically a client will be installed in both the seed and worker nodes, but since v0.5.0, clients can also be installed on external machines. This is useful to be able to connect and send work to your pool from any machine.</p>
 <h2 id="how-it-works">How it works?</h2>
-<p>To create an AI pool, you need a <strong>seed node</strong> which acts as a control plane. It handles bookkeeping for the pool. With a seed node, you can generate join tokens, which you can share with other machines --<strong>worker nodes</strong>.</p>
+<p>To create an LLM pool, you need a <strong>seed node</strong> which acts as a control plane. It handles bookkeeping for the pool. With a seed node, you can generate join tokens, which you can share with other machines --<strong>worker nodes</strong>.</p>
 <p>The more worker nodes you have in a pool, the bigger workloads it can run. <em>Note that the only requirement for a fully functioning pool is a single seed node.</em></p>
-<p>Once you have a pool running, you can easily deploy workloads using <a href="https://github.com/kalavai-net/kalavai-client/blob/main/templates/README.md">template jobs</a>. These are community integrations that let users deploy jobs, such as LLM deployments or LLM fine tuning. A template makes using Kalavai really easy for end users, with a parameterised interface, and it also makes the <strong>platform infinitely expandable</strong>.</p>
+<p>Once you have a pool running, you can easily deploy workloads using <a href="../templates/">template jobs</a>. These are community integrations that let users deploy LLMs using multiple model engines. A template makes using Kalavai really easy for end users, with a parameterised interface, and it also makes the <strong>platform infinitely expandable</strong>.</p>
 
 
 

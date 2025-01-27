@@ -355,32 +355,77 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#requirements" class="md-nav__link">
+  <a href="#requirements-for-a-worker-machine" class="md-nav__link">
     <span class="md-ellipsis">
-      Requirements
+      Requirements for a worker machine
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#linux" class="md-nav__link">
+  <a href="#requirements-to-run-the-client" class="md-nav__link">
     <span class="md-ellipsis">
-      Linux
+      Requirements to run the client
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#windows" class="md-nav__link">
+  <a href="#install-the-client" class="md-nav__link">
     <span class="md-ellipsis">
-      Windows
+      Install the client
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Windows">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#public-llm-pools-crowdsource-community-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      Public LLM pools: crowdsource community resources
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#createa-a-local-private-llm-pool" class="md-nav__link">
+    <span class="md-ellipsis">
+      Createa a local, private LLM pool
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Createa a local, private LLM pool">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-start-a-seed-node" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Start a seed node
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-add-worker-nodes" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Add worker nodes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-attach-more-clients" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Attach more clients
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#hardware-compatibility" class="md-nav__link">
@@ -710,32 +755,77 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#requirements" class="md-nav__link">
+  <a href="#requirements-for-a-worker-machine" class="md-nav__link">
     <span class="md-ellipsis">
-      Requirements
+      Requirements for a worker machine
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#linux" class="md-nav__link">
+  <a href="#requirements-to-run-the-client" class="md-nav__link">
     <span class="md-ellipsis">
-      Linux
+      Requirements to run the client
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#windows" class="md-nav__link">
+  <a href="#install-the-client" class="md-nav__link">
     <span class="md-ellipsis">
-      Windows
+      Install the client
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Windows">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#public-llm-pools-crowdsource-community-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      Public LLM pools: crowdsource community resources
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#createa-a-local-private-llm-pool" class="md-nav__link">
+    <span class="md-ellipsis">
+      Createa a local, private LLM pool
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Createa a local, private LLM pool">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-start-a-seed-node" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Start a seed node
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-add-worker-nodes" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Add worker nodes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-attach-more-clients" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Attach more clients
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#hardware-compatibility" class="md-nav__link">
@@ -805,60 +895,45 @@
 
 
 <h1 id="getting-started">Getting started</h1>
-<p>Kalavai is <strong>free to use, no caps, for both commercial and non-commercial purposes</strong>. All you need to get started is one or more computers that can see each other (i.e. within the same network), and you are good to go. If you wish to join computers in different locations / networks, check our <a href="#managed-kalavai">managed kalavai</a> offering.</p>
-<p>The <code>kalavai</code> CLI is the main tool to interact with the Kalavai platform, to create and manage both local and public pools. Let's go over its installation.</p>
-<!--https://github.com/user-attachments/assets/af2ee15d-f18c-4802-8210-1873b0de07eb -->
-
-<h2 id="requirements">Requirements</h2>
+<p>The <code>kalavai</code> client is the main tool to interact with the Kalavai platform, to create and manage both local and public pools and also to interact with them (e.g. deploy models). Let's go over its installation. </p>
+<p>From release <strong>v0.5.0, you can now install <code>kalavai</code> client in non-worker computers</strong>. You can run a pool on a set of machines and have the client on a remote computer from which you access the LLM pool. Because the client only requires having python installed, this means more computers are now supported to run it.</p>
+<h3 id="requirements-for-a-worker-machine">Requirements for a worker machine</h3>
 <ul>
 <li>A laptop, desktop or Virtual Machine</li>
-<li>Admin / privileged access (eg. <code>sudo</code> access in linux or Administrator in Windows)</li>
-<li>Running Windows or Linux (see more details in our <a href="../compatibility/">compatibility matrix</a>)</li>
+<li>Docker engine installed (for <a href="https://docs.docker.com/engine/install/">linux</a>, <a href="https://docs.docker.com/desktop/">Windows and MacOS</a>) with <a href="https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities">privilege access</a>.</li>
 </ul>
-<h2 id="linux">Linux</h2>
-<p>Run the following command on your terminal:</p>
-<pre><code class="language-bash">curl -sfL https://raw.githubusercontent.com/kalavai-net/kalavai-client/main/assets/install_client.sh | bash -
-</code></pre>
-<h2 id="windows">Windows</h2>
-<p>For Windows machines complete WSL configuration first before continuing. You must be running Windows 10 version 2004 and higher (Build 19041 and higher) or Windows 11 to use the commands below. <strong>If you are on earlier versions</strong> please see the <a href="https://learn.microsoft.com/en-us/windows/wsl/install-manual">manual install</a> page.</p>
+<h3 id="requirements-to-run-the-client">Requirements to run the client</h3>
 <ul>
-<li>
-<p>Open a PowerShell with administrative permissions (<em>Run as Administrator</em>)</p>
-</li>
-<li>
-<p>Install WSL2:</p>
-</li>
+<li>Python 3.10+</li>
 </ul>
-<pre><code class="language-bash">wsl --install -d Ubuntu-24.04
+<h3 id="install-the-client">Install the client</h3>
+<p>The client is a python package and can be installed with one command:</p>
+<pre><code class="language-bash">pip install kalavai-client
 </code></pre>
-<ul>
-<li>Enable <code>systemd</code> by editing (or creating if required) a file <code>/etc/wsl.conf</code>. </li>
-</ul>
-<pre><code class="language-bash">echo &quot;
-[boot]
-systemd=true&quot; &gt; /etc/wsl.conf
+<h2 id="public-llm-pools-crowdsource-community-resources">Public LLM pools: crowdsource community resources</h2>
+<p>This is the <strong>easiest and most powerful</strong> way to experience Kalavai. It affords users the full resource capabilities of the community and access to all its deployed LLMs, via an <a href="https://kalavai-net.github.io/kalavai-client/public_llm_pool/#single-api-endpoint">OpenAI-compatible endpoint</a> as well as a <a href="https://kalavai-net.github.io/kalavai-client/public_llm_pool/#ui-playground">UI-based playground</a>.</p>
+<p>Check out <a href="https://kalavai-net.github.io/kalavai-client/public_llm_pool/">our guide</a> on how to join and start deploying LLMs.</p>
+<h2 id="createa-a-local-private-llm-pool">Createa a local, private LLM pool</h2>
+<p>Kalavai is <strong>free to use, no caps, for both commercial and non-commercial purposes</strong>. All you need to get started is one or more computers that can see each other (i.e. within the same network), and you are good to go. If you wish to join computers in different locations / networks, check <a href="#public-pools-crowdsource-community-resources">managed kalavai</a>.</p>
+<h3 id="1-start-a-seed-node">1. Start a seed node</h3>
+<p>Simply use the client to start your seed node:</p>
+<pre><code class="language-bash">kalavai pool start &lt;pool-name&gt;
 </code></pre>
-<ul>
-<li>Restart the WSL instance by exiting and logging back in:</li>
-</ul>
-<pre><code class="language-bash">exit
-wsl --shutdown
-wsl -d Ubuntu-24.04
+<p>Now you are ready to add worker nodes to this seed. To do so, generate a joining token:</p>
+<pre><code class="language-bash">$ kalavai pool token --user
+
+Join token: &lt;token&gt;
 </code></pre>
-<ul>
-<li>Go back inside WSL and install Kalavai:</li>
-</ul>
-<pre><code class="language-bash">wsl
-# inside WSL
-curl -sfL https://raw.githubusercontent.com/kalavai-net/kalavai-client/main/assets/install_client.sh | bash -
+<h3 id="2-add-worker-nodes">2. Add worker nodes</h3>
+<p>Increase the power of your AI pool by inviting others to join.</p>
+<p>Copy the joining token. On the worker node, run:</p>
+<pre><code class="language-bash">kalavai pool join &lt;token&gt;
 </code></pre>
-<p><strong>Note</strong>: you <strong>must keep the WSL console window open</strong> to continue to share resources with an AI pool. If you restart your machine or close the console, you will need to resume kalavai as follows:</p>
-<pre><code class="language-bash">kalavai pool resume
+<h3 id="3-attach-more-clients">3. Attach more clients</h3>
+<p>You can now connect to an existing pool from any computer -not just from worker nodes. To connect to a pool, run:</p>
+<pre><code class="language-bash">kalavai pool attach &lt;token&gt;
 </code></pre>
-<p><strong>Known issue</strong>: if the above resume command hangs or fails, try to run the pause command before and then reattempt resuming:</p>
-<pre><code class="language-bash">kalavai pool pause
-kalavai pool resume
-</code></pre>
+<p>This won't add the machine as a worker, but you will be able to operate in the pool as if you were.</p>
 <h3 id="hardware-compatibility">Hardware compatibility:</h3>
 <ul>
 <li><code>amd64</code> or <code>x86_64</code> CPU architecture</li>
@@ -866,7 +941,7 @@ kalavai pool resume
 <li>AMD and Intel GPUs are currently not supported (yet!)</li>
 </ul>
 <h2 id="whats-next">What's next</h2>
-<p>Now that you have your client up and running, you are ready to <a href="../local_pool/">create</a> and join computing pools. The easiest way to get started is by <a href="../public_pool/">joining a public pool</a>, so we'll look at that next. </p>
+<p>Now that you know how to get a pool up and running, check our <a href="../self_hosted_llm_pool/">end to end tutorial</a> on how to sllf host an LLM Pool, or go full on easy-mode by <a href="../public_llm_pool/">joining a public pool</a>.</p>
 
 
 

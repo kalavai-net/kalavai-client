@@ -765,23 +765,8 @@
 <h1 id="compatibility-matrix">Compatibility matrix</h1>
 <p>If your system is not currently supported, <a href="https://github.com/kalavai-net/kalavai-client/issues">open an issue</a> and request it. We are expanding this list constantly.</p>
 <h3 id="os-compatibility">OS compatibility</h3>
-<p>Currently compatible and tested OS:</p>
-<ul>
-<li>Ubuntu (22.04, 24.04)</li>
-<li>Pop! OS 22.04</li>
-<li>Windows 10+ (using WSL2)</li>
-</ul>
-<p>Currently compatible (untested. <a href="#help-testing-new-systems">Interested in testing them?</a>):</p>
-<ul>
-<li>Debian-based linux</li>
-<li>Fedora</li>
-<li>RedHat</li>
-<li>Any distro capable of installing <code>.deb</code> and <code>.rpm</code> packages.</li>
-</ul>
-<p>Currently not compatible:</p>
-<ul>
-<li>MacOS</li>
-</ul>
+<p>Since <strong>worker nodes</strong> run inside docker, any machine that can run docker <strong>should</strong> be compatible with Kalavai. Here are instructions for <a href="https://docs.docker.com/engine/install/">linux</a>, <a href="https://docs.docker.com/desktop/setup/install/windows-install/">Windows</a> and <a href="https://docs.docker.com/desktop/setup/install/mac-install/">MacOS</a>.</p>
+<p>The kalavai client, which controls and access pools, can be installed on any machine that has python 3.10+.</p>
 <h3 id="hardware-compatibility">Hardware compatibility:</h3>
 <ul>
 <li><code>amd64</code> or <code>x86_64</code> CPU architecture</li>
@@ -792,7 +777,7 @@
 <p>If you want to help testing Kalavai in new Windows / Linux based systems (thank you!), follow the next steps:</p>
 <ol>
 <li>
-<p>For linux distros, use the <a href="../getting_started/#linux">linux install instructions</a> to get kalavai in your system. For windows systems, use the <a href="../getting_started/#windows">windows install instructions</a></p>
+<p>Follow the <a href="../getting_started/#install-the-client">instructions</a> to install the kalavai client.</p>
 </li>
 <li>
 <p>Save the entire install logs (printed out in the console) to a file (install.log)</p>

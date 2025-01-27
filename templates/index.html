@@ -596,44 +596,20 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#install-applications" class="md-nav__link">
+  <a href="#list-of-available-templates" class="md-nav__link">
     <span class="md-ellipsis">
-      Install applications
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Install applications">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#ray" class="md-nav__link">
-    <span class="md-ellipsis">
-      Ray
+      List of available templates
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#dask" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#how-to-contribute" class="md-nav__link">
     <span class="md-ellipsis">
-      Dask
+      How to contribute
     </span>
   </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#vcluster" class="md-nav__link">
-    <span class="md-ellipsis">
-      vCluster
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -710,44 +686,20 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#install-applications" class="md-nav__link">
+  <a href="#list-of-available-templates" class="md-nav__link">
     <span class="md-ellipsis">
-      Install applications
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Install applications">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#ray" class="md-nav__link">
-    <span class="md-ellipsis">
-      Ray
+      List of available templates
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#dask" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#how-to-contribute" class="md-nav__link">
     <span class="md-ellipsis">
-      Dask
+      How to contribute
     </span>
   </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#vcluster" class="md-nav__link">
-    <span class="md-ellipsis">
-      vCluster
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -785,25 +737,13 @@
     
     
     
-      <span class="md-tag">install apps</span>
+      <span class="md-tag">LLM engines</span>
     
   
     
     
     
       <span class="md-tag">ray</span>
-    
-  
-    
-    
-    
-      <span class="md-tag">dask</span>
-    
-  
-    
-    
-    
-      <span class="md-tag">vcluster</span>
     
   
 </nav>
@@ -814,13 +754,31 @@
 <blockquote>
 <p>Work in progress</p>
 </blockquote>
-<h2 id="install-applications">Install applications</h2>
-<h3 id="ray">Ray</h3>
-<h3 id="dask">Dask</h3>
-<h3 id="vcluster">vCluster</h3>
+<p>Template jobs built by Kalavai and the community make deploying distributed LLMs easy for end users.</p>
+<p>Templates are like recipes, where developers describe what worker nodes should run, and users customise the behaviour via pre-defined parameters. Kalavai handles the heavy lifting: workload distribution, communication between nodes and monitoring the state of the deployment to restart the job if required.</p>
+<p>Using the client, you can list what templates your LLM pool supports:</p>
+<pre><code class="language-bash">$ kalavai job templates
+
+[10:51:29] Templates available in the pool
+           ['vllm', 'aphrodite', 'llamacpp', 'petals', 'litellm', 'playground', 'boinc', 'gpustack']
+</code></pre>
+<p>Deploying a template is easy:</p>
+<pre><code class="language-bash">kalavai job run &lt;template name&gt; --values &lt;template values&gt;
+</code></pre>
+<p>Where <template name> refers to one of the supported templates above, and <template values> is a local yaml file containing the parameters of the job. See <a href="https://github.com/kalavai-net/kube-watcher/tree/main/templates">examples</a> for more information.</p>
+<h2 id="list-of-available-templates">List of available templates</h2>
+<ul>
+<li><a href="https://github.com/kalavai-net/kube-watcher/tree/main/templates">vLLM</a>: deploy your favourite LLMs in distributed machines.</li>
+<li><a href="https://github.com/kalavai-net/kube-watcher/tree/main/templates">llama.cpp</a>: deploy llama.cpp models (CPU and GPU) in distributed machines.</li>
+<li><a href="https://github.com/kalavai-net/kube-watcher/tree/main/templates">Aphrodite</a>: deploy your favourite LLMs in distributed machines.</li>
+<li><a href="https://github.com/kalavai-net/kube-watcher/tree/main/templates">Petals</a>: bit-torrent style deployment of LLMs</li>
+<li><a href="https://github.com/kalavai-net/kube-watcher/tree/main/templates">litellm</a>: Unified LLM API.</li>
+<li><a href="https://github.com/kalavai-net/kube-watcher/tree/main/templates">playground</a>: Unified UI playground.</li>
+</ul>
+<h2 id="how-to-contribute">How to contribute</h2>
+<p>Do you want to <strong>develop your own template</strong> and share it with the community? We are working on a path to make it easier for developers to do so. Hang on tight! But for now, head over to <a href="https://github.com/kalavai-net/kube-watcher/tree/main/templates#how-to-contribute">our repository</a> and check the examples in there.</p>
 <h2 id="why-is-insert-preferred-application-not-supported">Why is <em>[insert preferred application]</em> not supported?</h2>
-<p>If your preferred distributed ML application is not yet supported, let us know!</p>
-<p><a class="md-button md-button--primary" href="mailto:info@kalavai.net?subject=Application-request">Contact us</a></p>
+<p>If your preferred distributed ML application is not yet supported, <a href="https://github.com/kalavai-net/kalavai-client/issues">let us know</a>! Or better yet, add it and <a href="https://github.com/kalavai-net/kube-watcher/tree/main/templates">contribute to community integrations</a>.</p>
 
 
 
