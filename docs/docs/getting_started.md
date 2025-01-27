@@ -8,69 +8,75 @@ tags:
 
 # Getting started
 
-Kalavai is **free to use, no caps, for both commercial and non-commercial purposes**. All you need to get started is one or more computers that can see each other (i.e. within the same network), and you are good to go. If you wish to join computers in different locations / networks, check our [managed kalavai](#managed-kalavai) offering.
+The `kalavai` client is the main tool to interact with the Kalavai platform, to create and manage both local and public pools and also to interact with them (e.g. deploy models). Let's go over its installation. 
 
-The `kalavai` CLI is the main tool to interact with the Kalavai platform, to create and manage both local and public pools. Let's go over its installation.
+From release **v0.5.0, you can now install `kalavai` client in non-worker computers**. You can run a pool on a set of machines and have the client on a remote computer from which you access the LLM pool. Because the client only requires having python installed, this means more computers are now supported to run it.
 
-<!--https://github.com/user-attachments/assets/af2ee15d-f18c-4802-8210-1873b0de07eb -->
 
-## Requirements
+### Requirements for a worker machine
 
 - A laptop, desktop or Virtual Machine
-- Admin / privileged access (eg. `sudo` access in linux or Administrator in Windows)
-- Running Windows or Linux (see more details in our [compatibility matrix](./compatibility.md))
+- Docker engine installed (for [linux](https://docs.docker.com/engine/install/), [Windows and MacOS](https://docs.docker.com/desktop/)) with [privilege access](https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities).
 
 
-## Linux
+### Requirements to run the client
 
-Run the following command on your terminal:
+- Python 3.10+
+
+
+### Install the client
+
+The client is a python package and can be installed with one command:
 
 ```bash
-curl -sfL https://raw.githubusercontent.com/kalavai-net/kalavai-client/main/assets/install_client.sh | bash -
+pip install kalavai-client
 ```
 
-## Windows
+## Public LLM pools: crowdsource community resources
 
-For Windows machines complete WSL configuration first before continuing. You must be running Windows 10 version 2004 and higher (Build 19041 and higher) or Windows 11 to use the commands below. **If you are on earlier versions** please see the [manual install](https://learn.microsoft.com/en-us/windows/wsl/install-manual) page.
+This is the **easiest and most powerful** way to experience Kalavai. It affords users the full resource capabilities of the community and access to all its deployed LLMs, via an [OpenAI-compatible endpoint](https://kalavai-net.github.io/kalavai-client/public_llm_pool/#single-api-endpoint) as well as a [UI-based playground](https://kalavai-net.github.io/kalavai-client/public_llm_pool/#ui-playground).
 
-- Open a PowerShell with administrative permissions (_Run as Administrator_)
+Check out [our guide](https://kalavai-net.github.io/kalavai-client/public_llm_pool/) on how to join and start deploying LLMs.
 
-- Install WSL2:
+
+## Createa a local, private LLM pool
+
+Kalavai is **free to use, no caps, for both commercial and non-commercial purposes**. All you need to get started is one or more computers that can see each other (i.e. within the same network), and you are good to go. If you wish to join computers in different locations / networks, check [managed kalavai](#public-pools-crowdsource-community-resources).
+
+### 1. Start a seed node
+
+Simply use the client to start your seed node:
+
 ```bash
-wsl --install -d Ubuntu-24.04
+kalavai pool start <pool-name>
 ```
 
-- Enable `systemd` by editing (or creating if required) a file `/etc/wsl.conf`. 
+Now you are ready to add worker nodes to this seed. To do so, generate a joining token:
 ```bash
-echo "
-[boot]
-systemd=true" > /etc/wsl.conf
+$ kalavai pool token --user
+
+Join token: <token>
 ```
 
-- Restart the WSL instance by exiting and logging back in:
+### 2. Add worker nodes
+
+Increase the power of your AI pool by inviting others to join.
+
+Copy the joining token. On the worker node, run:
+
 ```bash
-exit
-wsl --shutdown
-wsl -d Ubuntu-24.04
+kalavai pool join <token>
 ```
 
-- Go back inside WSL and install Kalavai:
+### 3. Attach more clients
+
+You can now connect to an existing pool from any computer -not just from worker nodes. To connect to a pool, run:
+
 ```bash
-wsl
-# inside WSL
-curl -sfL https://raw.githubusercontent.com/kalavai-net/kalavai-client/main/assets/install_client.sh | bash -
+kalavai pool attach <token>
 ```
 
-**Note**: you **must keep the WSL console window open** to continue to share resources with an AI pool. If you restart your machine or close the console, you will need to resume kalavai as follows:
-```bash
-kalavai pool resume
-```
-
-**Known issue**: if the above resume command hangs or fails, try to run the pause command before and then reattempt resuming:
-```bash
-kalavai pool pause
-kalavai pool resume
-```
+This won't add the machine as a worker, but you will be able to operate in the pool as if you were.
 
 
 ### Hardware compatibility:
@@ -79,7 +85,6 @@ kalavai pool resume
 - AMD and Intel GPUs are currently not supported (yet!)
 
 
-
 ## What's next
 
-Now that you have your client up and running, you are ready to [create](local_pool.md) and join computing pools. The easiest way to get started is by [joining a public pool](public_pool.md), so we'll look at that next. 
+Now that you know how to get a pool up and running, check our [end to end tutorial](./self_hosted_llm_pool.md) on how to sllf host an LLM Pool, or go full on easy-mode by [joining a public pool](public_llm_pool.md).

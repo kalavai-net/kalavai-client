@@ -11,22 +11,9 @@ If your system is not currently supported, [open an issue](https://github.com/ka
 
 ### OS compatibility
 
-Currently compatible and tested OS:
+Since **worker nodes** run inside docker, any machine that can run docker **should** be compatible with Kalavai. Here are instructions for [linux](https://docs.docker.com/engine/install/), [Windows](https://docs.docker.com/desktop/setup/install/windows-install/) and [MacOS](https://docs.docker.com/desktop/setup/install/mac-install/).
 
-- Ubuntu (22.04, 24.04)
-- Pop! OS 22.04
-- Windows 10+ (using WSL2)
-
-Currently compatible (untested. [Interested in testing them?](#help-testing-new-systems)):
-
-- Debian-based linux
-- Fedora
-- RedHat
-- Any distro capable of installing `.deb` and `.rpm` packages.
-
-Currently not compatible:
-
-- MacOS
+The kalavai client, which controls and access pools, can be installed on any machine that has python 3.10+.
 
 ### Hardware compatibility:
 
@@ -39,7 +26,7 @@ Currently not compatible:
 
 If you want to help testing Kalavai in new Windows / Linux based systems (thank you!), follow the next steps:
 
-1. For linux distros, use the [linux install instructions](getting_started.md#linux) to get kalavai in your system. For windows systems, use the [windows install instructions](getting_started.md#windows)
+1. Follow the [instructions](getting_started.md#install-the-client) to install the kalavai client.
 
 2. Save the entire install logs (printed out in the console) to a file (install.log)
 

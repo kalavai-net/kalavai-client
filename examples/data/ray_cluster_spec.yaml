@@ -53,6 +53,7 @@ spec:
         containers:
         - name: ml-work-group
           image: docker.io/rayproject/ray:2.32.0-py310-gpu
+          runtimeClassName: nvidia
           imagePullPolicy: IfNotPresent
           resources:
             limits:

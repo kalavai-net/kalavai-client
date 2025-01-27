@@ -10,7 +10,7 @@ tags:
 
 # Self-hosted LLM pools
 
-⭐⭐⭐ **Kalavai and our LLM pools are open source, and therefore free to use in both commercial and non-commercial purposes. If you find it useful, consider supporting us by [staring our GitHub project](https://github.com/kalavai-net/kalavai-client), joining our [discord channel](https://discord.gg/HJ8FNapQ), follow our [Substack](https://kalavainet.substack.com/) and give us a [review on Product Hunt](https://www.producthunt.com/products/kalavai/reviews/new).**
+⭐⭐⭐ **Kalavai and our LLM pools are open source and free to use in both commercial and non-commercial purposes. If you find it useful, consider supporting us by [staring our GitHub project](https://github.com/kalavai-net/kalavai-client), joining our [discord channel](https://discord.gg/HJ8FNapQ), follow our [Substack](https://kalavainet.substack.com/) and give us a [review on Product Hunt](https://www.producthunt.com/products/kalavai/reviews/new).**
 
 Ideal for AI teams that want to supercharge their resources without opening it to the public.
 
@@ -28,8 +28,7 @@ This guide will show you how to start a **self-hosted LLM pool** with your own h
 
 ### Pre-requisites
 
-- [Install kalavai CLI](getting_started.md#getting-started) on every machine
-- Check out our [compatibility matrix](https://github.com/kalavai-net/kalavai-client?tab=readme-ov-file#compatibility-matrix) for supported hardware and OS
+- [Install kalavai CLI](getting_started.md#getting-started) on each machine
 
 
 ## 1. Createa a local pool
