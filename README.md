@@ -1,4 +1,4 @@
-![alt text](docs/docs/assets/icons/logo_no_background.png)
+![Kalavai logo](docs/docs/assets/icons/logo_no_background.png)
 
 <div align="center">
 
@@ -46,7 +46,7 @@ https://github.com/user-attachments/assets/0d2316f3-79ea-46ac-b41e-8ef720f52672
 
 ### News updates
 
-- X January 2025: Support for accessing pools from remote computers
+- 27 January 2025: Support for accessing pools from remote computers
 - 9 January 2025: Added support for [Aphrodite Engine](https://github.com/aphrodite-engine/aphrodite-engine) models
 - 8 January 2025: Release of [a free, public, shared pool](/docs/docs/public_llm_pool.md) for community LLM deployment
 - 24 December 2024: Release of [public BOINC pool](/docs/docs/boinc.md) to donate computing to scientific projects
