@@ -2,7 +2,6 @@ import json, base64
 import os
 import requests
 from pathlib import Path
-from urllib.parse import urljoin
 import shutil
 import subprocess
 import re
@@ -12,10 +11,7 @@ from jinja2 import Template
 
 from rich.table import Table
 import yaml
-import platform
-import psutil
 
-import GPUtil
 
 from kalavai_client.auth import KalavaiAuthClient
 
@@ -386,41 +382,6 @@ def encode_dict(data: dict):
 
 def decode_dict(str_data: str):
     return json.loads(base64.b64decode(str_data.encode()))
-
-def get_gpus():
-    GPUs = GPUtil.getGPUs()
-    gpus = []
-    for gpu in GPUs:
-        name = "nvidia" if "nvidia" in gpu.name.lower() else None
-        if name is None:
-            continue
-        mem = int(gpu.memoryTotal / 1000) # in GBs
-        gpus.append(f"{name}-{mem}GB")
-    return ",".join(gpus)
-
-def system_uptick_request(username, node_name, backend_endpoint, backend_api_key, local_version=0):
-    gpus = get_gpus()
-    data = {
-        "username": username,
-        "system_info": {
-            "os": platform.system(),
-            "cpu_count": os.cpu_count(),
-            "cpu": platform.processor(),
-            "platform": platform.platform(),
-            "ram": round(psutil.virtual_memory().total / (1024.0 **3)),
-            "hostname": node_name,
-            "gpus": gpus
-        },
-        "version": local_version
-    }
-
-    response = requests.post(
-        url=urljoin(backend_endpoint, "/uptick"),
-        json=data,
-        headers={'X-API-KEY': backend_api_key}
-    )
-    response.raise_for_status()
-    return response.json()
 
 def resource_path(relative_path: str):
     """ Get absolute path to resource """

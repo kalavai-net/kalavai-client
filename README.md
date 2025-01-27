@@ -101,6 +101,18 @@ From release **v0.5.0, you can now install `kalavai` client in non-worker comput
 
 - Python 3.10+
 
+If you see the following error:
+
+```bash
+fatal error: Python.h: No such file or directory | #include <Python.h>
+```
+
+Make sure you also install python3-dev package. For ubuntu distros:
+
+```bash
+sudo apt install python3-dev
+```
+
 
 ### Install the client
 
