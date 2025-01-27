@@ -1,15 +1,14 @@
 import json, base64
-import sys
 import os
 import requests
 from pathlib import Path
 from urllib.parse import urljoin
 import shutil
-import urllib.request
 import subprocess
 import re
 
-from jinja2 import Template, meta, Environment
+import importlib
+from jinja2 import Template
 
 from rich.table import Table
 import yaml
@@ -243,7 +242,6 @@ def join_vpn(location, user_cookie):
             assert field in data
     except:
         raise ValueError("Invalid net token")
-    
     run_cmd(f"sudo netclient join -t {token} >/dev/null 2>&1")
     return vpn
 
@@ -256,56 +254,6 @@ def leave_vpn():
         return left_vpns
     except:
         return None
-
-def is_service_running(service):
-    return 0 == os.system(f'sudo systemctl is-active --quiet {service}')
-
-
-def fetch_git_files(remote_folder):
-    response = requests.get(
-        f"https://api.github.com/repos/{GITHUB_ORG}/{GITHUB_REPO}/contents/{remote_folder}",
-        headers={
-            "X-GitHub-Api-Version": "2022-11-28",
-            "Accept": "application/vnd.github+json"
-        }
-    )
-    return response.json()
-
-
-def fetch_templates(local_path):
-    # get all templates
-    templates = [] 
-    data = fetch_git_files(remote_folder=GITHUB_TEMPLATE_PATH)
-    
-    for file in data:
-        if file['type'] == 'dir':
-            templates.append((file['name'], file["path"]))
-
-    # fetch files for each template
-    for template_name, template_path in templates:
-        user_path(template_path, create_path=True)
-        files = fetch_git_files(remote_folder=template_path)
-        for file in files:
-            if file["type"] == "file":
-                urllib.request.urlretrieve(
-                    file["download_url"],
-                    os.path.join(local_path, template_name, file["name"]))
-
-
-def get_all_templates(local_path, templates_path=None, remote_load=False):
-
-    if templates_path is not None:
-        # use provided local path
-        local_path = templates_path
-    elif remote_load:
-        # load remote templates
-        if os.path.isdir(local_path):
-            shutil.rmtree(local_path)
-        fetch_templates(local_path=local_path)
-    
-    # list available templates
-    return [ (local_path, item) for item in os.listdir(local_path) if os.path.isdir(os.path.join(local_path, item)) ]
-
 
 def request_to_server(
         method,
@@ -399,8 +347,9 @@ def load_template(template_path, values, default_values_path=None, force_default
 
 def user_confirm(question: str, options: list, multiple: bool=False) -> int:
     try:
+        print(question)
         [print(f"{idx}) {option}") for idx, option in enumerate(options)]
-        reply = str(input(f"--> {question}: "))
+        reply = str(input())
         if multiple:
             if "," in reply:
                 selection = reply.split(",")
@@ -473,16 +422,16 @@ def system_uptick_request(username, node_name, backend_endpoint, backend_api_key
     response.raise_for_status()
     return response.json()
 
-
-def resource_path(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
+def resource_path(relative_path: str):
+    """ Get absolute path to resource """
     try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-
-    return os.path.join(base_path, relative_path)
+        last_slash = relative_path.rfind("/") 
+        path = relative_path[:last_slash].replace("/", ".")
+        filename = relative_path[last_slash+1:]
+        resource = importlib.resources.path(path, filename)
+    except:
+        return None
+    return resource
 
 def user_path(relative_path, create_path=False):
     """Transform a relative path into the user's cache folder path"""
@@ -494,6 +443,14 @@ def user_path(relative_path, create_path=False):
     
     return full_path
 
-def safe_remove(filepath):
-    if os.path.exists(filepath):
-        os.remove(filepath)
+def safe_remove(filepath, force=True):
+    if not os.path.exists(filepath):
+        return
+    try:
+        if os.path.isfile(filepath):
+            os.remove(filepath)
+        if os.path.isdir(filepath):
+            shutil.rmtree(filepath)
+    except:
+        if force:
+            run_cmd(f"sudo rm -rf {filepath}")

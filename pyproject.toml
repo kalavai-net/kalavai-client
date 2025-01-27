@@ -1,35 +1,45 @@
-[tool.poetry]
-name        = "kalavai-client"
-version     = "0.3.1"
-description = "Client app for kalavai platform"
-authors     = ["Carlos Fernandez Musoles <carlos@kalavai.net>"]
+[project]
+name            = "kalavai-client"
+version         = "0.5.0"
+authors = [
+  {name = "Carlos Fernandez Musoles", email = "carlos@kalavai.net"}
+]
+maintainers = [
+  {name = "Carlos Fernandez Musoles", email = "carlos@kalavai.net"}
+]
+description     = "Client app for kalavai platform"
+license         = "Apache-2.0"
+license-files   = ["LICENSE"]
+keywords        = ["LLM", "platform"]
+readme          = {file = "README.md", content-type = "text/markdown"}
+requires-python = "<3.12"
+dependencies = [
+    "requests>= 2.25",
+    "psutil==5.9.8",
+    "jinja2==3.1.4",
+    "pyyaml==6.0.2",
+    "rich==13.7.1",
+    "arguably>=1.2.5",
+    "gputil==1.4.0",
+    "Pillow==10.3.0",
+    "setuptools<70.0.0",
+    "netifaces==0.11.0",
+    "anvil-uplink==0.5.1",
+    "importlib_resources==6.5.2"
+]
+
+[project.optional-dependencies]
+dev = [
+    "py2app==0.28.7",
+    "pyinstaller==6.5.0",
+    "build",
+    "twine"
+]
 
 
-[tool.poetry.dependencies]
-python                          = "> 3.7.2"
-requests                        = { version = ">= 2.25" }
-psutil                          = { version = "5.9.8" }
-jinja2                          = { version = "3.1.4" }
-pyyaml                          = { version = "6.0.2" }
-rich                            = { version = "13.7.1" }
-schedule                        = { version = "1.2.1" }
-arguably                        = { version = ">=1.2.5" }
-gputil                          = { version = "1.4.0" }
-py2app                          = { version = "0.28.7" }
-pyinstaller                     = { version = "6.5.0" }
-Pillow                          = { version = "10.3.0" }
-setuptools                      = { version = "<70.0.0" }
-netifaces                       = { version = "0.11.0" }
-anvil-uplink                    = { version = "0.5.1" }
-
-
-[tool.poetry.dev-dependencies]
-click = "*"
-pre-commit = "*"
-black = "*"
-xenon = "*"
-mypy = "*"
-pydocstyle = "*"
+[project.urls]
+Homepage        = "https://platform.kalavai.net"
+Website         = "https://kalavai.net"
 
 
 [build-system]
@@ -38,3 +48,15 @@ requires        = [
     "setuptools"  # for pip install -e
 ]
 build-backend   = "poetry.core.masonry.api"
+
+
+[project.scripts]
+kalavai = "kalavai_client.cli:app"
+
+
+
+[tool.setuptools.packages.find]
+where = ["kalavai_client"]
+
+[tool.setuptools.package-data]
+assets = ["*.yaml"]

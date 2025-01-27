@@ -1,6 +1,0 @@
---name kalavai
---version "1"
---description "Kalavai maker CLI"
---url "https://www.kalavai.net"
---maintainer "Carlos Fernandez Musoles <carlos@kalavai.net>"
-../dist/kalavai=/usr/bin/kalavai
