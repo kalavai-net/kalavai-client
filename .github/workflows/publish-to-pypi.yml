@@ -1,6 +1,7 @@
+---
 name: Publish Python 🐍 distribution 📦 to PyPI and TestPyPI
 
-on: push
+on: # yamllint disable-line rule:truthy
   push:
     branches: ["release/*"]
 
