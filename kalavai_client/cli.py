@@ -70,12 +70,12 @@ CORE_NAMESPACES = ["lws-system", "kube-system", "gpu-operator", "kalavai"]
 TEMPLATE_LABEL = "kalavai.job.name"
 RAY_LABEL = "kalavai.ray.name"
 PVC_NAME_LABEL = "kalavai.storage.name"
-DOCKER_COMPOSE_TEMPLATE = resource_path("assets/docker-compose-template.yaml")
-VPN_COMPOSE_TEMPLATE = resource_path("assets/vpn-template.yaml")
-POOL_CONFIG_TEMPLATE = resource_path("assets/pool_config_template.yaml")
-POOL_CONFIG_DEFAULT_VALUES = resource_path("assets/pool_config_values.yaml")
-USER_WORKSPACE_TEMPLATE = resource_path("assets/user_workspace.yaml")
-DEFAULT_USER_WORKSPACE_VALUES = resource_path("assets/user_workspace_values.yaml")
+DOCKER_COMPOSE_TEMPLATE = resource_path("kalavai_client/assets/docker-compose-template.yaml")
+VPN_COMPOSE_TEMPLATE = resource_path("kalavai_client/assets/vpn-template.yaml")
+POOL_CONFIG_TEMPLATE = resource_path("kalavai_client/assets/pool_config_template.yaml")
+POOL_CONFIG_DEFAULT_VALUES = resource_path("kalavai_client/assets/pool_config_values.yaml")
+USER_WORKSPACE_TEMPLATE = resource_path("kalavai_client/assets/user_workspace.yaml")
+DEFAULT_USER_WORKSPACE_VALUES = resource_path("kalavai_client/assets/user_workspace_values.yaml")
 STORAGE_CLASS_NAME = "local-path"
 STORAGE_ACCESS_MODE = ["ReadWriteOnce"]
 STORAGE_CLASS_LABEL = "kalavai.storage.enabled"
@@ -86,8 +86,8 @@ KUBE_VERSION = os.getenv("KALAVAI_KUBE_VERSION", "v1.31.1+k3s1")
 DEFAULT_FLANNEL_IFACE = os.getenv("KALAVAI_FLANNEL_IFACE", "netmaker")
 FORBIDEDEN_IPS = ["127.0.0.1"]
 # kalavai templates
-HELM_APPS_FILE = resource_path("assets/apps.yaml")
-HELM_APPS_VALUES = resource_path("assets/apps_values.yaml")
+HELM_APPS_FILE = resource_path("kalavai_client/assets/apps.yaml")
+HELM_APPS_VALUES = resource_path("kalavai_client/assets/apps_values.yaml")
 # user specific config files
 DEFAULT_CONTAINER_NAME = "kalavai-seed"
 CONTAINER_HOST_PATH = user_path("pool/", create_path=True)

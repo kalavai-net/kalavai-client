@@ -429,7 +429,7 @@ def resource_path(relative_path: str):
         path = relative_path[:last_slash].replace("/", ".")
         filename = relative_path[last_slash+1:]
         resource = importlib.resources.path(path, filename)
-    except:
+    except Exception as e:
         return None
     return resource
 
