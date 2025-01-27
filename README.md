@@ -2,35 +2,25 @@
 
 <div align="center">
 
-![GitHub Release](https://img.shields.io/github/v/release/kalavai-net/kalavai-client) ![GitHub download count](https://img.shields.io/github/downloads/kalavai-net/kalavai-client/total
-) ![GitHub contributors](https://img.shields.io/github/contributors/kalavai-net/kalavai-client) ![GitHub License](https://img.shields.io/github/license/kalavai-net/kalavai-client) ![GitHub Repo stars](https://img.shields.io/github/stars/kalavai-net/kalavai-client) [![Discord](https://img.shields.io/discord/1295009828623880313?logo=discord&label=discord)](https://discordapp.com/channels/1295009828623880313) [![Signup](https://img.shields.io/badge/Kalavai-Signup-brightgreen)](https://platform.kalavai.net)
+![GitHub Release](https://img.shields.io/github/v/release/kalavai-net/kalavai-client) ![PyPI - Downloads](https://img.shields.io/pypi/dm/kalavai-client?style=social)
+ ![GitHub contributors](https://img.shields.io/github/contributors/kalavai-net/kalavai-client) ![GitHub License](https://img.shields.io/github/license/kalavai-net/kalavai-client) ![GitHub Repo stars](https://img.shields.io/github/stars/kalavai-net/kalavai-client) [![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fdiscord.com%2Fapi%2Finvites%2FeA3sEWGB%3Fwith_counts%3Dtrue&query=%24.approximate_member_count&logo=discord&logoColor=white&label=Discord%20users&color=green)](https://discordapp.com/channels/1295009828623880313) [![Signup](https://img.shields.io/badge/Kalavai-Signup-brightgreen)](https://platform.kalavai.net) 
 
 </div>
 
-⭐⭐⭐ **Kalavai and our LLM pools are open source, and therefore free to use in both commercial and non-commercial purposes. If you find it useful, consider supporting us by [staring our GitHub project](https://github.com/kalavai-net/kalavai-client), joining our [discord channel](https://discord.gg/HJ8FNapQ), follow our [Substack](https://kalavainet.substack.com/) and give us a [review on Product Hunt](https://www.producthunt.com/products/kalavai/reviews/new).**
+⭐⭐⭐ **Kalavai and our LLM pools are open source, and free to use in both commercial and non-commercial purposes. If you find it useful, consider supporting us by [staring our GitHub project](https://github.com/kalavai-net/kalavai-client), joining our [discord channel](https://discord.gg/HJ8FNapQ), follow our [Substack](https://kalavainet.substack.com/) and give us a [review on Product Hunt](https://www.producthunt.com/products/kalavai/reviews/new).**
 
 
 # Kalavai: turn your devices into a scalable LLM platform
 
 ### Taming the adoption of Large Language Models
 
-> Kalavai is an **open source** tool that turns **everyday devices** into your very own LLM platform. It aggregates resources from multiple machines, including desktops and laptops, and is **compatible with most model engines** to make LLM deployment and orchestration simple. When you need to **go beyond**, Kalavai public pools **facilitate matchmaking** of resources so anyone in our community can tap into a larger pool of devices. [Potluck](https://en.wikipedia.org/wiki/Potluck#:~:text=A%20potluck%20is%20a%20communal,a%20potluck%20in%20Alberta%2C%20Canada) computing.
+> Kalavai is an **open source** tool that turns **everyday devices** into your very own LLM platform. It aggregates resources from multiple machines, including desktops and laptops, and is **compatible with most model engines** to make LLM deployment and orchestration simple and reliable.
 
 <div align="center">
 
 <a href="https://www.producthunt.com/products/kalavai/reviews?utm_source=badge-product_review&utm_medium=badge&utm_souce=badge-kalavai" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/product_review.svg?product_id=720725&theme=neutral" alt="Kalavai - The&#0032;first&#0032;platform&#0032;to&#0032;crowdsource&#0032;AI&#0032;computation | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
 </div>
-
-### News updates
-
-- X January 2025: Support for accessing pools from remote computers
-- 9 January 2025: Added support for [Aphrodite Engine](https://github.com/aphrodite-engine/aphrodite-engine) models
-- 8 January 2025: Release of [a free, public, shared pool](/docs/docs/public_llm_pool.md) for community LLM deployment
-- 24 December 2024: Release of [public BOINC pool](/docs/docs/boinc.md) to donate computing to scientific projects
-- 23 December 2024: Release of [public petals swarm](/docs/docs/petals.md)
-- 24 November 2024: Common pools with private user spaces
-- 30 October 2024: Release of our [public pool platform](https://platform.kalavai.net)
 
 
 ## What can Kalavai do?
@@ -53,14 +43,26 @@ https://github.com/user-attachments/assets/7df73bbc-d129-46aa-8ce5-0735177dedeb
 
 https://github.com/user-attachments/assets/0d2316f3-79ea-46ac-b41e-8ef720f52672
 
+
+### News updates
+
+- X January 2025: Support for accessing pools from remote computers
+- 9 January 2025: Added support for [Aphrodite Engine](https://github.com/aphrodite-engine/aphrodite-engine) models
+- 8 January 2025: Release of [a free, public, shared pool](/docs/docs/public_llm_pool.md) for community LLM deployment
+- 24 December 2024: Release of [public BOINC pool](/docs/docs/boinc.md) to donate computing to scientific projects
+- 23 December 2024: Release of [public petals swarm](/docs/docs/petals.md)
+- 24 November 2024: Common pools with private user spaces
+- 30 October 2024: Release of our [public pool platform](https://platform.kalavai.net)
+
+
 ### Support for LLM engines
 
 We currently support out of the box the following LLM engines:
 
-- [vLLM](templates/vllm/README.md)
-- [llama.cpp](templates/llamacpp/README.md)
+- [vLLM](https://docs.vllm.ai/en/latest/)
+- [llama.cpp](https://github.com/ggerganov/llama.cpp)
 - [Aphrodite Engine](https://github.com/aphrodite-engine/aphrodite-engine)
-- [Petals](templates/petals/README.md)
+- [Petals](https://github.com/bigscience-workshop/petals)
 
 Coming soon:
 
@@ -71,7 +73,8 @@ Coming soon:
 Not what you were looking for? [Tell us](https://github.com/kalavai-net/kalavai-client/issues) what engines you'd like to see.
 
 
-> Kalavai is at a **very early stage** of its development. We encourage people to use it and give us feedback! Although we are trying to minimise breaking changes, these may occur until we have a stable version (v1.0).
+> Kalavai is at an **early stage** of its development. We encourage people to use it and give us feedback! Although we are trying to minimise breaking changes, these may occur until we have a stable version (v1.0).
+
 
 ## Want to know more?
 
@@ -85,14 +88,13 @@ Not what you were looking for? [Tell us](https://github.com/kalavai-net/kalavai-
 
 The `kalavai` client is the main tool to interact with the Kalavai platform, to create and manage both local and public pools and also to interact with them (e.g. deploy models). Let's go over its installation. 
 
-From release **v0.5.0, you can now install `kalavai` client in non-worker computers**. This means you can run a pool on a set of machines and have the client on a remote computer from which you access the LLM pool. Because the client only requires having python installed, this means more computers are now supported to run it.
+From release **v0.5.0, you can now install `kalavai` client in non-worker computers**. You can run a pool on a set of machines and have the client on a remote computer from which you access the LLM pool. Because the client only requires having python installed, this means more computers are now supported to run it.
 
 
 ### Requirements for a worker machine
 
 - A laptop, desktop or Virtual Machine
-- Docker engine installed (for [linux](https://docs.docker.com/engine/install/), [Windows and MacOS](https://docs.docker.com/desktop/))
-- Admin / privileged access (eg. `sudo` access in linux/MacOS or Administrator in Windows)
+- Docker engine installed (for [linux](https://docs.docker.com/engine/install/), [Windows and MacOS](https://docs.docker.com/desktop/)) with [privilege access](https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities).
 
 
 ### Requirements to run the client
@@ -108,7 +110,6 @@ The client is a python package and can be installed with one command:
 pip install kalavai-client
 ```
 
-
 ## Public LLM pools: crowdsource community resources
 
 This is the **easiest and most powerful** way to experience Kalavai. It affords users the full resource capabilities of the community and access to all its deployed LLMs, via an [OpenAI-compatible endpoint](https://kalavai-net.github.io/kalavai-client/public_llm_pool/#single-api-endpoint) as well as a [UI-based playground](https://kalavai-net.github.io/kalavai-client/public_llm_pool/#ui-playground).
@@ -122,7 +123,7 @@ Kalavai is **free to use, no caps, for both commercial and non-commercial purpos
 
 ### 1. Start a seed node
 
-Simply use the CLI to start your seed node:
+Simply use the client to start your seed node:
 
 ```bash
 kalavai pool start <pool-name>
@@ -145,7 +146,6 @@ Copy the joining token. On the worker node, run:
 kalavai pool join <token>
 ```
 
-
 ### Enough already, let's run stuff!
 
 Check our [examples](examples/) to put your new AI pool to good use!
@@ -161,21 +161,10 @@ If your system is not currently supported, [open an issue](https://github.com/ka
 
 ### OS compatibility
 
-Currently compatible and tested OS for both the kalavai CLI and workers:
+Since **worker nodes** run inside docker, any machine that can run docker **should** be compatible with Kalavai. Here are instructions for [linux](https://docs.docker.com/engine/install/), [Windows](https://docs.docker.com/desktop/setup/install/windows-install/) and [MacOS](https://docs.docker.com/desktop/setup/install/mac-install/).
 
-- Ubuntu (22.04, 24.04)
-- Pop! OS 22.04
-- Windows 10+ (using WSL2)
+The kalavai client, which controls and access pools, can be installed on any machine that has python 3.10+.
 
-Currently compatible (untested. [Interested in testing them?](https://kalavai-net.github.io/kalavai-client/compatibility/#help-testing-new-systems)):
-
-- Debian-based linux
-- Fedora
-- RedHat
-
-Currently not compatible:
-
-- MacOS
 
 ### Hardware compatibility:
 
@@ -209,8 +198,8 @@ Anything missing here? Give us a shout in the [discussion board](https://github.
 - [Join the community](https://github.com/kalavai-net/kalavai-client/) and share ideas!
 - Report [bugs, issues and new features](https://github.com/kalavai-net/kalavai-client/issues).
 - Help improve our [compatibility matrix](#compatibility-matrix) by testing on different operative systems.
-- [Community integrations](templates/README.md) are template jobs built by Kalavai and the community that makes deploying distributed workflows easy for users. Anyone can extend them and contribute to this repo.
-- [Join our mailing list](http://eepurl.com/iC89hk) for release updates and priority access to new features!
+- [Follow our Substack channel](https://kalavainet.substack.com/) for news, guides and more.
+- [Community integrations](https://github.com/kalavai-net/kube-watcher/tree/main/templates) are template jobs built by Kalavai and the community that makes deploying distributed workflows easy for users. Anyone can extend them and contribute to the repo.
 
 ### Star History
 
@@ -233,16 +222,6 @@ pip install -e .[dev]
 Build python wheels:
 ```bash
 bash publish.sh build
-```
-
-Publish test release (TestPyPI):
-```bash
-bash publish.sh test-release
-```
-
-Publish official release (PyPI):
-```bash
-bash publish.sh release
 ```
 
 
