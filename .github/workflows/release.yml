@@ -8,7 +8,7 @@ on: # yamllint disable-line rule:truthy
 jobs:
   build:
     name: Build distribution 📦
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
     - uses: actions/checkout@v4
@@ -60,7 +60,7 @@ jobs:
   #     and upload them to GitHub Release
   #   needs:
   #   - publish-to-pypi
-  #   runs-on: ubuntu-latest
+  #   runs-on: ubuntu-24.04
 
   #   permissions:
   #     contents: write  # IMPORTANT: mandatory for making GitHub Releases
