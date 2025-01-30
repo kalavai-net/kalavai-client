@@ -14,14 +14,13 @@ services:
     # - "6443:6443" # kube server
     # - "10250:10250" # worker balancer
     # - "8472:8472/udp" # flannel vxlan
-    # - "51820:51820/udp" # flannel wireguard
+    # - "51820-51830:51820-51830" # flannel wireguard
     # {% if command == "server" %}
     # - "30000-30500:30000-30500"
     # {% endif %}
     environment:
       - HOST_NAME={{node_name}}
       - IFACE_NAME={{flannel_iface}}
-      - PORT=51820
       - TOKEN={{vpn_token}}
     volumes:
       - /dev/net/tun:/dev/net/tun
@@ -44,24 +43,29 @@ services:
     - {{vpn_name}}
     network_mode: "service:{{vpn_name}}"
   {% else %}
-    hostname: {{node_name}}
-    networks:
-    - custom-network
-    ports:
-    - "6443:6443" # kube server
-    - "10250:10250" # worker balancer
-    - "8472:8472" # flannel vxlan
-    - "51820:51820" # flannel wireguard
-    {% if command == "server" %}
-    - "30000-30500:30000-30500"
-    {% endif %}
+    network_mode: host
+    # hostname: {{node_name}}
+    # networks:
+    # - custom-network
+    # ports:
+    # - "6443:6443" # kube server
+    # - "2379-2380:2379-2380" # etcd server
+    # - "10259:10259" # kube scheduler
+    # - "10257:10257" # kube controller manager
+    # - "10250:10250" # worker balancer
+    # - "8285:8285" # flannel
+    # - "8472:8472" # flannel vxlan
+    # - "51820:51820" # flannel wireguard
+    # {% if command == "server" %}
+    # - "30000-32767:30000-32767"
+    # {% endif %}
   {% endif %}
     privileged: true
     restart: unless-stopped
     command: >
       --command={{command}}
       {% if command == "server" %}
-      --port_range="30000-30500"
+      --port_range="30000-32767"
       {% else %}
       --server_ip={{pool_ip}}
       --token={{pool_token}}
@@ -95,3 +99,4 @@ services:
 networks:
   custom-network:
     driver: bridge
+

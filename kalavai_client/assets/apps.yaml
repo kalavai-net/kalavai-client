@@ -189,13 +189,13 @@ releases:
       value: "1"
     - name: devicePlugin.deviceSplitCount
       value: "1"
-    - name: scheduler.customWebhook.port
-      value: "30498"
-    - name: scheduler.service.schedulerPort
-      value: "30498"
-    - name: scheduler.service.monitorPort
-      value: "30493"
-    - name: devicePlugin.service.httpPort
-      value: "30492"
+    # - name: scheduler.customWebhook.port
+    #   value: "30498"
+    # - name: scheduler.service.schedulerPort
+    #   value: "30498"
+    # - name: scheduler.service.monitorPort
+    #   value: "30493"
+    # - name: devicePlugin.service.httpPort
+    #   value: "30492"
     
 
