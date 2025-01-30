@@ -1,53 +1,95 @@
 services:
-   {{service_name}}-{{command}}:
-      image: bundenth/kalavai-runner:gpu-latest
-      container_name: {{service_name}}
-      hostname: {{hostname}}
-      privileged: true
-      restart: unless-stopped
-      ports:
-      - "6443:6443" # kube server
-      - "8472:8472" # flannel vxlan
-      - "51820:51820" # flannel wireguard
-{% if command == "server" %}
-      - "30000-30500:30000-30500"
+{% if vpn %}
+  {{vpn_name}}:
+    image: gravitl/netclient:v0.30.0
+    container_name: {{vpn_name}}
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    network_mode: host
+    # networks:
+    # - custom-network
+    # ports:
+    # # https://docs.k3s.io/installation/requirements#inbound-rules-for-k3s-nodes
+    # - "6443:6443" # kube server
+    # - "10250:10250" # worker balancer
+    # - "8472:8472/udp" # flannel vxlan
+    # - "51820:51820/udp" # flannel wireguard
+    # {% if command == "server" %}
+    # - "30000-30500:30000-30500"
+    # {% endif %}
+    environment:
+      - HOST_NAME={{node_name}}
+      - IFACE_NAME={{flannel_iface}}
+      - PORT=51820
+      - TOKEN={{vpn_token}}
+    volumes:
+      - /dev/net/tun:/dev/net/tun
+    restart: unless-stopped
+#   nginx:
+#     image: nginx:latest
+#     ports:
+#       - "{{redirect_source_port}}:{{redirect_source_port}}"
+#     restart: unless-stopped
+#     networks:
+#       - custom-network
+#     volumes:
+#       - {{nginx_path}}/nginx.conf:/etc/nginx/nginx.conf
 {% endif %}
-      networks:
-      - custom-network
-      command: >
-        {{command}}
-{% if command == "server" %}
-        --flannel-backend wireguard-native
-        --service-node-port-range "30000-30500"
-{% else %}
-        --server {{pool_ip}}
-        --token {{token}}
-{% endif %}
-        --node-label role={{command}}
-{% if node_labels %}
-        {{node_labels}}
-{% endif %}
+  {{service_name}}:
+    image: docker.io/bundenth/kalavai-runner:gpu-latest
+    container_name: {{service_name}}
+  {% if vpn %}
+    depends_on:
+    - {{vpn_name}}
+    network_mode: "service:{{vpn_name}}"
+  {% else %}
+    hostname: {{node_name}}
+    networks:
+    - custom-network
+    ports:
+    - "6443:6443" # kube server
+    - "10250:10250" # worker balancer
+    - "8472:8472" # flannel vxlan
+    - "51820:51820" # flannel wireguard
+    {% if command == "server" %}
+    - "30000-30500:30000-30500"
+    {% endif %}
+  {% endif %}
+    privileged: true
+    restart: unless-stopped
+    command: >
+      --command={{command}}
+      {% if command == "server" %}
+      --port_range="30000-30500"
+      {% else %}
+      --server_ip={{pool_ip}}
+      --token={{pool_token}}
+      {% endif %}
+      {%if vpn %}
+      --flannel_iface={{flannel_iface}}
+      {% endif %}
+      {% if num_gpus and num_gpus > 0 %}
+      --gpu=on
+      {% else %}
+      --gpu=off
+      {% endif %}
+      {% if node_labels %}
+      --extra="{{node_labels}}"
+      {% endif %}
+
+    volumes:
+    - {{k3s_path}}:/var/lib/rancher/k3s # Persist data
+    - {{etc_path}}:/etc/rancher/k3s # Config files
+
 {% if num_gpus and num_gpus > 0 %}
-        --node-label gpu=on
-{% else %}
-        --node-label gpu=off
-{% endif %}
-        --node-ip {{ip_address}}
-        --node-external-ip {{ip_address}}
-{% if flannel_iface %}
-        --flannel-iface {{flannel_iface}}
-{% endif %}
-      volumes:
-      - {{k3s_path}}:/var/lib/rancher/k3s # Persist data
-      - {{etc_path}}:/etc/rancher/k3s # Config files
-{% if num_gpus and num_gpus > 0 %}
-      deploy:
-        resources:
-          reservations:
-            devices:
-            - driver: nvidia
-              count: {{num_gpus}}
-              capabilities: [gpu]
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            count: {{num_gpus}}
+            capabilities: [gpu]
 {% endif %}
 
 networks:

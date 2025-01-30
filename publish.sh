@@ -10,6 +10,7 @@ subcommand=$1
 shift
 case "$subcommand" in
     build)
+        rm dist/*
         python -m build
         twine check dist/*    
         ;;

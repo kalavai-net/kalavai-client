@@ -1,6 +1,6 @@
 [project]
 name            = "kalavai-client"
-version         = "0.5.7"
+version         = "0.5.8"
 authors = [
   {name = "Carlos Fernandez Musoles", email = "carlos@kalavai.net"}
 ]
@@ -53,9 +53,8 @@ build-backend   = "poetry.core.masonry.api"
 kalavai = "kalavai_client.cli:app"
 
 
-
 [tool.setuptools.packages.find]
 where = ["kalavai_client"]
 
 [tool.setuptools.package-data]
-assets = ["*.yaml"]
+assets = ["*.yaml", "*.conf"]

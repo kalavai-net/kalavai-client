@@ -113,6 +113,16 @@ Make sure you also install python3-dev package. For ubuntu distros:
 sudo apt install python3-dev
 ```
 
+If you see:
+```bash
+AttributeError: install_layout. Did you mean: 'install_platlib'?
+      [end of output]
+```
+
+Upgrade your setuptools:
+```bash
+pip install -U setuptools
+```
 
 ### Install the client
 
@@ -227,10 +237,11 @@ Python version <= 3.12.
 ```bash
 sudo add-apt-repository ppa:deadsnakes/ppa
 sudo apt update
-sudo apt install python3.10 python3.10-dev
+sudo apt install python3.10 python3.10-dev python3-virtualenv
 virtualenv -p python3.10 env
 source env/bin/activate
 sudo apt install  python3.10-venv python3.10-dev -y
+pip install -U setuptools
 pip install -e .[dev]
 ```
 
@@ -248,3 +259,4 @@ To run the unit tests, use:
 python -m unittest
 ```
 
+docker run --rm --net=host -v   /root/.cache/kalavai/:/root/.cache/kalavai/  ghcr.io/helmfile/helmfile:v0.169.2 helmfile sync --file  /root/.cache/kalavai/apps.yaml --kubeconfig /root/.cache/kalavai/kubeconfig

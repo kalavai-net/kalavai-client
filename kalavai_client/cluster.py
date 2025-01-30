@@ -7,7 +7,8 @@ from kalavai_client.utils import (
     run_cmd,
     check_gpu_drivers,
     validate_poolconfig,
-    user_path
+    user_path,
+    populate_template
 )
 
 
@@ -20,6 +21,9 @@ class Cluster(ABC):
     def start_worker_node(self, url, token, node_name, auth_key, watcher_service, ip_address, labels, flannel_iface):
         raise NotImplementedError()
 
+    @abstractmethod
+    def get_vpn_ip(self):
+        raise NotImplementedError()
 
     @abstractmethod
     def update_dependencies(self, dependencies_files):
@@ -79,11 +83,23 @@ class dockerCluster(Cluster):
     def start_seed_node(self):
         
         run_cmd(f"docker compose -f {self.compose_file} up -d")
-        time.sleep(5)
-        run_cmd(f"docker cp {self.container_name}:/etc/rancher/k3s/k3s.yaml {self.kubeconfig_file}")
+        # wait for container to be setup
+        while True:
+            try:
+                run_cmd(f"docker cp {self.container_name}:/etc/rancher/k3s/k3s.yaml {self.kubeconfig_file} >/dev/null 2>&1")
+                break
+            except:
+                pass
+            time.sleep(5)
 
     def start_worker_node(self):
         run_cmd(f"docker compose -f {self.compose_file} up -d")
+    
+    def get_vpn_ip(self):
+        command = populate_template(
+            template_str="docker exec -it {{container_name}} ifconfig {{iface_name}} | grep 'inet ' | awk '{gsub(/^addr:/, \"\", $2); print $2}'",
+            values_dict={"container_name": self.container_name, "iface_name": self.default_flannel_iface})
+        return run_cmd(command).decode().strip()
         
 
     def update_dependencies(self, dependencies_file=None, debug=False, retries=3):
@@ -122,8 +138,13 @@ class dockerCluster(Cluster):
     def is_seed_node(self):
         if not os.path.isfile(self.compose_file):
             return False
-        status = "server" in run_cmd(f"docker compose -f {self.compose_file} ps --services --status=running").decode()
-        return status
+        if not self.is_agent_running():
+            return False
+        try:
+            run_cmd(f"docker container exec {self.container_name} cat /var/lib/rancher/k3s/server/node-token >/dev/null 2>&1")
+            return True
+        except:
+            return False
     
     def is_cluster_init(self):
         if not os.path.isfile(self.compose_file):

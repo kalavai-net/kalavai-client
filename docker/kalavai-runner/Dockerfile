@@ -20,6 +20,10 @@ COPY --from=k3s /bin /bin
 # Deploy the nvidia driver plugin on startup
 COPY nvidia-runtimeclass.yaml /var/lib/rancher/k3s/server/manifests/nvidia-runtimeclass.yaml
 
+RUN mkdir -p /workspace
+COPY run_agent.sh /workspace/
+RUN chmod +x /workspace/run_agent.sh
+
 VOLUME /var/lib/kubelet
 VOLUME /var/lib/rancher/k3s
 VOLUME /var/lib/cni
@@ -27,5 +31,4 @@ VOLUME /var/log
 
 ENV PATH="$PATH:/bin/aux"
 
-ENTRYPOINT ["/bin/k3s"]
-CMD ["agent"]
+ENTRYPOINT ["/workspace/run_agent.sh"]
