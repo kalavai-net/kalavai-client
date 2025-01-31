@@ -46,6 +46,7 @@ https://github.com/user-attachments/assets/0d2316f3-79ea-46ac-b41e-8ef720f52672
 
 ### News updates
 
+- 31 January 2025: `kalavai-client` is now a [PyPI package](https://pypi.org/project/kalavai-client/), easier to install than ever!
 - 27 January 2025: Support for accessing pools from remote computers
 - 9 January 2025: Added support for [Aphrodite Engine](https://github.com/aphrodite-engine/aphrodite-engine) models
 - 8 January 2025: Release of [a free, public, shared pool](/docs/docs/public_llm_pool.md) for community LLM deployment
@@ -86,20 +87,24 @@ Not what you were looking for? [Tell us](https://github.com/kalavai-net/kalavai-
 
 ## Getting started
 
-The `kalavai` client is the main tool to interact with the Kalavai platform, to create and manage both local and public pools and also to interact with them (e.g. deploy models). Let's go over its installation. 
+The `kalavai-client` is the main tool to interact with the Kalavai platform, to create and manage both local and public pools and also to interact with them (e.g. deploy models). Let's go over its installation. 
 
-From release **v0.5.0, you can now install `kalavai` client in non-worker computers**. You can run a pool on a set of machines and have the client on a remote computer from which you access the LLM pool. Because the client only requires having python installed, this means more computers are now supported to run it.
+From release **v0.5.0, you can now install `kalavai-client` in non-worker computers**. You can run a pool on a set of machines and have the client on a remote computer from which you access the LLM pool. Because the client only requires having python installed, this means more computers are now supported to run it.
 
 
-### Requirements for a worker machine
+### Requirements
+
+For workers sharing resources with the pool:
 
 - A laptop, desktop or Virtual Machine
 - Docker engine installed (for [linux](https://docs.docker.com/engine/install/), [Windows and MacOS](https://docs.docker.com/desktop/)) with [privilege access](https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities).
 
+> **Support for Windows and MacOS workers is experimental**: kalavai workers run on docker containers that require access to the host network interfaces, thus systems that do not support containers natively (Windows and MacOS) may have difficulties finding each other.
 
-### Requirements to run the client
+Any system that runs python 3.6+ is able to run the `kalavai-client` and therefore connect and operate an LLM pool, [without sharing with the pool](). Your computer won't be adding its capacity to the pool, but it wil be able to deploy jobs and interact with models.
 
-- Python 3.10+
+
+#### Common issues
 
 If you see the following error:
 
@@ -168,6 +173,17 @@ Copy the joining token. On the worker node, run:
 kalavai pool join <token>
 ```
 
+### 3. Attach more clients
+
+You can now connect to an existing pool from any computer -not just from worker nodes. To connect to a pool, run:
+
+```bash
+kalavai pool attach <token>
+```
+
+This won't add the machine as a worker, but you will be able to operate in the pool as if you were. This is ideal for remote access to the pool, and to use the pool from machines that cannot run workers (docker container limitations).
+
+
 ### Enough already, let's run stuff!
 
 Check our [examples](examples/) to put your new AI pool to good use!
@@ -232,7 +248,7 @@ Anything missing here? Give us a shout in the [discussion board](https://github.
 
 ### Requirements
 
-Python version <= 3.12.
+Python version >= 3.6.
 
 ```bash
 sudo add-apt-repository ppa:deadsnakes/ppa

@@ -13,7 +13,7 @@ The `kalavai` client is the main tool to interact with the Kalavai platform, to 
 From release **v0.5.0, you can now install `kalavai` client in non-worker computers**. You can run a pool on a set of machines and have the client on a remote computer from which you access the LLM pool. Because the client only requires having python installed, this means more computers are now supported to run it.
 
 
-### Requirements for a worker machine
+### Requirements
 
 - A laptop, desktop or Virtual Machine
 - Docker engine installed (for [linux](https://docs.docker.com/engine/install/), [Windows and MacOS](https://docs.docker.com/desktop/)) with [privilege access](https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities).
@@ -21,7 +21,8 @@ From release **v0.5.0, you can now install `kalavai` client in non-worker comput
 
 ### Requirements to run the client
 
-- Python 3.10+
+- Python 3.6+
+- For seed and workers: Docker engine installed (for [linux](https://docs.docker.com/engine/install/), [Windows and MacOS](https://docs.docker.com/desktop/)) with [privilege access](https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities).
 
 
 ### Install the client
@@ -76,7 +77,7 @@ You can now connect to an existing pool from any computer -not just from worker 
 kalavai pool attach <token>
 ```
 
-This won't add the machine as a worker, but you will be able to operate in the pool as if you were.
+This won't add the machine as a worker, but you will be able to operate in the pool as if you were. This is ideal for remote access to the pool, and to use the pool from machines that cannot run workers (docker container limitations).
 
 
 ### Hardware compatibility:

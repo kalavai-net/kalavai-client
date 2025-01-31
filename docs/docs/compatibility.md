@@ -13,7 +13,12 @@ If your system is not currently supported, [open an issue](https://github.com/ka
 
 Since **worker nodes** run inside docker, any machine that can run docker **should** be compatible with Kalavai. Here are instructions for [linux](https://docs.docker.com/engine/install/), [Windows](https://docs.docker.com/desktop/setup/install/windows-install/) and [MacOS](https://docs.docker.com/desktop/setup/install/mac-install/).
 
-The kalavai client, which controls and access pools, can be installed on any machine that has python 3.10+.
+The kalavai client, which controls and access pools, can be installed on any machine that has python 3.6+.
+
+**Support for Windows and MacOS workers is experimental**: kalavai workers run on docker containers that require access to the host network interfaces, thus systems that do not support containers natively (Windows and MacOS) may have difficulties finding each other.
+
+Any system that runs python 3.6+ is able to run the `kalavai-client` and therefore connect and operate an LLM pool, [without sharing with the pool](getting_started.md#3-attach-more-clients). Your computer won't be adding its capacity to the pool, but it wil be able to deploy jobs and interact with models.
+
 
 ### Hardware compatibility:
 

@@ -23,8 +23,20 @@ In this guide, we'll show **how to join our first public LLM pool**, ideal for A
 
 ## Pre-requisites
 
-- Install the [`kalavai` client](getting_started.md) in your computer.
+- Install the [`kalavai` client](getting_started.md) in your computer. Make sure it is version __v0.5.8__ or above.
+
+```bash
+$ pip show kalavai-client
+
+Name: kalavai-client
+Version: 0.5.9
+Summary: Client app for kalavai platform
+...
+```
+
 - Create a free account on [our platform](https://platform.kalavai.net).
+- For public pools, **only linux systems are currently supported**. You can also use Windows under WSL (Windows Linux Subsystem). This is a temporary limitation of the public VPN we use.
+
 
 ## Join in
 
