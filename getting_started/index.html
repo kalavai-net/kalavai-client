@@ -355,9 +355,9 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#requirements-for-a-worker-machine" class="md-nav__link">
+  <a href="#requirements" class="md-nav__link">
     <span class="md-ellipsis">
-      Requirements for a worker machine
+      Requirements
     </span>
   </a>
   
@@ -755,9 +755,9 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#requirements-for-a-worker-machine" class="md-nav__link">
+  <a href="#requirements" class="md-nav__link">
     <span class="md-ellipsis">
-      Requirements for a worker machine
+      Requirements
     </span>
   </a>
   
@@ -897,14 +897,15 @@
 <h1 id="getting-started">Getting started</h1>
 <p>The <code>kalavai</code> client is the main tool to interact with the Kalavai platform, to create and manage both local and public pools and also to interact with them (e.g. deploy models). Let's go over its installation. </p>
 <p>From release <strong>v0.5.0, you can now install <code>kalavai</code> client in non-worker computers</strong>. You can run a pool on a set of machines and have the client on a remote computer from which you access the LLM pool. Because the client only requires having python installed, this means more computers are now supported to run it.</p>
-<h3 id="requirements-for-a-worker-machine">Requirements for a worker machine</h3>
+<h3 id="requirements">Requirements</h3>
 <ul>
 <li>A laptop, desktop or Virtual Machine</li>
 <li>Docker engine installed (for <a href="https://docs.docker.com/engine/install/">linux</a>, <a href="https://docs.docker.com/desktop/">Windows and MacOS</a>) with <a href="https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities">privilege access</a>.</li>
 </ul>
 <h3 id="requirements-to-run-the-client">Requirements to run the client</h3>
 <ul>
-<li>Python 3.10+</li>
+<li>Python 3.6+</li>
+<li>For seed and workers: Docker engine installed (for <a href="https://docs.docker.com/engine/install/">linux</a>, <a href="https://docs.docker.com/desktop/">Windows and MacOS</a>) with <a href="https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities">privilege access</a>.</li>
 </ul>
 <h3 id="install-the-client">Install the client</h3>
 <p>The client is a python package and can be installed with one command:</p>
