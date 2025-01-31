@@ -1,6 +1,7 @@
 ---
 tags:
   - integrations
+  - jobs
   - LLM engines
   - ray
 ---
@@ -26,7 +27,7 @@ Deploying a template is easy:
 kalavai job run <template name> --values <template values>
 ```
 
-Where <template name> refers to one of the supported templates above, and <template values> is a local yaml file containing the parameters of the job. See [examples](https://github.com/kalavai-net/kube-watcher/tree/main/templates) for more information.
+Where `<template name>` refers to one of the supported templates above, and `<template values>` is a local yaml file containing the parameters of the job. See [examples](https://github.com/kalavai-net/kube-watcher/tree/main/templates) for more information.
 
 
 ## List of available templates

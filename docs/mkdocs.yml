@@ -12,7 +12,7 @@ nav:
     - Petals swarm: petals.md
     - BOINC: boinc.md
   - Applications: 
-    - Templates: templates.md
+    - Job templates: templates.md
     - Ray: ray.md
   # - Tutorials:
   #   - End 2 end example: end2end.md
