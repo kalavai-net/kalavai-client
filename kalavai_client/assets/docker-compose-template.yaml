@@ -35,6 +35,9 @@ services:
 #     volumes:
 #       - {{nginx_path}}/nginx.conf:/etc/nginx/nginx.conf
 {% endif %}
+
+# run worker only if command is set
+{%if command %}
   {{service_name}}:
     image: docker.io/bundenth/kalavai-runner:gpu-latest
     container_name: {{service_name}}
@@ -86,7 +89,7 @@ services:
     - {{k3s_path}}:/var/lib/rancher/k3s # Persist data
     - {{etc_path}}:/etc/rancher/k3s # Config files
 
-{% if num_gpus and num_gpus > 0 %}
+  {% if num_gpus and num_gpus > 0 %}
     deploy:
       resources:
         reservations:
@@ -94,6 +97,7 @@ services:
           - driver: nvidia
             count: {{num_gpus}}
             capabilities: [gpu]
+  {% endif %}
 {% endif %}
 
 networks:

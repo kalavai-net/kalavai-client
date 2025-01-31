@@ -118,27 +118,6 @@ CLUSTER = dockerCluster(
 ######################
 ## HELPER FUNCTIONS ##
 ######################
-
-def check_vpn_compatibility():
-    """Check required packages to join VPN"""
-    logs = []
-    console.log("[white]Checking system requirements...")
-    # netclient
-    try:
-        run_cmd("sudo netclient version >/dev/null 2>&1")
-    except:
-        logs.append("[red]Netmaker not installed. Install instructions:\n")
-        logs.append("   Linux: https://docs.netmaker.io/docs/netclient#linux\n")
-        logs.append("   Windows: https://docs.netmaker.io/docs/netclient#windows\n")
-        logs.append("   MacOS: https://docs.netmaker.io/docs/netclient#mac\n")
-    
-    if len(logs) == 0:
-        console.log("[green]System is ready to join the vpn")
-        return True
-    else:
-        for log in logs:
-            console.log(log)
-        return False
     
 def check_seed_compatibility():
     """Check required packages to start pools"""
@@ -358,7 +337,7 @@ def select_token_type():
             break
     return {"admin": choice == 0, "user": choice == 1, "worker": choice == 2}
 
-def generate_compose_config(role, node_name, node_labels, is_public, pool_ip=None, vpn_token=None, pool_token=None):
+def generate_compose_config(role, node_name, is_public, node_labels=None, pool_ip=None, vpn_token=None, pool_token=None):
     num_gpus = 0
     try:
         has_gpus = check_gpu_drivers()
@@ -370,6 +349,8 @@ def generate_compose_config(role, node_name, node_labels, is_public, pool_ip=Non
             ) 
     except:
         console.log(f"[red]WARNING: error when fetching NVIDIA GPU info. GPUs will not be used on this local machine")
+    if node_labels is not None:
+        node_labels = " ".join([f"--node-label {key}={value}" for key, value in node_labels.items()])
     compose_values = {
         "user_path": user_path(""),
         "service_name": DEFAULT_CONTAINER_NAME,
@@ -384,7 +365,7 @@ def generate_compose_config(role, node_name, node_labels, is_public, pool_ip=Non
         "num_gpus": num_gpus,
         "k3s_path": f"{CONTAINER_HOST_PATH}/k3s",
         "etc_path": f"{CONTAINER_HOST_PATH}/etc",
-        "node_labels": " ".join([f"--node-label {key}={value}" for key, value in node_labels.items()]),
+        "node_labels": node_labels,
         "flannel_iface": DEFAULT_FLANNEL_IFACE if is_public else ""
     }
     # generate local config files
@@ -1121,6 +1102,7 @@ def pool__attach(token, *others, node_name=None):
     """
     Set creds in token on the local instance
     """
+    # check that is not attached to another instance
     if os.path.exists(USER_LOCAL_SERVER_FILE):
         option = user_confirm(
             question="You seem to be connected to an instance already. Are you sure you want to join a new one?",
@@ -1129,34 +1111,39 @@ def pool__attach(token, *others, node_name=None):
         if option == 0:
             console.log("[green]Nothing happened.")
             return
+    
+    # check token
+    if not pool__check_token(token):
+        return
+
     try:
         data = decode_dict(token)
         kalavai_seed_ip = data[CLUSTER_IP_KEY]
-        kalavai_token = data[CLUSTER_TOKEN_KEY]
         cluster_name = data[CLUSTER_NAME_KEY]
         auth_key = data[AUTH_KEY]
         watcher_service = data[WATCHER_SERVICE_KEY]
         public_location = data[PUBLIC_LOCATION_KEY]
-    except:
-        console.log("[red]Error when parsing token. Invalid token")
+        vpn = defaultdict(lambda: None)
+    except Exception as e:
+        console.log(str(e))
+        console.log("[red] Invalid token")
         return
-
+    
     user = defaultdict(lambda: None)
     if public_location is not None:
-        console.log("Joining private network")
+        user = user_login(user_cookie=USER_COOKIE)
+        if user is None:
+            console.log("[red]Must be logged in to join public pools. Run [yellow]kalavai login[red] to authenticate")
+            exit()
+        console.log("Fetching VPN credentials")
         try:
-            if not check_vpn_compatibility():
-                return
-            vpn = join_vpn(
+            vpn = get_vpn_details(
                 location=public_location,
                 user_cookie=USER_COOKIE)
-            user = user_login(user_cookie=USER_COOKIE)
-            time.sleep(5)
         except Exception as e:
             console.log(f"[red]Error when joining network: {str(e)}")
             console.log("Are you authenticated? Try [yellow]kalavai login")
             return
-        # validate public seed
         try:
             validate_join_public_seed(
                 cluster_name=cluster_name,
@@ -1165,9 +1152,19 @@ def pool__attach(token, *others, node_name=None):
             )
         except Exception as e:
             console.log(f"[red]Error when joining network: {str(e)}")
-            leave_vpn(container_name=DEFAULT_VPN_CONTAINER_NAME)
             return
-
+        
+    # local agent join
+    # 1. Generate local cache files
+    console.log("Generating config files...")
+    
+    # Generate docker compose recipe
+    generate_compose_config(
+        role="",
+        vpn_token=vpn["key"],
+        node_name=node_name,
+        is_public=public_location is not None)
+    
     store_server_info(
         server_ip=kalavai_seed_ip,
         auth_key=auth_key,
@@ -1178,7 +1175,26 @@ def pool__attach(token, *others, node_name=None):
         public_location=public_location,
         user_api_key=user["api_key"])
 
-    console.log(f"[green]You are now connected to {cluster_name} @ {kalavai_seed_ip}")
+    option = user_confirm(
+        question="Docker compose ready. Would you like Kalavai to deploy it?",
+        options=["no", "yes"]
+    )
+    if option == 0:
+        console.log("Manually deploy the worker with the following command:\n")
+        print(f"docker compose -f {USER_COMPOSE_FILE} up -d")
+        return
+    
+    console.log(f"[white] Connecting to {cluster_name} @ {kalavai_seed_ip} (this may take a few minutes)...")
+    run_cmd(f"docker compose -f {USER_COMPOSE_FILE} up -d")
+    # ensure we are connected
+    while True:
+        console.log("Waiting for core services to be ready, may take a few minutes...")
+        time.sleep(30)
+        if is_watcher_alive(server_creds=USER_LOCAL_SERVER_FILE, user_cookie=USER_COOKIE):
+            break
+    
+    # set status to schedulable
+    console.log(f"[green] You are connected to {cluster_name}")
 
 
 @arguably.command
