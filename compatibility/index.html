@@ -766,7 +766,9 @@
 <p>If your system is not currently supported, <a href="https://github.com/kalavai-net/kalavai-client/issues">open an issue</a> and request it. We are expanding this list constantly.</p>
 <h3 id="os-compatibility">OS compatibility</h3>
 <p>Since <strong>worker nodes</strong> run inside docker, any machine that can run docker <strong>should</strong> be compatible with Kalavai. Here are instructions for <a href="https://docs.docker.com/engine/install/">linux</a>, <a href="https://docs.docker.com/desktop/setup/install/windows-install/">Windows</a> and <a href="https://docs.docker.com/desktop/setup/install/mac-install/">MacOS</a>.</p>
-<p>The kalavai client, which controls and access pools, can be installed on any machine that has python 3.10+.</p>
+<p>The kalavai client, which controls and access pools, can be installed on any machine that has python 3.6+.</p>
+<p><strong>Support for Windows and MacOS workers is experimental</strong>: kalavai workers run on docker containers that require access to the host network interfaces, thus systems that do not support containers natively (Windows and MacOS) may have difficulties finding each other.</p>
+<p>Any system that runs python 3.6+ is able to run the <code>kalavai-client</code> and therefore connect and operate an LLM pool, <a href="../getting_started/#3-attach-more-clients">without sharing with the pool</a>. Your computer won't be adding its capacity to the pool, but it wil be able to deploy jobs and interact with models.</p>
 <h3 id="hardware-compatibility">Hardware compatibility:</h3>
 <ul>
 <li><code>amd64</code> or <code>x86_64</code> CPU architecture</li>

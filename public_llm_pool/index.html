@@ -1034,8 +1034,18 @@
 <p>In this guide, we'll show <strong>how to join our first public LLM pool</strong>, ideal for AI developers that want to go beyond the hardware they have access to. This will manage step 1, so you can jump ahead to step 2 and 3. If you are interested in <strong>hosting your own private shared pool</strong>, check out <a href="../self_hosted_llm_pool/">this one</a>.</p>
 <h2 id="pre-requisites">Pre-requisites</h2>
 <ul>
-<li>Install the <a href="../getting_started/"><code>kalavai</code> client</a> in your computer.</li>
+<li>Install the <a href="../getting_started/"><code>kalavai</code> client</a> in your computer. Make sure it is version <strong>v0.5.8</strong> or above.</li>
+</ul>
+<pre><code class="language-bash">$ pip show kalavai-client
+
+Name: kalavai-client
+Version: 0.5.8
+Summary: Client app for kalavai platform
+...
+</code></pre>
+<ul>
 <li>Create a free account on <a href="https://platform.kalavai.net">our platform</a>.</li>
+<li>For public pools, <strong>only linux systems are currently supported</strong>. You can also use Windows under WSL (Windows Linux Subsystem). This is a temporary limitation of the public VPN we use.</li>
 </ul>
 <h2 id="join-in">Join in</h2>
 <p>Authenticate your computer using the kalavai client:</p>
