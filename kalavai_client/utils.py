@@ -389,7 +389,7 @@ def resource_path(relative_path: str):
         last_slash = relative_path.rfind("/") 
         path = relative_path[:last_slash].replace("/", ".")
         filename = relative_path[last_slash+1:]
-        resource = importlib.resources.path(path, filename)
+        resource = str(importlib.resources.files(path).joinpath(filename))
     except Exception as e:
         return None
     return resource

@@ -1,9 +1,6 @@
 #!/bin/bash
 set -e
 
-source env/bin/activate
-
-
 # Converts a text list of rpc server addresses (one on each new line) 
 # to a string of RPC server addresses, comma separated
 subcommand=$1
