@@ -7,8 +7,8 @@ subcommand=$1
 shift
 case "$subcommand" in
     build)
-        rm dist/*
-        python -m build
+        rm -rf dist/*
+        python3 -m build
         twine check dist/*    
         ;;
     test-release)

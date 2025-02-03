@@ -337,18 +337,19 @@ def select_token_type():
             break
     return {"admin": choice == 0, "user": choice == 1, "worker": choice == 2}
 
-def generate_compose_config(role, node_name, is_public, node_labels=None, pool_ip=None, vpn_token=None, pool_token=None):
+def generate_compose_config(role, node_name, is_public, use_gpus=True, node_labels=None, pool_ip=None, vpn_token=None, pool_token=None):
     num_gpus = 0
-    try:
-        has_gpus = check_gpu_drivers()
-        if has_gpus:
-            max_gpus = int(run_cmd("nvidia-smi -L | wc -l").decode())
-            num_gpus = user_confirm(
-                question=f"{max_gpus} NVIDIA GPU(s) detected. How many GPUs would you like to include?",
-                options=range(max_gpus+1)
-            ) 
-    except:
-        console.log(f"[red]WARNING: error when fetching NVIDIA GPU info. GPUs will not be used on this local machine")
+    if use_gpus:
+        try:
+            has_gpus = check_gpu_drivers()
+            if has_gpus:
+                max_gpus = int(run_cmd("nvidia-smi -L | wc -l").decode())
+                num_gpus = user_confirm(
+                    question=f"{max_gpus} NVIDIA GPU(s) detected. How many GPUs would you like to include?",
+                    options=range(max_gpus+1)
+                ) 
+        except:
+            console.log(f"[red]WARNING: error when fetching NVIDIA GPU info. GPUs will not be used on this local machine")
     if node_labels is not None:
         node_labels = " ".join([f"--node-label {key}={value}" for key, value in node_labels.items()])
     compose_values = {
@@ -1102,6 +1103,10 @@ def pool__attach(token, *others, node_name=None):
     """
     Set creds in token on the local instance
     """
+
+    if node_name is None:
+        node_name = socket.gethostname()
+    
     # check that is not attached to another instance
     if os.path.exists(USER_LOCAL_SERVER_FILE):
         option = user_confirm(
@@ -1160,6 +1165,7 @@ def pool__attach(token, *others, node_name=None):
     
     # Generate docker compose recipe
     generate_compose_config(
+        use_gpus=False,
         role="",
         vpn_token=vpn["key"],
         node_name=node_name,
@@ -1509,6 +1515,62 @@ def job__run(template_name, *others, values: str=None, force_namespace: str=None
     except Exception as e:
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
         return
+
+@arguably.command
+def job__test(local_template_dir, *others, values, defaults, force_namespace: str=None):
+    """
+    Helper to test local templates, useful for development
+    """
+    try:
+        CLUSTER.validate_cluster()
+    except Exception as e:
+        console.log(f"[red]Problems with your pool: {str(e)}")
+        return
+    
+    if not os.path.isdir(local_template_dir):
+        console.log(f"[red]--local_template_dir ({local_template_dir}) is not a directory")
+        return
+    
+    # load template
+    with open(os.path.join(local_template_dir, "template.yaml"), "r") as f:
+        template_str = f.read()
+    
+    # load values
+    if not os.path.isfile(values):
+        console.log(f"[red]--values ({values}) is not a valid local file")
+        return
+    with open(values, "r") as f:
+        values_dict = yaml.safe_load(f)
+    # load defaults
+    if not os.path.isfile(defaults):
+        console.log(f"[red]--defaults ({defaults}) is not a valid local file")
+        return
+    with open(defaults, "r") as f:
+        defaults = f.read()
+    
+    # submit custom deployment
+    data = {
+        "template": template_str,
+        "template_values": values_dict,
+        "default_values": defaults
+    }
+    if force_namespace is not None:
+        data["force_namespace"] = force_namespace
+
+    try:
+        result = request_to_server(
+            method="post",
+            endpoint="/v1/deploy_custom_job",
+            data=data,
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        console.log("Deployment result:")
+        print(
+            json.dumps(result,indent=3)
+        )
+    except Exception as e:
+        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
 
 
 @arguably.command

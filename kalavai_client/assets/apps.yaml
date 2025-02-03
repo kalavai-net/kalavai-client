@@ -139,7 +139,7 @@ releases:
     - name: replicas
       value: 2
     - name: image_tag
-      value: "v2025.01"
+      value: "v2025.01.1"
     - name: deployment.in_cluster
       value: "True"
     - name: deployment.use_auth_key

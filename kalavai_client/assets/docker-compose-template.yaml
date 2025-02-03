@@ -1,8 +1,9 @@
 services:
 {% if vpn %}
   {{vpn_name}}:
-    image: gravitl/netclient:v0.30.0
+    image: gravitl/netclient:v0.24.3
     container_name: {{vpn_name}}
+    #privileged: true
     cap_add:
       - NET_ADMIN
       - SYS_MODULE

@@ -284,8 +284,11 @@ def request_to_server(
         json=data,
         headers=headers
     )
-    result = response.json()
-    return result
+    try:
+        result = response.json()
+        return result
+    except Exception as e:
+        raise ValueError(f"Error with HTTP request: {response.text}\n{str(e)}")
 
 
 def generate_table(columns, rows, end_sections=None):
