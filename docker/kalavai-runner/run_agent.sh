@@ -64,6 +64,9 @@ sleep 10
 if [[ "$command" == "server" ]]; then
     # server agent
     exec /bin/k3s $command \
+        --kube-controller-manager-arg=node-monitor-grace-period=2m \
+        --kube-controller-manager-arg=node-monitor-period=2m \
+        --kubelet-arg=node-status-update-frequency=1m \
         --node-external-ip $node_ip \
         --service-node-port-range $port_range \
         $iface \
@@ -72,6 +75,7 @@ if [[ "$command" == "server" ]]; then
 else
     # worker agent
     exec /bin/k3s $command \
+        --kubelet-arg=node-status-update-frequency=1m \
         --node-external-ip $node_ip \
         --server $server_ip \
         --token $token \

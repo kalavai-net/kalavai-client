@@ -12,6 +12,8 @@ tags:
 
 > Beta feature: we are trialing shared pools. If you encounter any issues, please [submit a ticket in our GitHub repo](https://github.com/kalavai-net/kalavai-client/issues).
 
+🔥🔥🔥 **We have deployed `DeepSeek R1` onto our public LLM pool. Join in to access the most demanded open source model for free. The more people that joins, the bigger models we can deploy**
+
 LLM pools in `Kalavai` are an easy way to expand your computing power beyond a single machine, with zero-devops knowledge. Kalavai **aggregates the GPUs, CPUs and RAM memory** from any compatible machine and makes it ready for LLM workflows. All you need is three steps to get your supercomputing cluster going:
 
 1. Start a pool with the kalavai client
@@ -23,13 +25,13 @@ In this guide, we'll show **how to join our first public LLM pool**, ideal for A
 
 ## Pre-requisites
 
-- Install the [`kalavai` client](getting_started.md) in your computer. Make sure it is version __v0.5.8__ or above.
+- Install the [`kalavai` client](getting_started.md) in your computer. Make sure it is version __v0.5.12__ or above.
 
 ```bash
 $ pip show kalavai-client
 
 Name: kalavai-client
-Version: 0.5.9
+Version: 0.5.12
 Summary: Client app for kalavai platform
 ...
 ```
