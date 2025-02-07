@@ -48,7 +48,7 @@ https://github.com/user-attachments/assets/0d2316f3-79ea-46ac-b41e-8ef720f52672
 
 <img src="docs/docs/assets/images/DeepSeek-Emblem.png" width="100">
 
-- 6 February 2025: 🔥🔥🔥 Access the **full (641B) DeepSeek R1** model for free when you join our [public LLM pool](https://kalavai-net.github.io/kalavai-client/public_llm_pool/)
+- 6 February 2025: 🔥🔥🔥 Access  **DeepSeek R1 model for free** when you join our [public LLM pool](https://kalavai-net.github.io/kalavai-client/public_llm_pool/)
 - 31 January 2025: `kalavai-client` is now a [PyPI package](https://pypi.org/project/kalavai-client/), easier to install than ever!
 - 27 January 2025: Support for accessing pools from remote computers
 - 9 January 2025: Added support for [Aphrodite Engine](https://github.com/aphrodite-engine/aphrodite-engine) models
