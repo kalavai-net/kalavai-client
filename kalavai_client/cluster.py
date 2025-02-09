@@ -133,6 +133,9 @@ class dockerCluster(Cluster):
         if not os.path.isfile(self.compose_file):
             return False
         status = self.container_name in run_cmd(f"docker compose -f {self.compose_file} ps --services --status=running").decode()
+        if not status:
+            return False
+        status = (0 == os.system(f'docker exec {self.container_name} ps aux | grep -v grep | grep -E "k3s (server|agent)"'))
         return status
 
     def is_seed_node(self):

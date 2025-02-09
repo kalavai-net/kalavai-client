@@ -14,6 +14,9 @@ import yaml
 
 
 from kalavai_client.auth import KalavaiAuthClient
+from kalavai_client.env import (
+    SERVER_IP_KEY
+)
 
 
 GITHUB_ORG = "kalavai-net"
@@ -22,7 +25,6 @@ GITHUB_TEMPLATE_PATH = "templates"
 USER_NODE_LABEL_KEY = "user_node_label"
 CLUSTER_IP_KEY = "cluster_ip"
 CLUSTER_TOKEN_KEY = "cluster_token"
-SERVER_IP_KEY = "server_ip"
 NODE_NAME_KEY = "node_name"
 PUBLIC_LOCATION_KEY = "public_location"
 CLUSTER_NAME_KEY = "cluster_name"
@@ -396,16 +398,6 @@ def resource_path(relative_path: str):
     except Exception as e:
         return None
     return resource
-
-def user_path(relative_path, create_path=False):
-    """Transform a relative path into the user's cache folder path"""
-    base = os.path.expanduser("~")
-    kalavai_user_path = os.path.join(base, ".cache/kalavai")
-    full_path = os.path.join(kalavai_user_path, relative_path)
-    if create_path:
-        Path(full_path).mkdir(parents=True, exist_ok=True)
-    
-    return full_path
 
 def safe_remove(filepath, force=True):
     if not os.path.exists(filepath):

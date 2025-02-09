@@ -15,6 +15,21 @@ import netifaces as ni
 import arguably
 from rich.console import Console
 
+from kalavai_client.env import (
+    USER_COOKIE,
+    USER_LOCAL_SERVER_FILE,
+    TEMPLATE_LABEL,
+    user_path
+)
+from kalavai_client.core import (
+    fetch_resources,
+    fetch_job_names,
+    fetch_job_details,
+    fetch_devices,
+    fetch_job_logs,
+    fetch_gpus,
+    load_gpu_models
+)
 from kalavai_client.utils import (
     check_gpu_drivers,
     run_cmd,
@@ -27,10 +42,8 @@ from kalavai_client.utils import (
     generate_table,
     request_to_server,
     resource_path,
-    user_path,
     safe_remove,
     leave_vpn,
-    join_vpn,
     get_vpn_details,
     load_server_info,
     user_login,
@@ -68,7 +81,6 @@ LOCAL_TEMPLATES_DIR = os.getenv("LOCAL_TEMPLATES_DIR", None)
 VERSION = 1
 RESOURCE_EXCLUDE = ["ephemeral-storage", "hugepages-1Gi", "hugepages-2Mi", "pods"]
 CORE_NAMESPACES = ["lws-system", "kube-system", "gpu-operator", "kalavai"]
-TEMPLATE_LABEL = "kalavai.job.name"
 RAY_LABEL = "kalavai.ray.name"
 PVC_NAME_LABEL = "kalavai.storage.name"
 DOCKER_COMPOSE_TEMPLATE = resource_path("kalavai_client/assets/docker-compose-template.yaml")
@@ -98,9 +110,7 @@ USER_COMPOSE_FILE = user_path("docker-compose-worker.yaml")
 USER_VPN_COMPOSE_FILE = user_path("docker-compose-vpn.yaml")
 USER_HELM_APPS_FILE = user_path("apps.yaml")
 USER_KUBECONFIG_FILE = user_path("kubeconfig")
-USER_LOCAL_SERVER_FILE = user_path(".server")
 USER_TEMPLATES_FOLDER = user_path("templates", create_path=True)
-USER_COOKIE = user_path(".user_cookie.pkl")
 
 
 console = Console()
@@ -118,7 +128,7 @@ CLUSTER = dockerCluster(
 ######################
 ## HELPER FUNCTIONS ##
 ######################
-    
+
 def check_seed_compatibility():
     """Check required packages to start pools"""
     logs = []
@@ -288,21 +298,11 @@ def select_ip_address(subnet=None):
             console.log("[red] Input error")
     return ips[option]
 
-def fetch_gpus():
-    data = request_to_server(
-        method="post",
-        endpoint="/v1/get_node_gpus",
-        data={},
-        server_creds=USER_LOCAL_SERVER_FILE,
-        user_cookie=USER_COOKIE
-    )
-    return data.items()
-
 def select_gpus(message):
     console.log(f"[yellow]{message}")
     gpu_models = ["Any/None"]
     gpu_models_full = ["Any/None"]
-    available_gpus = fetch_gpus()
+    available_gpus = load_gpu_models()
     for _, gpus in available_gpus:
         for gpu in gpus["gpus"]:
             #status = "free" if "ready" in gpu else "busy"
@@ -737,7 +737,7 @@ def pool__check_token(token, *others, public=False):
 
 
 @arguably.command
-def pool__join(token, *others, node_name=None, ip_address: str=None):
+def pool__join(token, *others, node_name=None):
     """
     Join Kalavai pool and start/resume sharing resources.
 
@@ -860,7 +860,7 @@ def pool__join(token, *others, node_name=None, ip_address: str=None):
         CLUSTER.start_worker_node()
     except Exception as e:
         console.log(f"[red] Error connecting to {cluster_name} @ {kalavai_seed_ip}. Check with the admin if the token is still valid.")
-        leave_vpn(container_name=DEFAULT_VPN_CONTAINER_NAME)
+        pool__stop()
         exit()
 
     # ensure we are connected
@@ -869,6 +869,22 @@ def pool__join(token, *others, node_name=None, ip_address: str=None):
         time.sleep(30)
         if is_watcher_alive(server_creds=USER_LOCAL_SERVER_FILE, user_cookie=USER_COOKIE):
             break
+
+    # send note to server to let them know the node is coming online
+    if not pre_join_check(node_name=node_name, server_url=watcher_service, server_key=auth_key):
+        console.log(f"[red] Failed pre join checks. Server offline or node '{node_name}' may already exist. Please specify a different one with [yellow]--node-name'")
+        pool__stop()
+        return
+    
+    # check the node has connected successfully
+    try:
+        while not CLUSTER.is_agent_running():
+            console.log("waiting for runner, may take a few minutes... Press <ctrl+c> to stop")
+            time.sleep(30)
+    except KeyboardInterrupt:
+        console.log("[red]Installation aborted. Leaving pool.")
+        pool__stop()
+        return
     
     init_user_workspace()
     
@@ -963,29 +979,24 @@ def pool__gpus(*others, available=False):
         console.log(f"[red]Problems with your pool: {str(e)}")
         return
 
-    try:
-        data = fetch_gpus()
-        columns, rows = [], []
-        for node, gpus in data:
-            row_gpus = []
-            for gpu in gpus["gpus"]:
-                status = gpu["ready"] if "ready" in gpu else True
-                if available and not status:
-                    continue
-                row_gpus.append( (f"{gpu['model']} ({math.floor(int(gpu['memory'])/1000)} GBs)", str(status)))
-            if len(row_gpus) > 0:
-                models, statuses = zip(*row_gpus)
-                rows.append([node, "\n".join(statuses), "\n".join(models), str(gpus["available"]), str(gpus["capacity"])])
-
-            columns = ["Ready", "GPU(s)", "Available", "Total"]
-        columns = ["Node"] + columns
-        console.print(
-            generate_table(columns=columns, rows=rows,end_sections=[n for n in range(len(rows))])
-        )
-        
-    except Exception as e:
-        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
-
+    gpus = fetch_gpus(available=available)
+    if "error" in gpus:
+        console.log(f"[red]Error when fetching gpus: {gpus}")
+        return
+    
+    columns = ["Node", "Ready", "GPU(s)", "Available", "Total"]
+    rows = []
+    for gpu in gpus:
+        rows.append([
+            gpu.node,
+            str(gpu.ready),
+            gpu.model,
+            str(gpu.available),
+            str(gpu.total)
+        ])
+    console.print(
+        generate_table(columns=columns, rows=rows,end_sections=[n for n in range(len(rows))])
+    )
 
 @arguably.command
 def pool__resources(*others):
@@ -998,45 +1009,33 @@ def pool__resources(*others):
         console.log(f"[red]Problems with your pool: {str(e)}")
         return
 
-    try:
-        total = request_to_server(
-            method="get",
-            endpoint="/v1/get_cluster_total_resources",
-            data={},
-            server_creds=USER_LOCAL_SERVER_FILE,
-            user_cookie=USER_COOKIE
-        )
-        available = request_to_server(
-            method="get",
-            endpoint="/v1/get_cluster_available_resources",
-            data={},
-            server_creds=USER_LOCAL_SERVER_FILE,
-            user_cookie=USER_COOKIE
-        )
-        columns = []
-        total_values = []
-        available_values = []
-        for col in total.keys():
-            if col in RESOURCE_EXCLUDE:
-                continue
-            columns.append(col)
-            total_values.append(str(total[col]))
-            available_values.append(str(available[col]))
-        
-        columns = [""] + columns
-        total_values = ["Total"] + total_values
-        available_values = ["Available"] + available_values
-        
-        rows = [
-            tuple(available_values),
-            tuple(total_values)
-        ]
-        console.print(
-            generate_table(columns=columns, rows=rows, end_sections=[0, 1])
-        )
-        
-    except Exception as e:
+    data = fetch_resources()
+    if "error" in data:
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
+        return
+    
+    columns = []
+    total_values = []
+    available_values = []
+    for col in data["total"].keys():
+        if col in RESOURCE_EXCLUDE:
+            continue
+        columns.append(col)
+        total_values.append(str(data["total"][col]))
+        available_values.append(str(data["available"][col]))
+    
+    columns = [""] + columns
+    total_values = ["Total"] + total_values
+    available_values = ["Available"] + available_values
+    
+    rows = [
+        tuple(available_values),
+        tuple(total_values)
+    ]
+    console.print(
+        generate_table(columns=columns, rows=rows, end_sections=[0, 1])
+    )
+        
 
 @arguably.command
 def pool__update(*others):
@@ -1333,22 +1332,18 @@ def node__list(*others):
         return
 
     try:
-        data = request_to_server(
-            method="get",
-            endpoint="/v1/get_nodes",
-            data={},
-            server_creds=USER_LOCAL_SERVER_FILE,
-            user_cookie=USER_COOKIE
-        )
+        devices = fetch_devices()
         rows = []
-        columns = ["Node name"]
-        for node, status in data.items():
-            row = [node]
-            for key, value in status.items():
-                if key not in columns:
-                    columns.append(key)
-                row.append(str(value))
-            rows.append(tuple(row))
+        columns = ["Node name", "Memory Pressure", "Disk pressure", "PID pressure", "Ready", "Unschedulable"]
+        for device in devices:
+            rows.append([
+                device.name,
+                str(device.memory_pressure),
+                str(device.disk_pressure),
+                str(device.pid_pressure),
+                str(device.ready),
+                str(device.unschedulable)
+            ])
         
         console.log("Nodes with 'unschedulable=True' will not receive workload")
         console.log("To make a node unschedulable (i.e. won't receive workloads) use [yellow]kalavai node cordon <node name>")
@@ -1540,7 +1535,9 @@ def job__test(local_template_dir, *others, values, defaults, force_namespace: st
         console.log(f"[red]--values ({values}) is not a valid local file")
         return
     with open(values, "r") as f:
-        values_dict = yaml.safe_load(f)
+        raw_values = yaml.load(f, Loader=yaml.SafeLoader)
+        values_dict = {variable["name"]: variable['value'] for variable in raw_values}
+
     # load defaults
     if not os.path.isfile(defaults):
         console.log(f"[red]--defaults ({defaults}) is not a valid local file")
@@ -1648,7 +1645,7 @@ def job__estimate(billion_parameters, *others, precision=32):
     
     average_vram = 8
     required_memory = float(billion_parameters) * (precision / 8) / 1.2
-    available_gpus = fetch_gpus()
+    available_gpus = load_gpu_models()
     vrams = []
     for _, gpus in available_gpus:
         for model in gpus["gpus"]:
@@ -1705,7 +1702,7 @@ def job__status(name, *others):
         return
 
 @arguably.command
-def job__list(*others, detailed=False):
+def job__list(*others):
     """
     List jobs in the cluster
     """
@@ -1715,106 +1712,22 @@ def job__list(*others, detailed=False):
         console.log(f"[red]Problems with your pool: {str(e)}")
         return
 
-    data = {
-        "group": "batch.volcano.sh",
-        "api_version": "v1alpha1",
-        "plural": "jobs"
-    }
-    try:
-        result = request_to_server(
-            method="post",
-            endpoint="/v1/get_objects_of_type",
-            data=data,
-            server_creds=USER_LOCAL_SERVER_FILE,
-            user_cookie=USER_COOKIE
-        )
-        all_deployments = defaultdict(list)
-        for ns, ds in result.items():
-            all_deployments[ns].extend([d["metadata"]["labels"][TEMPLATE_LABEL] for d in ds["items"]])
-        #deployments = {ns: d["metadata"]["labels"][TEMPLATE_LABEL] for ns, ds in result.items() for d in ds["items"]}
-    except Exception as e:
-        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
-        return
-    if len(all_deployments.keys()) == 0:
+    all_deployments = fetch_job_names()
+    if "error" in all_deployments:
+        console.log(f"[red]Error when connecting to kalavai service: {all_deployments}")
+        return 
+    
+    if len(all_deployments) == 0:
         console.log("[green]No deployments found.")
         return
     
+    details = fetch_job_details(jobs=all_deployments)
+    if "error" in details:
+        console.log(f"[red]{details}")
+        return
     columns = ["Owner", "Deployment", "Workers", "Endpoint"]
-    if detailed:
-        columns.append("Status")
-    rows = []
-    for namespace, deployments in all_deployments.items():
-        for deployment in deployments:
-            try:
-                # get status for deployment
-                if detailed:
-                    data = {
-                        "group": "batch.volcano.sh",
-                        "api_version": "v1alpha1",
-                        "plural": "jobs",
-                        # "group": "leaderworkerset.x-k8s.io",
-                        # "api_version": "v1",
-                        # "plural": "leaderworkersets",
-                        "name": deployment
-                    }
-                    result = request_to_server(
-                        method="post",
-                        endpoint="/v1/get_status_for_object",
-                        data=data,
-                        server_creds=USER_LOCAL_SERVER_FILE,
-                        user_cookie=USER_COOKIE
-                    )
-                    ss = [] # flatten results ({namespace: statuses})
-                    [ss.extend(values) for values in result.values()]
-                    if len(ss) > 0:
-                        last = ss[-1]
-                        statuses = f"[{last['lastTransitionTime']}] {last['status']}"
-                    else:
-                        statuses = "Unknown"
-                # get pod statuses
-                data = {
-                    "label": TEMPLATE_LABEL,
-                    "value": deployment
-                }
-                result = request_to_server(
-                    method="post",
-                    endpoint="/v1/get_pods_status_for_label",
-                    data=data,
-                    server_creds=USER_LOCAL_SERVER_FILE,
-                    user_cookie=USER_COOKIE
-                )
-                workers_status = defaultdict(int)
-                for ns, ss in result.items():
-                    if ns != namespace: # same job name, different namespace
-                        continue
-                    for _, values in ss.items():
-                        workers_status[values["status"]] += 1
-                workers = "\n".join([f"{k}: {v}" for k, v in workers_status.items()])
-                # get URL details
-                data = {
-                    "label": TEMPLATE_LABEL,
-                    "value": deployment,
-                    "types": ["NodePort"]
-                }
-                result = request_to_server(
-                    method="post",
-                    endpoint="/v1/get_ports_for_services",
-                    data=data,
-                    server_creds=USER_LOCAL_SERVER_FILE,
-                    user_cookie=USER_COOKIE
-                )
-                node_ports = [f"{p['node_port']} (mapped to {p['port']})" for s in result.values() for p in s["ports"]]
-
-                urls = [f"http://{load_server_info(data_key=SERVER_IP_KEY, file=USER_LOCAL_SERVER_FILE)}:{node_port}" for node_port in node_ports]
-                row = [namespace, deployment, workers, "\n".join(urls)]
-                if detailed:
-                    row.append(statuses)
-                rows.append(row)
-
-            except Exception as e:
-                console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
-                return
-        
+    rows = [[job.owner, job.name, job.workers, job.endpoint] for job in details]
+    
     console.print(
         generate_table(columns=columns, rows=rows, end_sections=range(len(rows)))
     )
@@ -1836,26 +1749,19 @@ def job__logs(name, *others, pod_name=None, stream=False, tail=100, force_namesp
     
     if force_namespace is not None:
         console.log("[WARNING][yellow]--force-namespace [white]requires an admin key. Request will fail if you are not an admin.")
-    
-    data = {
-        "label": TEMPLATE_LABEL,
-        "value": name,
-        "tail": tail
-    }
-    if force_namespace is not None:
-        data["force_namespace"] = force_namespace
+
+    all_logs = fetch_job_logs(
+        job_name=name,
+        pod_name=pod_name,
+        force_namespace=force_namespace,
+        tail=tail)
+    if "error" in all_logs:
+        console.log(f"[red]{all_logs}")
+        return
     while True:
         try:
-            # send tail as parameter (fetch only last _tail_ lines)
-            result = request_to_server(
-                method="post",
-                endpoint="/v1/get_logs_for_label",
-                data=data,
-                server_creds=USER_LOCAL_SERVER_FILE,
-                user_cookie=USER_COOKIE
-            )
             if not stream:
-                for pod, logs in result.items():
+                for pod, logs in all_logs.items():
                     if pod_name is not None and pod_name != pod:
                         continue
                     console.log(f"[yellow]Pod {pod}")
@@ -1863,7 +1769,7 @@ def job__logs(name, *others, pod_name=None, stream=False, tail=100, force_namesp
                 break
             else:
                 os.system("clear")
-                for pod, logs in result.items():
+                for pod, logs in all_logs.items():
                     if pod_name is not None and pod_name != pod:
                         continue
                     print(f"Pod {pod}")
@@ -1871,10 +1777,7 @@ def job__logs(name, *others, pod_name=None, stream=False, tail=100, force_namesp
                 time.sleep(1)
         except KeyboardInterrupt:
             break
-        except Exception as e:
-            console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
-            console.log(f"Check if {name} is running with [yellow]kalavai job list")
-            return
+
 
 @arguably.command
 def job__manifest(*others, name, force_namespace: str=None):
