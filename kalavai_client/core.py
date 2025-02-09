@@ -19,6 +19,7 @@ class Job(BaseModel):
     name: str = None
     workers: str = None
     endpoint: str = None
+    status: str = None
 
 class DeviceStatus(BaseModel):
     name: str
@@ -56,6 +57,35 @@ def fetch_resources():
         return {"error": str(e)}
         
     return {"total": total, "available": available}
+
+def fetch_job_defaults(name):
+    data = {
+        "template": name
+    }
+    try:
+        defaults = request_to_server(
+            method="get",
+            endpoint="/v1/job_defaults",
+            data=data,
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        return defaults
+    except Exception as e:
+        return {"error": str(e)}
+    
+def fetch_job_templates():
+    try:
+        templates = request_to_server(
+            method="get",
+            endpoint="/v1/get_job_templates",
+            server_creds=USER_LOCAL_SERVER_FILE,
+            data=None,
+            user_cookie=USER_COOKIE
+        )
+        return templates
+    except Exception as e:
+        return {"error": str(e)}
 
 def fetch_job_names():
     data = {
@@ -126,11 +156,18 @@ def fetch_job_details(jobs: list[Job]):
             node_ports = [f"{p['node_port']} (mapped to {p['port']})" for s in result.values() for p in s["ports"]]
 
             urls = [f"http://{load_server_info(data_key=SERVER_IP_KEY, file=USER_LOCAL_SERVER_FILE)}:{node_port}" for node_port in node_ports]
+            if "Ready" in workers_status and len(workers_status) == 1:
+                status = "running"
+            elif any([st in workers_status for st in ["Failed", "Completed"]]):
+                status = "error"
+            else:
+                status = "pending"
             job_details.append(
                 Job(owner=namespace,
                     name=deployment,
                     workers=workers,
-                    endpoint="\n".join(urls))
+                    endpoint="\n".join(urls),
+                    status=str(status))
             )
 
         except Exception as e:

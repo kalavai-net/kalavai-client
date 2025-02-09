@@ -28,7 +28,9 @@ from kalavai_client.core import (
     fetch_devices,
     fetch_job_logs,
     fetch_gpus,
-    load_gpu_models
+    load_gpu_models,
+    fetch_job_templates,
+    fetch_job_defaults
 )
 from kalavai_client.utils import (
     check_gpu_drivers,
@@ -1409,18 +1411,13 @@ def job__templates(*others):
         console.log(f"[red]Problems with your pool: {str(e)}")
         return
     
-    try:
-        result = request_to_server(
-            method="get",
-            endpoint="/v1/get_job_templates",
-            server_creds=USER_LOCAL_SERVER_FILE,
-            data=None,
-            user_cookie=USER_COOKIE
-        )
-        console.log("Templates available in the pool")
-        console.log(result)
-    except Exception as e:
-        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
+    templates = fetch_job_templates()
+    if "error" in templates:
+        console.log(f"[red]Error when fetching templates: {str(e)}")
+        return
+    
+    console.log("Templates available in the pool")
+    console.log(templates)
 
 
 @arguably.command
@@ -1568,22 +1565,12 @@ def job__defaults(template_name, *others):
         return
     
     # deploy template with kube-watcher
-    data = {
-        "template": template_name
-    }
-    try:
-        result = request_to_server(
-            method="get",
-            endpoint="/v1/job_defaults",
-            data=data,
-            server_creds=USER_LOCAL_SERVER_FILE,
-            user_cookie=USER_COOKIE
-        )
-        print(
-            json.dumps(result,indent=3)
-        )
-    except Exception as e:
-        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
+    defaults = fetch_job_defaults(name=template_name)
+    if "error" in defaults:
+        console.log(f"[red]Error when fetching job defaults: {defaults}")
+    print(
+        json.dumps(defaults, indent=3)
+    )
 
 
 @arguably.command
