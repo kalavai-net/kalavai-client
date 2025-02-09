@@ -33,7 +33,6 @@ from kalavai_client.core import (
 from kalavai_client.utils import (
     check_gpu_drivers,
     run_cmd,
-    user_path,
     decode_dict,
     generate_join_token,
     user_confirm,

@@ -7,9 +7,10 @@ from kalavai_client.utils import (
     run_cmd,
     check_gpu_drivers,
     validate_poolconfig,
-    user_path,
     populate_template
 )
+
+from kalavai_client.env import user_path
 
 
 class Cluster(ABC):
