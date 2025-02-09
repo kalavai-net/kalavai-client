@@ -1,6 +1,6 @@
 [project]
 name            = "kalavai-client"
-version         = "0.5.14"
+version         = "0.5.15"
 authors = [
   {name = "Carlos Fernandez Musoles", email = "carlos@kalavai.net"}
 ]
@@ -24,7 +24,8 @@ dependencies = [
     "setuptools>75.0.0",
     "netifaces==0.11.0",
     "anvil-uplink==0.5.1",
-    "importlib_resources==6.5.2"
+    "importlib_resources==6.5.2",
+    "pydantic==2.10.6"
 ]
 
 [project.optional-dependencies]

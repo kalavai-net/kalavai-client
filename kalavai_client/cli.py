@@ -813,13 +813,6 @@ def pool__join(token, *others, node_name=None):
         except Exception as e:
             console.log(f"[red]Error when joining network: {str(e)}")
             return
-
-    # send note to server to let them know the node is coming online
-    # TODO: won't be able to check for VPN pools...
-    # if not pre_join_check(node_name=node_name, server_url=watcher_service, server_key=auth_key):
-    #     console.log(f"[red] Failed pre join checks. Server offline or node '{node_name}' may already exist. Please specify a different one with '--node-name'")
-    #     leave_vpn(container_name=DEFAULT_VPN_CONTAINER_NAME)
-    #     return
         
     # local agent join
     # 1. Generate local cache files
@@ -868,12 +861,6 @@ def pool__join(token, *others, node_name=None):
         time.sleep(30)
         if is_watcher_alive(server_creds=USER_LOCAL_SERVER_FILE, user_cookie=USER_COOKIE):
             break
-
-    # send note to server to let them know the node is coming online
-    if not pre_join_check(node_name=node_name, server_url=watcher_service, server_key=auth_key):
-        console.log(f"[red] Failed pre join checks. Server offline or node '{node_name}' may already exist. Please specify a different one with [yellow]--node-name'")
-        pool__stop()
-        return
     
     # check the node has connected successfully
     try:
