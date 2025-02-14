@@ -1,16 +1,15 @@
 from typing import List
 import asyncio
-import os
 
 import reflex as rx
 
-from kalavai_client.env import (
-    USER_LOCAL_SERVER_FILE
-)
 from kalavai_client.core import (
     authenticate_user,
     load_user_session,
-    user_logout
+    user_logout,
+    is_connected,
+    attach_to_pool,
+    stop_pool
 )
 
 
@@ -23,6 +22,7 @@ class MainState(rx.State):
 
     username: str = ""
     password: str = ""
+    token: str = ""
     logged_user: str = ""
     is_loading: bool = False
     login_error_message: str = ""
@@ -35,7 +35,9 @@ class MainState(rx.State):
         
         async with self:
             # is computer connected to a pool?
-            self.is_connected = os.path.isfile(USER_LOCAL_SERVER_FILE)
+            self.is_connected = is_connected()
+
+        async with self:
             # is the user authenticated?
             user = load_user_session()
             self.is_logged_in = user is not None
@@ -52,17 +54,26 @@ class MainState(rx.State):
     async def attach(self):
         async with self:
             self.is_loading = True
+            self.pool_error_message = ""
+
+        result = attach_to_pool(token=self.token)
 
         async with self:
-            await asyncio.sleep(3)
-            self.is_connected = True
+            if "error" in result:
+                self.pool_error_message = result["error"]
+            else:            
+                self.is_connected = True
             self.is_loading = False
     
     @rx.event(background=True)
-    async def disconnect(self):
+    async def stop(self):
         async with self:
-            await asyncio.sleep(3)
+            self.is_loading = True
+        
+        async with self:
+            result = stop_pool()
             self.is_connected = False
+            self.is_loading = False
         
     @rx.event
     def update_username(self, username: str):
@@ -71,6 +82,10 @@ class MainState(rx.State):
     @rx.event
     def update_password(self, password: str):
         self.password = password
+    
+    @rx.event
+    def update_token(self, token: str):
+        self.token = token
     
     @rx.event(background=True)
     async def signin(self):

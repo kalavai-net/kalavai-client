@@ -1,13 +1,32 @@
+import os
+import time
 from collections import defaultdict
 import math
-import base64
-import requests
+import uuid
+import socket
 
 from pydantic import BaseModel
 
+from kalavai_client.cluster import CLUSTER
 from kalavai_client.utils import (
     request_to_server,
-    load_server_info
+    load_server_info,
+    decode_dict,
+    get_vpn_details,
+    validate_join_public_seed,
+    generate_compose_config,
+    store_server_info,
+    is_watcher_alive,
+    run_cmd,
+    leave_vpn,
+    safe_remove,
+    NODE_NAME_KEY,
+    MANDATORY_TOKEN_FIELDS,
+    PUBLIC_LOCATION_KEY,
+    CLUSTER_IP_KEY,
+    CLUSTER_NAME_KEY,
+    AUTH_KEY,
+    WATCHER_SERVICE_KEY
 )
 from kalavai_client.auth import (
     KalavaiAuthClient
@@ -17,7 +36,13 @@ from kalavai_client.env import (
     USER_LOCAL_SERVER_FILE,
     TEMPLATE_LABEL,
     SERVER_IP_KEY,
-    KALAVAI_PLATFORM_ENDPOINT
+    USER_COMPOSE_FILE,
+    DEFAULT_VPN_CONTAINER_NAME,
+    CONTAINER_HOST_PATH,
+    USER_VPN_COMPOSE_FILE,
+    USER_HELM_APPS_FILE,
+    USER_KUBECONFIG_FILE,
+    USER_TEMPLATES_FOLDER
 )
 
 class Job(BaseModel):
@@ -335,5 +360,151 @@ def user_logout():
     auth.logout()
     return True
 
-def pool_attach(token):
-    pass
+def check_token(token, public=False):
+    try:
+        data = decode_dict(token)
+        for field in MANDATORY_TOKEN_FIELDS:
+            assert field in data
+        if public:
+            if data[PUBLIC_LOCATION_KEY] is None:
+                raise ValueError("Token is not valid for public pools. Did you start the cluster with a public_location?")
+        return {"status": True}
+    except Exception as e:
+        return {"error": str(e)}
+
+def attach_to_pool(token, node_name=None):
+    if node_name is None:
+        node_name = f"{socket.gethostname()}-{uuid.uuid4().hex[:6]}"
+    
+    # check token
+    valid = check_token(token=token)
+    if "error" in valid:
+        return {"error": f"Invalid token: {valid}"}
+
+    try:
+        data = decode_dict(token)
+        kalavai_seed_ip = data[CLUSTER_IP_KEY]
+        cluster_name = data[CLUSTER_NAME_KEY]
+        auth_key = data[AUTH_KEY]
+        watcher_service = data[WATCHER_SERVICE_KEY]
+        public_location = data[PUBLIC_LOCATION_KEY]
+        vpn = defaultdict(lambda: None)
+    except Exception as e:
+        return {"error": f"Invalid token. {str(e)}"} 
+    
+    user = defaultdict(lambda: None)
+    if public_location is not None:
+        user = load_user_session()
+        if user is None:
+            return {"error ": "Must be logged in to join public pools"}
+        try:
+            vpn = get_vpn_details(
+                location=public_location,
+                user_cookie=USER_COOKIE)
+        except Exception as e:
+            return {"error": f"Are you authenticated? {str(e)}"}
+        try:
+            validate_join_public_seed(
+                cluster_name=cluster_name,
+                join_key=token,
+                user_cookie=USER_COOKIE
+            )
+        except Exception as e:
+            return {"error": f"Error when joining network: {str(e)}"}
+        
+    # local agent join
+    # 1. Generate local cache files
+    # Generate docker compose recipe
+    generate_compose_config(
+        role="",
+        vpn_token=vpn["key"],
+        node_name=node_name,
+        is_public=public_location is not None)
+    
+    store_server_info(
+        server_ip=kalavai_seed_ip,
+        auth_key=auth_key,
+        file=USER_LOCAL_SERVER_FILE,
+        watcher_service=watcher_service,
+        node_name=node_name,
+        cluster_name=cluster_name,
+        public_location=public_location,
+        user_api_key=user["api_key"])
+    
+    run_cmd(f"docker compose -f {USER_COMPOSE_FILE} up -d")
+    # ensure we are connected
+    while True:
+        time.sleep(30)
+        if is_watcher_alive(server_creds=USER_LOCAL_SERVER_FILE, user_cookie=USER_COOKIE):
+            break
+
+    return cluster_name
+
+def is_connected():
+    if not os.path.isfile(USER_LOCAL_SERVER_FILE):
+        return False
+    return is_watcher_alive(server_creds=USER_LOCAL_SERVER_FILE, user_cookie=USER_COOKIE)
+
+def cleanup_local():
+    safe_remove(CONTAINER_HOST_PATH)
+    safe_remove(USER_COMPOSE_FILE)
+    safe_remove(USER_VPN_COMPOSE_FILE)
+    safe_remove(USER_HELM_APPS_FILE)
+    safe_remove(USER_KUBECONFIG_FILE)
+    safe_remove(USER_LOCAL_SERVER_FILE)
+    safe_remove(USER_TEMPLATES_FOLDER)
+
+def delete_node(name):
+    data = {
+        "node_names": [name]
+    }
+    try:
+        result = request_to_server(
+            method="post",
+            endpoint="/v1/delete_nodes",
+            data=data,
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        if result is None or result is True:
+            return {f"Node {name} deleted successfully"}
+        else:
+            return {"error": result}
+    except Exception as e:
+        return {"error": str(e)}
+
+def stop_pool(skip_node_deletion=False):
+    # delete local node from server
+    logs = []
+    if not skip_node_deletion:
+        logs.append(
+            delete_node(load_server_info(data_key=NODE_NAME_KEY, file=USER_LOCAL_SERVER_FILE))
+        )
+    # unpublish event (only if seed node)
+    # TODO: no, this should be done via the platform!!!
+    # try:
+    #     if CLUSTER.is_seed_node():
+    #         console.log("Unregistering pool...")
+    #         unregister_cluster(
+    #             name=load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE),
+    #             user_cookie=USER_COOKIE)
+    # except Exception as e:
+    #     console.log(f"[red][WARNING]: (ignore if not a public pool) Error when unpublishing cluster. {str(e)}")
+    # remove local node agent
+    
+    # disconnect from VPN first, then remove agent, then remove local files
+    try:
+        vpns = leave_vpn(container_name=DEFAULT_VPN_CONTAINER_NAME)
+        if vpns is not None:
+            for vpn in vpns:
+                logs.append(f"You have left {vpn} VPN")
+    except:
+        # no vpn
+        pass
+
+    CLUSTER.remove_agent()
+
+    # clean local files
+    cleanup_local()
+
+    return logs

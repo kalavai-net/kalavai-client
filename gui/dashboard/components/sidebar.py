@@ -51,6 +51,13 @@ def sidebar_footer() -> rx.Component:
             is_external=True
         ),
         rx.link(
+            rx.hstack(rx.icon("github"), rx.text("GitHub", size="3")),
+            href="https://github.com/kalavai-net/kalavai-client",
+            color_scheme="gray",
+            underline="none",
+            is_external=True
+        ),
+        rx.link(
             rx.hstack(rx.icon("external-link"), rx.text("Website", size="3")),
             href="https://kalavai.net/",
             color_scheme="gray",

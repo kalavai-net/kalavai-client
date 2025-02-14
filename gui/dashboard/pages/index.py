@@ -118,7 +118,7 @@ def render_pool_manager() -> rx.Component:
                         rx.vstack(
                             rx.text("Join an existing LLM pool as a worker. Your machine will be able to execute workloads"),
                             rx.hstack(
-                                rx.input(placeholder="Paste joining token"),
+                                rx.input(placeholder="Paste joining token", on_blur=MainState.update_token),
                                 rx.button("Join", on_click=MainState.connect, loading=MainState.is_loading),
                                 spacing="3"
                             ),
@@ -131,7 +131,7 @@ def render_pool_manager() -> rx.Component:
                         rx.vstack(
                             rx.text("Join an existing LLM pool as a controller only. No workloads will be executed in the local machine"),
                             rx.hstack(
-                                rx.input(placeholder="Paste joining token"),
+                                rx.input(placeholder="Paste joining token", on_blur=MainState.update_token),
                                 rx.button("Attach", on_click=MainState.attach, loading=MainState.is_loading),
                                 spacing="3"
                             ),
@@ -154,7 +154,7 @@ def render_pool_manager() -> rx.Component:
 def render_home() -> rx.Component:
     return rx.flex(
         rx.text("Connected!", size="5"),
-        rx.button("Disconnect", on_click=MainState.disconnect),
+        rx.button("Leave pool", on_click=MainState.stop, loading=MainState.is_loading),
         spacing="4"
         
     )

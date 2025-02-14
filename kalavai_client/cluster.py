@@ -10,7 +10,16 @@ from kalavai_client.utils import (
     populate_template
 )
 
-from kalavai_client.env import user_path
+from kalavai_client.env import (
+    DEFAULT_CONTAINER_NAME,
+    KUBE_VERSION,
+    DEFAULT_FLANNEL_IFACE,
+    USER_COMPOSE_FILE,
+    USER_KUBECONFIG_FILE,
+    USER_LOCAL_SERVER_FILE,
+    USER_HELM_APPS_FILE,
+    user_path
+)
 
 
 class Cluster(ABC):
@@ -331,3 +340,16 @@ class k3sCluster(Cluster):
             if not validate_poolconfig(self.poolconfig_file):
                 raise ValueError("Cache missconfigured. Run 'kalavai pool stop' to clear.")
         return True
+
+####################################################
+####################################################
+
+CLUSTER = dockerCluster(
+    container_name=DEFAULT_CONTAINER_NAME,
+    kube_version=KUBE_VERSION,
+    flannel_iface=DEFAULT_FLANNEL_IFACE,
+    compose_file=USER_COMPOSE_FILE,
+    kubeconfig_file=USER_KUBECONFIG_FILE,
+    poolconfig_file=USER_LOCAL_SERVER_FILE,
+    dependencies_file=USER_HELM_APPS_FILE
+)

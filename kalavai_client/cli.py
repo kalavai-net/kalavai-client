@@ -15,12 +15,21 @@ import netifaces as ni
 import arguably
 from rich.console import Console
 
+from kalavai_client.cluster import CLUSTER
 from kalavai_client.env import (
     USER_COOKIE,
     USER_LOCAL_SERVER_FILE,
     TEMPLATE_LABEL,
     KALAVAI_PLATFORM_URL,
-    user_path
+    DEFAULT_VPN_CONTAINER_NAME,
+    CONTAINER_HOST_PATH,
+    USER_COMPOSE_FILE,
+    USER_HELM_APPS_FILE,
+    USER_KUBECONFIG_FILE,
+    USER_VPN_COMPOSE_FILE,
+    USER_TEMPLATES_FOLDER,
+    user_path,
+    resource_path,
 )
 from kalavai_client.core import (
     fetch_resources,
@@ -33,7 +42,9 @@ from kalavai_client.core import (
     fetch_job_templates,
     fetch_job_defaults,
     deploy_job,
-    delete_job
+    delete_job,
+    check_token,
+    attach_to_pool
 )
 from kalavai_client.utils import (
     check_gpu_drivers,
@@ -45,7 +56,6 @@ from kalavai_client.utils import (
     store_server_info,
     generate_table,
     request_to_server,
-    resource_path,
     safe_remove,
     leave_vpn,
     get_vpn_details,
@@ -60,6 +70,7 @@ from kalavai_client.utils import (
     is_storage_compatible,
     is_watcher_alive,
     load_user_session,
+    generate_compose_config,
     SERVER_IP_KEY,
     AUTH_KEY,
     WATCHER_SERVICE_KEY,
@@ -71,12 +82,8 @@ from kalavai_client.utils import (
     CLUSTER_IP_KEY,
     CLUSTER_TOKEN_KEY,
     WATCHER_PORT_KEY,
-    MANDATORY_TOKEN_FIELDS,
     USER_NODE_LABEL_KEY,
     ALLOW_UNREGISTERED_USER_KEY
-)
-from kalavai_client.cluster import (
-    dockerCluster
 )
 
 
@@ -86,7 +93,6 @@ RESOURCE_EXCLUDE = ["ephemeral-storage", "hugepages-1Gi", "hugepages-2Mi", "pods
 CORE_NAMESPACES = ["lws-system", "kube-system", "gpu-operator", "kalavai"]
 RAY_LABEL = "kalavai.ray.name"
 PVC_NAME_LABEL = "kalavai.storage.name"
-DOCKER_COMPOSE_TEMPLATE = resource_path("kalavai_client/assets/docker-compose-template.yaml")
 VPN_COMPOSE_TEMPLATE = resource_path("kalavai_client/assets/vpn-template.yaml")
 POOL_CONFIG_TEMPLATE = resource_path("kalavai_client/assets/pool_config_template.yaml")
 POOL_CONFIG_DEFAULT_VALUES = resource_path("kalavai_client/assets/pool_config_values.yaml")
@@ -99,33 +105,14 @@ DEFAULT_STORAGE_NAME = "pool-cache"
 DEFAULT_STORAGE_SIZE = 20
 DEFAULT_WATCHER_PORT = 30001
 USER_NODE_LABEL = "kalavai.cluster.user"
-KUBE_VERSION = os.getenv("KALAVAI_KUBE_VERSION", "v1.31.1+k3s1")
 DEFAULT_FLANNEL_IFACE = os.getenv("KALAVAI_FLANNEL_IFACE", "netmaker-1")
 FORBIDEDEN_IPS = ["127.0.0.1"]
 # kalavai templates
 HELM_APPS_FILE = resource_path("kalavai_client/assets/apps.yaml")
 HELM_APPS_VALUES = resource_path("kalavai_client/assets/apps_values.yaml")
-# user specific config files
-DEFAULT_CONTAINER_NAME = "kalavai"
-DEFAULT_VPN_CONTAINER_NAME = "kalavai-vpn"
-CONTAINER_HOST_PATH = user_path("pool/", create_path=True)
-USER_COMPOSE_FILE = user_path("docker-compose-worker.yaml")
-USER_VPN_COMPOSE_FILE = user_path("docker-compose-vpn.yaml")
-USER_HELM_APPS_FILE = user_path("apps.yaml")
-USER_KUBECONFIG_FILE = user_path("kubeconfig")
-USER_TEMPLATES_FOLDER = user_path("templates", create_path=True)
 
-
+    
 console = Console()
-CLUSTER = dockerCluster(
-    container_name=DEFAULT_CONTAINER_NAME,
-    kube_version=KUBE_VERSION,
-    flannel_iface=DEFAULT_FLANNEL_IFACE,
-    compose_file=USER_COMPOSE_FILE,
-    kubeconfig_file=USER_KUBECONFIG_FILE,
-    poolconfig_file=USER_LOCAL_SERVER_FILE,
-    dependencies_file=USER_HELM_APPS_FILE
-)
 
 
 ######################
@@ -340,45 +327,19 @@ def select_token_type():
             break
     return {"admin": choice == 0, "user": choice == 1, "worker": choice == 2}
 
-def generate_compose_config(role, node_name, is_public, use_gpus=True, node_labels=None, pool_ip=None, vpn_token=None, pool_token=None):
+def input_gpus():
     num_gpus = 0
-    if use_gpus:
-        try:
-            has_gpus = check_gpu_drivers()
-            if has_gpus:
-                max_gpus = int(run_cmd("nvidia-smi -L | wc -l").decode())
-                num_gpus = user_confirm(
-                    question=f"{max_gpus} NVIDIA GPU(s) detected. How many GPUs would you like to include?",
-                    options=range(max_gpus+1)
-                ) 
-        except:
-            console.log(f"[red]WARNING: error when fetching NVIDIA GPU info. GPUs will not be used on this local machine")
-    if node_labels is not None:
-        node_labels = " ".join([f"--node-label {key}={value}" for key, value in node_labels.items()])
-    compose_values = {
-        "user_path": user_path(""),
-        "service_name": DEFAULT_CONTAINER_NAME,
-        "vpn": is_public,
-        "vpn_name": DEFAULT_VPN_CONTAINER_NAME,
-        "pool_ip": pool_ip,
-        "pool_token": pool_token,
-        "vpn_token": vpn_token,
-        "node_name": node_name,
-        "command": role,
-        "storage_enabled": "True",
-        "num_gpus": num_gpus,
-        "k3s_path": f"{CONTAINER_HOST_PATH}/k3s",
-        "etc_path": f"{CONTAINER_HOST_PATH}/etc",
-        "node_labels": node_labels,
-        "flannel_iface": DEFAULT_FLANNEL_IFACE if is_public else ""
-    }
-    # generate local config files
-    compose_yaml = load_template(
-        template_path=DOCKER_COMPOSE_TEMPLATE,
-        values=compose_values)
-    with open(USER_COMPOSE_FILE, "w") as f:
-        f.write(compose_yaml)
-    return compose_yaml
+    try:
+        has_gpus = check_gpu_drivers()
+        if has_gpus:
+            max_gpus = int(run_cmd("nvidia-smi -L | wc -l").decode())
+            num_gpus = user_confirm(
+                question=f"{max_gpus} NVIDIA GPU(s) detected. How many GPUs would you like to include?",
+                options=range(max_gpus+1)
+            ) 
+    except:
+        console.log(f"[red]WARNING: error when fetching NVIDIA GPU info. GPUs will not be used on this local machine")
+    return num_gpus
 
 ##################
 ## CLI COMMANDS ##
@@ -465,8 +426,9 @@ def pool__publish(*others, description=None):
     description = description
     
     try:
-        if not pool__check_token(token=token, public=True):
-            raise ValueError("[red]Cluster must be started with a valid vpn_location to publish")
+        valid = check_token(token=token, public=True)
+        if "error" in valid:
+            raise ValueError(f"[red]Cluster must be started with a valid vpn_location to publish: {valid}")
         cluster_name = load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE)
         
         register_cluster(
@@ -551,8 +513,7 @@ def pool__start(cluster_name, *others,  only_registered_users: bool=False, ip_ad
         console.log("Installation was cancelled and did not complete.")
         return
 
-    if node_name is None:
-        node_name = f"{socket.gethostname()}-{uuid.uuid4().hex[:6]}" 
+    node_name = f"{socket.gethostname()}-{uuid.uuid4().hex[:6]}" 
     
     # if only registered users are allowed, check user has logged in
     user = defaultdict(lambda: None)
@@ -582,6 +543,7 @@ def pool__start(cluster_name, *others,  only_registered_users: bool=False, ip_ad
     generate_compose_config(
         role="server",
         vpn_token=vpn["key"],
+        num_gpus=input_gpus(),
         node_name=node_name,
         node_labels=node_labels,
         is_public=location is not None
@@ -727,20 +689,13 @@ def pool__check_token(token, *others, public=False):
     """
     Utility to check the validity of a join token
     """
-    try:
-        data = decode_dict(token)
-        for field in MANDATORY_TOKEN_FIELDS:
-            assert field in data
-        if public:
-            if data[PUBLIC_LOCATION_KEY] is None:
-                raise ValueError("Token is not valid for public pools. Did you start the cluster with a public_location?")
-        console.log("[green]Token format is correct")
-        return True
-    except Exception as e:
-        console.log(f"[white]{str(e)}")
-        console.log("[red]Token is invalid.")
+    result = check_token(token=token, public=public)
+    if "error" in result:
+        console.log(f"[red]Error in token: {result}")
         return False
-
+    
+    console.log("[green]Token format is correct")
+    return True
 
 @arguably.command
 def pool__join(token, *others, node_name=None):
@@ -774,7 +729,9 @@ def pool__join(token, *others, node_name=None):
         node_name = f"{socket.gethostname()}-{uuid.uuid4().hex[:6]}"
     
     # check token
-    if not pool__check_token(token):
+    valid = check_token(token=token)
+    if "error" in valid:
+        console.log(f"[red]Invalid token: {valid}")
         return
 
     try:
@@ -830,6 +787,7 @@ def pool__join(token, *others, node_name=None):
         role="agent",
         pool_ip=f"https://{kalavai_seed_ip}:6443",
         pool_token=kalavai_token,
+        num_gpus=input_gpus(),
         vpn_token=vpn["key"],
         node_name=node_name,
         node_labels=node_labels,
@@ -1109,70 +1067,6 @@ def pool__attach(token, *others, node_name=None):
             console.log("[green]Nothing happened.")
             return
     
-    # check token
-    if not pool__check_token(token):
-        return
-
-    try:
-        data = decode_dict(token)
-        kalavai_seed_ip = data[CLUSTER_IP_KEY]
-        cluster_name = data[CLUSTER_NAME_KEY]
-        auth_key = data[AUTH_KEY]
-        watcher_service = data[WATCHER_SERVICE_KEY]
-        public_location = data[PUBLIC_LOCATION_KEY]
-        vpn = defaultdict(lambda: None)
-    except Exception as e:
-        console.log(str(e))
-        console.log("[red] Invalid token")
-        return
-    
-    user = defaultdict(lambda: None)
-    if public_location is not None:
-        user = user_login(user_cookie=USER_COOKIE)
-        if user is None:
-            console.log("[red]Must be logged in to join public pools. Run [yellow]kalavai login[red] to authenticate")
-            exit()
-        console.log("Fetching VPN credentials")
-        try:
-            vpn = get_vpn_details(
-                location=public_location,
-                user_cookie=USER_COOKIE)
-        except Exception as e:
-            console.log(f"[red]Error when joining network: {str(e)}")
-            console.log("Are you authenticated? Try [yellow]kalavai login")
-            return
-        try:
-            validate_join_public_seed(
-                cluster_name=cluster_name,
-                join_key=token,
-                user_cookie=USER_COOKIE
-            )
-        except Exception as e:
-            console.log(f"[red]Error when joining network: {str(e)}")
-            return
-        
-    # local agent join
-    # 1. Generate local cache files
-    console.log("Generating config files...")
-    
-    # Generate docker compose recipe
-    generate_compose_config(
-        use_gpus=False,
-        role="",
-        vpn_token=vpn["key"],
-        node_name=node_name,
-        is_public=public_location is not None)
-    
-    store_server_info(
-        server_ip=kalavai_seed_ip,
-        auth_key=auth_key,
-        file=USER_LOCAL_SERVER_FILE,
-        watcher_service=watcher_service,
-        node_name=node_name,
-        cluster_name=cluster_name,
-        public_location=public_location,
-        user_api_key=user["api_key"])
-
     option = user_confirm(
         question="Docker compose ready. Would you like Kalavai to deploy it?",
         options=["no", "yes"]
@@ -1182,17 +1076,13 @@ def pool__attach(token, *others, node_name=None):
         print(f"docker compose -f {USER_COMPOSE_FILE} up -d")
         return
     
-    console.log(f"[white] Connecting to {cluster_name} @ {kalavai_seed_ip} (this may take a few minutes)...")
-    run_cmd(f"docker compose -f {USER_COMPOSE_FILE} up -d")
-    # ensure we are connected
-    while True:
-        console.log("Waiting for core services to be ready, may take a few minutes...")
-        time.sleep(30)
-        if is_watcher_alive(server_creds=USER_LOCAL_SERVER_FILE, user_cookie=USER_COOKIE):
-            break
+    result = attach_to_pool(token=token, node_name=node_name)
     
+    if "error" in result:
+        console.log(f"[red]Error when attaching to pool: {result}")
+        return
     # set status to schedulable
-    console.log(f"[green] You are connected to {cluster_name}")
+    console.log(f"[green] You are connected to {result}")
 
 
 @arguably.command
