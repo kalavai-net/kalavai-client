@@ -13,6 +13,7 @@ from kalavai_client.core import (
 class DashboardState(rx.State):
     """The state class."""
 
+    is_connected: bool = False
     is_loading: bool = False
 
     ## START STATE ##

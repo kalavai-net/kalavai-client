@@ -1,3 +1,10 @@
+# Kalavai-gui
+
+Run in docker:
+
+docker run --name kalavai_gui -d -v /home/carlosfm/.cache/kalavai:/root/.cache/kalavai --net host bundenth/kalavai-gui:latest
+
+
 # Welcome to Reflex!
 
  Template: https://github.com/reflex-dev/templates/tree/main/dashboard

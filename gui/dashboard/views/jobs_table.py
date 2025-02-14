@@ -41,7 +41,7 @@ class JobsView(TableView):
             ),            
             #rx.hstack(
             rx.separator(size="1"),
-            rx.input(default_value=item["default"], width="60%"),
+            rx.input(default_value=item["default"], width="60%", name=item["name"]),
             #),
             justify="between"
         )
@@ -114,7 +114,7 @@ class JobsView(TableView):
                     rx.dialog.content(
                         rx.dialog.title("Deploy your LLM"),
                         rx.dialog.description("Select the model you want to deploy in the pool", margin_bottom="10px"),
-                        rx.flex(
+                        rx.form(
                             rx.flex(
                                 rx.text("Model template", as_="div", size="2", margin_bottom="4px", weight="bold"),
                                 rx.select(
@@ -131,7 +131,7 @@ class JobsView(TableView):
                                 rx.separator(size="4"),
                                 direction="column",
                                 spacing="2",
-                                margin_botton="10px",
+                                margin_botton="10px"
                             ),
                             rx.flex(
                                 rx.text("Deployment details", as_="div", size="2", margin_bottom="4px", weight="bold"),
@@ -140,24 +140,28 @@ class JobsView(TableView):
                                 spacing="2",
                                 margin_botton="10px",
                             ),
+                            rx.flex(
+                                rx.dialog.close(
+                                    rx.button(
+                                        "Cancel",
+                                        color_scheme="gray",
+                                        variant="soft",
+                                    ),
+                                ),
+                                rx.dialog.close(
+                                    rx.button(
+                                        "Deploy",
+                                        type="submit",
+                                    )
+                                ),
+                                spacing="3",
+                                margin_top="16px",
+                                justify="end",
+                            ),
                             direction="column",
                             spacing="4",
                             margin_botton="10px",
-                        ),
-                        rx.flex(
-                            rx.dialog.close(
-                                rx.button(
-                                    "Cancel",
-                                    color_scheme="gray",
-                                    variant="soft",
-                                ),
-                            ),
-                            rx.dialog.close(
-                                rx.button("Deploy"),
-                            ),
-                            spacing="3",
-                            margin_top="16px",
-                            justify="end",
+                            on_submit=JobsState.deploy_job
                         )
                     )
                 ),

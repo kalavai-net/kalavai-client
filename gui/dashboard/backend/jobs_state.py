@@ -7,7 +7,9 @@ from kalavai_client.core import (
     fetch_job_details,
     fetch_job_logs,
     fetch_job_templates,
-    fetch_job_defaults
+    fetch_job_defaults,
+    deploy_job,
+    delete_job
 )
 
 
@@ -18,15 +20,18 @@ class Job(rx.Base):
 class JobsState(rx.State):
     """The state class."""
 
+    FORBIDDEN_PARAMS: list[str] = [
+        "id_field",
+        "endpoint_ports"
+    ]
+
     is_loading: bool = False
     logs: str = None
     items: List[Job] = []
     selected_rows: set = set()
     templates: list[str] = []
     selected_template: str
-    template_params: list[dict[str, str]] = [
-        {"name": "first", "value": 1, "default": 1, "description": "hello"}
-    ]
+    template_params: list[dict[str, str]] = []
 
     total_items: int = 0
     offset: int = 0
@@ -64,12 +69,16 @@ class JobsState(rx.State):
 
     @rx.event(background=True)
     async def load_templates(self):
+        async with self:
+            self.templates = []
+            self.template_params = []
+
         templates = fetch_job_templates()
         if "error" in templates:
             print("Error when fetching templates:", templates)
         else:
             async with self:
-                self.templates = templates
+                self.templates = [t for t in templates if t not in ["custom"]]
             
     @rx.event(background=True)
     async def load_template_parameters(self, template):
@@ -79,7 +88,7 @@ class JobsState(rx.State):
         
         params = fetch_job_defaults(name=self.selected_template)
         async with self:
-            self.template_params = params
+            self.template_params = [p for p in params if p["name"] not in self.FORBIDDEN_PARAMS]
 
     @rx.event(background=True)
     async def set_selected_row(self, index, state):
@@ -92,7 +101,27 @@ class JobsState(rx.State):
     @rx.event(background=True)
     async def remove_entries(self):
         async with self:
-            print(self.selected_rows)
+            for row in self.selected_rows:
+                result = delete_job(
+                    name=self.items[row].data["name"]
+                )
+                print(result)
+    
+    @rx.event(background=True)
+    async def deploy_job(self, form_data: dict):
+        # TODO: parse form values
+        for key, value in form_data.items():
+            if value.isdigit():
+                form_data[key] = int(value)
+
+        async with self:
+            print("job deployed:", form_data)
+        
+        result = deploy_job(
+            template_name=self.selected_template,
+            values_dict=form_data
+        )
+        print(result)
     
     @rx.event(background=True)
     async def load_logs(self, index):

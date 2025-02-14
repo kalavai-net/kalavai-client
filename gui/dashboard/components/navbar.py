@@ -29,7 +29,8 @@ def menu_item(text: str, url: str) -> rx.Component:
         rx.hstack(
             rx.match(
                 text,
-                ("Overview", menu_item_icon("home")),
+                ("Home", menu_item_icon("home")),
+                ("Dashboard", menu_item_icon("gauge")),
                 ("Devices", menu_item_icon("laptop")),
                 ("GPUs", menu_item_icon("microchip")),
                 ("Jobs", menu_item_icon("cpu")),
@@ -112,6 +113,7 @@ def menu_button() -> rx.Component:
     # The ordered page routes.
     ordered_page_routes = [
         "/",
+        "/dashboard",
         "/devices",
         "/gpus",
         "/jobs",
