@@ -1,5 +1,7 @@
 from collections import defaultdict
 import math
+import base64
+import requests
 
 from pydantic import BaseModel
 
@@ -7,11 +9,15 @@ from kalavai_client.utils import (
     request_to_server,
     load_server_info
 )
+from kalavai_client.auth import (
+    KalavaiAuthClient
+)
 from kalavai_client.env import (
     USER_COOKIE,
     USER_LOCAL_SERVER_FILE,
     TEMPLATE_LABEL,
-    SERVER_IP_KEY
+    SERVER_IP_KEY,
+    KALAVAI_PLATFORM_ENDPOINT
 )
 
 class Job(BaseModel):
@@ -175,6 +181,47 @@ def fetch_job_details(jobs: list[Job]):
     
     return job_details
 
+def deploy_job(template_name, values_dict, force_namespace=None):
+
+    # deploy template with kube-watcher
+    data = {
+        "template": template_name,
+        "template_values": values_dict
+    }
+    if force_namespace is not None:
+        data["force_namespace"] = force_namespace
+
+    try:
+        result = request_to_server(
+            method="post",
+            endpoint="/v1/deploy_job",
+            data=data,
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        return result
+    except Exception as e:
+        return {"error": str(e)}  
+    
+def delete_job(name, force_namespace=None):
+    data = {
+        "label": TEMPLATE_LABEL, # this ensures that both lws template and services are deleted
+        "value": name
+    }
+    if force_namespace is not None:
+        data["force_namespace"] = force_namespace
+    try:
+        result = request_to_server(
+            method="post",
+            endpoint="/v1/delete_labeled_resources",
+            data=data,
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        return result
+    except Exception as e:
+        return {"error": str(e)}
+
 def fetch_devices():
     """Load devices status info for all hosts"""
     try:
@@ -262,3 +309,31 @@ def fetch_gpus(available=False):
 
     except Exception as e:
         return {"error": str(e)}
+
+def load_user_session():
+    auth = KalavaiAuthClient(
+        user_cookie_file=USER_COOKIE
+    )
+    return auth.load_user_session()
+    
+def authenticate_user(username=None, password=None):
+    auth = KalavaiAuthClient(
+        user_cookie_file=USER_COOKIE
+    )
+    user = auth.load_user_session()
+    if user is None:
+        user = auth.login(username=username, password=password)
+    
+    if user is None:
+        return {"error": "Username or password incorrect"}
+    return user
+
+def user_logout():
+    auth = KalavaiAuthClient(
+        user_cookie_file=USER_COOKIE
+    )
+    auth.logout()
+    return True
+
+def pool_attach(token):
+    pass

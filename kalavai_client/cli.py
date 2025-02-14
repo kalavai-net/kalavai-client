@@ -19,6 +19,7 @@ from kalavai_client.env import (
     USER_COOKIE,
     USER_LOCAL_SERVER_FILE,
     TEMPLATE_LABEL,
+    KALAVAI_PLATFORM_URL,
     user_path
 )
 from kalavai_client.core import (
@@ -30,7 +31,9 @@ from kalavai_client.core import (
     fetch_gpus,
     load_gpu_models,
     fetch_job_templates,
-    fetch_job_defaults
+    fetch_job_defaults,
+    deploy_job,
+    delete_job
 )
 from kalavai_client.utils import (
     check_gpu_drivers,
@@ -77,7 +80,6 @@ from kalavai_client.cluster import (
 )
 
 
-KALAVAI_PLATFORM_URL = os.getenv("KALAVAI_PLATFORM_URL", "https://platform.kalavai.net")
 LOCAL_TEMPLATES_DIR = os.getenv("LOCAL_TEMPLATES_DIR", None)
 VERSION = 1
 RESOURCE_EXCLUDE = ["ephemeral-storage", "hugepages-1Gi", "hugepages-2Mi", "pods"]
@@ -1473,26 +1475,16 @@ def job__run(template_name, *others, values: str=None, force_namespace: str=None
         annotation_key="nvidia.com/nouse-gputype"
     )
 
-    # deploy template with kube-watcher
-    data = {
-        "template": template_name,
-        "template_values": values_dict
-    }
-    if force_namespace is not None:
-        data["force_namespace"] = force_namespace
+    result = deploy_job(
+        template_name=template_name,
+        values_dict=values_dict,
+        force_namespace=force_namespace
+    )
 
-    try:
-        result = request_to_server(
-            method="post",
-            endpoint="/v1/deploy_job",
-            data=data,
-            server_creds=USER_LOCAL_SERVER_FILE,
-            user_cookie=USER_COOKIE
-        )
+    if "error" in result:
+        console.log(f"[red]Error when deploying job: {str(e)}")
+    else:
         console.log(f"[green]{template_name} job deployed")
-    except Exception as e:
-        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
-        return
 
 @arguably.command
 def job__test(local_template_dir, *others, values, defaults, force_namespace: str=None):
@@ -1588,23 +1580,11 @@ def job__delete(name, *others, force_namespace: str=None):
         console.log("[WARNING][yellow]--force-namespace [white]requires an admin key. Request will fail if you are not an admin.")
     
     # deploy template with kube-watcher
-    data = {
-        "label": TEMPLATE_LABEL, # this ensures that both lws template and services are deleted
-        "value": name
-    }
-    if force_namespace is not None:
-        data["force_namespace"] = force_namespace
-    try:
-        result = request_to_server(
-            method="post",
-            endpoint="/v1/delete_labeled_resources",
-            data=data,
-            server_creds=USER_LOCAL_SERVER_FILE,
-            user_cookie=USER_COOKIE
-        )
+    result = delete_job(name=name, force_namespace=force_namespace)
+    if "error" in result:
+        console.log(f"[red]Error when deleting job: {str(e)}")
+    else:
         console.log(f"{result}")
-    except Exception as e:
-        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
 
 
 @arguably.command

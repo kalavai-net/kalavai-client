@@ -17,3 +17,5 @@ USER_LOCAL_SERVER_FILE = user_path(".server")
 USER_COOKIE = user_path(".user_cookie.pkl")
 TEMPLATE_LABEL = "kalavai.job.name"
 SERVER_IP_KEY = "server_ip"
+KALAVAI_PLATFORM_URL = "https://platform.kalavai.net"
+KALAVAI_PLATFORM_ENDPOINT = "https://platform.kalavai.net/_/api"
