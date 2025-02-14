@@ -550,6 +550,9 @@ def pool__start(cluster_name, *others,  only_registered_users: bool=False, ip_ad
     if option == 0:
         console.log("Installation was cancelled and did not complete.")
         return
+
+    if node_name is None:
+        node_name = f"{socket.gethostname()}-{uuid.uuid4().hex[:6]}" 
     
     # if only registered users are allowed, check user has logged in
     user = defaultdict(lambda: None)
@@ -579,7 +582,7 @@ def pool__start(cluster_name, *others,  only_registered_users: bool=False, ip_ad
     generate_compose_config(
         role="server",
         vpn_token=vpn["key"],
-        node_name=socket.gethostname(),
+        node_name=node_name,
         node_labels=node_labels,
         is_public=location is not None
     )
@@ -627,7 +630,7 @@ def pool__start(cluster_name, *others,  only_registered_users: bool=False, ip_ad
         write_auth_key=write_auth_key,
         file=USER_LOCAL_SERVER_FILE,
         watcher_service=watcher_service,
-        node_name=socket.gethostname(),
+        node_name=node_name,
         cluster_name=cluster_name,
         public_location=location,
         user_api_key=user["api_key"])
@@ -768,7 +771,7 @@ def pool__join(token, *others, node_name=None):
             return
     
     if node_name is None:
-        node_name = socket.gethostname()
+        node_name = f"{socket.gethostname()}-{uuid.uuid4().hex[:6]}"
     
     # check token
     if not pool__check_token(token):
@@ -1094,7 +1097,7 @@ def pool__attach(token, *others, node_name=None):
     """
 
     if node_name is None:
-        node_name = socket.gethostname()
+        node_name = f"{socket.gethostname()}-{uuid.uuid4().hex[:6]}"
     
     # check that is not attached to another instance
     if os.path.exists(USER_LOCAL_SERVER_FILE):
