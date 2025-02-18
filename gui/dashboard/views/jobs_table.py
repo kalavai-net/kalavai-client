@@ -95,8 +95,6 @@ class JobsView(TableView):
             style={"padding_x": "10px"}
         )
     
-
-    
     def generate_table_actions(self) -> rx.Component:
         return rx.flex(
             rx.hstack(
@@ -152,6 +150,7 @@ class JobsView(TableView):
                                     rx.button(
                                         "Deploy",
                                         type="submit",
+                                        on_click=rx.toast("Deployment submitted", position="top-center")
                                     )
                                 ),
                                 spacing="3",
@@ -165,30 +164,59 @@ class JobsView(TableView):
                         )
                     )
                 ),
+                rx.alert_dialog.root(
+                    rx.alert_dialog.trigger(
+                        rx.button(
+                            rx.icon("trash-2", size=20),
+                            "",
+                            size="3",
+                            variant="surface",
+                            display=["none", "none", "none", "flex"]
+                        )
+                    ),
+                    rx.alert_dialog.content(
+                        rx.alert_dialog.title("Delete jobs"),
+                        rx.alert_dialog.description(
+                            "Are you sure you want to delete the selected jobs? This cannot be undone.",
+                            size="2",
+                        ),
+                        rx.flex(
+                            rx.alert_dialog.cancel(
+                                rx.button(
+                                    "Cancel",
+                                    variant="soft",
+                                    color_scheme="gray",
+                                ),
+                            ),
+                            rx.alert_dialog.action(
+                                rx.button(
+                                    "Delete",
+                                    color_scheme="red",
+                                    variant="solid",
+                                    on_click=self.table_state.remove_entries()
+                                ),
+                            ),
+                            spacing="3",
+                            margin_top="16px",
+                            justify="end",
+                        ),
+                        style={"max_width": 450},
+                    ),
+                ),
+                rx.button(
+                    rx.icon("refresh-cw", size=20),
+                    "",
+                    size="3",
+                    variant="surface",
+                    display=["none", "none", "none", "flex"],
+                    on_click=self.table_state.load_entries(),
+                    loading=self.table_state.is_loading
+                ),
                 spacing="3",
                 justify="end",
                 wrap="wrap",
                 width="100%",
                 padding_bottom="1em",
-            ),
-            rx.button(
-                rx.icon("trash-2", size=20),
-                "",
-                size="3",
-                variant="surface",
-                display=["none", "none", "none", "flex"],
-                on_click=self.table_state.remove_entries(),
-            ),
-            rx.button(
-                rx.icon("refresh-cw", size=20),
-                "",
-                size="3",
-                variant="surface",
-                display=["none", "none", "none", "flex"],
-                on_click=self.table_state.load_entries(),
-                loading=self.table_state.is_loading
-            ),
-            spacing="3"
-            
+            ),            
         )
 

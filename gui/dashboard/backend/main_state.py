@@ -7,9 +7,7 @@ from kalavai_client.core import (
     authenticate_user,
     load_user_session,
     user_logout,
-    is_connected,
-    attach_to_pool,
-    stop_pool
+    is_connected
 )
 
 
@@ -22,11 +20,21 @@ class MainState(rx.State):
 
     username: str = ""
     password: str = ""
-    token: str = ""
     logged_user: str = ""
     is_loading: bool = False
     login_error_message: str = ""
-    pool_error_message: str = ""
+
+    @rx.event
+    def update_username(self, username: str):
+        self.username = username
+    
+    @rx.event
+    def update_password(self, password: str):
+        self.password = password
+    
+    @rx.event
+    def update_connected(self, state: bool):
+        self.is_connected = state
 
     @rx.event(background=True)
     async def load_state(self):
@@ -49,43 +57,6 @@ class MainState(rx.State):
         async with self:
             await asyncio.sleep(3)
             self.is_connected = True
-    
-    @rx.event(background=True)
-    async def attach(self):
-        async with self:
-            self.is_loading = True
-            self.pool_error_message = ""
-
-        result = attach_to_pool(token=self.token)
-
-        async with self:
-            if "error" in result:
-                self.pool_error_message = result["error"]
-            else:            
-                self.is_connected = True
-            self.is_loading = False
-    
-    @rx.event(background=True)
-    async def stop(self):
-        async with self:
-            self.is_loading = True
-        
-        async with self:
-            result = stop_pool()
-            self.is_connected = False
-            self.is_loading = False
-        
-    @rx.event
-    def update_username(self, username: str):
-        self.username = username
-    
-    @rx.event
-    def update_password(self, password: str):
-        self.password = password
-    
-    @rx.event
-    def update_token(self, token: str):
-        self.token = token
     
     @rx.event(background=True)
     async def signin(self):

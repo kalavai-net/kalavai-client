@@ -1,7 +1,6 @@
 import reflex as rx
 from reflex.components.radix.themes.base import LiteralAccentColor
 
-from ..backend.pool_state import PoolState
 from ..backend.dashboard_state import DashboardState
 
 import plotly.graph_objects as go

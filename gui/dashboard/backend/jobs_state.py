@@ -121,7 +121,8 @@ class JobsState(rx.State):
             template_name=self.selected_template,
             values_dict=form_data
         )
-        print(result)
+        if "error" in result:
+            print(result)
     
     @rx.event(background=True)
     async def load_logs(self, index):
