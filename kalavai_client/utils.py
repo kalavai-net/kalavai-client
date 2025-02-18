@@ -91,7 +91,7 @@ def is_storage_compatible():
         return False
 ################
 
-def generate_compose_config(role, node_name, is_public, num_gpus=0, node_labels=None, pool_ip=None, vpn_token=None, pool_token=None):
+def generate_compose_config(role, node_name, is_public, node_ip_address="0.0.0.0", num_gpus=0, node_labels=None, pool_ip=None, vpn_token=None, pool_token=None):
     
     if node_labels is not None:
         node_labels = " ".join([f"--node-label {key}={value}" for key, value in node_labels.items()])
@@ -100,6 +100,7 @@ def generate_compose_config(role, node_name, is_public, num_gpus=0, node_labels=
         "service_name": DEFAULT_CONTAINER_NAME,
         "vpn": is_public,
         "vpn_name": DEFAULT_VPN_CONTAINER_NAME,
+        "node_ip_address": node_ip_address,
         "pool_ip": pool_ip,
         "pool_token": pool_token,
         "vpn_token": vpn_token,
@@ -120,14 +121,15 @@ def generate_compose_config(role, node_name, is_public, num_gpus=0, node_labels=
         f.write(compose_yaml)
     return compose_yaml
 
-def is_watcher_alive(server_creds, user_cookie):
+def is_watcher_alive(server_creds, user_cookie, timeout=30):
     try:
         request_to_server(
             method="get",
             endpoint="/v1/health",
             data=None,
             server_creds=server_creds,
-            user_cookie=user_cookie
+            user_cookie=user_cookie,
+            timeout=timeout
         )
     except Exception as e:
         print(str(e))
@@ -295,7 +297,8 @@ def request_to_server(
         server_creds,
         force_url=None,
         force_key=None,
-        user_cookie=None
+        user_cookie=None,
+        timeout=60
 ):
     if force_url is None:
         service_url = load_server_info(data_key=WATCHER_SERVICE_KEY, file=server_creds)
@@ -319,7 +322,8 @@ def request_to_server(
         method=method,
         url=f"http://{service_url}{endpoint}",
         json=data,
-        headers=headers
+        headers=headers,
+        timeout=timeout
     )
     try:
         result = response.json()
@@ -431,6 +435,12 @@ def safe_remove(filepath, force=True):
             os.remove(filepath)
         if os.path.isdir(filepath):
             shutil.rmtree(filepath)
+        return
     except:
-        if force:
-            run_cmd(f"sudo rm -rf {filepath}")
+        pass
+
+    if force:
+        try:
+            run_cmd(f"rm -rf {filepath}")
+        except:
+            pass

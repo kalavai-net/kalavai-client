@@ -7,11 +7,10 @@ import time
 import socket
 from pathlib import Path
 from getpass import getpass
-import ipaddress
 from sys import exit
 
 import yaml
-import netifaces as ni
+
 import arguably
 from rich.console import Console
 
@@ -44,21 +43,20 @@ from kalavai_client.core import (
     deploy_job,
     delete_job,
     check_token,
-    attach_to_pool
+    attach_to_pool,
+    join_pool,
+    create_pool,
+    get_ip_addresses
 )
 from kalavai_client.utils import (
     check_gpu_drivers,
     run_cmd,
-    decode_dict,
     generate_join_token,
     user_confirm,
-    load_template,
-    store_server_info,
     generate_table,
     request_to_server,
     safe_remove,
     leave_vpn,
-    get_vpn_details,
     load_server_info,
     user_login,
     user_logout,
@@ -66,11 +64,7 @@ from kalavai_client.utils import (
     register_cluster,
     unregister_cluster,
     get_public_seeds,
-    validate_join_public_seed,
-    is_storage_compatible,
-    is_watcher_alive,
     load_user_session,
-    generate_compose_config,
     SERVER_IP_KEY,
     AUTH_KEY,
     WATCHER_SERVICE_KEY,
@@ -78,12 +72,7 @@ from kalavai_client.utils import (
     WRITE_AUTH_KEY,
     PUBLIC_LOCATION_KEY,
     NODE_NAME_KEY,
-    CLUSTER_NAME_KEY,
-    CLUSTER_IP_KEY,
-    CLUSTER_TOKEN_KEY,
-    WATCHER_PORT_KEY,
-    USER_NODE_LABEL_KEY,
-    ALLOW_UNREGISTERED_USER_KEY
+    CLUSTER_NAME_KEY
 )
 
 
@@ -94,22 +83,10 @@ CORE_NAMESPACES = ["lws-system", "kube-system", "gpu-operator", "kalavai"]
 RAY_LABEL = "kalavai.ray.name"
 PVC_NAME_LABEL = "kalavai.storage.name"
 VPN_COMPOSE_TEMPLATE = resource_path("kalavai_client/assets/vpn-template.yaml")
-POOL_CONFIG_TEMPLATE = resource_path("kalavai_client/assets/pool_config_template.yaml")
-POOL_CONFIG_DEFAULT_VALUES = resource_path("kalavai_client/assets/pool_config_values.yaml")
-USER_WORKSPACE_TEMPLATE = resource_path("kalavai_client/assets/user_workspace.yaml")
-DEFAULT_USER_WORKSPACE_VALUES = resource_path("kalavai_client/assets/user_workspace_values.yaml")
 STORAGE_CLASS_NAME = "local-path"
 STORAGE_ACCESS_MODE = ["ReadWriteOnce"]
-STORAGE_CLASS_LABEL = "kalavai.storage.enabled"
 DEFAULT_STORAGE_NAME = "pool-cache"
 DEFAULT_STORAGE_SIZE = 20
-DEFAULT_WATCHER_PORT = 30001
-USER_NODE_LABEL = "kalavai.cluster.user"
-DEFAULT_FLANNEL_IFACE = os.getenv("KALAVAI_FLANNEL_IFACE", "netmaker-1")
-FORBIDEDEN_IPS = ["127.0.0.1"]
-# kalavai templates
-HELM_APPS_FILE = resource_path("kalavai_client/assets/apps.yaml")
-HELM_APPS_VALUES = resource_path("kalavai_client/assets/apps_values.yaml")
 
     
 console = Console()
@@ -133,26 +110,6 @@ def check_seed_compatibility():
     
     if len(logs) == 0:
         console.log("[green]System is ready to start a pool")
-        return True
-    else:
-        for log in logs:
-            console.log(log)
-        return False
-
-def check_worker_compatibility():
-    """Check required packages to join pools"""
-    logs = []
-    console.log("[white]Checking system requirements...")
-    # docker
-    try:
-        run_cmd("docker version >/dev/null 2>&1")
-    except:
-        logs.append("[red]Docker not installed. Install instructions:\n")
-        logs.append("   Linux: https://docs.docker.com/engine/install/\n")
-        logs.append("   Windows/MacOS: https://docs.docker.com/desktop/\n")
-    
-    if len(logs) == 0:
-        console.log("[green]System is ready to join a pool")
         return True
     else:
         for log in logs:
@@ -208,75 +165,9 @@ def set_schedulable(schedulable, node_name=load_server_info(data_key=NODE_NAME_K
     except Exception as e:
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
 
-
-def init_user_workspace(force_namespace=None):
-    
-    # load template config and populate with values
-    sidecar_template_yaml = load_template(
-        template_path=USER_WORKSPACE_TEMPLATE,
-        values={},
-        default_values_path=DEFAULT_USER_WORKSPACE_VALUES)
-
-    try:
-        data = {"config": sidecar_template_yaml}
-        if force_namespace is not None:
-            data["force_namespace"] = force_namespace
-        result = request_to_server(
-            method="post",
-            endpoint="/v1/create_user_space",
-            data=data,
-            server_creds=USER_LOCAL_SERVER_FILE,
-            user_cookie=USER_COOKIE
-        )
-        console.log(f"Workspace creation (ignore already created warnings): {result}" )
-    except Exception as e:
-        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
-
-def pool_init(pool_config_values_path=None):
-    """Deploy configured objects to initialise pool"""
-    if pool_config_values_path is None:
-        return
-    
-    # load template config and populate with values
-    sidecar_template_yaml = load_template(
-        template_path=POOL_CONFIG_TEMPLATE,
-        values={},
-        default_values_path=pool_config_values_path)
-
-    try:
-        result = request_to_server(
-            method="post",
-            endpoint="/v1/deploy_generic_model",
-            data={"config": sidecar_template_yaml},
-            server_creds=USER_LOCAL_SERVER_FILE,
-            user_cookie=USER_COOKIE
-        )
-        if 'failed' in result and len(result['failed']) > 0:
-            console.log(f"[red]Error when deploying pool config\n\n{result['failed']}")
-        if len(result['successful']) > 0:
-            console.log(f"[green]Deployed pool config!")
-    except Exception as e:
-        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
-
 def select_ip_address(subnet=None):
-    ips = []
-    retry = 3
-    while len(ips) == 0:
-        for iface in ni.interfaces():
-            try:
-                ip = ni.ifaddresses(iface)[ni.AF_INET][0]['addr']
-                if ip in FORBIDEDEN_IPS:
-                    continue
-                if subnet is None or ipaddress.ip_address(ip) in ipaddress.ip_network(subnet):
-                    ips.append(ip)
-            except:
-                pass
-        if len(ips) == 1:
-            return ips[0]
-        time.sleep(2)
-        retry -= 1
-        if retry < 0:
-            raise ValueError(f"No IPs available on subnet {subnet}")
+    ips = get_ip_addresses(subnet=subnet)
+    
     while True:
         option = user_confirm(
             question="Select IP to advertise the node (needs to be visible to other nodes)",
@@ -489,16 +380,13 @@ def pool__list(*others, user_only=False):
 
 
 @arguably.command
-def pool__start(cluster_name, *others,  only_registered_users: bool=False, ip_address: str=None, location: str=None, app_values: str=HELM_APPS_VALUES, pool_config_values: str=POOL_CONFIG_DEFAULT_VALUES):
+def pool__start(cluster_name, *others,  only_registered_users: bool=False, ip_address: str=None, location: str=None, app_values: str=None, pool_config_values: str=None):
     """
     Start Kalavai pool and start/resume sharing resources.
 
     Args:
         *others: all the other positional arguments go here
     """
-
-    if not check_seed_compatibility():
-        return
 
     if CLUSTER.is_cluster_init():
         console.log(f"[white] You are already connected to {load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE)}. Enter [yellow]kalavai pool stop[white] to exit and join another one.")
@@ -512,131 +400,26 @@ def pool__start(cluster_name, *others,  only_registered_users: bool=False, ip_ad
     if option == 0:
         console.log("Installation was cancelled and did not complete.")
         return
-
-    node_name = f"{socket.gethostname()}-{uuid.uuid4().hex[:6]}" 
-    
-    # if only registered users are allowed, check user has logged in
-    user = defaultdict(lambda: None)
-    if only_registered_users or location is not None:
-        user = user_login(user_cookie=USER_COOKIE)
-        if user is None:
-            console.log("[white]--only-registered-users [red]or [white]--location[red] can only be used if the host is authenticated. Run [yellow]kalavai login[red] to authenticate")
-            exit()
-
-    # join private network if provided
-    vpn = defaultdict(lambda: None)
-    node_labels = {
-        STORAGE_CLASS_LABEL: is_storage_compatible()
-    }
-    if location is not None:
-        console.log("Fetching VPN credentials")
-        try:
-            vpn = get_vpn_details(
-                location=location,
-                user_cookie=USER_COOKIE)
-            node_labels[USER_NODE_LABEL] = user["username"]
-        except Exception as e:
-            console.log(f"[red]Error when joining network: {str(e)}")
-            return
-    
-    # Generate docker compose recipe
-    generate_compose_config(
-        role="server",
-        vpn_token=vpn["key"],
-        num_gpus=input_gpus(),
-        node_name=node_name,
-        node_labels=node_labels,
-        is_public=location is not None
-    )
-    
-    # start server
-    console.log("Deploying seed...")
-    CLUSTER.start_seed_node()
-    
-    while not CLUSTER.is_agent_running():
-        console.log("Waiting for seed to start...")
-        time.sleep(10)
     
     # select IP address (for external discovery)
     if ip_address is None and location is None:
         # local IP
         console.log(f"Scanning for valid IPs")
         ip_address = select_ip_address()
-    else:
-        # load VPN ip
-        ip_address = CLUSTER.get_vpn_ip()
+    
     console.log(f"Using {ip_address} address for server")
 
-    # populate local cred files
-    auth_key = str(uuid.uuid4())
-    write_auth_key = str(uuid.uuid4())
-    readonly_auth_key = str(uuid.uuid4())
-    
-    watcher_service = f"{ip_address}:{DEFAULT_WATCHER_PORT}"
-    values = {
-        CLUSTER_NAME_KEY: cluster_name,
-        CLUSTER_IP_KEY: ip_address,
-        AUTH_KEY: auth_key,
-        READONLY_AUTH_KEY: readonly_auth_key,
-        WRITE_AUTH_KEY: write_auth_key,
-        WATCHER_PORT_KEY: DEFAULT_WATCHER_PORT,
-        WATCHER_SERVICE_KEY: watcher_service,
-        USER_NODE_LABEL_KEY: USER_NODE_LABEL,
-        ALLOW_UNREGISTERED_USER_KEY: not only_registered_users
-    }
+    console.log(f"[green]Creating {cluster_name} pool, this may take a few minutes...")
 
-    store_server_info(
-        server_ip=ip_address,
-        auth_key=auth_key,
-        readonly_auth_key=readonly_auth_key,
-        write_auth_key=write_auth_key,
-        file=USER_LOCAL_SERVER_FILE,
-        watcher_service=watcher_service,
-        node_name=node_name,
+    create_pool(
         cluster_name=cluster_name,
-        public_location=location,
-        user_api_key=user["api_key"])
-    
-    # Generate helmfile recipe
-    helm_yaml = load_template(
-        template_path=HELM_APPS_FILE,
-        values=values,
-        default_values_path=app_values,
-        force_defaults=True)
-    with open(USER_HELM_APPS_FILE, "w") as f:
-        f.write(helm_yaml)
-    
-    console.log("[green]Config files have been generated in your local machine\n")
-    
-    console.log("Setting pool dependencies...")
-    # set template values in helmfile
-    try:
-        CLUSTER.update_dependencies(
-            dependencies_file=USER_HELM_APPS_FILE
-        )
-    except Exception as e:
-        console.log(f"Error: {str(e)}")
-        exit()
-    console.log("[green]Your pool is ready! Grow it by sharing your joining token with others. Run [yellow]kalavai pool token[green] to generate one.")
-
-    if location is not None:
-        # register with kalavai if it's a public cluster
-        console.log("Registering public cluster with Kalavai...")
-        pool__publish()
-    
-    # wait until the server is ready to create objects
-    while True:
-        console.log("Waiting for core services to be ready, may take a few minutes...")
-        time.sleep(30)
-        if is_watcher_alive(server_creds=USER_LOCAL_SERVER_FILE, user_cookie=USER_COOKIE):
-            break
-    console.log("Initialise user workspace...")
-    pool_init(pool_config_values_path=pool_config_values)
-    # init default namespace
-    init_user_workspace(force_namespace="default")
-    if only_registered_users:
-        # init user namespace
-        init_user_workspace()
+        ip_address=ip_address,
+        app_values=app_values,
+        pool_config_values=pool_config_values,
+        num_gpus=input_gpus(),
+        only_registered_users=only_registered_users,
+        location=location
+    )
 
     return None
 
@@ -705,9 +488,6 @@ def pool__join(token, *others, node_name=None):
     Args:
         *others: all the other positional arguments go here
     """
-
-    if not check_worker_compatibility():
-        return
     
     # check that k3s is not running already in the host
     # k3s service running or preinstalled
@@ -725,122 +505,26 @@ def pool__join(token, *others, node_name=None):
             console.log("[green]Nothing happened.")
             return
     
-    if node_name is None:
-        node_name = f"{socket.gethostname()}-{uuid.uuid4().hex[:6]}"
-    
-    # check token
-    valid = check_token(token=token)
-    if "error" in valid:
-        console.log(f"[red]Invalid token: {valid}")
-        return
-
-    try:
-        data = decode_dict(token)
-        kalavai_seed_ip = data[CLUSTER_IP_KEY]
-        kalavai_token = data[CLUSTER_TOKEN_KEY]
-        cluster_name = data[CLUSTER_NAME_KEY]
-        auth_key = data[AUTH_KEY]
-        watcher_service = data[WATCHER_SERVICE_KEY]
-        public_location = data[PUBLIC_LOCATION_KEY]
-        vpn = defaultdict(lambda: None)
-    except Exception as e:
-        console.log(str(e))
-        console.log("[red] Invalid token")
-        return
-    
-    # join private network if provided
-    node_labels = {
-        STORAGE_CLASS_LABEL: is_storage_compatible()
-    }
-    user = defaultdict(lambda: None)
-    if public_location is not None:
-        user = user_login(user_cookie=USER_COOKIE)
-        if user is None:
-            console.log("[red]Must be logged in to join public pools. Run [yellow]kalavai login[red] to authenticate")
-            exit()
-        console.log("Fetching VPN credentials")
-        try:
-            vpn = get_vpn_details(
-                location=public_location,
-                user_cookie=USER_COOKIE)
-            node_labels[USER_NODE_LABEL] = user["username"]
-        except Exception as e:
-            console.log(f"[red]Error when joining network: {str(e)}")
-            console.log("Are you authenticated? Try [yellow]kalavai login")
-            return
-        try:
-            validate_join_public_seed(
-                cluster_name=cluster_name,
-                join_key=token,
-                user_cookie=USER_COOKIE
-            )
-        except Exception as e:
-            console.log(f"[red]Error when joining network: {str(e)}")
-            return
-        
-    # local agent join
-    # 1. Generate local cache files
-    console.log("Generating config files...")
-    
-    # Generate docker compose recipe
-    generate_compose_config(
-        role="agent",
-        pool_ip=f"https://{kalavai_seed_ip}:6443",
-        pool_token=kalavai_token,
-        num_gpus=input_gpus(),
-        vpn_token=vpn["key"],
-        node_name=node_name,
-        node_labels=node_labels,
-        is_public=public_location is not None)
-    
-    store_server_info(
-        server_ip=kalavai_seed_ip,
-        auth_key=auth_key,
-        file=USER_LOCAL_SERVER_FILE,
-        watcher_service=watcher_service,
-        node_name=node_name,
-        cluster_name=cluster_name,
-        public_location=public_location,
-        user_api_key=user["api_key"])
+    num_gpus = input_gpus()
 
     option = user_confirm(
         question="Docker compose ready. Would you like Kalavai to deploy it?",
         options=["no", "yes"]
     )
     if option == 0:
-        console.log("Manually deploy the worker with the following command:\n")
-        print(f"docker compose -f {USER_COMPOSE_FILE} up -d")
+        console.log("[red]Installation aborted")
         return
     
-    console.log(f"[white] Connecting to {cluster_name} @ {kalavai_seed_ip} (this may take a few minutes)...")
-    try:
-        CLUSTER.start_worker_node()
-    except Exception as e:
-        console.log(f"[red] Error connecting to {cluster_name} @ {kalavai_seed_ip}. Check with the admin if the token is still valid.")
-        pool__stop()
-        exit()
-
-    # ensure we are connected
-    while True:
-        console.log("Waiting for core services to be ready, may take a few minutes...")
-        time.sleep(30)
-        if is_watcher_alive(server_creds=USER_LOCAL_SERVER_FILE, user_cookie=USER_COOKIE):
-            break
-    
-    # check the node has connected successfully
-    try:
-        while not CLUSTER.is_agent_running():
-            console.log("waiting for runner, may take a few minutes... Press <ctrl+c> to stop")
-            time.sleep(30)
-    except KeyboardInterrupt:
-        console.log("[red]Installation aborted. Leaving pool.")
-        pool__stop()
-        return
-    
-    init_user_workspace()
-    
-    # set status to schedulable
-    console.log(f"[green] You are connected to {cluster_name}")
+    console.log("Connecting worker to the pool...")
+    result = join_pool(
+        token=token,
+        node_name=node_name,
+        num_gpus=num_gpus
+    )
+    if "error" in result:
+        console.log(f"[red]Error when connecting: {result}")
+    else:
+        console.log(f"[green] You are connected to {result}")
 
 @arguably.command
 def pool__stop(*others, skip_node_deletion=False):

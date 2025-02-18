@@ -26,6 +26,8 @@ def resource_path(relative_path: str):
 
 
 TEMPLATE_LABEL = "kalavai.job.name"
+STORAGE_CLASS_LABEL = "kalavai.storage.enabled"
+USER_NODE_LABEL = "kalavai.cluster.user"
 SERVER_IP_KEY = "server_ip"
 KALAVAI_PLATFORM_URL = "https://platform.kalavai.net"
 KALAVAI_PLATFORM_ENDPOINT = "https://platform.kalavai.net/_/api"
@@ -33,8 +35,17 @@ DEFAULT_CONTAINER_NAME = "kalavai"
 DEFAULT_VPN_CONTAINER_NAME = "kalavai-vpn"
 CONTAINER_HOST_PATH = user_path("pool/", create_path=True)
 DEFAULT_FLANNEL_IFACE = os.getenv("KALAVAI_FLANNEL_IFACE", "netmaker-1")
-DOCKER_COMPOSE_TEMPLATE = resource_path("kalavai_client/assets/docker-compose-template.yaml")
+DEFAULT_WATCHER_PORT = 30001
 KUBE_VERSION = os.getenv("KALAVAI_KUBE_VERSION", "v1.31.1+k3s1")
+FORBIDEDEN_IPS = ["127.0.0.1"]
+# kalavai templates
+HELM_APPS_FILE = resource_path("kalavai_client/assets/apps.yaml")
+HELM_APPS_VALUES = resource_path("kalavai_client/assets/apps_values.yaml")
+DOCKER_COMPOSE_TEMPLATE = resource_path("kalavai_client/assets/docker-compose-template.yaml")
+USER_WORKSPACE_TEMPLATE = resource_path("kalavai_client/assets/user_workspace.yaml")
+DEFAULT_USER_WORKSPACE_VALUES = resource_path("kalavai_client/assets/user_workspace_values.yaml")
+POOL_CONFIG_TEMPLATE = resource_path("kalavai_client/assets/pool_config_template.yaml")
+POOL_CONFIG_DEFAULT_VALUES = resource_path("kalavai_client/assets/pool_config_values.yaml")
 # user specific config files
 USER_TEMPLATES_FOLDER = user_path("templates", create_path=True)
 USER_LOCAL_SERVER_FILE = user_path(".server")
