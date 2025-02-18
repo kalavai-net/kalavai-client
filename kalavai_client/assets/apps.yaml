@@ -65,7 +65,7 @@ releases:
   - name: helios
     namespace: kalavai
     chart: kalavai/kalavai-helios
-    version: "0.1.9"
+    version: "0.1.11"
     installed: {{not watcher_allow_unregistered_user}}
     set:
     - name: deployment.watcher_endpoint

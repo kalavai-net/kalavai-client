@@ -14,7 +14,7 @@ Kalavai helps manage the complexity of bringing Large Language Models into pract
 
 Subscribe to our [substack channel](https://kalavainet.substack.com/), where we regularly publish news, articles and updates.
 
-[Join our discord community](https://discord.gg/6VJWGzxg){:target="_blank" .md-button .md-button--primary}
+[Join our discord community](https://discord.gg/YN6ThTJKbM){:target="_blank" .md-button .md-button--primary}
 
 ---
 

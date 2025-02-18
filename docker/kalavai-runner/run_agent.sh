@@ -3,6 +3,7 @@
 flannel_iface=""
 extra=""
 node_ip="0.0.0.0"
+node_name=$HOSTNAME
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -20,6 +21,9 @@ while [ $# -gt 0 ]; do
       ;;
     --node_ip=*)
       node_ip="${1#*=}"
+      ;;
+    --node_name=*)
+      node_name="${1#*=}"
       ;;
     --token=*)
       token="${1#*=}"
@@ -67,7 +71,11 @@ if [[ "$command" == "server" ]]; then
         --kube-controller-manager-arg=node-monitor-grace-period=2m \
         --kube-controller-manager-arg=node-monitor-period=2m \
         --kubelet-arg=node-status-update-frequency=1m \
+        --node-ip $node_ip \
+        --advertise-address $node_ip \
+        --bind-address $node_ip \
         --node-external-ip $node_ip \
+        --node-name $node_name \
         --service-node-port-range $port_range \
         $iface \
         --node-label gpu=$gpu \
@@ -77,8 +85,11 @@ else
     exec /bin/k3s $command \
         --kubelet-arg=node-status-update-frequency=1m \
         --node-external-ip $node_ip \
+        --node-ip $node_ip \
+        --bind-address $node_ip \
         --server $server_ip \
         --token $token \
+        --node-name $node_name \
         $iface \
         --node-label gpu=$gpu \
         $extra
