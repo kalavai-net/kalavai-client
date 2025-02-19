@@ -30,7 +30,6 @@ class PoolsState(rx.State):
     is_loading: bool = False
     join_actions: List[str] = ["Join", "Attach"]
     selected_join_action: str = "Join"
-    pool_error_message: str = ""
     ip_addresses: List[str] = []
     connected_to_server: bool = False
     agent_running: bool = False
@@ -86,6 +85,7 @@ class PoolsState(rx.State):
                 Pool(data=data) for data in pools
             ]
             self.is_loading = False
+            yield rx.toast.success("Pools loaded successfully", position="top-center")
         
     @rx.event(background=True)
     async def load_ip_addresses(self):
@@ -102,29 +102,31 @@ class PoolsState(rx.State):
     async def create(self, form_data: dict):
         async with self:
             self.is_loading = True
-            self.pool_error_message = "Creating your LLM pool, this may take a while..."
+        
+        async with self:
             formatted_data = {}
             for key, value in form_data.items():
                 if len(value) == 0:
-                    self.pool_error_message = "Error: all fields must be filled in"
-                    return
+                    self.is_loading = False
+                    return rx.toast.error("Error: all fields must be filled in", position="top-center")
                 if value.isdigit():
                     formatted_data[key] = int(value)
                 else:
                     formatted_data[key] = value
         result = create_pool(**formatted_data)
+        if "error" in result:
+            return rx.toast.error(result["error"], position="top-center")
 
         async with self:
             state = await self.get_state(MainState)
             state.update_connected(state=True)
-            self.pool_error_message = ""
             self.is_loading = False
+            return rx.toast.success("Pool created", position="top-center")
         
     @rx.event(background=True)
     async def join(self, token):
         async with self:
             self.is_loading = True
-            self.pool_error_message = "Connecting, this may take a few minutes..."
         
         if self.selected_join_action == "Join":
             result = join_pool(token=token)
@@ -133,12 +135,13 @@ class PoolsState(rx.State):
 
         async with self:
             if "error" in result:
-                self.pool_error_message = result["error"] 
-            else: 
-                self.pool_error_message = ""
+                self.is_loading = False
+                return rx.toast.error(result["error"], position="top-center")
+            else:
                 state = await self.get_state(MainState)
                 state.update_connected(state=True)
             self.is_loading = False
+        return rx.redirect("/dashboard")
     
     @rx.event(background=True)
     async def stop(self):
@@ -147,9 +150,13 @@ class PoolsState(rx.State):
         
         async with self:
             result = stop_pool()
+            if "error" in result:
+                self.is_loading = False
+                return rx.toast.error(result["error"], position="top-center")
             state = await self.get_state(MainState)
             state.update_connected(state=False)
             self.is_loading = False
+        return rx.redirect("/")
     
     @rx.event(background=True)
     async def refresh_status(self):
@@ -166,17 +173,20 @@ class PoolsState(rx.State):
             self.is_server = is_server()
             self.is_loading = False
 
-
     @rx.event(background=True)
     async def pause(self):
         async with self:
             self.is_loading = True
 
         result = pause_agent()
-        yield PoolsState.refresh_status
+        async with self:
+            if "error" in result:
+                self.is_loading = False
+                return rx.toast.error(result["error"], position="top-center")
         
         async with self:
             self.is_loading = False
+            return rx.toast.success("Agent paused", position="top-center")
     
     @rx.event(background=True)
     async def resume(self):
@@ -184,9 +194,13 @@ class PoolsState(rx.State):
             self.is_loading = True
 
         result = resume_agent()
-        yield PoolsState.refresh_status
+        async with self:
+            if "error" in result:
+                self.is_loading = False
+                return rx.toast.error(result["error"], position="top-center")
         
         async with self:
             self.is_loading = False
+            return rx.toast.success("Agent restarted", position="top-center")
 
     

@@ -56,9 +56,12 @@ class DashboardState(rx.State):
                 self.total_cpus = resources["total"]["cpu"]
                 self.online_cpus = resources["available"]["cpu"]
                 self.used_cpus = 0 #self.total_cpus - self.online_cpus
-                self.total_gpus = resources["total"]["nvidia.com/gpu"]
-                self.online_gpus = resources["available"]["nvidia.com/gpu"]
-                self.used_gpus = 0 #self.total_gpus - self.online_gpus
+                try:
+                    self.total_gpus = resources["total"]["nvidia.com/gpu"]
+                    self.online_gpus = resources["available"]["nvidia.com/gpu"]
+                    self.used_gpus = 0 #self.total_gpus - self.online_gpus
+                except:
+                    pass
                 self.total_ram = resources["total"]["memory"] / 1000000000
                 self.online_ram = resources["available"]["memory"] / 1000000000
                 self.used_ram = 0 #self.total_ram - self.online_ram

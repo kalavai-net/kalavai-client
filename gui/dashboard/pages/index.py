@@ -104,7 +104,6 @@ def render_pool_manager() -> rx.Component:
                 rx.heading("Kalavai pool manager"),
                 rx.text("You are not connected to any LLM pool."),
                 pools_view.main_table(),
-                rx.text(PoolsState.pool_error_message, color_scheme="tomato"),
                 spacing="4"
             ),
             rx.box(render_login()),
@@ -112,110 +111,6 @@ def render_pool_manager() -> rx.Component:
             justify="between"
         ),
         width="100%"
-    )
-
-def render_home() -> rx.Component:
-    return rx.grid(
-        rx.hstack(
-            rx.text("Worker status", size="5", weight="bold"),
-            rx.button(
-                rx.icon("refresh-cw", size=20),
-                "",
-                size="3",
-                variant="surface",
-                display=["none", "none", "none", "flex"],
-                on_click=PoolsState.refresh_status,
-                loading=PoolsState.is_loading
-            ),
-        ),
-        rx.hstack(
-            rx.cond(
-                PoolsState.connected_to_server,
-                rx.flex(rx.icon("circle", color="green"), rx.text("Server reachable", size="2"), spacing="3"),
-                rx.flex(rx.icon("circle", color="red"), rx.text("Server not reachable", size="2"), spacing="3"),
-            )
-        ),
-        rx.hstack(
-            rx.cond(
-                PoolsState.agent_running,
-                rx.flex(rx.icon("circle", color="green"), rx.text("Worker running", size="2"), spacing="3"),
-                rx.flex(rx.icon("circle", color="red"), rx.text("Worker not running", size="2"), spacing="3"),
-            )
-        ),
-        rx.hstack(
-            rx.cond(
-                PoolsState.is_server,
-                rx.flex(rx.icon("server", color="gray"), rx.text("Local node is a server", size="2"), spacing="3"),
-                rx.text(""),
-            )
-        ),
-        rx.text("Actions", size="5", weight="bold"),
-        rx.hstack(
-            rx.alert_dialog.root(
-                rx.alert_dialog.trigger(
-                    rx.button(
-                        rx.icon("circle-stop", size=20),
-                        "Stop",
-                        size="3",
-                        variant="surface",
-                        color_scheme="tomato",
-                        display=["none", "none", "none", "flex"],
-                        loading=PoolsState.is_loading
-                    )
-                ),
-                rx.alert_dialog.content(
-                    rx.alert_dialog.title("Leave pool"),
-                    rx.alert_dialog.description(
-                        "Stopping the worker will leave the pool. Are you sure you want to leave the pool?",
-                        size="2",
-                    ),
-                    rx.flex(
-                        rx.alert_dialog.cancel(
-                            rx.button(
-                                "Cancel",
-                                variant="soft",
-                                color_scheme="gray",
-                            ),
-                        ),
-                        rx.alert_dialog.action(
-                            rx.button(
-                                "Leave",
-                                color_scheme="red",
-                                variant="solid",
-                                on_click=PoolsState.stop
-                            ),
-                        ),
-                        spacing="3",
-                        margin_top="16px",
-                        justify="end",
-                    ),
-                    style={"max_width": 450},
-                ),
-            ),
-            rx.cond(
-                PoolsState.agent_running,
-                rx.button(
-                    rx.icon("circle-pause"),
-                    "Pause",
-                    color_scheme="yellow",
-                    variant="surface",
-                    size="3",
-                    on_click=[PoolsState.pause, rx.toast("Pausing worker, you may lose access to the pool until you resume", position="top-center")],
-                    loading=PoolsState.is_loading
-                ),
-                rx.button(
-                    rx.icon("circle-play"),
-                    "Resume",
-                    color_scheme="green",
-                    variant="surface",
-                    size="3",
-                    on_click=[PoolsState.resume, rx.toast("Restarting worker, it may take some time", position="top-center")],
-                    loading=PoolsState.is_loading
-                )
-            ),  
-            spacing="3"
-        ),
-        spacing="5",
     )
 
 @template(route="/", title="Home", on_load=[MainState.load_state, PoolsState.refresh_status])
@@ -228,6 +123,10 @@ def index() -> rx.Component:
     """
     return rx.cond(
         MainState.is_connected,
-        render_home(),
+        rx.link(
+            rx.button("Connected!"),
+            href="/dashboard",
+            is_external=False,
+        ),
         render_pool_manager()
     )

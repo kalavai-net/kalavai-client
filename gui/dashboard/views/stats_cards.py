@@ -2,7 +2,7 @@ import reflex as rx
 from reflex.components.radix.themes.base import LiteralAccentColor
 
 from ..backend.dashboard_state import DashboardState
-
+from ..backend.pools_state import PoolsState
 from .. import styles
 
 
@@ -33,15 +33,20 @@ def stats_card(
                             size="5",
                             weight="bold",
                         ),
-                        rx.heading(
-                            "/",
-                            size="5",
-                            weight="medium",
-                        ),
-                        rx.heading(
-                            max_value,
-                            size="5",
-                            weight="bold",
+                        rx.cond(
+                            max_value >= 0,
+                            rx.flex(
+                                rx.heading(
+                                    "/",
+                                    size="5",
+                                    weight="medium",
+                                ),
+                                rx.heading(
+                                    max_value,
+                                    size="5",
+                                    weight="bold",
+                                )
+                            )
                         ),
                         spacing="1"
                     ),
@@ -87,6 +92,109 @@ def stats_card(
         box_shadow=styles.box_shadow_style,
     )
 
+def local_status() -> rx.Component:
+    return rx.card(
+        rx.stack(
+            rx.hstack(
+                rx.text("Local status", size="4", weight="bold"),
+                rx.button(
+                    rx.icon("refresh-cw", size=15),
+                    "",
+                    size="2",
+                    variant="surface",
+                    display=["none", "none", "none", "flex"],
+                    on_click=PoolsState.refresh_status,
+                    loading=PoolsState.is_loading
+                ),
+                # rx.cond(
+                #     PoolsState.agent_running,
+                #     rx.button(
+                #         rx.icon("circle-pause", size=15),
+                #         "",
+                #         color_scheme="yellow",
+                #         variant="surface",
+                #         size="2",
+                #         on_click=[PoolsState.pause, rx.toast("Pausing worker, you may lose access to the pool until you resume", position="top-center")],
+                #         loading=PoolsState.is_loading
+                #     ),
+                #     rx.button(
+                #         rx.icon("circle-play", size=15),
+                #         "",
+                #         color_scheme="green",
+                #         variant="surface",
+                #         size="2",
+                #         on_click=[PoolsState.resume, rx.toast("Restarting worker, it may take some time", position="top-center")],
+                #         loading=PoolsState.is_loading
+                #     )
+                # ),
+                rx.alert_dialog.root(
+                    rx.alert_dialog.trigger(
+                        rx.button(
+                            rx.icon("circle-stop", size=15),
+                            "",
+                            size="2",
+                            variant="surface",
+                            color_scheme="tomato",
+                            display=["none", "none", "none", "flex"],
+                            #loading=PoolsState.is_loading,
+                        )
+                    ),
+                    rx.alert_dialog.content(
+                        rx.alert_dialog.title("Leave pool"),
+                        rx.alert_dialog.description(
+                            "Stopping the worker will leave the pool. Are you sure you want to leave the pool?",
+                            size="2",
+                        ),
+                        rx.flex(
+                            rx.alert_dialog.cancel(
+                                rx.button(
+                                    "Cancel",
+                                    variant="soft",
+                                    color_scheme="gray",
+                                ),
+                            ),
+                            rx.alert_dialog.action(
+                                rx.button(
+                                    "Leave",
+                                    color_scheme="red",
+                                    variant="solid",
+                                    on_click=PoolsState.stop
+                                ),
+                            ),
+                            spacing="3",
+                            margin_top="16px",
+                            justify="end",
+                        ),
+                        style={"max_width": 450},
+                    ),
+                ),
+                justify="between",
+            ),
+            rx.hstack(
+                rx.cond(
+                    PoolsState.connected_to_server,
+                    rx.flex(rx.icon("circle", color="green"), rx.text("Server reachable", size="2"), spacing="3"),
+                    rx.flex(rx.icon("circle", color="red"), rx.text("Server not reachable", size="2"), spacing="3"),
+                )
+            ),
+            rx.hstack(
+                rx.cond(
+                    PoolsState.agent_running,
+                    rx.flex(rx.icon("circle", color="green"), rx.text("Worker running", size="2"), spacing="3"),
+                    rx.flex(rx.icon("circle", color="red"), rx.text("Worker not running", size="2"), spacing="3"),
+                )
+            ),
+            rx.hstack(
+                rx.cond(
+                    PoolsState.is_server,
+                    rx.flex(rx.icon("server", color="gray"), rx.text("Local node is a server", size="2"), spacing="3"),
+                    rx.text(""),
+                )
+            ),
+            direction="column"
+        ),
+        box_shadow=styles.box_shadow_style,
+    )
 
 def stats_cards() -> rx.Component:
     return rx.grid(
@@ -105,13 +213,7 @@ def stats_cards() -> rx.Component:
             icon_color="green",
             #extra_char="$",
         ),
-        stats_card(
-            stat_name="Issues",
-            value=DashboardState.online_issues,
-            max_value=DashboardState.total_issues,
-            icon="badge-alert",
-            icon_color="red",
-        ),
+        local_status(),
         gap="1rem",
         grid_template_columns=[
             "1fr",

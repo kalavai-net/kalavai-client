@@ -82,15 +82,14 @@ class PoolsView(TableView):
                         rx.dialog.description("Settings for the LLM pool", margin_bottom="10px"),
                         rx.form(
                             rx.flex(
-                                rx.input(placeholder="Cluster name", name="cluster_name", required=True),
+                                rx.input(placeholder="Cluster name", name="cluster_name"),
                                 rx.text("Local worker settings", size="3", weight="bold"),
                                 rx.select(
                                     PoolsState.ip_addresses,
                                     placeholder="IP address to advertise (must be visible by workers)",
-                                    name="ip_address",
-                                    required=True
+                                    name="ip_address"
                                 ),
-                                rx.input(min=0, max=1, placeholder="Number of GPUs to share", name="num_gpus", type="number", required=True),
+                                rx.input(min=0, max=1, placeholder="Number of GPUs to share", name="num_gpus", type="number"),
                                 rx.separator(size="4"),
                                 direction="column",
                                 spacing="2",
@@ -109,7 +108,7 @@ class PoolsView(TableView):
                                         "Create",
                                         type="submit",
                                         on_click=rx.toast("Creating pool...", position="top-center")
-                                    )
+                                    ),
                                 ),
                                 spacing="3",
                                 margin_top="16px",

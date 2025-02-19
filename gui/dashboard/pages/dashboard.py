@@ -12,10 +12,11 @@ from ..views.resources_view import (
     memory_resources
 )
 from ..backend.dashboard_state import DashboardState
+from ..backend.pools_state import PoolsState
 from ..views.stats_cards import stats_cards
 
 
-@template(route="/dashboard", title="Dashboard", on_load=DashboardState.load_data)
+@template(route="/dashboard", title="Dashboard", on_load=[DashboardState.load_data, PoolsState.refresh_status])
 def dashboard() -> rx.Component:
     """The overview page.
 
