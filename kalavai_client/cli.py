@@ -27,6 +27,8 @@ from kalavai_client.env import (
     USER_KUBECONFIG_FILE,
     USER_VPN_COMPOSE_FILE,
     USER_TEMPLATES_FOLDER,
+    DOCKER_COMPOSE_GUI,
+    USER_GUI_COMPOSE_FILE,
     user_path,
     resource_path,
 )
@@ -52,6 +54,7 @@ from kalavai_client.core import (
 )
 from kalavai_client.utils import (
     check_gpu_drivers,
+    load_template,
     run_cmd,
     generate_join_token,
     user_confirm,
@@ -98,26 +101,6 @@ console = Console()
 ## HELPER FUNCTIONS ##
 ######################
 
-def check_seed_compatibility():
-    """Check required packages to start pools"""
-    logs = []
-    console.log("[white]Checking system requirements...")
-    # docker
-    try:
-        run_cmd("docker version >/dev/null 2>&1")
-    except:
-        logs.append("[red]Docker not installed. Install instructions:\n")
-        logs.append("   Linux: https://docs.docker.com/engine/install/\n")
-        logs.append("   Windows/MacOS: https://docs.docker.com/desktop/\n")
-    
-    if len(logs) == 0:
-        console.log("[green]System is ready to start a pool")
-        return True
-    else:
-        for log in logs:
-            console.log(log)
-        return False
-
 
 def cleanup_local():
     console.log("Removing local cache files...")
@@ -128,6 +111,7 @@ def cleanup_local():
     safe_remove(USER_KUBECONFIG_FILE)
     safe_remove(USER_LOCAL_SERVER_FILE)
     safe_remove(USER_TEMPLATES_FOLDER)
+    safe_remove(USER_GUI_COMPOSE_FILE)
 
 def pre_join_check(node_name, server_url, server_key):
     # check with the server that we can connect
@@ -237,6 +221,32 @@ def input_gpus():
 ##################
 ## CLI COMMANDS ##
 ##################
+
+@arguably.command
+def gui__start(*others, gui_port=3000, backend_port=8000):
+    """Run GUI"""
+    values = {
+        "path": user_path(""),
+        "gui_port": gui_port,
+        "backend_port": backend_port
+    }
+    compose_yaml = load_template(
+        template_path=DOCKER_COMPOSE_GUI,
+        values=values)
+    with open(USER_GUI_COMPOSE_FILE, "w") as f:
+        f.write(compose_yaml)
+    
+    run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} up -d")
+
+    console.log(f"[green]Loading GUI, may take a few minutes. It will be available at http://localhost:{gui_port}")
+
+@arguably.command
+def gui__stop(*others):
+    """Stop GUI"""
+    run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} down")
+
+    console.log("[green]Kalavai GUI has been stopped")
+
 
 @arguably.command
 def login(*others,  username: str=None):
