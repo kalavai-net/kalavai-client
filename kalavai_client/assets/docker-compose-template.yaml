@@ -68,6 +68,8 @@ services:
     restart: unless-stopped
     command: >
       --command={{command}}
+      --node_name="{{node_name}}"
+      --node_ip="{{node_ip_address}}"
       {% if command == "server" %}
       --port_range="30000-32767"
       {% else %}
@@ -86,9 +88,9 @@ services:
       --extra="{{node_labels}}"
       {% endif %}
 
-    volumes:
-    - {{k3s_path}}:/var/lib/rancher/k3s # Persist data
-    - {{etc_path}}:/etc/rancher/k3s # Config files
+    # volumes:
+    # - {{k3s_path}}:/var/lib/rancher/k3s # Persist data
+    # - {{etc_path}}:/etc/rancher/k3s # Config files
 
   {% if num_gpus and num_gpus > 0 %}
     deploy:
