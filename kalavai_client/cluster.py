@@ -134,7 +134,7 @@ class dockerCluster(Cluster):
 
     def remove_agent(self):
         try:
-            run_cmd(f'docker compose -f {self.compose_file} down')
+            run_cmd(f'docker compose -f {self.compose_file} down --volumes')
             return True
         except:
             return False
@@ -180,6 +180,7 @@ class dockerCluster(Cluster):
 
         except:
             pass
+        time.sleep(5)
         return self.is_agent_running()
 
     def get_cluster_token(self):

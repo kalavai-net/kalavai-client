@@ -1,5 +1,6 @@
 import json, base64
 import os
+import uuid
 import requests
 from pathlib import Path
 import shutil
@@ -95,6 +96,7 @@ def generate_compose_config(role, node_name, is_public, node_ip_address="0.0.0.0
     
     if node_labels is not None:
         node_labels = " ".join([f"--node-label {key}={value}" for key, value in node_labels.items()])
+    rand_suffix = uuid.uuid4().hex[:8]
     compose_values = {
         "user_path": user_path(""),
         "service_name": DEFAULT_CONTAINER_NAME,
@@ -108,8 +110,8 @@ def generate_compose_config(role, node_name, is_public, node_ip_address="0.0.0.0
         "command": role,
         "storage_enabled": "True",
         "num_gpus": num_gpus,
-        "k3s_path": f"{CONTAINER_HOST_PATH}/k3s",
-        "etc_path": f"{CONTAINER_HOST_PATH}/etc",
+        "k3s_path": f"{CONTAINER_HOST_PATH}/{rand_suffix}/k3s",
+        "etc_path": f"{CONTAINER_HOST_PATH}/{rand_suffix}/etc",
         "node_labels": node_labels,
         "flannel_iface": DEFAULT_FLANNEL_IFACE if is_public else ""
     }

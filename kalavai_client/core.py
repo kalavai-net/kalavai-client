@@ -631,7 +631,7 @@ def join_pool(token, num_gpus=0, node_name=None):
 def create_pool(cluster_name: str, ip_address: str, app_values: str=None, pool_config_values: str=None, num_gpus: int=0, node_name: str=None, only_registered_users: bool=False, location: str=None):
 
     if not check_seed_compatibility():
-        return
+        return {"error": "Requirements failed"}
     
     if app_values is None:
         app_values = HELM_APPS_VALUES
@@ -750,6 +750,8 @@ def create_pool(cluster_name: str, ip_address: str, app_values: str=None, pool_c
     if only_registered_users:
         # init user namespace
         init_user_workspace()
+    
+    return {"success"}
 
 def pool_init(pool_config_values_path=None):
     """Deploy configured objects to initialise pool"""
@@ -785,11 +787,27 @@ def is_agent_running():
 def is_server():
     return CLUSTER.is_seed_node()
 
-def pause_agent():
-    return CLUSTER.pause_agent()
+def pause_agent(retries=3):
+    try:
+        while retries > 0:
+            state = CLUSTER.pause_agent()
+            if state:
+                return {"success"}
+            time.sleep(5)
+            retries -= 1
+    except:
+        return {"error": "Could not pause agent"}
 
-def resume_agent():
-    return CLUSTER.restart_agent()
+def resume_agent(retries=3):
+    try:
+        while retries > 0:
+            state = CLUSTER.restart_agent()
+            if state:
+                return {"success"}
+            time.sleep(5)
+            retries -= 1
+    except:
+        return {"error": "Could not resume agent"}
 
 def cleanup_local():
     safe_remove(CONTAINER_HOST_PATH)

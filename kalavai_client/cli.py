@@ -46,7 +46,9 @@ from kalavai_client.core import (
     attach_to_pool,
     join_pool,
     create_pool,
-    get_ip_addresses
+    get_ip_addresses,
+    pause_agent,
+    resume_agent
 )
 from kalavai_client.utils import (
     check_gpu_drivers,
@@ -578,11 +580,12 @@ def pool__pause(*others):
     """
     # k3s stop locally
     console.log("[white] Pausing kalavai app...")
-    success = CLUSTER.pause_agent()
-    if success:
-        console.log("[white] Kalava sharing paused. Resume with [yellow]kalavai pool resume")
+    success = pause_agent()
+    if "error" in success:
+        console.log(f"[red] Error when stopping. {success['error']}")
     else:
-        console.log("[red] Error when stopping. Please run [yellow]kalavai pool pause[red] again.")
+        console.log("[white] Kalava sharing paused. Resume with [yellow]kalavai pool resume")
+        
 
 @arguably.command
 def pool__resume(*others):
@@ -597,10 +600,12 @@ def pool__resume(*others):
         console.log("[red] Kalavai app was not started before, please run [yellow]kalavai pool start[red] to start a pool or [yellow]kalavai pool join[red] to join one first")
         return
     console.log("[white] Restarting sharing (may take a few minutes)...")
-    if CLUSTER.restart_agent():
-        console.log("[white] Kalava sharing resumed")
+    success = resume_agent()
+    if "error" in success:
+        console.log(f"[red] Error when restarting. {success['error']}")
     else:
-        console.log("[red] Error when restarting. Please run [yellow]kalavai pool resume[white] again.")
+        console.log("[white] Kalava sharing resumed")
+        
 
 
 @arguably.command
