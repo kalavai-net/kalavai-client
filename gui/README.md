@@ -1,13 +1,9 @@
 # Kalavai-gui
 
-Run in docker:
-
-docker run --name kalavai_gui -d -v /home/carlosfm/.cache/kalavai:/root/.cache/kalavai --net host bundenth/kalavai-gui:latest
-
 
 # Welcome to Reflex!
 
- Template: https://github.com/reflex-dev/templates/tree/main/dashboard
+> Template: https://github.com/reflex-dev/templates/tree/main/dashboard
 
 
 Run with:
@@ -69,25 +65,3 @@ To add a new page:
 3. Import the page in your `{your_app}/pages/__init__.py` file and it will automatically be added to the app.
 4. Order the pages in `{your_app}/components/sidebar.py` and `{your_app}/components/navbar.py`.
 
-
-### Adding Components
-
-In order to keep your code organized, we recommend putting components that are
-used across multiple pages in the `{your_app}/components/` directory.
-
-In this template, we have a sidebar component in `{your_app}/components/sidebar.py`.
-
-### Adding State
-
-As your app grows, we recommend using [substates](https://reflex.dev/docs/substates/overview/)
-to organize your state.
-
-You can either define substates in their own files, or if the state is
-specific to a page, you can define it in the page file itself.
-
-
-# TODO
-
-- Popover / Hover card / Context Menu for in situ actions
-- Toast for notifications
-- Alert Dialog for popups

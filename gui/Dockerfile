@@ -5,8 +5,6 @@ RUN apt update && apt install -y gcc unzip curl
 WORKDIR /workspace/kalavai
 
 COPY . .
-RUN pip3 install -e .
-RUN pip3 install -r gui/requirements.txt
+RUN pip3 install -r requirements.txt
 
-WORKDIR /workspace/kalavai/gui
 CMD ["reflex", "run"]
