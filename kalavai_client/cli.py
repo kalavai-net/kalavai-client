@@ -153,7 +153,9 @@ def set_schedulable(schedulable, node_name=load_server_info(data_key=NODE_NAME_K
 
 def select_ip_address(subnet=None):
     ips = get_ip_addresses(subnet=subnet)
-    
+    if len(ips) == 1:
+        return ips[0]
+
     while True:
         option = user_confirm(
             question="Select IP to advertise the node (needs to be visible to other nodes)",

@@ -152,8 +152,6 @@ def get_ip_addresses(subnet=None):
                     ips.append(ip)
             except:
                 pass
-        if len(ips) == 1:
-            return ips[0]
         time.sleep(2)
         retry -= 1
         if retry < 0:
