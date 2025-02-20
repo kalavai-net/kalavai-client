@@ -225,12 +225,10 @@ def input_gpus():
 ##################
 
 @arguably.command
-def gui__start(*others, gui_port=3000, backend_port=8000):
+def gui__start(*others):
     """Run GUI"""
     values = {
-        "path": user_path(""),
-        "gui_port": gui_port,
-        "backend_port": backend_port
+        "path": user_path("")
     }
     compose_yaml = load_template(
         template_path=DOCKER_COMPOSE_GUI,
@@ -240,7 +238,7 @@ def gui__start(*others, gui_port=3000, backend_port=8000):
     
     run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} up -d")
 
-    console.log(f"[green]Loading GUI, may take a few minutes. It will be available at http://localhost:{gui_port}")
+    console.log(f"[green]Loading GUI, may take a few minutes. It will be available at http://localhost:3000")
 
 @arguably.command
 def gui__stop(*others):
