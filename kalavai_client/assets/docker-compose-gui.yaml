@@ -2,7 +2,7 @@ services:
   kalavai_gui:
     container_name: kalavai_gui
     image: bundenth/kalavai-gui:latest
-    network: host
+    network_mode: host
     volumes:
       - "{{path}}:/root/.cache/kalavai"
     restart: always
