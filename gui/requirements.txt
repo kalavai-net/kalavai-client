@@ -1,4 +1,4 @@
 reflex==0.6.8
 plotly==6.0.0
 validators==0.34.0
-kalavai-client>=0.5.17
+kalavai-client>=0.5.18
