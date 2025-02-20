@@ -6,7 +6,7 @@ import uuid
 import socket
 import ipaddress
 import netifaces as ni
-
+from typing import Optional
 from pydantic import BaseModel
 
 from kalavai_client.cluster import CLUSTER
@@ -68,11 +68,11 @@ from kalavai_client.env import (
 )
 
 class Job(BaseModel):
-    owner: str = None
-    name: str = None
-    workers: str = None
-    endpoint: str = None
-    status: str = None
+    owner: Optional[str] = None
+    name: Optional[str] = None
+    workers: Optional[str] = None
+    endpoint: Optional[str] = None
+    status: Optional[str] = None
 
 class DeviceStatus(BaseModel):
     name: str

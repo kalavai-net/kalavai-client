@@ -15,6 +15,7 @@ import arguably
 from rich.console import Console
 
 from kalavai_client.cluster import CLUSTER
+from kalavai_client.bridge_api import run_api
 from kalavai_client.env import (
     USER_COOKIE,
     USER_LOCAL_SERVER_FILE,
@@ -225,9 +226,12 @@ def input_gpus():
 ##################
 
 @arguably.command
-def gui__start(*others):
-    """Run GUI"""
+def gui__start(*others, gui_frontend_port=3000, gui_backend_port=8000, bridge_port=8001):
+    """Run GUI (docker) and kalavai core backend (api)"""
+
     values = {
+        "gui_frontend_port": gui_frontend_port,
+        "gui_backend_port": gui_backend_port,
         "path": user_path("")
     }
     compose_yaml = load_template(
@@ -238,15 +242,10 @@ def gui__start(*others):
     
     run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} up -d")
 
-    console.log(f"[green]Loading GUI, may take a few minutes. It will be available at http://localhost:3000")
-
-@arguably.command
-def gui__stop(*others):
-    """Stop GUI"""
+    console.log(f"[green]Loading GUI, may take a few minutes. It will be available at http://localhost:{gui_frontend_port}")
+    run_api(port=bridge_port)
     run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} down")
-
     console.log("[green]Kalavai GUI has been stopped")
-
 
 @arguably.command
 def login(*others,  username: str=None):
