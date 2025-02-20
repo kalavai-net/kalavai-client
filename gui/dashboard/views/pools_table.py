@@ -78,7 +78,7 @@ class PoolsView(TableView):
                         )
                     ),
                     rx.dialog.content(
-                        rx.dialog.title("Create your LLM"),
+                        rx.dialog.title("Create your LLM pool"),
                         rx.dialog.description("Settings for the LLM pool", margin_bottom="10px"),
                         rx.form(
                             rx.flex(

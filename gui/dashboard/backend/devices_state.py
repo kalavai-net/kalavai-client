@@ -1,10 +1,9 @@
 from typing import List
-from enum import Enum
 import asyncio
 
 import reflex as rx
 
-from kalavai_client.core import fetch_devices
+from ..backend.utils import request_to_kalavai_core
 
 class Device(rx.Base):
     """The item class."""
@@ -57,13 +56,16 @@ class DevicesState(rx.State):
         async with self:
             self.is_loading = True
         
-        devices = fetch_devices()
+        devices = request_to_kalavai_core(
+            method="get",
+            endpoint="fetch_devices"
+        )
         async with self:
             if "error" in devices:
                 print(f"Error when fetching devices: {devices}")
                 self.items = []
             else:
-                self.items = [Device(data=row.dict()) for row in devices]
+                self.items = [Device(data=row) for row in devices]
                 
             self.is_loading = False
             self.total_items = len(self.items)
