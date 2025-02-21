@@ -22,6 +22,8 @@ class PoolsState(rx.State):
     connected_to_server: bool = False
     agent_running: bool = False
     is_server: bool = False
+    token_modes: List[str] = ["Admin", "User", "Worker"]
+    token: str = ""
 
     total_items: int = 0
     offset: int = 0
@@ -119,7 +121,7 @@ class PoolsState(rx.State):
             return rx.toast.success("Pool created", position="top-center")
         
     @rx.event(background=True)
-    async def join(self, token):
+    async def join(self):
         async with self:
             self.is_loading = True
         
@@ -127,12 +129,12 @@ class PoolsState(rx.State):
             result = request_to_kalavai_core(
                 method="post",
                 endpoint="join_pool",
-                json={"token":token})
+                json={"token":self.token})
         else:
             result = request_to_kalavai_core(
                 method="post",
                 endpoint="attach_to_pool",
-                json={"token":token})
+                json={"token":self.token})
 
         async with self:
             if "error" in result:
@@ -152,7 +154,8 @@ class PoolsState(rx.State):
         async with self:
             result = request_to_kalavai_core(
                 method="post",
-                endpoint="stop_pool")
+                endpoint="stop_pool",
+                json={})
             if "error" in result:
                 self.is_loading = False
                 return rx.toast.error(result["error"], position="top-center")
@@ -216,4 +219,19 @@ class PoolsState(rx.State):
             self.is_loading = False
             return rx.toast.success("Agent restarted", position="top-center")
 
-    
+    @rx.event
+    def get_pool_token(self, mode):
+        result = request_to_kalavai_core(
+            method="get",
+            endpoint="get_pool_token",
+            params={"mode": self.token_modes.index(mode)}
+        )
+        if "error" in result:
+            self.update_token("")
+            return rx.toast.error(result["error"], position="top-center")
+        else:
+            self.token = result["token"]
+
+    @rx.event
+    def update_token(self, token):
+        self.token = token

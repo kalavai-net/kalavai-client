@@ -110,6 +110,7 @@ class JobsState(rx.State):
                     return rx.toast.error(result["error"], position="top-center")
                 else:
                     return rx.toast.success("Jobs deleted", position="top-center")
+
     @rx.event(background=True)
     async def deploy_job(self, form_data: dict):
         # TODO: parse form values

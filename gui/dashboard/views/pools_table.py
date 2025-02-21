@@ -21,16 +21,27 @@ class PoolsView(TableView):
             render_mapping={
                 "created_at": lambda idx, x: rx.table.cell(x),
                 "description": lambda idx, x: rx.table.cell(rx.markdown(x), max_width="400px"),
-                "join_key": lambda idx, x: rx.box(self.join_button(x), justify="center"),
+                "join_key": lambda idx, x: rx.box(self.join_dialog(x), justify="center"),
                 "name": lambda idx, x: rx.table.cell(x),
                 "owner": lambda idx, x: rx.table.cell(x)
             }
         )
 
-    def join_button(self, token):
+    def custom_join(self):
+        return rx.vstack(
+            rx.text("Access with token", size="4", weight="bold"),
+            rx.text("Enter here your joining token to access a private pool."),
+            rx.hstack(
+                rx.input(placeholder="Paste your token here", on_change=PoolsState.update_token),
+                self.join_dialog(PoolsState.token)
+            ),
+            spacing="3"
+        )
+
+    def join_dialog(self, token):
         return rx.dialog.root(
             rx.dialog.trigger(
-                rx.button("Join", loading=PoolsState.is_loading)
+                rx.button("Join", loading=PoolsState.is_loading, on_click=PoolsState.update_token(token))
             ),
             rx.dialog.content(
                 rx.dialog.title("Join the pool"),
@@ -52,7 +63,7 @@ class PoolsView(TableView):
                         rx.dialog.close(
                             rx.button(
                                 "Join",
-                                on_click=PoolsState.join(token)
+                                on_click=PoolsState.join
                             )
                         ),
                     ),
@@ -89,7 +100,7 @@ class PoolsView(TableView):
                                     placeholder="IP address to advertise (must be visible by workers)",
                                     name="ip_address"
                                 ),
-                                rx.input(min=0, max=1, placeholder="Number of GPUs to share", name="num_gpus", type="number"),
+                                #rx.input(min=0, max=4, placeholder="Number of GPUs to share", name="num_gpus", type="number"),
                                 rx.separator(size="4"),
                                 direction="column",
                                 spacing="2",

@@ -16,6 +16,7 @@ class DevicesState(rx.State):
     is_loading: bool = False
 
     items: List[Device] = []
+    selected_rows: set = set()
 
     total_items: int = 0
     offset: int = 0
@@ -69,4 +70,25 @@ class DevicesState(rx.State):
                 
             self.is_loading = False
             self.total_items = len(self.items)
-            
+    
+    @rx.event(background=True)
+    async def set_selected_row(self, index, state):
+        async with self:
+            if state:
+                self.selected_rows.add(index)
+            else:
+                self.selected_rows.remove(index)
+        print(self.selected_rows)
+    
+    @rx.event(background=True)
+    async def remove_entries(self):
+        async with self:
+            result = request_to_kalavai_core(
+                method="post",
+                endpoint="delete_nodes",
+                json={"nodes": [self.items[row].data["name"] for row in self.selected_rows]}
+            )
+            if "error" in result:
+                return rx.toast.error(str(result["error"]), position="top-center")
+            else:
+                return rx.toast.success("Devices deleted", position="top-center")

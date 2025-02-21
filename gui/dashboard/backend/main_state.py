@@ -79,7 +79,8 @@ class MainState(rx.State):
     async def signout(self):
         async with self:
             request_to_kalavai_core(
-                methods="get",
+                method="get",
                 endpoint="user_logout")
             self.is_logged_in = False
             self.login_error_message = ""
+            return rx.redirect("/")
