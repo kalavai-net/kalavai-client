@@ -11,7 +11,8 @@ from kalavai_client.bridge_models import (
     StopPoolRequest,
     DeployJobRequest,
     DeleteJobRequest,
-    JobDetailsRequest
+    JobDetailsRequest,
+    DeleteNodesRequest
 )
 from kalavai_client.core import (
     create_pool,
@@ -38,7 +39,9 @@ from kalavai_client.core import (
     pause_agent,
     resume_agent,
     get_ip_addresses,
-    Job
+    get_pool_token,
+    delete_nodes,
+    TokenType
 )
 
 app = FastAPI()
@@ -79,6 +82,18 @@ def pool_stop(request: StopPoolRequest):
         skip_node_deletion=request.skip_node_deletion
     )
     return result
+
+@app.post("/delete_nodes")
+def device_delete(request: DeleteNodesRequest):
+    result = delete_nodes(
+        nodes=request.nodes
+    )
+    return result
+
+@app.get("/get_pool_token")
+def devices(mode: int):
+
+    return get_pool_token(mode=TokenType(mode))
 
 @app.get("/fetch_devices")
 def devices():

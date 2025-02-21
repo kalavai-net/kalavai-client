@@ -8,9 +8,12 @@ import ipaddress
 import netifaces as ni
 from typing import Optional
 from pydantic import BaseModel
+from enum import Enum
 
 from kalavai_client.cluster import CLUSTER
 from kalavai_client.utils import (
+    check_gpu_drivers,
+    generate_join_token,
     request_to_server,
     load_server_info,
     decode_dict,
@@ -88,6 +91,11 @@ class GPU(BaseModel):
     total: int
     ready: bool
     model: str
+
+class TokenType(Enum):
+    ADMIN = 0
+    USER = 1
+    WORKER = 2
 
 
 def init_user_workspace(force_namespace=None):
@@ -461,6 +469,25 @@ def check_token(token, public=False):
         return {"status": True}
     except Exception as e:
         return {"error": str(e)}
+    
+def delete_nodes(nodes):
+    data = {
+        "node_names": nodes
+    }
+    try:
+        result = request_to_server(
+            method="post",
+            endpoint="/v1/delete_nodes",
+            data=data,
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        if result is None or result is True:
+            return {"success": nodes}
+        else:
+            return {"error": result}
+    except Exception as e:
+        return {"error": f"Error when removing nodes {nodes}: {str(e)}"}
 
 def attach_to_pool(token, node_name=None):
     if node_name is None:
@@ -530,11 +557,24 @@ def attach_to_pool(token, node_name=None):
 
     return cluster_name
 
-def join_pool(token, num_gpus=0, node_name=None):
+def get_max_gpus():
+    try:
+        has_gpus = check_gpu_drivers()
+        if has_gpus:
+            return int(run_cmd("nvidia-smi -L | wc -l").decode())
+        else:
+            return 0
+    except:
+        return 0
+
+def join_pool(token, num_gpus=None, node_name=None):
     compatibility = check_worker_compatibility()
     if len(compatibility["issues"]) > 0:
         return {"error": compatibility["issues"]}
-    
+
+    if num_gpus is None:
+        num_gpus = get_max_gpus()
+
     if node_name is None:
         node_name = f"{socket.gethostname()}-{uuid.uuid4().hex[:6]}"
     
@@ -750,6 +790,40 @@ def create_pool(cluster_name: str, ip_address: str, app_values: str=None, pool_c
         init_user_workspace()
     
     return {"success"}
+
+def get_pool_token(mode: TokenType):
+
+    try:
+        match mode:
+            case TokenType.ADMIN:
+                auth_key = load_server_info(data_key=AUTH_KEY, file=USER_LOCAL_SERVER_FILE)
+            case TokenType.USER:
+                auth_key = load_server_info(data_key=WRITE_AUTH_KEY, file=USER_LOCAL_SERVER_FILE)
+            case _:
+                auth_key = load_server_info(data_key=READONLY_AUTH_KEY, file=USER_LOCAL_SERVER_FILE)
+        if auth_key is None:
+            return {"error": "Cannot generate selected token mode. Are you the seed node?"}
+
+        watcher_service = load_server_info(data_key=WATCHER_SERVICE_KEY, file=USER_LOCAL_SERVER_FILE)
+        public_location = load_server_info(data_key=PUBLIC_LOCATION_KEY, file=USER_LOCAL_SERVER_FILE)
+
+        cluster_token = CLUSTER.get_cluster_token()
+
+        ip_address = load_server_info(SERVER_IP_KEY, file=USER_LOCAL_SERVER_FILE)
+        cluster_name = load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE)
+
+        join_token = generate_join_token(
+            cluster_ip=ip_address,
+            cluster_name=cluster_name,
+            cluster_token=cluster_token,
+            auth_key=auth_key,
+            watcher_service=watcher_service,
+            public_location=public_location
+        )
+
+        return {"token": join_token}
+    except Exception as e:
+        return {"error": f"Error when generating token: {str(e)}"}
 
 def pool_init(pool_config_values_path=None):
     """Deploy configured objects to initialise pool"""

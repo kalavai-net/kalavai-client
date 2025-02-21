@@ -51,13 +51,15 @@ from kalavai_client.core import (
     create_pool,
     get_ip_addresses,
     pause_agent,
-    resume_agent
+    resume_agent,
+    get_pool_token,
+    delete_nodes,
+    TokenType
 )
 from kalavai_client.utils import (
     check_gpu_drivers,
     load_template,
     run_cmd,
-    generate_join_token,
     user_confirm,
     generate_table,
     request_to_server,
@@ -72,11 +74,6 @@ from kalavai_client.utils import (
     get_public_seeds,
     load_user_session,
     SERVER_IP_KEY,
-    AUTH_KEY,
-    WATCHER_SERVICE_KEY,
-    READONLY_AUTH_KEY,
-    WRITE_AUTH_KEY,
-    PUBLIC_LOCATION_KEY,
     NODE_NAME_KEY,
     CLUSTER_NAME_KEY
 )
@@ -226,25 +223,28 @@ def input_gpus():
 ##################
 
 @arguably.command
-def gui__start(*others, gui_frontend_port=3000, gui_backend_port=8000, bridge_port=8001):
+def gui__start(*others, backend_only=False, gui_frontend_port=3000, gui_backend_port=8000, bridge_port=8001):
     """Run GUI (docker) and kalavai core backend (api)"""
 
-    values = {
-        "gui_frontend_port": gui_frontend_port,
-        "gui_backend_port": gui_backend_port,
-        "path": user_path("")
-    }
-    compose_yaml = load_template(
-        template_path=DOCKER_COMPOSE_GUI,
-        values=values)
-    with open(USER_GUI_COMPOSE_FILE, "w") as f:
-        f.write(compose_yaml)
-    
-    run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} up -d")
+    if not backend_only:
+        values = {
+            "gui_frontend_port": gui_frontend_port,
+            "gui_backend_port": gui_backend_port,
+            "path": user_path("")
+        }
+        compose_yaml = load_template(
+            template_path=DOCKER_COMPOSE_GUI,
+            values=values)
+        with open(USER_GUI_COMPOSE_FILE, "w") as f:
+            f.write(compose_yaml)
+        
+        run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} up -d")
 
-    console.log(f"[green]Loading GUI, may take a few minutes. It will be available at http://localhost:{gui_frontend_port}")
+        console.log(f"[green]Loading GUI, may take a few minutes. It will be available at http://localhost:{gui_frontend_port}")
     run_api(port=bridge_port)
-    run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} down")
+    
+    if not backend_only:
+        run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} down")
     console.log("[green]Kalavai GUI has been stopped")
 
 @arguably.command
@@ -450,32 +450,19 @@ def pool__token(*others, admin=False, user=False, worker=False):
         return
     
     if admin:
-        auth_key = load_server_info(data_key=AUTH_KEY, file=USER_LOCAL_SERVER_FILE)
+        mode = TokenType.ADMIN
     elif user:
-        auth_key = load_server_info(data_key=WRITE_AUTH_KEY, file=USER_LOCAL_SERVER_FILE)
+        mode = TokenType.USER
     else:
-        auth_key = load_server_info(data_key=READONLY_AUTH_KEY, file=USER_LOCAL_SERVER_FILE)
-    
-    watcher_service = load_server_info(data_key=WATCHER_SERVICE_KEY, file=USER_LOCAL_SERVER_FILE)
-    public_location = load_server_info(data_key=PUBLIC_LOCATION_KEY, file=USER_LOCAL_SERVER_FILE)
+        mode = TokenType.WORKER
 
-    cluster_token = CLUSTER.get_cluster_token()
+    join_token = get_pool_token(mode=mode)
 
-    ip_address = load_server_info(SERVER_IP_KEY, file=USER_LOCAL_SERVER_FILE)
-    cluster_name = load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE)
-
-    join_token = generate_join_token(
-        cluster_ip=ip_address,
-        cluster_name=cluster_name,
-        cluster_token=cluster_token,
-        auth_key=auth_key,
-        watcher_service=watcher_service,
-        public_location=public_location
-    )
-
-    console.log("[green]Join token:")
-    print(join_token)
-
+    if "error" in join_token:
+        console.log(f"[red]{join_token}")
+    else:
+        console.log("[green]Join token:")
+        print(join_token)
     return join_token
 
 @arguably.command
@@ -948,24 +935,12 @@ def node__delete(name, *others):
         console.log(f"[red]Problems with your pool: {str(e)}")
         return
     
-    data = {
-        "node_names": [name]
-    }
-    try:
-        result = request_to_server(
-            method="post",
-            endpoint="/v1/delete_nodes",
-            data=data,
-            server_creds=USER_LOCAL_SERVER_FILE,
-            user_cookie=USER_COOKIE
-        )
-        if result is None or result is True:
-            console.log(f"Node {name} deleted successfully")
-        else:
-            console.log(f"{result}")
-    except Exception as e:
-        console.log(f"[yellow](ignore if stopping worker from dead server). Error when removing node {name}: {str(e)}")
-
+    result = delete_nodes(nodes=[name])
+    
+    if "error" in result:
+        console.log(f"[red]{result}")
+    else:
+        console.log(f"[green]{result}")
 
 @arguably.command
 def node__cordon(node_name, *others):

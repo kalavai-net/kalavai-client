@@ -12,10 +12,13 @@ class CreatePoolRequest(BaseModel):
     only_registered_users: bool
     location: str
 
+class DeleteNodesRequest(BaseModel):
+    nodes: list[str]
+
 class JoinPoolRequest(BaseModel):
     token: str
     node_name: str = None
-    num_gpus: int = 0
+    num_gpus: int = None
 
 class JobDetailsRequest(BaseModel):
     jobs: list[Job]
