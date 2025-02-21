@@ -62,12 +62,12 @@ class GPUsState(rx.State):
             endpoint="fetch_gpus"
         )
         async with self:
+            self.is_loading = False
             if "error" in devices:
-                print(f"Error when fetching devices: {devices}")
                 self.items = []
+                return rx.toast.error(f"Error when fetching gpus: {devices}", position="top-center")
             else:
                 self.items = [GPU(data=row) for row in devices]
                 
-            self.is_loading = False
             self.total_items = len(self.items)
             

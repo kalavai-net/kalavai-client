@@ -62,13 +62,13 @@ class DevicesState(rx.State):
             endpoint="fetch_devices"
         )
         async with self:
+            self.is_loading = False
             if "error" in devices:
-                print(f"Error when fetching devices: {devices}")
                 self.items = []
+                return rx.toast.error(f"Error when fetching devices: {devices}", position="top-center")
             else:
                 self.items = [Device(data=row) for row in devices]
                 
-            self.is_loading = False
             self.total_items = len(self.items)
     
     @rx.event(background=True)

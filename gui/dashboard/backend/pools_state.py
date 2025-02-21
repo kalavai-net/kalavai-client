@@ -111,6 +111,7 @@ class PoolsState(rx.State):
             method="post",
             endpoint="create_pool",
             json=formatted_data)
+        print(result)
         if "error" in result:
             return rx.toast.error(result["error"], position="top-center")
 

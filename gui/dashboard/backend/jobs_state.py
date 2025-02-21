@@ -173,10 +173,10 @@ class JobsState(rx.State):
         
         if "error" in all_jobs:
             async with self:
-                print(f"Error when fetching jobs: {all_jobs}")
                 self.items = []
                 self.total_items = 0
                 self.is_loading = False
+                return rx.toast.error(f"Error when fetching jobs: {all_jobs}", position="top-center")
         else:
             async with self:
                 # job names

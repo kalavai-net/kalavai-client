@@ -6,11 +6,11 @@ from kalavai_client.core import Job
 class CreatePoolRequest(BaseModel):
     cluster_name: str
     ip_address: str
-    app_values: dict
-    num_gpus: int
-    node_name: str
-    only_registered_users: bool
-    location: str
+    app_values: dict = None
+    num_gpus: int = None
+    node_name: str = None
+    only_registered_users: bool = False
+    location: str = None
 
 class DeleteNodesRequest(BaseModel):
     nodes: list[str]
