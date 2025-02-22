@@ -958,9 +958,9 @@ Storage webui-db (2Gi) created
 <h3 id="unified-openai-like-api">Unified OpenAI-like API</h3>
 <p>Model templates deployed in LLM pools have an optional key parameter to register themselves with a LiteLLM instance. <a href="https://docs.litellm.ai/docs/">LiteLLM</a> is a powerful API that unifies all of your models into a single API, making developing apps with LLMs easier and more flexible.</p>
 <p>Our <a href="https://github.com/kalavai-net/kalavai-client/tree/main/templates/litellm">LiteLLM</a> template automates the deployment of the API across a pool, database included. To deploy it using the Kalavai GUI, navigate to <code>Jobs</code>, then click on the <code>circle-plus</code> button, in which you can select a <code>litellm</code> template. Set the values of <code>db_storage</code> to <code>litellm-db</code> (or the one you used above).</p>
-<p><img alt="Deploy litellm" src="/docs/docs/assets/images/ui_deploy_litellm.png" /></p>
+<p><img alt="Deploy litellm" src="../assets/images/ui_deploy_litellm.png" /></p>
 <p>Once the deployment is complete, you can check the LiteLLM endpoint by navigating to <code>Jobs</code> and seeing the corresponding endpoint for the <code>litellm</code> job.</p>
-<p><img alt="Check LiteLLM endpoint" src="/docs/docs/assets/images/ui_litellm_status.png" /></p>
+<p><img alt="Check LiteLLM endpoint" src="../assets/images/ui_litellm_status.png" /></p>
 <p>You will need a virtual key to register models with LiteLLM. For testing you can use the master key defined in your values.yaml under <code>master_key</code>, but it is recommended to generate a virtual one that does not have privilege access. The easiest way of doing so is via the admin UI, under http://192.168.68.67:30535/ui (see more details <a href="https://docs.litellm.ai/docs/proxy/virtual_keys">here</a>).</p>
 <pre><code>Example virtual key: sk-rDCm0Vd5hDOigaNbQSSsEQ
 </code></pre>
