@@ -9,6 +9,10 @@
       
       
       
+        <link rel="prev" href="../compatibility/">
+      
+      
+        <link rel="next" href="../public_llm_pool/">
       
       
       <link rel="icon" href="../assets/icons/browser.png">
@@ -16,7 +20,7 @@
     
     
       
-        <title>Quickstart - Kalavai Documentation</title>
+        <title>CLI - Kalavai Documentation</title>
       
     
     
@@ -68,7 +72,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#quickstart" class="md-skip">
+        <a href="#kalavai-from-the-command-line-cli" class="md-skip">
           Skip to content
         </a>
       
@@ -103,7 +107,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Quickstart
+              CLI
             
           </span>
         </div>
@@ -218,8 +222,10 @@
       
   
   
+    
   
   
+  
     
     
     
@@ -229,11 +235,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
         
           
           <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="">
@@ -247,7 +253,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_1">
             <span class="md-nav__icon md-icon"></span>
             Getting started
@@ -354,6 +360,127 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    CLI
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    CLI
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#start-a-seed-node-and-get-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      Start a seed node and get token
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add-worker-nodes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Add worker nodes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attach-more-clients" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attach more clients
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check-resources-in-the-pool" class="md-nav__link">
+    <span class="md-ellipsis">
+      Check resources in the pool
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deploy-jobs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deploy jobs
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -613,47 +740,62 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-download-kalavai" class="md-nav__link">
+  <a href="#examples" class="md-nav__link">
     <span class="md-ellipsis">
-      1. Download Kalavai
+      Examples
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#start-a-seed-node-and-get-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      Start a seed node and get token
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#2-create-a-free-account" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#add-worker-nodes" class="md-nav__link">
     <span class="md-ellipsis">
-      2. Create a free account
+      Add worker nodes
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#3-join-a-public-computing-pool" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#attach-more-clients" class="md-nav__link">
     <span class="md-ellipsis">
-      3. Join a public computing pool
+      Attach more clients
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#4-deploy-an-llm" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#check-resources-in-the-pool" class="md-nav__link">
     <span class="md-ellipsis">
-      4. Deploy an LLM
+      Check resources in the pool
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#5-calling-the-model" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#deploy-jobs" class="md-nav__link">
     <span class="md-ellipsis">
-      5. Calling the model
+      Deploy jobs
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -676,40 +818,85 @@
     
     
     
-      <span class="md-tag">quickstart</span>
+      <span class="md-tag">cli</span>
+    
+  
+    
+    
+    
+      <span class="md-tag">command line</span>
     
   
 </nav>
 
 
 
-<h1 id="quickstart">Quickstart</h1>
-<p>For this guide we assume you have either a compatible linux machine or WSL running on windows. For more info, check our <a href="../getting_started/">getting started</a> guide.</p>
-<p>Goal: to get you up and running as fast and painlessly as possible, from zero to distributed LLM deployment across community devices.</p>
-<h2 id="1-download-kalavai">1. Download Kalavai</h2>
-<p>Download and install the latest version of <code>kalavai</code>:</p>
-<pre><code class="language-bash">curl -sfL https://raw.githubusercontent.com/kalavai-net/kalavai-client/main/assets/install_client.sh | bash -
-</code></pre>
-<h2 id="2-create-a-free-account">2. Create a free account</h2>
-<p>Go to <a href="https://platform.kalavai.net">our platform</a> and register to get an account. You'll need the credentials later.</p>
-<h2 id="3-join-a-public-computing-pool">3. Join a public computing pool</h2>
-<p>Computing pools are the heart and soul of Kalavai. It's a shared space where developers, researchers and enthusiasts join in with their computing power for the benefit of the community, so each user can go beyond the hardware they own.</p>
-<p>In the platform, go to <code>Computing Pools</code> and click <code>JOIN</code> on any of the pools shown. This will display the details on how to join using the <code>kalavai</code> client.</p>
-<p><img alt="Public pools" src="/docs/docs/assets/images/public_seeds.png" /></p>
-<p>Paste the command and run it in your computer. After a few minutes you should be connected and ready to deploy!</p>
-<pre><code class="language-bash">$ kalavai pool join &lt;join token&gt;
+<h1 id="kalavai-from-the-command-line-cli">Kalavai from the command line (CLI)</h1>
+<p>The full functionality set of Kalavai LLM Pools can be accessed via the command line. This is ideal when working with Virtual Machines in the cloud or in automating workflows where GUI access is not possible or not required.</p>
+<pre><code class="language-bash">$ kalavai --help
 
-[01:24:45] Token format is correct                                                                                                                               
-[sudo] password for carlosfm: 
-[01:24:48] Joining private network                                                                                                                               
-[KalavaiAuthClient]Logged in as carlosfm
-[01:25:01] Scanning for valid IPs...  
-           Using 100.10.0.7 address for worker    
-            Connecting to publicllm @ 100.10.0.2 (this may take a few minutes)...
-            You are connected to publicllm
+usage: kalavai [-h] command ...
+
+positional arguments:
+  command
+    login     [AUTH] (For public clusters only) Log in to Kalavai server.
+    logout    [AUTH] (For public clusters only) Log out of Kalavai server.
+    gui
+    location
+    pool
+    storage
+    node
+    job
+    ray
+
+options:
+  -h, --help  show this help message and exit
 </code></pre>
-<h2 id="4-deploy-an-llm">4. Deploy an LLM</h2>
-<p>We are now ready to deploy an LLM across the available resources. First, let's check what resources are available:</p>
+<p>For help on a specific command, or group of commands, you can use the --help flag:</p>
+<pre><code class="language-bash">$ kalavai pool --help
+
+usage: kalavai pool [-h] command ...
+
+positional arguments:
+  command
+    publish      [AUTH] Publish pool to Kalavai platform, where other users may be able to join
+    unpublish    [AUTH] Unpublish pool to Kalavai platform. Cluster and all its workers will still work
+    list         [AUTH] List public pools in to Kalavai platform.
+    start        Start Kalavai pool and start/resume sharing resources.
+    token        Generate a join token for others to connect to your pool
+    check-token  Utility to check the validity of a join token
+    join         Join Kalavai pool and start/resume sharing resources.
+    stop         Stop sharing your device and clean up. DO THIS ONLY IF YOU WANT TO REMOVE KALAVAI-CLIENT from your
+                 device.
+    pause        Pause sharing your device and make your device unavailable for kalavai scheduling.
+    resume       Resume sharing your device and make device available for kalavai scheduling.
+    gpus         Display GPU information from all connected nodes
+    resources    Display information about resources on the pool
+    update       Update kalavai pool
+    status       Run diagnostics on a local installation of kalavai
+    attach       Set creds in token on the local instance
+
+options:
+  -h, --help     show this help message and exit
+</code></pre>
+<h2 id="examples">Examples</h2>
+<h3 id="start-a-seed-node-and-get-token">Start a seed node and get token</h3>
+<pre><code class="language-bash">kalavai pool start &lt;pool-name&gt;
+</code></pre>
+<p>Now you are ready to add worker nodes to this seed. To do so, generate a joining token:</p>
+<pre><code class="language-bash">$ kalavai pool token --user
+
+Join token: &lt;token&gt;
+</code></pre>
+<h3 id="add-worker-nodes">Add worker nodes</h3>
+<pre><code class="language-bash">kalavai pool join &lt;token&gt;
+</code></pre>
+<h3 id="attach-more-clients">Attach more clients</h3>
+<p>You can now connect to an existing pool from any computer -not just from worker nodes. To connect to a pool, run:</p>
+<pre><code class="language-bash">kalavai pool attach &lt;token&gt;
+</code></pre>
+<h3 id="check-resources-in-the-pool">Check resources in the pool</h3>
+<p>List resources are available:</p>
 <pre><code class="language-bash">$ kalavai pool resources
 
 ┏━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓
@@ -732,8 +919,8 @@ $ kalavai pool gpus
 │ pop-os             │ True  │ NVIDIA-NVIDIA GeForce RTX 3050 Ti Laptop GPU (4 GBs) │ 1         │ 1     │
 └────────────────────┴───────┴──────────────────────────────────────────────────────┴───────────┴───────┘
 </code></pre>
-<p>OK, let's deploy! We are going to deploy Qwen2.5-1.5B-Instruct model across 2 machines. We have already prepared a config file for it <a href="/templates/aphrodite/examples/qwen2.5-1.5B.yaml">here</a>. </p>
-<p>With <code>kalavai</code>, you can deploy most LLMs using vLLM or Aphrodite-Engine, with one command, passing all the parameter details within the config file. The <code>run</code> command asks you whether you want to target or avoid certain GPU models; for now, we'll just select <code>0</code>, which will use any GPU available.</p>
+<h3 id="deploy-jobs">Deploy jobs</h3>
+<p>Deploy a job using a template:</p>
 <pre><code class="language-bash">$ kalavai job run aphrodite --values qwen2.5-1.5B.yaml
 
 [01:42:07] SELECT Target GPUs for the job          
@@ -756,8 +943,7 @@ $ kalavai pool gpus
 [01:43:13] Template /home/carlosfm/.cache/kalavai/templates/aphrodite/template.yaml successfully deployed!
 [01:43:15] Service deployed   
 </code></pre>
-<h2 id="5-calling-the-model">5. Calling the model</h2>
-<p>Deploying a model could take several minutes, since we are provisioning the machines, downloading the model and loading it in memory. To check the progress, run the following:</p>
+<p>List available jobs:</p>
 <pre><code class="language-bash">$ kalavai job list
 
 ┏━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━┓
@@ -769,12 +955,6 @@ $ kalavai pool gpus
 [01:48:23] Check detailed status with kalavai job status &lt;name of deployment&gt; 
            Get logs with kalavai job logs &lt;name of deployment&gt; (note it only works when the deployment is complete) 
 </code></pre>
-<p>Once all workers are in the <code>Running</code> state, check the model is ready for inference:</p>
-<pre><code class="language-bash">$ kalavai job logs qwen-1 qwen-1-ps-0
-
-
-</code></pre>
-<p>There are various ways to do so, but for this tutorial we'll use the KoboldAI launched with Aphrodite-Engine. You can see the endpoint by running <code>kalavai job list</code>. In our example: http://100.10.0.2:32136</p>
 
 
 
