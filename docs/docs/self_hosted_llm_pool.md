@@ -55,11 +55,11 @@ Model templates deployed in LLM pools have an optional key parameter to register
 
 Our [LiteLLM](https://github.com/kalavai-net/kalavai-client/tree/main/templates/litellm) template automates the deployment of the API across a pool, database included. To deploy it using the Kalavai GUI, navigate to `Jobs`, then click on the `circle-plus` button, in which you can select a `litellm` template. Set the values of `db_storage` to `litellm-db` (or the one you used above).
 
-![Deploy litellm](/docs/docs/assets/images/ui_deploy_litellm.png)
+![Deploy litellm](assets/images/ui_deploy_litellm.png)
 
 Once the deployment is complete, you can check the LiteLLM endpoint by navigating to `Jobs` and seeing the corresponding endpoint for the `litellm` job.
 
-![Check LiteLLM endpoint](/docs/docs/assets/images/ui_litellm_status.png)
+![Check LiteLLM endpoint](assets/images/ui_litellm_status.png)
 
 
 You will need a virtual key to register models with LiteLLM. For testing you can use the master key defined in your values.yaml under `master_key`, but it is recommended to generate a virtual one that does not have privilege access. The easiest way of doing so is via the admin UI, under http://192.168.68.67:30535/ui (see more details [here](https://docs.litellm.ai/docs/proxy/virtual_keys)).

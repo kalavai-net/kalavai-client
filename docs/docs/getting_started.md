@@ -51,7 +51,7 @@ Note that to use the GUI you will need a free account in the platform. [Create o
 
 After you have logged in with your account, you can create your LLM pool by clicking on the `circle-plus` button. Give the pool a name, and select an IP to use as the pool address. Note that this address will need to be visible by worker machines that want to join in.
 
-![Create an LLM pool](/docs/docs/assets/images/ui_create_cluster.png)
+![Create an LLM pool](assets/images/ui_create_cluster.png)
 
 
 ### 2. Add worker nodes
@@ -63,43 +63,43 @@ Increase the power of your AI pool by inviting others to join. For that, you nee
 - `user`: Can deploy jobs, but lacks admin access over nodes.
 - `worker`: Workers carry on jobs, but cannot deploy their own jobs.
 
-![Invite others to join](/docs/docs/assets/images/ui_devices_invite.png)
+![Invite others to join](assets/images/ui_devices_invite.png)
 
 Copy the joining token and share it with others. On the machines you want to add to the pool, after logging in to kalavai GUI, paste the joining token in the text field under `Access with token`, and click join
 
-![Use the token to join](/docs/docs/assets/images/ui_join_part1.png)
+![Use the token to join](assets/images/ui_join_part1.png)
 
 Kalavai asks you if you want to join (run workloads in the local machine) or attach (use the node to access and control the pool, without running workloads) to the pool. 
 
-![Choose to join or attach](/docs/docs/assets/images/ui_join_part2.png)
+![Choose to join or attach](assets/images/ui_join_part2.png)
 
 
 ### 3. Explore resources
 
 For both seed and worker nodes, the dashboard shows a high level view of the LLM pool: resources available, current utilisation and active devices and deployments.
 
-![Dashboard](/docs/docs/assets/images/ui_dashboard_multiple.png)
+![Dashboard](assets/images/ui_dashboard_multiple.png)
 
 Use the navigation bar to see more details on key resources:
 
 - **Devices**: every machine connected to the pool and its current status
 
-![Devices](/docs/docs/assets/images/ui_all_devices.png)
+![Devices](assets/images/ui_all_devices.png)
 
 - **GPUs**: list of all available and utilised GPUs
 
-![GPUs](/docs/docs/assets/images/ui_all_gpus.png)
+![GPUs](assets/images/ui_all_gpus.png)
 
 - **Jobs**: all models and deployments active in the pool
 
-![Deployments](/docs/docs/assets/images/ui_monitor_jobs.png)
+![Deployments](assets/images/ui_monitor_jobs.png)
 
 
 ### 4. Leave the pool
 
 Any device can leave the pool at any point and its workload will get reassigned. To leave the pool, click the `circle-stop` button on the dashboard, under `Local status` card. Nodes can rejoin at any point [following the above procedure](#2-add-worker-nodes).
 
-![Leave the pool](/docs/docs/assets/images/ui_leave_pool.png)
+![Leave the pool](assets/images/ui_leave_pool.png)
 
 ## What's next
 
