@@ -110,8 +110,6 @@ Not what you were looking for? [Tell us](https://github.com/kalavai-net/kalavai-
 
 The `kalavai-client` is the main tool to interact with the Kalavai platform, to create and manage both local and public pools and also to interact with them (e.g. deploy models). Let's go over its installation. 
 
-From release **v0.5.0, you can now install `kalavai-client` in non-worker computers**. You can run a pool on a set of machines and have the client on a remote computer from which you access the LLM pool. Because the client only requires having python installed, this means more computers are now supported to run it.
-
 
 <details>
 
@@ -167,7 +165,7 @@ pip install kalavai-client
 ```
 
 
-## Createa a local, private LLM pool
+## Create a a local, private LLM pool
 
 > Kalavai is **free to use, no caps, for both commercial and non-commercial purposes**. All you need to get started is one or more computers that can see each other (i.e. within the same network), and you are good to go. If you are interested in join computers in different locations / networks, [contact us](mailto:info@kalavai.net) or [book a demo](https://app.onecal.io/b/kalavai/book-a-demo) with the founders.
 
@@ -193,11 +191,7 @@ Check out [our guide](https://kalavai-net.github.io/kalavai-client/public_llm_po
 
 ## Enough already, let's run stuff!
 
-Check our [examples](examples/) to put your new AI pool to good use!
-- [Single node vLLM GPU LLM](examples/singlenode_gpu_vllm.md) deployment
-- [Multi node vLLM GPU LLM](examples/multinode_gpu_vllm.md) deployment
-- [Aphrodite-engine quantized LLM](examples/quantized_gpu_llm.md) deployment, including Kobold interface
-- [Ray cluster](examples/ray_cluster.md) for distributed computation.
+Check our [examples](examples/) to put your new AI pool to good use! For an end to end tour, check our [self-hosted](https://kalavai-net.github.io/kalavai-client/self_hosted_llm_pool/) and [public LLM pools](https://kalavai-net.github.io/kalavai-client/public_llm_pool/) guides.
 
 
 ## Compatibility matrix
