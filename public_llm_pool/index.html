@@ -1070,17 +1070,18 @@ Summary: Client app for kalavai platform
 <li>For public pools, <strong>only linux systems are currently supported</strong>. You can also use Windows under WSL (Windows Linux Subsystem). This is a temporary limitation of the public VPN we use.</li>
 </ul>
 <h2 id="join-in">Join in</h2>
-<p>Authenticate your computer using the kalavai client:</p>
-<pre><code class="language-bash">$ kalavai login
+<p>All actions from now on can be taken from within the Kalavai GUI. Run it with:</p>
+<pre><code class="language-bash">$ kalavai gui start
 
-Kalavai account details. If you don't have an account, create one at https://platform.kalavai.net                                                                  
-User email: &lt;your.account@email.com&gt;
-Password: 
-[10:56:05] &lt;your.account@email.com&gt; logged in successfully  
+[+] Running 1/1
+ ✔ Container kalavai_gui  Started0.1s  
+Loading GUI, may take a few minutes. It will be available at http://localhost:3000
 </code></pre>
-<p>Get the joining token from <a href="https://platform.kalavai.net">our platform</a>, under Community Pools page. Find the <code>Public-LLMs</code> pool and click JOIN to reveal the joining token. Copy and paste the command on your computer:</p>
-<pre><code class="language-bash">kalavai pool join &lt;TOKEN&gt;
-</code></pre>
+<p>This will expose the GUI and the backend services in localhost. By default, the GUI is accessible via <a href="http://localhost:3000">http://localhost:3000</a></p>
+<p>It'll ask you to authenticate. Use your Kalavai account, or <a href="https://platform.kalavai.net">create one for free</a> if you don't have one.</p>
+<p>To join the pool, look for the <code>Public-LLMs</code> pool and click join. Select <code>join</code> mode.</p>
+<p><strong>Important: Note down the LiteLLM key, as you will need it to register models automatically with the OpenAI-like endpoint and the ChatGPT-like UI playground.</strong></p>
+<p><img alt="All public pools" src="../assets/images/ui_all_pools.png" /></p>
 <p>That's it! Not only you are sharing your computing time with the community, but now you can tap into a large pool of resources (GPUs, CPUs, RAM...), <strong>and</strong> any LLM deployed on them.</p>
 <h2 id="what-can-you-do-in-the-pool">What can you do in the pool?</h2>
 <p>Public shared pools are both <strong>public</strong> (anyone can join in) and <strong>shared</strong> (raw resources and deployments are accessible by all). This means any user that is part of the pool can check out the models already present in it, run inference on them, an deploy new ones with the resources available.</p>
@@ -1090,31 +1091,16 @@ Password:
 <li>Single API endpoint for HTTP requests</li>
 <li>Unified ChatGPT-like UI playground</li>
 </ol>
+<p>Both can be accessed via endpoints private to members of the pool. They are displayed by navigating to <code>Jobs</code>.</p>
+<p><img alt="Display pool endpoints" src="../assets/images/ui_monitor_jobs.png" /></p>
 <h4 id="ui-playground">UI Playground</h4>
-<p>The pool comes with an OpenWebUI deployment to make it easy to test model inference with LLMs via the browser. To check the endpoint, use the kalavai client to locate the playground deployment:</p>
-<pre><code class="language-bash">$ kalavai job list
-
-┏━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ Owner   ┃ Deployment ┃ Workers  ┃ Endpoint                                 ┃
-┡━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
-│ default │ playground │ Ready: 1 │ http://100.10.0.5:31912 (mapped to 8080) │
-└─────────┴────────────┴──────────┴──────────────────────────────────────────┘
-</code></pre>
-<p>Within the UI you can select the model you wish to test and have a chat.</p>
+<p>The pool comes with an OpenWebUI deployment (<code>playground</code> job) to make it easy to test model inference with LLMs via the browser. Within the UI you can select the model you wish to test and have a chat.</p>
 <p><img alt="Playground UI" src="../assets/images/webui.png" /></p>
 <p><em><strong>Note:</strong> the playground is a shared instance to help users test models without code and should not be used in production. You need to create a playground account to access it. This can be different to your Kalavai account details. The creation of a new user is necessary to keep things like user chat history and preferences.</em></p>
 <h4 id="single-api-endpoint">Single API endpoint</h4>
 <p>All interactions to models in the pool are brokered by a <a href="https://docs.litellm.ai/docs/">LiteLLM endpoint</a> that is installed in the system. To interact with it you need a LITELLM_URL and a LITELLM_KEY.</p>
-<p>The <code>LITELLM_URL</code> can be found using the kalavai client, as the endpoint of the <code>litellm-1</code> deployment:</p>
-<pre><code class="language-bash">$ kalavai job list
-
-┏━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ Owner   ┃ Deployment ┃ Workers  ┃ Endpoint                                 ┃
-┡━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
-│ default │ litellm    │ Ready: 3 │ http://100.10.0.5:30916 (mapped to 4000) │
-└─────────┴────────────┴──────────┴──────────────────────────────────────────┘
-</code></pre>
-<p>The <code>LITELLM_KEY</code> is shown on the Community Pool page of <a href="https://platform.kalavai.net">our platform</a>.</p>
+<p>The <code>LITELLM_URL</code> is the endpoint displayed in the <code>Jobs</code> page for the <code>litellm</code> job.</p>
+<p>The <code>LITELLM_KEY</code> is shown on the <code>My LLM Pools</code> page of <a href="https://platform.kalavai.net">our platform</a>. It is also displayed in the description of the pool when you join it.</p>
 <p><img alt="LiteLLM key shown" src="../assets/images/litellm_key.png" /></p>
 <p>In this example:</p>
 <ul>
@@ -1202,75 +1188,25 @@ if __name__ == &quot;__main__&quot;:
 <p>We are constantly adding new templates, so if your favourite one is not yet available, request it in our <a href="https://github.com/kalavai-net/kalavai-client/issues">issues page</a>.</p>
 <h4 id="new-vllm-model">New vLLM model</h4>
 <p>Here we'll deploy an LLM across 2 machines using vLLM. Check our <a href="https://github.com/kalavai-net/kalavai-client/tree/main/templates/vllm">template documentation</a> or our <a href="https://github.com/kalavai-net/kalavai-client/blob/main/examples/multinode_gpu_vllm.md">multi-node deployment guide</a> for more details and parameters with vLLM. Deploying with <a href="https://github.com/kalavai-net/kalavai-client/blob/main/templates/llamacpp/README.md">llama.cpp</a> is similar too.</p>
-<p>You need the LiteLLM KEY of the pool. See <a href="#a-use-existing-models">here for details on how to get it</a>.</p>
-<p>Create a <code>values.yaml</code> file that will include the parameters to pass to the vLLM engine:</p>
-<pre><code class="language-yaml">- name: litellm_key
-  value: &quot;&lt;LITELLM_KEY&gt;&quot;
-  default: &quot;&quot;
-  description: &quot;Master key of the LiteLLM service (central registry)&quot;
-
-- name: workers
-  value: 2
-  default: 1
-  description: &quot;Number of remote workers (for tensor and pipeline parallelism). This is in addition to the main node&quot;
-
-- name: model_id
-  value: Qwen/Qwen2.5-1.5B-Instruct
-  default: null
-  description: &quot;Huggingface model id to load&quot;
-
-- name: pipeline_parallel_size
-  value: 2
-  default: 1
-  description: &quot;Pipeline parallelism (use the number of nodes)&quot;
+<p>You need the <code>LiteLLM KEY</code> of the pool. See <a href="#a-use-existing-models">here for details on how to get it</a>.</p>
+<p>Navigate to the <code>Jobs</code> page and click the <code>circle-plus</code> button to create a new deployment. Select the <code>vLLM</code> template, and fill up the following fields (leave the rest as default):</p>
+<pre><code>- litellm_key: &quot;&lt;your LiteLLM Key&gt;&quot;
+- workers: 2
+- model_id: Qwen/Qwen2.5-1.5B-Instruct
+- pipeline_parallel_size: 2
 </code></pre>
-<p>Use the kalavai client to deploy your model. Choose option <code>0</code> to let kalavai select any available GPU device in the pool:</p>
-<pre><code class="language-bash">$ kalavai job run vllm --values values.yaml
-
-Checking current GPU stock...
-
-SELECT Target GPUs for the job (loading models)   
-0) Any/None
-1) NVIDIA-NVIDIA GeForce RTX 2070 (8GB) (in use: False)
-2) NVIDIA-NVIDIA GeForce RTX 3060 (12GB) (in use: False)
-3) NVIDIA-NVIDIA GeForce RTX 3050 Ti Laptop GPU (4GB) (in use: False)
---&gt;  : 0
-
-AVOID Target GPUs for the job (loading models) 
-0) Any/None
-1) NVIDIA-NVIDIA GeForce RTX 2070 (8GB) (in use: False)
-2) NVIDIA-NVIDIA GeForce RTX 3060 (12GB) (in use: False)
-3) NVIDIA-NVIDIA GeForce RTX 3050 Ti Laptop GPU (4GB) (in use: False)
---&gt;  : 0
-
-Template templates/vllm/template.yaml successfully deployed!  
-</code></pre>
-<p>Check progress of your deployment:</p>
-<pre><code class="language-bash">$ kalavai job list
-
-┏━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ Owner   ┃ Deployment                 ┃ Workers    ┃ Endpoint                                 ┃
-┡━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
-│ default │ litellm-1                  │ Ready: 3   │ http://100.10.0.5:30916 (mapped to 4000) │
-├─────────┼────────────────────────────┼────────────┼──────────────────────────────────────────┤
-│ &lt;user&gt;  │ qwen-qwen2-5-1-5b-instruct │ Ready: 1   │                                          │
-│         │                            │ Pending: 2 │                                          │
-└─────────┴────────────────────────────┴────────────┴──────────────────────────────────────────┘
-</code></pre>
-<p>Your model will appear listed under your user (<user>) ownership. <strong>Note</strong> once all workers are listed as Ready, the model still needs to be loaded onto the machines and thus it may take some time for it to be available through the LiteLLM API. You can check the workers progress:</p>
-<pre><code class="language-bash">kalavai job logs qwen-qwen2-5-1-5b-instruct
-</code></pre>
+<p><img alt="Deploying Qwen" src="../assets/images/ui_qwen_deploy.png" /></p>
+<p>To know more information about each parameter, hover the mouse over it. Once you are ready, click <code>Deploy</code>.</p>
+<p>You can check the progress of your deployment by navigating to the <code>Jobs</code> page. Your model will appear listed under your user (<user>) ownership.</p>
 <p>Note: <em>models may take several minutes to be ready, particularly if the model weights are large</em>. This is due to the time the system takes to 1) download the models from source and 2) distribute them to the memory of each device. This is an overhead that only happens once per deployment.</p>
-<p>Once the model is loaded, you can interact with it <a href="#a-use-existing-models">as you would with any other model via the LiteLLM API</a>.</p>
+<p><img alt="Deployed Qwen" src="../assets/images/ui_qwen_submitted.png" /></p>
+<p>Once the model status appears as <code>Running</code>, you can interact with it <a href="#a-use-existing-models">as you would with any other model via the LiteLLM API</a>.</p>
 <h4 id="whats-next">What's next?</h4>
 <p>Enjoy your new supercomputer, check out our <a href="https://github.com/kalavai-net/kalavai-client/tree/main/templates">templates</a> and <a href="https://github.com/kalavai-net/kalavai-client/tree/main/examples">examples</a> for more model engines and <a href="https://discord.gg/YN6ThTJKbM">keep us posted</a> on what you achieve!</p>
 <h4 id="how-many-resources-to-request">How many resources to request?</h4>
 <p>For this job example we don't need to tweak resource parameters (the model fits in a single worker), but for other models you may need to up the number of workers, desired RAM, etc. For more details on how to choose resources for jobs, <a href="../choose_job_resources/">check out this guide</a>.</p>
 <h4 id="delete-deployment">Delete deployment</h4>
-<p>You are welcome to leave the model running for others, but if you wish to remove your deployment, you can do so at any time with the kalavai client:</p>
-<pre><code class="language-bash">kalavai job delete &lt;deployment name&gt;
-</code></pre>
-<p>where the <deployment name> is the name listed under <code>kalavai job list</code>.</p>
+<p>You are welcome to leave the model running for others, but if you wish to remove your deployment, you can do so at any time by navigating to the <code>Jobs</code> page, selecting the job and clicking the bin icon.</p>
 <h2 id="faqs">FAQs</h2>
 <blockquote>
 <p>Work in Progress!</p>
