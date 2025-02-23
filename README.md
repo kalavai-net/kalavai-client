@@ -27,6 +27,19 @@
 
 Kalavai's goal is to make using LLMs in real applications accessible and affordable to all. It's a _magic box_ that **integrates all the components required to make LLM useful in the age of massive computing**, from sourcing computing power, managing distributed infrastructure and storage, using industry-standard model engines and orchestration of LLMs. 
 
+### Core features
+
+- Manage **multiple devices resources as one**. One pool of RAM, CPUs and GPUs
+- **Deploy Large Language Models seamlessly across devices**, wherever they are (multiple clouds, on premises, personal devices)
+- Auto-discovery: all **models are automatically exposed** through a single OpenAI-like API and a ChatGPT-like UI playground
+- Compatible with [most popular model engines](#support-for-llm-engines)
+- [Easy to expand](https://github.com/kalavai-net/kube-watcher/tree/main/templates) to custom workloads
+
+
+<details>
+
+**<summary>Video tutorials</summary>**
+
 ### Aggregate multiple devices in an LLM pool
 
 https://github.com/user-attachments/assets/4be59886-1b76-4400-ab5c-c803e3e414ec
@@ -44,12 +57,16 @@ https://github.com/user-attachments/assets/7df73bbc-d129-46aa-8ce5-0735177dedeb
 https://github.com/user-attachments/assets/0d2316f3-79ea-46ac-b41e-8ef720f52672
 
 
-### News updates
+</details>
 
-<img src="docs/docs/assets/images/DeepSeek-Emblem.png" width="100">
+### Latest updates
 
+- 20 February 2025: New shiny GUI interface to control LLM pools and deploy models
 - 6 February 2025: 🔥🔥🔥 Access  **DeepSeek R1 model for free** when you join our [public LLM pool](https://kalavai-net.github.io/kalavai-client/public_llm_pool/)
 - 31 January 2025: `kalavai-client` is now a [PyPI package](https://pypi.org/project/kalavai-client/), easier to install than ever!
+<details>
+<summary>More news</summary>
+
 - 27 January 2025: Support for accessing pools from remote computers
 - 9 January 2025: Added support for [Aphrodite Engine](https://github.com/aphrodite-engine/aphrodite-engine) models
 - 8 January 2025: Release of [a free, public, shared pool](/docs/docs/public_llm_pool.md) for community LLM deployment
@@ -58,6 +75,7 @@ https://github.com/user-attachments/assets/0d2316f3-79ea-46ac-b41e-8ef720f52672
 - 24 November 2024: Common pools with private user spaces
 - 30 October 2024: Release of our [public pool platform](https://platform.kalavai.net)
 
+</details>
 
 ### Support for LLM engines
 
@@ -95,6 +113,10 @@ The `kalavai-client` is the main tool to interact with the Kalavai platform, to 
 From release **v0.5.0, you can now install `kalavai-client` in non-worker computers**. You can run a pool on a set of machines and have the client on a remote computer from which you access the LLM pool. Because the client only requires having python installed, this means more computers are now supported to run it.
 
 
+<details>
+
+<summary>Requirements</summary>
+
 ### Requirements
 
 For workers sharing resources with the pool:
@@ -106,8 +128,11 @@ For workers sharing resources with the pool:
 
 Any system that runs python 3.6+ is able to run the `kalavai-client` and therefore connect and operate an LLM pool, [without sharing with the pool](). Your computer won't be adding its capacity to the pool, but it wil be able to deploy jobs and interact with models.
 
+</details>
 
-#### Common issues
+<details>
+
+<summary> Common issues</summary>
 
 If you see the following error:
 
@@ -131,6 +156,7 @@ Upgrade your setuptools:
 ```bash
 pip install -U setuptools
 ```
+</details>
 
 ### Install the client
 
@@ -140,6 +166,24 @@ The client is a python package and can be installed with one command:
 pip install kalavai-client
 ```
 
+
+## Createa a local, private LLM pool
+
+> Kalavai is **free to use, no caps, for both commercial and non-commercial purposes**. All you need to get started is one or more computers that can see each other (i.e. within the same network), and you are good to go. If you are interested in join computers in different locations / networks, [contact us](mailto:info@kalavai.net) or [book a demo](https://app.onecal.io/b/kalavai/book-a-demo) with the founders.
+
+You can create and manage your pools with the new kalavai GUI, which can be started with:
+
+```bash
+kalavai gui start
+```
+
+This will expose the GUI and the backend services in localhost. By default, the GUI is accessible via [http://localhost:3000](http://localhost:3000). In the UI users can create and join LLM pools, monitor devices, deploy LLMs and more.
+
+![Kalavai logo](docs/docs/assets/images/ui_dashboard_multiple.png)
+
+Check out our [getting started guide](https://kalavai-net.github.io/kalavai-client/getting_started/) for next steps.
+
+
 ## Public LLM pools: crowdsource community resources
 
 This is the **easiest and most powerful** way to experience Kalavai. It affords users the full resource capabilities of the community and access to all its deployed LLMs, via an [OpenAI-compatible endpoint](https://kalavai-net.github.io/kalavai-client/public_llm_pool/#single-api-endpoint) as well as a [UI-based playground](https://kalavai-net.github.io/kalavai-client/public_llm_pool/#ui-playground).
@@ -147,47 +191,7 @@ This is the **easiest and most powerful** way to experience Kalavai. It affords 
 Check out [our guide](https://kalavai-net.github.io/kalavai-client/public_llm_pool/) on how to join and start deploying LLMs.
 
 
-## Createa a local, private LLM pool
-
-Kalavai is **free to use, no caps, for both commercial and non-commercial purposes**. All you need to get started is one or more computers that can see each other (i.e. within the same network), and you are good to go. If you wish to join computers in different locations / networks, check [managed kalavai](#public-pools-crowdsource-community-resources).
-
-### 1. Start a seed node
-
-Simply use the client to start your seed node:
-
-```bash
-kalavai pool start <pool-name>
-```
-
-Now you are ready to add worker nodes to this seed. To do so, generate a joining token:
-```bash
-$ kalavai pool token --user
-
-Join token: <token>
-```
-
-### 2. Add worker nodes
-
-Increase the power of your AI pool by inviting others to join.
-
-Copy the joining token. On the worker node, run:
-
-```bash
-kalavai pool join <token>
-```
-
-### 3. Attach more clients
-
-You can now connect to an existing pool from any computer -not just from worker nodes. To connect to a pool, run:
-
-```bash
-kalavai pool attach <token>
-```
-
-This won't add the machine as a worker, but you will be able to operate in the pool as if you were. This is ideal for remote access to the pool, and to use the pool from machines that cannot run workers (docker container limitations).
-
-
-### Enough already, let's run stuff!
+## Enough already, let's run stuff!
 
 Check our [examples](examples/) to put your new AI pool to good use!
 - [Single node vLLM GPU LLM](examples/singlenode_gpu_vllm.md) deployment
@@ -199,6 +203,10 @@ Check our [examples](examples/) to put your new AI pool to good use!
 ## Compatibility matrix
 
 If your system is not currently supported, [open an issue](https://github.com/kalavai-net/kalavai-client/issues) and request it. We are expanding this list constantly.
+
+<details>
+
+**<summary>Hardware and OS compatibility </summary>**
 
 ### OS compatibility
 
@@ -213,6 +221,7 @@ The kalavai client, which controls and access pools, can be installed on any mac
 - NVIDIA GPU
 - AMD and Intel GPUs are currently not supported ([interested in helping us test it?](https://kalavai-net.github.io/kalavai-client/compatibility/#help-testing-amd-gpus))
 
+</details>
 
 ## Roadmap
 
@@ -224,6 +233,7 @@ The kalavai client, which controls and access pools, can be installed on any mac
 - [x] Collaborative LLM deployment
 - [x] Ray cluster support
 - [x] Kalavai client on Mac
+- [x] Kalavai pools UI
 - [ ] [TEMPLATE] [GPUStack](https://github.com/gpustack/gpustack) support
 - [ ] [TEMPLATE] [exo](https://github.com/exo-explore/exo) support
 - [ ] Support for AMD GPUs
@@ -249,7 +259,9 @@ Anything missing here? Give us a shout in the [discussion board](https://github.
 
 ## Build from source
 
-### Requirements
+<details>
+
+<summary>Expand</summary>
 
 Python version >= 3.6.
 
@@ -269,6 +281,7 @@ Build python wheels:
 bash publish.sh build
 ```
 
+</details>
 
 ### Unit tests
 
@@ -277,5 +290,3 @@ To run the unit tests, use:
 ```bash
 python -m unittest
 ```
-
-docker run --rm --net=host -v   /root/.cache/kalavai/:/root/.cache/kalavai/  ghcr.io/helmfile/helmfile:v0.169.2 helmfile sync --file  /root/.cache/kalavai/apps.yaml --kubeconfig /root/.cache/kalavai/kubeconfig
