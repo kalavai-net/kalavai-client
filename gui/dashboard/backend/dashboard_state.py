@@ -5,10 +5,7 @@ import reflex as rx
 from plotly.graph_objects import Figure
 import plotly.graph_objects as go
 
-from kalavai_client.core import (
-    fetch_resources,
-    fetch_job_names
-)
+from ..backend.utils import request_to_kalavai_core
 
 class DashboardState(rx.State):
     """The state class."""
@@ -44,9 +41,15 @@ class DashboardState(rx.State):
         async with self:
             self.is_loading = True
         
-        resources = fetch_resources()
+        resources = request_to_kalavai_core(
+            method="get",
+            endpoint="fetch_resources"
+        )
 
-        all_jobs = fetch_job_names()
+        all_jobs = request_to_kalavai_core(
+            method="get",
+            endpoint="fetch_job_names"
+        )
         
         async with self:
             # Resource utilisation

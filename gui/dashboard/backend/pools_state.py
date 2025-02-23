@@ -4,19 +4,7 @@ import asyncio
 import reflex as rx
 
 from ..backend.main_state import MainState
-from kalavai_client.core import (
-    list_available_pools,
-    attach_to_pool,
-    stop_pool,
-    join_pool,
-    is_connected,
-    is_agent_running,
-    is_server,
-    pause_agent,
-    resume_agent,
-    create_pool,
-    get_ip_addresses
-)
+from ..backend.utils import request_to_kalavai_core
 
 
 class Pool(rx.Base):
@@ -34,6 +22,8 @@ class PoolsState(rx.State):
     connected_to_server: bool = False
     agent_running: bool = False
     is_server: bool = False
+    token_modes: List[str] = ["Admin", "User", "Worker"]
+    token: str = ""
 
     total_items: int = 0
     offset: int = 0
@@ -80,7 +70,9 @@ class PoolsState(rx.State):
         
         async with self:
             # load available pools
-            pools = list_available_pools()
+            pools = request_to_kalavai_core(
+                method="get",
+                endpoint="list_available_pools")
             self.items = [
                 Pool(data=data) for data in pools
             ]
@@ -92,7 +84,9 @@ class PoolsState(rx.State):
         async with self:
             self.is_loading = True
 
-        ip_addresses = get_ip_addresses()
+        ip_addresses = request_to_kalavai_core(
+            method="get",
+            endpoint="get_ip_addresses")
 
         async with self:
             self.ip_addresses = ip_addresses
@@ -113,7 +107,11 @@ class PoolsState(rx.State):
                     formatted_data[key] = int(value)
                 else:
                     formatted_data[key] = value
-        result = create_pool(**formatted_data)
+        result = request_to_kalavai_core(
+            method="post",
+            endpoint="create_pool",
+            json=formatted_data)
+        print(result)
         if "error" in result:
             return rx.toast.error(result["error"], position="top-center")
 
@@ -124,14 +122,20 @@ class PoolsState(rx.State):
             return rx.toast.success("Pool created", position="top-center")
         
     @rx.event(background=True)
-    async def join(self, token):
+    async def join(self):
         async with self:
             self.is_loading = True
         
         if self.selected_join_action == "Join":
-            result = join_pool(token=token)
+            result = request_to_kalavai_core(
+                method="post",
+                endpoint="join_pool",
+                json={"token":self.token})
         else:
-            result = attach_to_pool(token=token)
+            result = request_to_kalavai_core(
+                method="post",
+                endpoint="attach_to_pool",
+                json={"token":self.token})
 
         async with self:
             if "error" in result:
@@ -149,7 +153,10 @@ class PoolsState(rx.State):
             self.is_loading = True
         
         async with self:
-            result = stop_pool()
+            result = request_to_kalavai_core(
+                method="post",
+                endpoint="stop_pool",
+                json={})
             if "error" in result:
                 self.is_loading = False
                 return rx.toast.error(result["error"], position="top-center")
@@ -164,13 +171,19 @@ class PoolsState(rx.State):
             self.is_loading = True
 
         async with self:
-            self.agent_running = is_agent_running()
+            self.agent_running = request_to_kalavai_core(
+                method="get",
+                endpoint="is_agent_running")
         
         async with self:
-            self.connected_to_server = is_connected()
+            self.connected_to_server = request_to_kalavai_core(
+                method="get",
+                endpoint="is_connected")
         
         async with self:
-            self.is_server = is_server()
+            self.is_server = request_to_kalavai_core(
+                method="get",
+                endpoint="is_server")
             self.is_loading = False
 
     @rx.event(background=True)
@@ -178,7 +191,9 @@ class PoolsState(rx.State):
         async with self:
             self.is_loading = True
 
-        result = pause_agent()
+        result = request_to_kalavai_core(
+            method="post",
+            endpoint="pause_agent")
         async with self:
             if "error" in result:
                 self.is_loading = False
@@ -193,7 +208,9 @@ class PoolsState(rx.State):
         async with self:
             self.is_loading = True
 
-        result = resume_agent()
+        result = request_to_kalavai_core(
+            method="post",
+            endpoint="resume_agent")
         async with self:
             if "error" in result:
                 self.is_loading = False
@@ -203,4 +220,19 @@ class PoolsState(rx.State):
             self.is_loading = False
             return rx.toast.success("Agent restarted", position="top-center")
 
-    
+    @rx.event
+    def get_pool_token(self, mode):
+        result = request_to_kalavai_core(
+            method="get",
+            endpoint="get_pool_token",
+            params={"mode": self.token_modes.index(mode)}
+        )
+        if "error" in result:
+            self.update_token("")
+            return rx.toast.error(result["error"], position="top-center")
+        else:
+            self.token = result["token"]
+
+    @rx.event
+    def update_token(self, token):
+        self.token = token

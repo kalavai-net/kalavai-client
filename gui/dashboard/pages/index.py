@@ -13,10 +13,14 @@ pools_view = PoolsView()
 
 def render_login() -> rx.Component:
     return rx.flex(
-        rx.cond(
-            MainState.is_logged_in,
-            rx.card(rx.text(f"Welcome back, {MainState.logged_user}"), rx.button("Sign out", on_click=MainState.signout, loading=PoolsState.is_loading)),
-            rx.card(
+        rx.card(
+            rx.cond(
+                MainState.is_loading,
+                rx.hstack(
+                    rx.spinner(size="3"),
+                    rx.text("Signing in..."),
+                    spacing="3"
+                ),
                 rx.vstack(
                     rx.center(
                         rx.heading(
@@ -88,10 +92,11 @@ def render_login() -> rx.Component:
                     spacing="4",
                     width="100%",
                 ),
-                max_width="28em",
-                size="4",
-                width="100%",
+
             ),
+            max_width="28em",
+            size="4",
+            width="100%",
         ),
         align="center",
         justify="center"
@@ -99,18 +104,29 @@ def render_login() -> rx.Component:
 
 def render_pool_manager() -> rx.Component:
     return rx.flex(
-        rx.hstack(
+        rx.cond(
+            MainState.is_connected,
+            rx.vstack(
+                rx.link(
+                    rx.button("Access dashboard"),
+                    href="/dashboard",
+                    color_scheme="purple",
+                    is_external=False,
+                ),
+                rx.card(rx.text(f"Welcome back, {MainState.logged_user}"), rx.button("Sign out", on_click=MainState.signout, loading=PoolsState.is_loading)),
+                spacing="3"
+            ),
             rx.vstack(
                 rx.heading("Kalavai pool manager"),
                 rx.text("You are not connected to any LLM pool."),
+                rx.text("Pools you have access to", size="4", weight="bold"),
                 pools_view.main_table(),
+                pools_view.custom_join(),
                 spacing="4"
-            ),
-            rx.box(render_login()),
-            width="100%",
-            justify="between"
+            ),            
         ),
-        width="100%"
+        width="100%",
+        justify="center"
     )
 
 @template(route="/", title="Home", on_load=[MainState.load_state, PoolsState.refresh_status])
@@ -122,11 +138,7 @@ def index() -> rx.Component:
 
     """
     return rx.cond(
-        MainState.is_connected,
-        rx.link(
-            rx.button("Connected!"),
-            href="/dashboard",
-            is_external=False,
-        ),
-        render_pool_manager()
+        MainState.is_logged_in,
+        render_pool_manager(),
+        render_login()
     )

@@ -1,54 +1,96 @@
 ---
 tags:
-  - quickstart
+  - cli
+  - command line
 ---
 
-# Quickstart
+# Kalavai from the command line (CLI)
 
-For this guide we assume you have either a compatible linux machine or WSL running on windows. For more info, check our [getting started](getting_started.md) guide.
-
-Goal: to get you up and running as fast and painlessly as possible, from zero to distributed LLM deployment across community devices.
-
-
-## 1. Download Kalavai
-
-Download and install the latest version of `kalavai`:
+The full functionality set of Kalavai LLM Pools can be accessed via the command line. This is ideal when working with Virtual Machines in the cloud or in automating workflows where GUI access is not possible or not required.
 
 ```bash
-curl -sfL https://raw.githubusercontent.com/kalavai-net/kalavai-client/main/assets/install_client.sh | bash -
+$ kalavai --help
+
+usage: kalavai [-h] command ...
+
+positional arguments:
+  command
+    login     [AUTH] (For public clusters only) Log in to Kalavai server.
+    logout    [AUTH] (For public clusters only) Log out of Kalavai server.
+    gui
+    location
+    pool
+    storage
+    node
+    job
+    ray
+
+options:
+  -h, --help  show this help message and exit
 ```
 
-## 2. Create a free account
+For help on a specific command, or group of commands, you can use the --help flag:
+```bash
+$ kalavai pool --help
 
-Go to [our platform](https://platform.kalavai.net) and register to get an account. You'll need the credentials later.
+usage: kalavai pool [-h] command ...
 
-## 3. Join a public computing pool
+positional arguments:
+  command
+    publish      [AUTH] Publish pool to Kalavai platform, where other users may be able to join
+    unpublish    [AUTH] Unpublish pool to Kalavai platform. Cluster and all its workers will still work
+    list         [AUTH] List public pools in to Kalavai platform.
+    start        Start Kalavai pool and start/resume sharing resources.
+    token        Generate a join token for others to connect to your pool
+    check-token  Utility to check the validity of a join token
+    join         Join Kalavai pool and start/resume sharing resources.
+    stop         Stop sharing your device and clean up. DO THIS ONLY IF YOU WANT TO REMOVE KALAVAI-CLIENT from your
+                 device.
+    pause        Pause sharing your device and make your device unavailable for kalavai scheduling.
+    resume       Resume sharing your device and make device available for kalavai scheduling.
+    gpus         Display GPU information from all connected nodes
+    resources    Display information about resources on the pool
+    update       Update kalavai pool
+    status       Run diagnostics on a local installation of kalavai
+    attach       Set creds in token on the local instance
 
-Computing pools are the heart and soul of Kalavai. It's a shared space where developers, researchers and enthusiasts join in with their computing power for the benefit of the community, so each user can go beyond the hardware they own.
+options:
+  -h, --help     show this help message and exit
+```
 
-In the platform, go to `Computing Pools` and click `JOIN` on any of the pools shown. This will display the details on how to join using the `kalavai` client.
+## Examples
 
-![Public pools](/docs/docs/assets/images/public_seeds.png)
-
-
-Paste the command and run it in your computer. After a few minutes you should be connected and ready to deploy!
+### Start a seed node and get token
 
 ```bash
-$ kalavai pool join <join token>
-
-[01:24:45] Token format is correct                                                                                                                               
-[sudo] password for carlosfm: 
-[01:24:48] Joining private network                                                                                                                               
-[KalavaiAuthClient]Logged in as carlosfm
-[01:25:01] Scanning for valid IPs...  
-           Using 100.10.0.7 address for worker    
-            Connecting to publicllm @ 100.10.0.2 (this may take a few minutes)...
-            You are connected to publicllm
+kalavai pool start <pool-name>
 ```
 
-## 4. Deploy an LLM
+Now you are ready to add worker nodes to this seed. To do so, generate a joining token:
+```bash
+$ kalavai pool token --user
 
-We are now ready to deploy an LLM across the available resources. First, let's check what resources are available:
+Join token: <token>
+```
+
+### Add worker nodes
+
+
+```bash
+kalavai pool join <token>
+```
+
+### Attach more clients
+
+You can now connect to an existing pool from any computer -not just from worker nodes. To connect to a pool, run:
+
+```bash
+kalavai pool attach <token>
+```
+
+### Check resources in the pool
+
+List resources are available:
 
 ```bash
 $ kalavai pool resources
@@ -74,10 +116,9 @@ $ kalavai pool gpus
 └────────────────────┴───────┴──────────────────────────────────────────────────────┴───────────┴───────┘
 ```
 
-OK, let's deploy! We are going to deploy Qwen2.5-1.5B-Instruct model across 2 machines. We have already prepared a config file for it [here](/templates/aphrodite/examples/qwen2.5-1.5B.yaml). 
+### Deploy jobs
 
-With `kalavai`, you can deploy most LLMs using vLLM or Aphrodite-Engine, with one command, passing all the parameter details within the config file. The `run` command asks you whether you want to target or avoid certain GPU models; for now, we'll just select `0`, which will use any GPU available.
-
+Deploy a job using a template:
 ```bash
 $ kalavai job run aphrodite --values qwen2.5-1.5B.yaml
 
@@ -102,9 +143,7 @@ $ kalavai job run aphrodite --values qwen2.5-1.5B.yaml
 [01:43:15] Service deployed   
 ```
 
-## 5. Calling the model
-
-Deploying a model could take several minutes, since we are provisioning the machines, downloading the model and loading it in memory. To check the progress, run the following:
+List available jobs:
 
 ```bash
 $ kalavai job list
@@ -118,16 +157,3 @@ $ kalavai job list
 [01:48:23] Check detailed status with kalavai job status <name of deployment> 
            Get logs with kalavai job logs <name of deployment> (note it only works when the deployment is complete) 
 ```
-
-Once all workers are in the `Running` state, check the model is ready for inference:
-
-```bash
-$ kalavai job logs qwen-1 qwen-1-ps-0
-
-
-```
-
- There are various ways to do so, but for this tutorial we'll use the KoboldAI launched with Aphrodite-Engine. You can see the endpoint by running `kalavai job list`. In our example: http://100.10.0.2:32136
-
-
-

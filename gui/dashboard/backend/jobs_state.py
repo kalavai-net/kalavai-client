@@ -2,15 +2,7 @@ from typing import List
 
 import reflex as rx
 
-from kalavai_client.core import (
-    fetch_job_names,
-    fetch_job_details,
-    fetch_job_logs,
-    fetch_job_templates,
-    fetch_job_defaults,
-    deploy_job,
-    delete_job
-)
+from ..backend.utils import request_to_kalavai_core
 
 
 class Job(rx.Base):
@@ -73,7 +65,10 @@ class JobsState(rx.State):
             self.templates = []
             self.template_params = []
 
-        templates = fetch_job_templates()
+        templates = request_to_kalavai_core(
+            method="get",
+            endpoint="fetch_job_templates"
+        )
         if "error" in templates:
             print("Error when fetching templates:", templates)
         else:
@@ -86,7 +81,11 @@ class JobsState(rx.State):
             self.selected_template = template
             self.template_params = []
         
-        params = fetch_job_defaults(name=self.selected_template)
+        params = request_to_kalavai_core(
+            method="get",
+            endpoint="fetch_job_defaults",
+            params={"name": self.selected_template}
+        )
         async with self:
             self.template_params = [p for p in params if p["name"] not in self.FORBIDDEN_PARAMS]
 
@@ -102,11 +101,16 @@ class JobsState(rx.State):
     async def remove_entries(self):
         async with self:
             for row in self.selected_rows:
-                result = delete_job(
-                    name=self.items[row].data["name"]
+                result = request_to_kalavai_core(
+                    method="post",
+                    endpoint="delete_job",
+                    json={"name": self.items[row].data["name"]}
                 )
-                print(result)
-    
+                if "error" in result:
+                    return rx.toast.error(result["error"], position="top-center")
+                else:
+                    return rx.toast.success("Jobs deleted", position="top-center")
+
     @rx.event(background=True)
     async def deploy_job(self, form_data: dict):
         # TODO: parse form values
@@ -117,9 +121,13 @@ class JobsState(rx.State):
         async with self:
             print("job deployed:", form_data)
         
-        result = deploy_job(
-            template_name=self.selected_template,
-            values_dict=form_data
+        result = request_to_kalavai_core(
+            method="post",
+            endpoint="deploy_job",
+            json={
+                "template_name": self.selected_template,
+                "values": form_data
+            }
         )
         if "error" in result:
             print(result)
@@ -129,9 +137,13 @@ class JobsState(rx.State):
         async with self:
             self.logs = None
         
-        logs = fetch_job_logs(
-            job_name=self.items[index].data["name"],
-            force_namespace=self.items[index].data["owner"]
+        logs = request_to_kalavai_core(
+            method="get",
+            endpoint="fetch_job_logs",
+            json={
+                "job_name": self.items[index].data["name"],
+                "force_namespace": self.items[index].data["owner"]
+            }
         )
         async with self:
             if "error" in logs:
@@ -155,14 +167,16 @@ class JobsState(rx.State):
         async with self:
             self.is_loading = True
         
-        all_jobs = fetch_job_names()
+        all_jobs = request_to_kalavai_core(
+            method="get",
+            endpoint="fetch_job_names")
         
         if "error" in all_jobs:
             async with self:
-                print(f"Error when fetching jobs: {all_jobs}")
                 self.items = []
                 self.total_items = 0
                 self.is_loading = False
+                return rx.toast.error(f"Error when fetching jobs: {all_jobs}", position="top-center")
         else:
             async with self:
                 # job names
@@ -170,7 +184,7 @@ class JobsState(rx.State):
                 for job in all_jobs:
                     self.items.append(
                         Job(
-                            data=job.dict(),
+                            data=job,
                             status=""
                         )
                     )
@@ -180,12 +194,15 @@ class JobsState(rx.State):
             async with self:
                 # go into details
                 self.items = []
-                details = fetch_job_details(jobs=all_jobs)
+                details = request_to_kalavai_core(
+                    method="post",
+                    endpoint="fetch_job_details",
+                    json={"jobs": all_jobs})
                 if "error" not in details:
                     for job_details in details:
                         self.items.append(
                             Job(
-                                data=job_details.dict()
+                                data=job_details
                             )
                         )
                 self.is_loading = False

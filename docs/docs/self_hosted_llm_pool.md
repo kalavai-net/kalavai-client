@@ -21,114 +21,23 @@ This guide will show you how to start a **self-hosted LLM pool** with your own h
 
 ## What you'll achieve
 
-1. Create a local pool
-2. Configure unified LLM interface
-3. Deploy a llamacpp model
-4. Access model via code and UI
+1. Configure unified LLM interface
+2. Deploy a llamacpp model
+3. Access model via code and UI
 
-### Pre-requisites
+## 1. Pre-requisites
 
 - [Install kalavai CLI](getting_started.md#getting-started) on each machine
+- Set up a [2 machine LLM pool](./getting_started.md), i.e. a seed node and one worker
+
+**_Note: the following commands can be executed on any machine that is part of the pool, provided you have used `admin` or `user` access modes to generate the token. If you have used `worker`, deployments are only allowed in the seed node._**
 
 
-## 1. Createa a local pool
-
-All you need to get started is one or more computers that can see each other (i.e. within the same network), and you are good to go.
-
-### A. Start a seed node
-
-A seed node is the machine you use to start the LLM pool. Simply use the CLI to start your seed node. If your node has more than one IP available, choose the one that will be visible by the worker nodes:
-
-```bash
-$ kalavai pool start private-llm-pool
-
-Scanning for valid IPs...                                                         cli.py:493
-0) 192.168.68.67
-1) 10.0.3.1
-2) 172.17.0.1
-
---> Select IP to advertise the node (needs to be visible to other nodes): 0
-Using 192.168.68.67 address for server                                            cli.py:495
-Installing cluster seed                                                           cli.py:515
-Install dependencies...                                                           cli.py:537
-Your cluster is ready! Grow your cluster by sharing your joining token with others. Run kalavai pool token to generate one.                                             
-Waiting for core services to be ready, may take a few minutes...                  cli.py:567
-Initialise user workspace...                                                      cli.py:571
-Deployed pool config!                                                             cli.py:226
-Workspace creation (ignore already created warnings): {'status': 'success'} 
-```
-
-Now you are ready to add worker nodes to this seed. To do so, generate a joining token:
-```bash
-$ kalavai pool token <access mode>
-
-Join token: <token>
-```
-
-Access modes determine the level of access new nodes will have over the pool:
-- `--admin`: Same level of access than the seed node, including generating new joining tokens and deleting nodes.
-- `--user`: Can deploy jobs, but lacks admin access over nodes.
-- `--worker`: Workers carry on jobs, but cannot deploy their own jobs.
-
-To give user access:
-```bash
-kalavai pool token --user
-```
-
-
-### B. Add worker nodes
-
-Increase the power of your LLM pool by inviting others to join. You can do this at any stage, even after deploying models.
-
-Copy the joining token generated in the seed node. On each worker node, run:
-
-```bash
-$ kalavai pool join <token>
-
-Token format is correct                                                           cli.py:643
-Scanning for valid IPs...                                                         cli.py:724
-0) 192.168.68.66
-1) 172.17.0.1
---> Select IP to advertise the node (needs to be visible to other nodes): 0
-
-Using 192.168.68.66 address for worker                                            cli.py:726
-Connecting to private-llm-pool @ 192.168.68.67 (this may take a few minutes)...  cli.py:729
-Workspace creation (ignore already created warnings): {'status': 'success'}       cli.py:200
-You are connected to private-llm-pool 
-```
-
-### C. Check resources available across the pool
-
-To see the available resources across the pool, you can use:
-
-```bash
-$ kalavai pool resources
-
-┏━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓
-┃           ┃ n_nodes ┃ cpu   ┃ memory       ┃ nvidia.com/gpu ┃
-┡━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━┩
-│ Available │ 2       │ 45.46 │ 150877769728 │ 1              │
-├───────────┼─────────┼───────┼──────────────┼────────────────┤
-│ Total     │ 2       │ 52    │ 151561441280 │ 1              │
-└───────────┴─────────┴───────┴──────────────┴────────────────┘
-
-$ kalavai pool gpus
-
-┏━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━┓
-┃ Node   ┃ Ready ┃ GPU(s)                                               ┃ Available ┃ Total ┃
-┡━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━┩
-│ pop-os │ True  │ NVIDIA-NVIDIA GeForce RTX 3050 Ti Laptop GPU (4 GBs) │ 1         │ 1     │
-└────────┴───────┴──────────────────────────────────────────────────────┴───────────┴───────┘
-```
-
-**_Note: the following commands can be executed on any machine that is part of the pool, provided you have used `--admin` or `--user` access modes to generate the token. If you have used `--worker`, deployments are only allowed in the seed node._**
-
-
-## 2. (Optional) Configure unified LLM interface
+## 2. Configure unified LLM interface
 
 This is an optional but highly recommended step that will help automatically register any model deployment centrally, so you can interact with any model through a single OpenAI-like API endpoint, or if you prefer UI testing, a single ChatGPT-like UI playground.
 
-We'll use our own template jobs for the task, so no code is required. Both jobs will require a permanent storage, which can be created easily in an LLM pool using `kalavai storage create <db name> <size in GB>`. Create two storage spaces:
+We'll use our own template jobs for the task, so no code is required. Both jobs will require a permanent storage, which can be created easily in an LLM pool using `kalavai storage create <db name> <size in GB>`. Using the `kalavai` client, create two storage spaces:
 
 ```bash
 $ kalavai storage create litellm-db 1
@@ -144,28 +53,14 @@ Storage webui-db (2Gi) created
 
 Model templates deployed in LLM pools have an optional key parameter to register themselves with a LiteLLM instance. [LiteLLM](https://docs.litellm.ai/docs/) is a powerful API that unifies all of your models into a single API, making developing apps with LLMs easier and more flexible.
 
-Our [LiteLLM](https://github.com/kalavai-net/kalavai-client/tree/main/templates/litellm) template automates the deployment of the API across a pool, database included. To deploy it, simply:
+Our [LiteLLM](https://github.com/kalavai-net/kalavai-client/tree/main/templates/litellm) template automates the deployment of the API across a pool, database included. To deploy it using the Kalavai GUI, navigate to `Jobs`, then click on the `circle-plus` button, in which you can select a `litellm` template. Set the values of `db_storage` to `litellm-db` (or the one you used above).
 
-```bash
-kalavai job defaults litellm > values.yaml 
-# Edit values.yaml
-#   set 'db_storage' value to "litellm-db"
-kalavai job run litellm --values values.yaml
-```
+![Deploy litellm](assets/images/ui_deploy_litellm.png)
 
-`kalavai job run` will prompt for what GPUs to use or avoid (if there are any available in the pool). This has no effect on jobs that do not use GPUs, as is the case for the ones deployed in this guide.
+Once the deployment is complete, you can check the LiteLLM endpoint by navigating to `Jobs` and seeing the corresponding endpoint for the `litellm` job.
 
-Once the deployment is complete, you can identify the endpoint:
+![Check LiteLLM endpoint](assets/images/ui_litellm_status.png)
 
-```bash
-$ kalavai job list
-
-┏━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ Owner   ┃ Deployment ┃ Workers  ┃ Endpoint                                    ┃
-┡━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
-│ default │ litellm    │ Ready: 2 │ http://192.168.68.67:30535 (mapped to 4000) │
-└─────────┴────────────┴──────────┴─────────────────────────────────────────────┘
-```
 
 You will need a virtual key to register models with LiteLLM. For testing you can use the master key defined in your values.yaml under `master_key`, but it is recommended to generate a virtual one that does not have privilege access. The easiest way of doing so is via the admin UI, under http://192.168.68.67:30535/ui (see more details [here](https://docs.litellm.ai/docs/proxy/virtual_keys)).
 
@@ -180,31 +75,9 @@ Example virtual key: sk-rDCm0Vd5hDOigaNbQSSsEQ
 
 [OpenWebUI](https://docs.openwebui.com/) is a great ChatGPT-like app that helps testing LLMs. Our [WebUI template](https://github.com/kalavai-net/kalavai-client/tree/main/templates/webui) manages the deployment of an OpenWebUI instance in your LLM pool, and links it to your LiteLLM instance, so any models deployed and registered with LiteLLM automatically appear in the playground.
 
-To deploy:
+To deploy, navigate back to `Jobs` and click the `circle-plus` button, this time selecting the playground template. Set the `litellm_key` to match your virtual key, and `data_storage` to `webui-db` (or the one created above).
 
-```bash
-kalavai job defaults webui > values.yaml 
-# Edit values.yaml
-#   set the 'litellm_key' to match your virtual key
-#   set 'data_storage' to "webui-db"
-kalavai job run webui --values values.yaml
-```
-
-Once it's ready, you can access the UI via its advertised endpoint, directly on your browser:
-
-```bash
-$ kalavai job list
-
-┏━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ Owner   ┃ Deployment ┃ Workers  ┃ Endpoint                                    ┃
-┡━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
-│ default │ litellm    │ Ready: 2 │ http://192.168.68.67:30535 (mapped to 4000) │
-├─────────┼────────────┼──────────┼─────────────────────────────────────────────┤
-│ default │ webui-1    │ Ready: 1 │ http://192.168.68.67:31141 (mapped to 8080) │
-└─────────┴────────────┴──────────┴─────────────────────────────────────────────┘
-```
-
-The first time you login you'll be able to create an admin user. Check the [official documentation](https://docs.openwebui.com/) for more details on the app.
+Once it's ready, you can access the UI via its advertised endpoint (under `Jobs`), directly on your browser. The first time you login you'll be able to create an admin user. Check the [official documentation](https://docs.openwebui.com/) for more details on the app.
 
 ![Access playground UI](assets/images/webui.png)
 

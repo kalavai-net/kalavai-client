@@ -3,12 +3,7 @@ import asyncio
 
 import reflex as rx
 
-from kalavai_client.core import (
-    authenticate_user,
-    load_user_session,
-    user_logout,
-    is_connected
-)
+from ..backend.utils import request_to_kalavai_core
 
 
 class MainState(rx.State):
@@ -43,11 +38,15 @@ class MainState(rx.State):
         
         async with self:
             # is computer connected to a pool?
-            self.is_connected = is_connected()
+            self.is_connected = request_to_kalavai_core(
+                method="get",
+                endpoint="is_connected")
 
         async with self:
             # is the user authenticated?
-            user = load_user_session()
+            user = request_to_kalavai_core(
+                method="get",
+                endpoint="load_user_session")
             self.is_logged_in = user is not None
             self.logged_user = user["username"] if user is not None else ""
             self.is_loading = False
@@ -65,7 +64,10 @@ class MainState(rx.State):
             self.login_error_message = ""
 
         async with self:
-            user = authenticate_user(username=self.username, password=self.password)
+            user = request_to_kalavai_core(
+                method="get",
+                endpoint="authenticate_user",
+                params={"username": self.username, "password": self.password})
             if "error" in user:
                 self.login_error_message = user["error"]
             else:
@@ -76,6 +78,9 @@ class MainState(rx.State):
     @rx.event(background=True)
     async def signout(self):
         async with self:
-            user_logout()
+            request_to_kalavai_core(
+                method="get",
+                endpoint="user_logout")
             self.is_logged_in = False
             self.login_error_message = ""
+            return rx.redirect("/")
