@@ -130,7 +130,10 @@ class JobsState(rx.State):
             }
         )
         if "error" in result:
-            print(result)
+            return rx.toast.error(str(result["error"]))
+        else:
+            return rx.toast.success("Job deployed")
+
     
     @rx.event(background=True)
     async def load_logs(self, index):
@@ -140,7 +143,7 @@ class JobsState(rx.State):
         logs = request_to_kalavai_core(
             method="get",
             endpoint="fetch_job_logs",
-            json={
+            params={
                 "job_name": self.items[index].data["name"],
                 "force_namespace": self.items[index].data["owner"]
             }
