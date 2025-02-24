@@ -319,13 +319,11 @@ def pool__publish(*others, description=None):
         console.log(f"[red]Problems with your pool: {str(e)}")
         return
     choices = select_token_type()
-    token = pool__token(**choices)
+    token = pool__token(**choices)["token"]
     
     if description is None:
         console.log("[yellow] [Markdown] In a few words (max 500 chars), describe your goals with this cluster. Remember, this is what other users will see to decide whether to share their resources with you, [blue]so inspire them!")
         description = input(f"(You can edit this later in {KALAVAI_PLATFORM_URL}\n")
-    
-    description = description
     
     try:
         valid = check_token(token=token, public=True)
@@ -462,7 +460,7 @@ def pool__token(*others, admin=False, user=False, worker=False):
         console.log(f"[red]{join_token}")
     else:
         console.log("[green]Join token:")
-        print(join_token)
+        print(join_token["token"])
     return join_token
 
 @arguably.command
