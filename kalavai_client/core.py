@@ -289,8 +289,10 @@ def fetch_job_details(jobs: list[Job]):
                 status = "running"
             elif any([st in workers_status for st in ["Failed", "Completed"]]):
                 status = "error"
-            else:
+            elif any([st in workers_status for st in ["Pending"]]):
                 status = "pending"
+            else:
+                status = "working"
             job_details.append(
                 Job(owner=namespace,
                     name=deployment,
