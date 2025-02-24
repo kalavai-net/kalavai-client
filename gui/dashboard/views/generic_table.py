@@ -24,7 +24,7 @@ class TableView:
                     ),
                 ),
                 rx.hover_card.content(
-                    rx.text(hover)
+                    rx.markdown(hover)
                 )
             )
         )

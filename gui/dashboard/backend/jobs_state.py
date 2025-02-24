@@ -130,9 +130,9 @@ class JobsState(rx.State):
             }
         )
         if "error" in result:
-            return rx.toast.error(str(result["error"]))
+            return rx.toast.error(str(result["error"]), position="top-center")
         else:
-            return rx.toast.success("Job deployed")
+            return rx.toast.success("Job deployed", position="top-center")
 
     
     @rx.event(background=True)

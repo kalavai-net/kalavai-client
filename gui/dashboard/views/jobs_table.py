@@ -16,7 +16,7 @@ class JobsView(TableView):
                 "owner": ("user", "User that deployed the job"),
                 "workers": ("pickaxe", "Workers status"),
                 "endpoint": ("calendar", "Services exposed (if any) by the job"),
-                "status": ("notebook-pen", "")
+                "status": ("notebook-pen", "<b>Workload status</b><br><br>Running: ready<br>Working: initialising<br>Pending: not enough resources to deploy<br>Error: something went wrong")
             },
             item_id="Name",
             render_mapping={
