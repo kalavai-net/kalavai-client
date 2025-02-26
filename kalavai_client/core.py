@@ -267,6 +267,8 @@ def fetch_job_details(jobs: list[Job]):
                 if ns != namespace: # same job name, different namespace
                     continue
                 for _, values in ss.items():
+                    # TODO get 'restart_count' from values['conditions'][-1]["restart_count"]
+                    # TODO: get nodes involved in deployment (needs kubewatcher)
                     workers_status[values["status"]] += 1
             workers = "\n".join([f"{k}: {v}" for k, v in workers_status.items()])
             # get URL details
@@ -287,10 +289,12 @@ def fetch_job_details(jobs: list[Job]):
             urls = [f"http://{load_server_info(data_key=SERVER_IP_KEY, file=USER_LOCAL_SERVER_FILE)}:{node_port}" for node_port in node_ports]
             if "Ready" in workers_status and len(workers_status) == 1:
                 status = "running"
-            elif any([st in workers_status for st in ["Failed", "Completed"]]):
+            elif any([st in workers_status for st in ["Failed"]]):
                 status = "error"
             elif any([st in workers_status for st in ["Pending"]]):
                 status = "pending"
+            elif any([st in workers_status for st in ["Succeeded", "Completed"]]):
+                status = "completed"
             else:
                 status = "working"
             job_details.append(

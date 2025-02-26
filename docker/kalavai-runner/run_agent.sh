@@ -67,10 +67,11 @@ sleep 10
 
 if [[ "$command" == "server" ]]; then
     # server agent
+        # --kube-controller-manager-arg=node-monitor-grace-period=2m \
+        # --kube-controller-manager-arg=node-monitor-period=2m \
+        # --kubelet-arg=node-status-update-frequency=1m \
+        
     exec /bin/k3s $command \
-        --kube-controller-manager-arg=node-monitor-grace-period=2m \
-        --kube-controller-manager-arg=node-monitor-period=2m \
-        --kubelet-arg=node-status-update-frequency=1m \
         --node-ip $node_ip \
         --advertise-address $node_ip \
         --bind-address $node_ip \
@@ -82,8 +83,8 @@ if [[ "$command" == "server" ]]; then
         $extra
 else
     # worker agent
+        #--kubelet-arg=node-status-update-frequency=1m \
     exec /bin/k3s $command \
-        --kubelet-arg=node-status-update-frequency=1m \
         --node-external-ip $node_ip \
         --node-ip $node_ip \
         --bind-address $node_ip \
