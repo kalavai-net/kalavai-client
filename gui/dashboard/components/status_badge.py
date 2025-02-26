@@ -6,6 +6,7 @@ def _job_badge(status: str):
         "running": ("check", "Running", "green"),
         "pending": ("pause", "Pending", "gray"),
         "working": ("loader", "Working", "yellow"),
+        "completed": ("circle-check", "Completed", "purple"),
         "error": ("ban", "Error", "red"),
     }
     icon, text, color_scheme = badge_mapping.get(
@@ -44,6 +45,7 @@ def job_badge(status: str):
         ("running", _job_badge("running")),
         ("pending", _job_badge("pending")),
         ("working", _job_badge("working")),
+        ("completed", _job_badge("completed")),
         ("error", _job_badge("error")),
         _job_badge(""),
     )
