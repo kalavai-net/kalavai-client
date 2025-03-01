@@ -291,7 +291,7 @@ def fetch_job_details(jobs: list[Job]):
                 status = "running"
             elif any([st in workers_status for st in ["Failed"]]):
                 status = "error"
-            elif any([st in workers_status for st in ["Pending"]]):
+            elif any([st in workers_status for st in ["Pending"]]) or len(workers_status) == 0:
                 status = "pending"
             elif any([st in workers_status for st in ["Succeeded", "Completed"]]):
                 status = "completed"
@@ -573,7 +573,7 @@ def get_max_gpus():
     except:
         return 0
 
-def join_pool(token, num_gpus=None, node_name=None):
+def join_pool(token, num_gpus=None, node_name=None, ip_address=None):
     compatibility = check_worker_compatibility()
     if len(compatibility["issues"]) > 0:
         return {"error": compatibility["issues"]}
@@ -630,6 +630,7 @@ def join_pool(token, num_gpus=None, node_name=None):
     # Generate docker compose recipe
     generate_compose_config(
         role="agent",
+        node_ip_address=ip_address,
         pool_ip=f"https://{kalavai_seed_ip}:6443",
         pool_token=kalavai_token,
         num_gpus=num_gpus,
@@ -705,6 +706,9 @@ def create_pool(cluster_name: str, ip_address: str, app_values: str=None, pool_c
             node_labels[USER_NODE_LABEL] = user["username"]
         except Exception as e:
             return {"error": f"[red]Error when joining network: {str(e)}"}
+        
+    if num_gpus is None:
+        num_gpus = get_max_gpus()
     
     # Generate docker compose recipe
     generate_compose_config(

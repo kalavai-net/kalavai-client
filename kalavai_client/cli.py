@@ -511,11 +511,16 @@ def pool__join(token, *others, node_name=None):
         console.log("[red]Installation aborted")
         return
     
+    # select IP address (for external discovery)
+    console.log(f"Scanning for valid IPs")
+    ip_address = select_ip_address()
+    
     console.log("Connecting worker to the pool...")
     result = join_pool(
         token=token,
         node_name=node_name,
-        num_gpus=num_gpus
+        num_gpus=num_gpus,
+        ip_address=ip_address
     )
     if "error" in result:
         console.log(f"[red]Error when connecting: {result}")
@@ -1046,7 +1051,7 @@ def job__run(template_name, *others, values: str=None, force_namespace: str=None
     )
 
     if "error" in result:
-        console.log(f"[red]Error when deploying job: {str(e)}")
+        console.log(f"[red]Error when deploying job: {str(result['error'])}")
     else:
         console.log(f"[green]{template_name} job deployed")
 

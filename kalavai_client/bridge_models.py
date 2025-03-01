@@ -17,6 +17,7 @@ class DeleteNodesRequest(BaseModel):
 
 class JoinPoolRequest(BaseModel):
     token: str
+    ip_address: str = None
     node_name: str = None
     num_gpus: int = None
 

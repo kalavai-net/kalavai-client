@@ -64,7 +64,8 @@ def pool_join(request: JoinPoolRequest):
     result = join_pool(
         token=request.token,
         num_gpus=request.num_gpus,
-        node_name=request.node_name
+        node_name=request.node_name,
+        ip_address=request.ip_address
     )
     return result
 
