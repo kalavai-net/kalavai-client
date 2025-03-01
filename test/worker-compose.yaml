@@ -1,0 +1,16 @@
+services:
+  kalavai:
+    image: docker.io/bundenth/kalavai-runner:gpu-latest
+    container_name: runner
+    network_mode: host
+    privileged: true
+    restart: unless-stopped
+    entrypoint: /bin/k3s
+    command: >
+      agent \
+      --node-external-ip 192.168.68.64
+      --node-ip 192.168.68.64
+      --bind-address 0.0.0.0
+      --server https://192.168.68.67:6443
+      --token K109d2bb013ceb49360ffb07ffaedbcf13039c82acc1fd51b8c9912046d5a349b8d::server:f0c02ec55f97406b0f016617f8e86370
+      --node-name carlosfm-worker

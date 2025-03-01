@@ -1,0 +1,15 @@
+services:
+  kalavai:
+    image: docker.io/bundenth/kalavai-runner:gpu-latest
+    container_name: runner
+    network_mode: host
+    privileged: true
+    restart: unless-stopped
+    entrypoint: /bin/k3s
+    command: >
+      server
+      --node-ip 192.168.68.67
+      --advertise-address 192.168.68.67
+      --bind-address 0.0.0.0
+      --node-external-ip 192.168.68.67
+      --node-name carlosfm-seed
