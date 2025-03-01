@@ -41,7 +41,7 @@ class PoolsView(TableView):
     def join_dialog(self, token):
         return rx.dialog.root(
             rx.dialog.trigger(
-                rx.button("Join", loading=PoolsState.is_loading, on_click=PoolsState.update_token(token))
+                rx.button("Join", loading=PoolsState.is_loading, on_click=[PoolsState.update_token(token), PoolsState.load_ip_addresses])
             ),
             rx.dialog.content(
                 rx.dialog.title("Join the pool"),
@@ -53,6 +53,13 @@ class PoolsView(TableView):
                         direction="column",
                         default_value=PoolsState.selected_join_action
                     ),
+                    rx.select(
+                        PoolsState.ip_addresses,
+                        placeholder="IP address to advertise (must be visible by other workers)",
+                        name="ip_address",
+                        on_change=PoolsState.set_ip_address
+                    ),
+                    
                     rx.hstack(
                         rx.dialog.close(
                             rx.button(

@@ -19,6 +19,7 @@ class PoolsState(rx.State):
     join_actions: List[str] = ["Join", "Attach"]
     selected_join_action: str = "Join"
     ip_addresses: List[str] = []
+    selected_ip_address: str = None
     connected_to_server: bool = False
     agent_running: bool = False
     is_server: bool = False
@@ -121,6 +122,11 @@ class PoolsState(rx.State):
             state.update_connected(state=True)
             self.is_loading = False
             return rx.toast.success("Pool created", position="top-center")
+    
+    @rx.event
+    def set_ip_address(self, address: str):
+        """Change the select value var."""
+        self.selected_ip_address = address
         
     @rx.event(background=True)
     async def join(self):
@@ -131,7 +137,7 @@ class PoolsState(rx.State):
             result = request_to_kalavai_core(
                 method="post",
                 endpoint="join_pool",
-                json={"token":self.token})
+                json={"token":self.token, "ip_address": self.selected_ip_address})
         else:
             result = request_to_kalavai_core(
                 method="post",
