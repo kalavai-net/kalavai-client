@@ -103,7 +103,7 @@ services:
   {% endif %}
 {% endif %}
 
-networks:
-  custom-network:
-    driver: bridge
+# networks:
+#   custom-network:
+#     driver: bridge
 

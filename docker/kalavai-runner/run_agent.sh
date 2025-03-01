@@ -36,7 +36,7 @@ while [ $# -gt 0 ]; do
       ;;
     *)
       printf "***************************\n"
-      printf "* Error: Invalid argument.*\n"
+      printf "** Invalid argument: $1 ***\n"
       printf "***************************\n"
       exit 1
   esac
@@ -74,7 +74,7 @@ if [[ "$command" == "server" ]]; then
     exec /bin/k3s $command \
         --node-ip $node_ip \
         --advertise-address $node_ip \
-        --bind-address $node_ip \
+        --bind-address 0.0.0.0 \
         --node-external-ip $node_ip \
         --node-name $node_name \
         --service-node-port-range $port_range \
@@ -87,7 +87,7 @@ else
     exec /bin/k3s $command \
         --node-external-ip $node_ip \
         --node-ip $node_ip \
-        --bind-address $node_ip \
+        --bind-address 0.0.0.0 \
         --server $server_ip \
         --token $token \
         --node-name $node_name \
