@@ -420,7 +420,7 @@ def pool__start(cluster_name, *others,  only_registered_users: bool=False, ip_ad
 
     console.log(f"[green]Creating {cluster_name} pool, this may take a few minutes...")
 
-    create_pool(
+    result = create_pool(
         cluster_name=cluster_name,
         ip_address=ip_address,
         app_values=app_values,
@@ -429,6 +429,9 @@ def pool__start(cluster_name, *others,  only_registered_users: bool=False, ip_ad
         only_registered_users=only_registered_users,
         location=location
     )
+
+    if "error" in result:
+        console.log(f"[red]{result}")
 
     return None
 
