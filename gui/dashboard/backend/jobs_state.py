@@ -104,7 +104,7 @@ class JobsState(rx.State):
                 result = request_to_kalavai_core(
                     method="post",
                     endpoint="delete_job",
-                    json={"name": self.items[row].data["name"]}
+                    json={"name": self.items[row].data["name"], "force_namespace": self.items[row].data["owner"]}
                 )
                 if "error" in result:
                     return rx.toast.error(result["error"], position="top-center")
