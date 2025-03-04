@@ -118,6 +118,10 @@ class JobsState(rx.State):
             if value.isdigit():
                 form_data[key] = int(value)
 
+        force_namespace = None 
+        if "force_namespace" in form_data and len(form_data["force_namespace"].strip()) > 0:
+            force_namespace = form_data["force_namespace"]
+
         async with self:
             print("job deployed:", form_data)
         
@@ -126,7 +130,8 @@ class JobsState(rx.State):
             endpoint="deploy_job",
             json={
                 "template_name": self.selected_template,
-                "values": form_data
+                "values": form_data,
+                "force_namespace": force_namespace
             }
         )
         if "error" in result:

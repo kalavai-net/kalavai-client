@@ -109,7 +109,7 @@ def cleanup_local():
     safe_remove(USER_KUBECONFIG_FILE)
     safe_remove(USER_LOCAL_SERVER_FILE)
     safe_remove(USER_TEMPLATES_FOLDER)
-    safe_remove(USER_GUI_COMPOSE_FILE)
+    #safe_remove(USER_GUI_COMPOSE_FILE)
 
 def pre_join_check(node_name, server_url, server_key):
     # check with the server that we can connect

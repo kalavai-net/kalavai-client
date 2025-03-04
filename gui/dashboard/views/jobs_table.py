@@ -134,6 +134,7 @@ class JobsView(TableView):
                             rx.flex(
                                 rx.text("Deployment details", as_="div", size="2", margin_bottom="4px", weight="bold"),
                                 rx.checkbox("Autodetect", default_checked=True),
+                                rx.input(placeholder="Force namespace (admin only)", name="force_namespace"),
                                 direction="column",
                                 spacing="2",
                                 margin_botton="10px",
