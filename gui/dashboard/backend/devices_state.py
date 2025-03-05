@@ -92,3 +92,18 @@ class DevicesState(rx.State):
                 return rx.toast.error(str(result["error"]), position="top-center")
             else:
                 return rx.toast.success("Devices deleted", position="top-center")
+    
+    @rx.event(background=True)
+    async def toggle_unschedulable(self, state, index):
+        async with self:
+            result = request_to_kalavai_core(
+                method="post",
+                endpoint="uncordon_nodes" if state else "cordon_nodes",
+                json={"nodes": [self.items[index].data["name"]]}
+            )
+            if "error" in result:
+                return rx.toast.error(str(result["error"]), position="top-center")
+            else:
+                return rx.toast.success(
+                    "Device uncordoned" if state else "Device cordoned",
+                    position="top-center")

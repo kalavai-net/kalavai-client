@@ -54,6 +54,8 @@ from kalavai_client.core import (
     resume_agent,
     get_pool_token,
     delete_nodes,
+    cordon_nodes,
+    uncordon_nodes,
     TokenType
 )
 from kalavai_client.utils import (
@@ -127,27 +129,6 @@ def pre_join_check(node_name, server_url, server_key):
     except Exception as e:
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
         return False
-    
-def set_schedulable(schedulable, node_name=load_server_info(data_key=NODE_NAME_KEY, file=USER_LOCAL_SERVER_FILE)):
-    """
-    Delete job in the cluster
-    """
-    # deploy template with kube-watcher
-    data = {
-        "schedulable": str(schedulable),
-        "node_names": [node_name]
-    }
-    try:
-        res = request_to_server(
-            method="post",
-            endpoint="/v1/set_node_schedulable",
-            data=data,
-            server_creds=USER_LOCAL_SERVER_FILE,
-            user_cookie=USER_COOKIE
-        )
-        console.log(f"{res}")
-    except Exception as e:
-        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
 
 def select_ip_address(subnet=None):
     ips = get_ip_addresses(subnet=subnet)
@@ -223,7 +204,7 @@ def input_gpus():
 ##################
 
 @arguably.command
-def gui__start(*others, backend_only=False, gui_frontend_port=3000, gui_backend_port=8000, bridge_port=8001):
+def gui__start(*others, backend_only=False, gui_frontend_port=3000, gui_backend_port=8000, bridge_port=8001, log_level="critical"):
     """Run GUI (docker) and kalavai core backend (api)"""
 
     if not backend_only:
@@ -241,7 +222,7 @@ def gui__start(*others, backend_only=False, gui_frontend_port=3000, gui_backend_
         run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} up -d")
 
         console.log(f"[green]Loading GUI, may take a few minutes. It will be available at http://localhost:{gui_frontend_port}")
-    run_api(port=bridge_port)
+    run_api(port=bridge_port, log_level=log_level)
     
     if not backend_only:
         run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} down")
@@ -958,8 +939,11 @@ def node__cordon(node_name, *others):
     except Exception as e:
         console.log(f"[red]Problems with your pool: {str(e)}")
         return
-    set_schedulable(schedulable=False, node_name=node_name)
-
+    result = cordon_nodes(nodes=[node_name])
+    if "error" in result:
+        console.log(f"[red]{result['error']}")
+    else:
+        console.log(result)
 
 @arguably.command
 def node__uncordon(node_name, *others):
@@ -971,8 +955,11 @@ def node__uncordon(node_name, *others):
     except Exception as e:
         console.log(f"[red]Problems with your pool: {str(e)}")
         return
-    set_schedulable(schedulable=True, node_name=node_name)
-
+    result = uncordon_nodes(nodes=[node_name])
+    if "error" in result:
+        console.log(f"[red]{result['error']}")
+    else:
+        console.log(result)
 
 @arguably.command
 def job__templates(*others):

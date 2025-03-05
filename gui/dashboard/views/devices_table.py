@@ -28,7 +28,7 @@ class DevicesView(TableView):
                 "memory_pressure": lambda idx, x: rx.table.cell(device_pressure_badge(x)),
                 "disk_pressure": lambda idx, x: rx.table.cell(device_pressure_badge(x)),
                 "pid_pressure": lambda idx, x: rx.table.cell(device_pressure_badge(x)),
-                "unschedulable": lambda idx, x: rx.table.cell(device_pressure_badge(x)),
+                "unschedulable": lambda idx, x: rx.table.cell(self._decorate_schedulable(x, idx)),
                 "ready": lambda idx, x: rx.table.cell(device_status_badge(x))
             }
         )
@@ -41,6 +41,77 @@ class DevicesView(TableView):
                 spacing="2"
             ),
             style={"padding_x": "10px"}
+        )
+    
+    def _decorate_schedulable(self, item, index):
+        return rx.cond(
+            item,
+            rx.alert_dialog.root(
+                rx.alert_dialog.trigger(
+                    rx.button(rx.icon("toggle-left", size=16), "", size="2", variant="surface", color_scheme="tomato"),
+                ),
+                rx.alert_dialog.content(
+                    rx.alert_dialog.title("[Admin only] Unblock node schedulable"),
+                    rx.alert_dialog.description(
+                        "Schedulable devices will receive workloads. Do you want to toggle the state of this node?",
+                        size="2",
+                    ),
+                    rx.flex(
+                        rx.alert_dialog.cancel(
+                            rx.button(
+                                "Cancel",
+                                variant="soft",
+                                color_scheme="gray",
+                            ),
+                        ),
+                        rx.alert_dialog.action(
+                            rx.button(
+                                "OK",
+                                color_scheme="grass",
+                                variant="solid",
+                                on_click=self.table_state.toggle_unschedulable(item, index)
+                            ),
+                        ),
+                        spacing="3",
+                        margin_top="16px",
+                        justify="end",
+                    ),
+                    style={"max_width": 450},
+                ),
+            ),
+            rx.alert_dialog.root(
+                rx.alert_dialog.trigger(
+                    rx.button(rx.icon("toggle-right", size=16), "", size="2", variant="surface", color_scheme="grass"),
+                ),
+                rx.alert_dialog.content(
+                    rx.alert_dialog.title("[Admin only] Block device"),
+                    rx.alert_dialog.description(
+                        "Unschedulable devices won't receive any more workloads. Do you want to toggle the state of this node?",
+                        size="2",
+                    ),
+                    rx.flex(
+                        rx.alert_dialog.cancel(
+                            rx.button(
+                                "Cancel",
+                                variant="soft",
+                                color_scheme="gray",
+                            ),
+                        ),
+                        rx.alert_dialog.action(
+                            rx.button(
+                                "OK",
+                                color_scheme="grass",
+                                variant="solid",
+                                on_click=self.table_state.toggle_unschedulable(item, index)
+                            ),
+                        ),
+                        spacing="3",
+                        margin_top="16px",
+                        justify="end",
+                    ),
+                    style={"max_width": 450},
+                ),
+            ),
         )
     
     def generate_table_actions(self) -> rx.Component:

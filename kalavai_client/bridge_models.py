@@ -12,7 +12,7 @@ class CreatePoolRequest(BaseModel):
     only_registered_users: bool = False
     location: str = None
 
-class DeleteNodesRequest(BaseModel):
+class NodesActionRequest(BaseModel):
     nodes: list[str]
 
 class JoinPoolRequest(BaseModel):

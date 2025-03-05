@@ -98,6 +98,30 @@ class TokenType(Enum):
     WORKER = 2
 
 
+def set_schedulable(schedulable, node_names):
+    """
+    Delete job in the cluster
+    """
+    # deploy template with kube-watcher
+    data = {
+        "schedulable": str(schedulable),
+        "node_names": node_names
+    }
+    try:
+        res = request_to_server(
+            method="post",
+            endpoint="/v1/set_node_schedulable",
+            data=data,
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        if res is not None and "detail" in res:
+            return {"error": res["detail"]}
+        else:
+            return {"result": res}
+    except Exception as e:
+        return {"error": f"Error when connecting to kalavai service: {str(e)}"}
+
 def init_user_workspace(force_namespace=None):
     
     # load template config and populate with values
@@ -494,6 +518,12 @@ def delete_nodes(nodes):
             return {"error": result}
     except Exception as e:
         return {"error": f"Error when removing nodes {nodes}: {str(e)}"}
+
+def cordon_nodes(nodes):
+    return set_schedulable(schedulable=False, node_names=nodes)
+
+def uncordon_nodes(nodes):
+    return set_schedulable(schedulable=True, node_names=nodes)
 
 def attach_to_pool(token, node_name=None):
     if node_name is None:

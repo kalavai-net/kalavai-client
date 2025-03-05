@@ -12,7 +12,7 @@ from kalavai_client.bridge_models import (
     DeployJobRequest,
     DeleteJobRequest,
     JobDetailsRequest,
-    DeleteNodesRequest
+    NodesActionRequest
 )
 from kalavai_client.core import (
     create_pool,
@@ -41,6 +41,8 @@ from kalavai_client.core import (
     get_ip_addresses,
     get_pool_token,
     delete_nodes,
+    cordon_nodes,
+    uncordon_nodes,
     TokenType
 )
 
@@ -85,8 +87,22 @@ def pool_stop(request: StopPoolRequest):
     return result
 
 @app.post("/delete_nodes")
-def device_delete(request: DeleteNodesRequest):
+def device_delete(request: NodesActionRequest):
     result = delete_nodes(
+        nodes=request.nodes
+    )
+    return result
+
+@app.post("/cordon_nodes")
+def device_cordon(request: NodesActionRequest):
+    result = cordon_nodes(
+        nodes=request.nodes
+    )
+    return result
+
+@app.post("/uncordon_nodes")
+def device_uncordon(request: NodesActionRequest):
+    result = uncordon_nodes(
         nodes=request.nodes
     )
     return result

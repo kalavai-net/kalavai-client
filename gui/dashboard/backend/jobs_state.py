@@ -117,10 +117,15 @@ class JobsState(rx.State):
         for key, value in form_data.items():
             if value.isdigit():
                 form_data[key] = int(value)
+            
+        data = {
+            "template_name": self.selected_template,
+            "values": form_data
+        }
 
-        force_namespace = None 
-        if "force_namespace" in form_data and len(form_data["force_namespace"].strip()) > 0:
-            force_namespace = form_data["force_namespace"]
+        force_namespace = form_data.pop("force_namespace", None)
+        if force_namespace is not None and len(force_namespace.strip()) > 0:
+            data["force_namespace"] = force_namespace
 
         async with self:
             print("job deployed:", form_data)
@@ -128,11 +133,7 @@ class JobsState(rx.State):
         result = request_to_kalavai_core(
             method="post",
             endpoint="deploy_job",
-            json={
-                "template_name": self.selected_template,
-                "values": form_data,
-                "force_namespace": force_namespace
-            }
+            json=data
         )
         if "error" in result:
             return rx.toast.error(str(result["error"]), position="top-center")
