@@ -44,7 +44,8 @@ while [ $# -gt 0 ]; do
 done
 
 # wait for network interface to be available (if set)
-iface=""
+iface_server=""
+iface_worker=""
 
 if [ ! -z "${flannel_iface}" ]; then
     while [ true ]; do
@@ -58,11 +59,11 @@ if [ ! -z "${flannel_iface}" ]; then
             sleep 10
         fi
     done
-    iface="--flannel-iface "$flannel_iface
+    iface_server="--flannel-backend wireguard-native --flannel-iface "$flannel_iface
+    iface_worker="--flannel-iface "$flannel_iface
     
 fi
 
-echo "flannel iface: "$iface" ($node_ip)"
 sleep 10
 
 if [[ "$command" == "server" ]]; then
@@ -70,7 +71,7 @@ if [[ "$command" == "server" ]]; then
         # --kube-controller-manager-arg=node-monitor-grace-period=2m \
         # --kube-controller-manager-arg=node-monitor-period=2m \
         # --kubelet-arg=node-status-update-frequency=1m \
-        
+    echo "flannel iface: "$iface_server" ($node_ip)"
     exec /bin/k3s $command \
         --node-ip $node_ip \
         --advertise-address $node_ip \
@@ -78,11 +79,12 @@ if [[ "$command" == "server" ]]; then
         --node-external-ip $node_ip \
         --node-name $node_name \
         --service-node-port-range $port_range \
-        $iface \
+        $iface_server \
         --node-label gpu=$gpu \
         $extra
 else
     # worker agent
+    echo "flannel iface: "$iface_worker" ($node_ip)"
         #--kubelet-arg=node-status-update-frequency=1m \
     exec /bin/k3s $command \
         --node-external-ip $node_ip \
@@ -91,7 +93,7 @@ else
         --server $server_ip \
         --token $token \
         --node-name $node_name \
-        $iface \
+        $iface_worker \
         --node-label gpu=$gpu \
         $extra
 fi
