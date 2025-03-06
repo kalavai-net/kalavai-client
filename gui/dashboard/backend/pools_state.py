@@ -108,6 +108,7 @@ class PoolsState(rx.State):
                     formatted_data[key] = int(value)
                 else:
                     formatted_data[key] = value
+        
         result = request_to_kalavai_core(
             method="post",
             endpoint="create_pool",
@@ -115,13 +116,15 @@ class PoolsState(rx.State):
 
         if "error" in result:
             return rx.toast.error(result["error"], position="top-center")
-
+        
         async with self:
-            # TODO: register private cluster (only accessible by user)
             state = await self.get_state(MainState)
             state.update_connected(state=True)
             self.is_loading = False
-            return rx.toast.success("Pool created", position="top-center")
+            if "warning" in result:
+                return rx.toast.warning("Pool created but could not be registered: " + result["warning"], position="top-center")
+            else:
+                return rx.toast.success("Pool created", position="top-center")
     
     @rx.event
     def set_ip_address(self, address: str):

@@ -51,12 +51,15 @@ from kalavai_client.core import (
     create_pool,
     get_ip_addresses,
     pause_agent,
+    register_pool,
     resume_agent,
     get_pool_token,
     delete_nodes,
     cordon_nodes,
+    stop_pool,
     uncordon_nodes,
-    TokenType
+    TokenType,
+    unregister_pool
 )
 from kalavai_client.utils import (
     check_gpu_drivers,
@@ -286,7 +289,7 @@ def location__list(*others):
     console.log(table)
 
 @arguably.command
-def pool__publish(*others, description=None):
+def pool__publish(*others, description=None, is_private=True):
     """
     [AUTH] Publish pool to Kalavai platform, where other users may be able to join
     """
@@ -300,26 +303,29 @@ def pool__publish(*others, description=None):
         console.log(f"[red]Problems with your pool: {str(e)}")
         return
     choices = select_token_type()
-    token = pool__token(**choices)["token"]
+    if choices["admin"]:
+        mode = TokenType.ADMIN
+    elif choices["user"]:
+        mode = TokenType.USER
+    else:
+        mode = TokenType.WORKER
     
     if description is None:
         console.log("[yellow] [Markdown] In a few words (max 500 chars), describe your goals with this cluster. Remember, this is what other users will see to decide whether to share their resources with you, [blue]so inspire them!")
-        description = input(f"(You can edit this later in {KALAVAI_PLATFORM_URL}\n")
-    
-    try:
-        valid = check_token(token=token, public=True)
-        if "error" in valid:
-            raise ValueError(f"[red]Cluster must be started with a valid vpn_location to publish: {valid}")
-        cluster_name = load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE)
-        
-        register_cluster(
-            name=cluster_name,
-            token=token,
-            description=description,
-            user_cookie=USER_COOKIE)
-        console.log(f"[green]Your cluster is now public on {KALAVAI_PLATFORM_URL}")
-    except Exception as e:
-        console.log(f"[red]Error when publishing cluster. {str(e)}")
+        description = input(f"(You can edit this later at {KALAVAI_PLATFORM_URL}\n")
+    cluster_name = load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE)
+
+    result = register_pool(
+        cluster_name=cluster_name,
+        token_mode=mode,
+        description=description,
+        is_private=is_private        
+    )
+
+    if "error" in result:
+        console.log(f"[red]Error when publishing cluster: {result['error']}")
+    else:
+        console.log(f"[green]Your cluster is now registered with {KALAVAI_PLATFORM_URL}")
 
 @arguably.command
 def pool__unpublish(cluster_name=None, *others):
@@ -335,15 +341,13 @@ def pool__unpublish(cluster_name=None, *others):
         console.log(f"[red]Problems with your pool: {str(e)}")
         return
     
-    try:
-        if cluster_name is None:
-            cluster_name = load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE)
-        unregister_cluster(
-            name=cluster_name,
-            user_cookie=USER_COOKIE)
+    result = unregister_pool()
+    if "error" in result:
+        console.log(f"[red]{result['error']}")
+    elif "warning" in result:
+        console.log(f"[yellow]{result['warning']}")
+    else:
         console.log(f"[green]Your cluster has been removed from {KALAVAI_PLATFORM_URL}")
-    except Exception as e:
-        console.log(f"[red]Error when unpublishing cluster. {str(e)}")
 
 @arguably.command
 def pool__list(*others, user_only=False):
@@ -410,6 +414,9 @@ def pool__start(cluster_name, *others,  only_registered_users: bool=False, ip_ad
         only_registered_users=only_registered_users,
         location=location
     )
+
+    if "warning" in result:
+        console.log(f"[yellow]Warning: {result['warning']}")
 
     if "error" in result:
         console.log(f"[red]{result}")
@@ -520,38 +527,13 @@ def pool__stop(*others, skip_node_deletion=False):
         *others: all the other positional arguments go here
     """
     console.log("[white] Stopping kalavai app...")
-    # delete local node from server
-    if not skip_node_deletion:
-        node__delete(load_server_info(data_key=NODE_NAME_KEY, file=USER_LOCAL_SERVER_FILE))
-    # unpublish event (only if seed node)
-    # TODO: no, this should be done via the platform!!!
-    # try:
-    #     if CLUSTER.is_seed_node():
-    #         console.log("Unregistering pool...")
-    #         unregister_cluster(
-    #             name=load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE),
-    #             user_cookie=USER_COOKIE)
-    # except Exception as e:
-    #     console.log(f"[red][WARNING]: (ignore if not a public pool) Error when unpublishing cluster. {str(e)}")
-    # remove local node agent
-    console.log("Removing agent and local cache")
-    
-    # disconnect from VPN first, then remove agent, then remove local files
-    console.log("Disconnecting from VPN...")
-    try:
-        vpns = leave_vpn(container_name=DEFAULT_VPN_CONTAINER_NAME)
-        if vpns is not None:
-            for vpn in vpns:
-                console.log(f"You have left {vpn} VPN")
-    except:
-        # no vpn
-        pass
 
-    CLUSTER.remove_agent()
-
-    # clean local files
-    cleanup_local()
-    console.log("[white] Kalavai has stopped sharing your resources. Use [yellow]kalavai pool start[white] or [yellow]kalavai pool join[white] to start again!")
+    result = stop_pool(skip_node_deletion=skip_node_deletion)
+    if "error" in result:
+        console.log(f"[red]{result['error']}")
+    else:
+        console.log(result)
+        console.log("[white] Kalavai has stopped sharing your resources. Use [yellow]kalavai pool start[white] or [yellow]kalavai pool join[white] to start again!")
 
 @arguably.command
 def pool__pause(*others):

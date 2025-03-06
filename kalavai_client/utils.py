@@ -206,7 +206,7 @@ def get_vpn_details(location, user_cookie):
     )
     return vpn
 
-def register_cluster(name, token, description, user_cookie):
+def register_cluster(name, token, description, user_cookie, is_private=True):
     auth = KalavaiAuthClient(
         user_cookie_file=user_cookie
     )
@@ -218,7 +218,8 @@ def register_cluster(name, token, description, user_cookie):
         name,
         user,
         description,
-        token
+        token,
+        is_private
     )
     return seed
 
@@ -250,6 +251,21 @@ def validate_join_public_seed(cluster_name, join_key, user_cookie):
         user,
     )
     return seed
+
+def send_pool_invite(cluster_name, invitee_addresses, user_cookie):
+    auth = KalavaiAuthClient(
+        user_cookie_file=user_cookie
+    )
+    if not auth.is_logged_in():
+        raise ValueError("Cannot notify join cluster, user is not authenticated")
+    user = auth.load_user_session()
+    result = auth.call_function(
+        "send_pool_invite",
+        user,
+        cluster_name,
+        invitee_addresses
+    )
+    return result
 
 def validate_poolconfig(poolconfig_file):
     if not Path(poolconfig_file).is_file():

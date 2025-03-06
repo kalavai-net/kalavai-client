@@ -107,13 +107,13 @@ def render_pool_manager() -> rx.Component:
         rx.cond(
             MainState.is_connected,
             rx.vstack(
+                rx.card(rx.text(f"Welcome back, {MainState.logged_user}"), rx.button("Sign out", on_click=MainState.signout, loading=PoolsState.is_loading)),
                 rx.link(
                     rx.button("Access dashboard"),
                     href="/dashboard",
                     color_scheme="purple",
                     is_external=False,
                 ),
-                rx.card(rx.text(f"Welcome back, {MainState.logged_user}"), rx.button("Sign out", on_click=MainState.signout, loading=PoolsState.is_loading)),
                 spacing="3"
             ),
             rx.vstack(

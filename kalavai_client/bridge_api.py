@@ -7,6 +7,7 @@ import uvicorn
 
 from kalavai_client.bridge_models import (
     CreatePoolRequest,
+    InvitesRequest,
     JoinPoolRequest,
     StopPoolRequest,
     DeployJobRequest,
@@ -18,6 +19,7 @@ from kalavai_client.core import (
     create_pool,
     join_pool,
     attach_to_pool,
+    send_invites,
     stop_pool,
     fetch_devices,
     fetch_resources,
@@ -57,7 +59,9 @@ def pool_create(request: CreatePoolRequest):
         num_gpus=request.num_gpus,
         node_name=request.node_name,
         only_registered_users=request.only_registered_users,
-        location=request.location
+        location=request.location,
+        description=request.description,
+        token_mode=request.token_mode
     )
     return result
 
@@ -108,13 +112,17 @@ def device_uncordon(request: NodesActionRequest):
     return result
 
 @app.get("/get_pool_token")
-def devices(mode: int):
+def get_token(mode: int):
 
     return get_pool_token(mode=TokenType(mode))
 
 @app.get("/fetch_devices")
-def devices():
+def get_devices():
     return fetch_devices()
+
+@app.post("/send_pool_invites")
+def send_pool_invites(request: InvitesRequest):
+    return send_invites(invitees=request.invitees)
 
 @app.get("/fetch_resources")
 def resources():

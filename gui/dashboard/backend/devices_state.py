@@ -17,6 +17,7 @@ class DevicesState(rx.State):
 
     items: List[Device] = []
     selected_rows: set = set()
+    invitees: str = ""
 
     total_items: int = 0
     offset: int = 0
@@ -107,3 +108,30 @@ class DevicesState(rx.State):
                 return rx.toast.success(
                     "Device uncordoned" if state else "Device cordoned",
                     position="top-center")
+        
+    @rx.event(background=True)
+    async def set_invitees(self, invitees):
+        async with self:
+            self.invitees = invitees
+
+    @rx.event(background=True)
+    async def send_invites(self):
+        async with self:
+            self.is_loading = True
+
+        result = request_to_kalavai_core(
+            method="post",
+            endpoint="send_pool_invites",
+            json={"invitees": self.invitees.split(",")}
+        )
+        
+        async with self:
+            self.set_invitees("")
+            self.is_loading = False
+            if "error" in result:
+                return rx.toast.error(result["error"], position="top-center")
+            if "not_sent" in result and len(result["not_sent"]) > 0:
+                return rx.toast.warning(f"Could not send invite to: {result['not_sent']}", position="top-center")
+            if "sent" in result:
+                return rx.toast.success(f"Invites sent to {result['sent']}", position="top-center")
+            return rx.toast.info("Nothing was sent", position="top-center")

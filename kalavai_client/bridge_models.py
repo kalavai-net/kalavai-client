@@ -1,7 +1,10 @@
 from pydantic import BaseModel
 
-from kalavai_client.core import Job
+from kalavai_client.core import Job, TokenType
 
+
+class InvitesRequest(BaseModel):
+    invitees: list[str]
 
 class CreatePoolRequest(BaseModel):
     cluster_name: str
@@ -11,6 +14,8 @@ class CreatePoolRequest(BaseModel):
     node_name: str = None
     only_registered_users: bool = False
     location: str = None
+    token_mode: TokenType = TokenType.USER
+    description: str = ""
 
 class NodesActionRequest(BaseModel):
     nodes: list[str]

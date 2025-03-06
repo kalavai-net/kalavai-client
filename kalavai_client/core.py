@@ -9,15 +9,19 @@ import netifaces as ni
 from typing import Optional
 from pydantic import BaseModel
 from enum import Enum
+import re
 
 from kalavai_client.cluster import CLUSTER
 from kalavai_client.utils import (
     check_gpu_drivers,
     generate_join_token,
+    register_cluster,
     request_to_server,
     load_server_info,
     decode_dict,
     get_vpn_details,
+    send_pool_invite,
+    unregister_cluster,
     validate_join_public_seed,
     generate_compose_config,
     store_server_info,
@@ -703,7 +707,7 @@ def join_pool(token, num_gpus=None, node_name=None, ip_address=None):
     
     return cluster_name
 
-def create_pool(cluster_name: str, ip_address: str, app_values: str=None, pool_config_values: str=None, num_gpus: int=0, node_name: str=None, only_registered_users: bool=False, location: str=None):
+def create_pool(cluster_name: str, ip_address: str, description: str="", token_mode: TokenType=TokenType.USER, app_values: str=None, pool_config_values: str=None, num_gpus: int=0, node_name: str=None, only_registered_users: bool=False, location: str=None):
 
     if not check_seed_compatibility():
         return {"error": "Requirements failed"}
@@ -829,6 +833,18 @@ def create_pool(cluster_name: str, ip_address: str, app_values: str=None, pool_c
         # init user namespace
         init_user_workspace()
     
+    # register cluster (if user is logged in)
+    result = register_pool(
+        cluster_name=cluster_name,
+        description=description,
+        is_private=True,
+        token_mode=token_mode)
+
+    if "error" in result:
+        return {"warning": result["error"]}
+    if "warning" in result:
+        return {"warning": result["warning"]}
+    
     return {"success"}
 
 def get_pool_token(mode: TokenType):
@@ -887,6 +903,33 @@ def pool_init(pool_config_values_path=None):
         return result
     except Exception as e:
         return {"error": f"[red]Error when connecting to kalavai service: {str(e)}"}
+    
+def register_pool(cluster_name, description, is_private=True, token_mode=TokenType.USER):
+    token = get_pool_token(mode=token_mode)["token"]
+    valid = check_token(token=token, public=not is_private)
+    if "error" in valid:
+        return {"error": valid}
+    try:
+        result = register_cluster(
+            name=cluster_name,
+            token=token,
+            description=description,
+            user_cookie=USER_COOKIE,
+            is_private=is_private)
+
+        return {"success": result}
+    except Exception as e:
+        return {"warning": str(e)}
+    
+def unregister_pool():
+    cluster_name = load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE)
+    try:
+        unregister_cluster(
+            name=cluster_name,
+            user_cookie=USER_COOKIE)
+    except Exception as e:
+        return {"warning": str(e)}
+    return {"success"}
 
 def is_connected():
     if not os.path.isfile(USER_LOCAL_SERVER_FILE):
@@ -957,16 +1000,8 @@ def stop_pool(skip_node_deletion=False):
             delete_node(load_server_info(data_key=NODE_NAME_KEY, file=USER_LOCAL_SERVER_FILE))
         )
     # unpublish event (only if seed node)
-    # TODO: no, this should be done via the platform!!!
-    # try:
-    #     if CLUSTER.is_seed_node():
-    #         console.log("Unregistering pool...")
-    #         unregister_cluster(
-    #             name=load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE),
-    #             user_cookie=USER_COOKIE)
-    # except Exception as e:
-    #     console.log(f"[red][WARNING]: (ignore if not a public pool) Error when unpublishing cluster. {str(e)}")
-    # remove local node agent
+    if CLUSTER.is_seed_node():
+        unregister_pool()
     
     # disconnect from VPN first, then remove agent, then remove local files
     try:
@@ -978,13 +1013,22 @@ def stop_pool(skip_node_deletion=False):
         # no vpn
         pass
 
+    # remove local node agent
     CLUSTER.remove_agent()
 
     # clean local files
     cleanup_local()
 
-    return logs
+    return {"logs": logs}
 
 def list_available_pools(user_only=False):
     pools = get_public_seeds(user_only=user_only, user_cookie=USER_COOKIE)
     return pools
+
+def send_invites(invitees):
+    result = send_pool_invite(
+        cluster_name=load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE),
+        invitee_addresses=invitees,
+        user_cookie=USER_COOKIE
+    )
+    return result

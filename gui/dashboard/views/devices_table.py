@@ -130,31 +130,51 @@ class DevicesView(TableView):
                     ),
                     rx.dialog.content(
                         rx.dialog.title("Add new devices to the pool"),
-                        rx.dialog.description("Simply share the joining token to add new devices to this pool", margin_bottom="10px"),
-                        rx.flex(
-                            rx.text("Access mode for the token"),
-                            rx.radio(
-                                PoolsState.token_modes,
-                                on_change=PoolsState.get_pool_token,
-                                direction="column"
+                        rx.dialog.description("Invite other users directly or share the joining token to add new devices to this pool", margin_bottom="10px"),
+                        rx.tabs.root(
+                            rx.tabs.list(
+                                rx.tabs.trigger("Invite", value="invite"),
+                                rx.tabs.trigger("Generate token", value="token")
                             ),
-                            rx.cond(
-                                PoolsState.token == "",
-                                rx.flex(),
-                                rx.flex(
-                                    rx.card(rx.text(PoolsState.token)),
-                                    rx.button(rx.icon("copy"), on_click=[rx.set_clipboard(PoolsState.token), rx.toast.success("Copied", position="top-center")]),
+                            rx.tabs.content(
+                                rx.hstack(
+                                    rx.text_area(placeholder="Invite others by email (comma-separated list)", width="85%", on_change=DevicesState.set_invitees),
+                                    rx.button("Send", width="15%", on_click=DevicesState.send_invites, loading=DevicesState.is_loading),
                                 ),
+                                value="invite"
                             ),
-                            rx.separator(size="4"),
-                            direction="column",
-                            spacing="2",
-                            margin_botton="10px"
+                            rx.tabs.content(
+                                rx.flex(
+                                    rx.text("Access mode for the token"),
+                                    rx.radio(
+                                        PoolsState.token_modes,
+                                        on_change=PoolsState.get_pool_token,
+                                        direction="column"
+                                    ),
+                                    rx.cond(
+                                        PoolsState.token == "",
+                                        rx.flex(),
+                                        rx.flex(
+                                            rx.card(rx.text(PoolsState.token)),
+                                            rx.button(rx.icon("copy"), on_click=[rx.set_clipboard(PoolsState.token), rx.toast.success("Copied", position="top-center")]),
+                                        ),
+                                    ),
+                                    
+                                    rx.separator(size="4"),
+                                    direction="column",
+                                    spacing="2",
+                                    margin_botton="10px"
+                                ),
+                                value="token"
+                            )
+                        ),
+                        rx.hstack(
+                            rx.text("For private pools, only machines in the same network can connect to the pool. Go Pro to create over-the-internet pools, where any machine with internet access can join", weight="bold", width="85%"),
+                            rx.button("Go Pro", color_scheme="purple", width="15%"),
                         ),
                         rx.dialog.close(
                             rx.button(
-                                "OK",
-                                #on_click=rx.toast("Creating pool...", position="top-center")
+                                "Close",
                             ),
                         ),
                         spacing="3",
