@@ -20,7 +20,6 @@ import ipaddress
 API_URL = os.getenv("API_URL", "https://api.netmaker.kalavai.net")
 API_KEY = os.getenv("API_KEY", "XXXXX")
 SUBNET = os.getenv("SUBNET", "100.10.0.0/16")
-SLEEP_INTERVAL = os.getenv("SLEEP_INTERVAL", 30)
 ALIVE_CUTOFF = 300
 
 
@@ -44,7 +43,7 @@ def server_request(method, endpoint):
         return {response.text}
 
 def ping(host):
-    return os.system(f"ping -c 5 {host} >/dev/null 2>&1") == 0
+    return os.system(f"ping -c 3 {host} >/dev/null 2>&1") == 0
 
 def is_alive(lastcheckin):
     diff = datetime.datetime.now() - datetime.datetime.fromtimestamp(lastcheckin)
@@ -69,7 +68,7 @@ def main():
                 #result = {}
                 log_message(message=f"Updated keys for {address}: {result}")
         
-        time.sleep(int(SLEEP_INTERVAL))
+        time.sleep(30)
 
 
 if __name__ == "__main__":
