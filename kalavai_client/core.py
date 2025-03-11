@@ -360,6 +360,29 @@ def deploy_job(template_name, values_dict, force_namespace=None):
     except Exception as e:
         return {"error": str(e)}  
     
+def deploy_test_job(template_str, values_dict, default_values, force_namespace=None):
+    
+    # submit custom deployment
+    data = {
+        "template": template_str,
+        "template_values": values_dict,
+        "default_values": default_values
+    }
+    if force_namespace is not None:
+        data["force_namespace"] = force_namespace
+
+    try:
+        result = request_to_server(
+            method="post",
+            endpoint="/v1/deploy_custom_job",
+            data=data,
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        return result
+    except Exception as e:
+        return {"error": str(e)}
+    
 def delete_job(name, force_namespace=None):
     data = {
         "label": TEMPLATE_LABEL, # this ensures that both lws template and services are deleted

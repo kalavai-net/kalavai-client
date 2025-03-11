@@ -34,6 +34,7 @@ from kalavai_client.env import (
     resource_path,
 )
 from kalavai_client.core import (
+    deploy_test_job,
     fetch_resources,
     fetch_job_names,
     fetch_job_details,
@@ -209,11 +210,15 @@ def input_gpus():
 @arguably.command
 def gui__start(*others, backend_only=False, gui_frontend_port=3000, gui_backend_port=8000, bridge_port=8001, log_level="critical"):
     """Run GUI (docker) and kalavai core backend (api)"""
-
+    if len(set([gui_frontend_port, gui_backend_port, bridge_port])) < 3:
+        console.log("[red]Error: ports must be unique")
+        return
+    
     if not backend_only:
         values = {
             "gui_frontend_port": gui_frontend_port,
             "gui_backend_port": gui_backend_port,
+            "bridge_port": bridge_port,
             "path": user_path("")
         }
         compose_yaml = load_template(
@@ -225,6 +230,9 @@ def gui__start(*others, backend_only=False, gui_frontend_port=3000, gui_backend_
         run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} up -d")
 
         console.log(f"[green]Loading GUI, may take a few minutes. It will be available at http://localhost:{gui_frontend_port}")
+    print(
+        "Deploying bridge API"
+    )
     run_api(port=bridge_port, log_level=log_level)
     
     if not backend_only:
@@ -1028,7 +1036,7 @@ def job__run(template_name, *others, values: str=None, force_namespace: str=None
         console.log(f"[green]{template_name} job deployed")
 
 @arguably.command
-def job__test(local_template_dir, *others, values, defaults, force_namespace: str=None):
+def job__test(local_template_dir, *others, values, force_namespace: str=None):
     """
     Helper to test local templates, useful for development
     """
@@ -1038,13 +1046,18 @@ def job__test(local_template_dir, *others, values, defaults, force_namespace: st
         console.log(f"[red]Problems with your pool: {str(e)}")
         return
     
-    if not os.path.isdir(local_template_dir):
-        console.log(f"[red]--local_template_dir ({local_template_dir}) is not a directory")
+    if not os.path.isfile(os.path.join(local_template_dir, "template.yaml")):
+        console.log(f"[red]template.yaml not found under {local_template_dir}")
+        return
+    if not os.path.isfile(os.path.join(local_template_dir, "values.yaml")):
+        console.log(f"[red]values.yaml not found under {local_template_dir}")
         return
     
     # load template
     with open(os.path.join(local_template_dir, "template.yaml"), "r") as f:
         template_str = f.read()
+    with open(os.path.join(local_template_dir, "values.yaml"), "r") as f:
+        defaults = f.read()
     
     # load values
     if not os.path.isfile(values):
@@ -1054,37 +1067,17 @@ def job__test(local_template_dir, *others, values, defaults, force_namespace: st
         raw_values = yaml.load(f, Loader=yaml.SafeLoader)
         values_dict = {variable["name"]: variable['value'] for variable in raw_values}
 
-    # load defaults
-    if not os.path.isfile(defaults):
-        console.log(f"[red]--defaults ({defaults}) is not a valid local file")
-        return
-    with open(defaults, "r") as f:
-        defaults = f.read()
+    result = deploy_test_job(
+        template_str=template_str,
+        values_dict=values_dict,
+        default_values=defaults,
+        force_namespace=force_namespace)
     
-    # submit custom deployment
-    data = {
-        "template": template_str,
-        "template_values": values_dict,
-        "default_values": defaults
-    }
-    if force_namespace is not None:
-        data["force_namespace"] = force_namespace
-
-    try:
-        result = request_to_server(
-            method="post",
-            endpoint="/v1/deploy_custom_job",
-            data=data,
-            server_creds=USER_LOCAL_SERVER_FILE,
-            user_cookie=USER_COOKIE
-        )
-        console.log("Deployment result:")
-        print(
-            json.dumps(result,indent=3)
-        )
-    except Exception as e:
-        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
-
+    if "error" in result:
+        console.log(f"[red]Error: {result['error']}")
+    else:
+        console.log("[green]Successfully deployed:")
+        console.log(result)
 
 @arguably.command
 def job__defaults(template_name, *others):
@@ -1123,7 +1116,7 @@ def job__delete(name, *others, force_namespace: str=None):
     # deploy template with kube-watcher
     result = delete_job(name=name, force_namespace=force_namespace)
     if "error" in result:
-        console.log(f"[red]Error when deleting job: {str(e)}")
+        console.log(f"[red]Error when deleting job: {result['error']}")
     else:
         console.log(f"{result}")
 
