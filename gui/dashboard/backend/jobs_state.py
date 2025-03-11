@@ -159,11 +159,11 @@ class JobsState(rx.State):
                 self.logs = logs["error"]
             else:
                 formatted_logs = []
-                for name, log in logs.items():
+                for name, info in logs.items():
                     formatted_logs.append("------")
-                    formatted_logs.append(f"--> Pod: {name}")
+                    formatted_logs.append(f"--> Pod: {name} in {info['pod']['spec']['node_name']}")
                     formatted_logs.append("------")
-                    formatted_logs.extend(log.split("\n"))
+                    formatted_logs.extend(info['logs'].split("\n"))
                     formatted_logs.append("")
                     #logs = {name: log.split("\n") for name, log in logs.items()}
                 if len(formatted_logs) == 0:

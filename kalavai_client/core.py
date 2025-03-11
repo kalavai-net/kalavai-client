@@ -446,7 +446,7 @@ def fetch_job_logs(job_name, force_namespace=None, pod_name=None, tail=100):
             server_creds=USER_LOCAL_SERVER_FILE,
             user_cookie=USER_COOKIE
         )
-        return {pod: logs for pod, logs in all_logs.items() if pod_name is None or pod_name == pod}
+        return {pod: info for pod, info in all_logs.items() if pod_name is None or pod_name == pod}
 
     except Exception as e:
         return {"error": str(e)}

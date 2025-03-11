@@ -1248,19 +1248,19 @@ def job__logs(name, *others, pod_name=None, stream=False, tail=100, force_namesp
     while True:
         try:
             if not stream:
-                for pod, logs in all_logs.items():
+                for pod, info in all_logs.items():
                     if pod_name is not None and pod_name != pod:
                         continue
-                    console.log(f"[yellow]Pod {pod}")
-                    console.log(f"[green]{logs}")
+                    console.log(f"[yellow]Pod {pod} in {info['pod']['spec']['node_name']}")
+                    console.log(f"[green]{info['logs']}")
                 break
             else:
                 os.system("clear")
-                for pod, logs in all_logs.items():
+                for pod, info in all_logs.items():
                     if pod_name is not None and pod_name != pod:
                         continue
-                    print(f"Pod {pod}")
-                    print(f"{logs}")
+                    print(f"Pod {pod} in {info['pod']['spec']['node_name']}")
+                    print(f"{info['logs']}")
                 time.sleep(1)
         except KeyboardInterrupt:
             break
