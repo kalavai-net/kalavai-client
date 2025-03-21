@@ -291,14 +291,18 @@ def fetch_job_details(jobs: list[Job]):
                 user_cookie=USER_COOKIE
             )
             workers_status = defaultdict(int)
+            restart_counts = 0
             for ns, ss in result.items():
                 if ns != namespace: # same job name, different namespace
                     continue
                 for _, values in ss.items():
-                    # TODO get 'restart_count' from values['conditions'][-1]["restart_count"]
                     # TODO: get nodes involved in deployment (needs kubewatcher)
+                    if "conditions" in values and values["conditions"] is not None:
+                        restart_counts = sum([c["restart_count"] for c in values["conditions"]])
                     workers_status[values["status"]] += 1
             workers = "\n".join([f"{k}: {v}" for k, v in workers_status.items()])
+            if restart_counts > 0:
+                workers += f"\n({restart_counts} restart)"
             # get URL details
             data = {
                 "label": TEMPLATE_LABEL,
@@ -338,7 +342,7 @@ def fetch_job_details(jobs: list[Job]):
     
     return job_details
 
-def deploy_job(template_name, values_dict, force_namespace=None):
+def deploy_job(template_name, values_dict, force_namespace=None, target_labels=None):
 
     # deploy template with kube-watcher
     data = {
@@ -347,6 +351,8 @@ def deploy_job(template_name, values_dict, force_namespace=None):
     }
     if force_namespace is not None:
         data["force_namespace"] = force_namespace
+    if target_labels is not None:
+        data["target_labels"] = target_labels
 
     try:
         result = request_to_server(

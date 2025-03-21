@@ -162,7 +162,8 @@ def job_deploy(request: DeployJobRequest):
     result = deploy_job(
         template_name=request.template_name,
         values_dict=request.values,
-        force_namespace=request.force_namespace
+        force_namespace=request.force_namespace,
+        target_labels=request.target_labels
     )
     return result
 

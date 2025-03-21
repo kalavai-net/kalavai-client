@@ -37,6 +37,7 @@ class DeployJobRequest(BaseModel):
     template_name: str
     values: dict
     force_namespace: str = None
+    target_labels: dict[str, str] = None
 
 class DeleteJobRequest(BaseModel):
     name: str

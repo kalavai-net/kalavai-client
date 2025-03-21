@@ -122,6 +122,13 @@ class JobsState(rx.State):
             "template_name": self.selected_template,
             "values": form_data
         }
+        if "NODE_SELECTORS" in form_data:
+            try:
+                import json
+                data["target_labels"] = json.loads(form_data["NODE_SELECTORS"])
+                del form_data["NODE_SELECTORS"]
+            except Exception as e:
+                rx.toast.error(f"Error converting NODE_SELECTORS: {str(e)}", position="top-center")
 
         force_namespace = form_data.pop("force_namespace", None)
         if force_namespace is not None and len(force_namespace.strip()) > 0:

@@ -1202,13 +1202,14 @@ def job__list(*others):
     all_deployments = fetch_job_names()
     if "error" in all_deployments:
         console.log(f"[red]Error when connecting to kalavai service: {all_deployments}")
-        return 
+        return
     
     if len(all_deployments) == 0:
         console.log("[green]No deployments found.")
         return
     
     details = fetch_job_details(jobs=all_deployments)
+
     if "error" in details:
         console.log(f"[red]{details}")
         return
