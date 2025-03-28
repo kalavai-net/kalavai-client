@@ -164,6 +164,21 @@ The client is a python package and can be installed with one command:
 pip install kalavai-client
 ```
 
+### Mac
+
+Extra steps to install on Mac:
+
+```bash
+# install brew
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zshrc
+source ~/.zshrc
+# install docker-compose
+brew install docker-compose
+```
+
+Then proceed to install kalavai using `pip` as above.
+
 
 ## Create a a local, private LLM pool
 
@@ -255,6 +270,61 @@ Anything missing here? Give us a shout in the [discussion board](https://github.
 
 <details>
 
+http://51.159.141.14:32000
+org: 7bf27136-4152-4ff6-a2da-b15fb1b5f09f
+api: 1324371f-3184-4fb3-97af-c6f5cf28d291
+
+Langfuse
+PK: pk-lf-f1197395-964d-4a34-9951-de14e603c8fb
+SK: sk-lf-a94a5f77-b3f5-410f-8839-2bcfdf99ab23
+
+# LiteLLM request
+curl -X POST http://100.10.0.3:30432/v1/chat/completions -H "Content-Type: application/json" -H "Authorization: Bearer sk-ZWpRCq6t1ggIu8NL-Kz9Aw" -d '{
+    "model": "qwen-qwen2-5-0-5b-instruct",
+    "messages": [
+        {
+            "role": "user",
+            "content": "Hello!"
+        }
+    ],
+    "user": "carlos@kalavai.net"
+}'
+
+
+Langfuse
+
+Secret Key: sk-lf-7af5b272-9bee-4c4e-8c1c-57053c9abedd
+Key: pk-lf-252180de-f7b9-4ef4-9d43-30529c43d78e
+host: https://cloud.langfuse.com
+
+
+curl -X 'POST' \
+  'http://51.159.141.14:30001/v1/get_nodes_cost' \
+  -H 'accept: application/json' \
+  -H 'X-API-KEY: c69c9476-7c81-4da4-935e-b21168477f87' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "node_labels": {"kalavai.cluster.name": "musoles"},
+  "kubecost_params": {
+    "accumulate": true,
+    "window": "1h",
+    "step": "1",
+    "resolution": "1s"
+  }
+}'
+
+curl -X 'POST' \
+  'http://51.159.141.14:30001/v1/get_node_stats' \
+  -H 'X-API-KEY: c69c9476-7c81-4da4-935e-b21168477f87' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "node_id": "scw-happy-lalande-bd5585",
+  "start_time": "10m",
+  "end_time": "now",
+  "chunk_size": 1
+}'
+
 <summary>Expand</summary>
 
 Python version >= 3.6.
@@ -262,7 +332,7 @@ Python version >= 3.6.
 ```bash
 sudo add-apt-repository ppa:deadsnakes/ppa
 sudo apt update
-sudo apt install python3.10 python3.10-dev python3-virtualenv
+sudo apt install python3.10 python3.10-dev python3-virtualenv python3-venv
 virtualenv -p python3.10 env
 source env/bin/activate
 sudo apt install  python3.10-venv python3.10-dev -y
@@ -284,3 +354,20 @@ To run the unit tests, use:
 ```bash
 python -m unittest
 ```
+
+### Build docker images
+
+Make sure docker and docker buildx are installed. If building on linux amd64, you will need QEMU up and running to emulate arm64 architecture:
+
+```bash
+docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+```
+
+Then you are ready to build and push a multi-arch image:
+```bash
+docker buildx build --platform linux/amd64,linux/arm64 -t my-image:latest --push .
+```
+
+
+
+

@@ -47,7 +47,7 @@ from kalavai_client.utils import (
     USER_NODE_LABEL_KEY,
     ALLOW_UNREGISTERED_USER_KEY
 )
-from kalavai_client.auth import (
+from kalavai_client.anvil_auth import (
     KalavaiAuthClient
 )
 from kalavai_client.env import (
@@ -126,7 +126,7 @@ def set_schedulable(schedulable, node_names):
     except Exception as e:
         return {"error": f"Error when connecting to kalavai service: {str(e)}"}
 
-def init_user_workspace(force_namespace=None):
+def init_user_workspace(user_email=None,force_namespace=None):
     
     # load template config and populate with values
     sidecar_template_yaml = load_template(
@@ -138,6 +138,8 @@ def init_user_workspace(force_namespace=None):
         data = {"config": sidecar_template_yaml}
         if force_namespace is not None:
             data["force_namespace"] = force_namespace
+        if user_email is not None:
+            data["user_email"] = user_email
         result = request_to_server(
             method="post",
             endpoint="/v1/create_user_space",
@@ -636,6 +638,67 @@ def get_max_gpus():
     except:
         return 0
 
+def generate_worker_package(num_gpus=0, node_name=None, ip_address="0.0.0.0", storage_compatible=True):
+    # get pool data from token  
+    token = get_pool_token(mode=TokenType.WORKER)
+    if "error" in token:
+        return {"error": f"[red]Error when getting pool token: {token['error']}"}
+    
+    if node_name is None:
+        node_name = f"worker-{uuid.uuid4().hex[:6]}"
+    
+    # parse pool data
+    try:
+        data = decode_dict(token["token"])
+        kalavai_seed_ip = data[CLUSTER_IP_KEY]
+        kalavai_token = data[CLUSTER_TOKEN_KEY]
+        cluster_name = data[CLUSTER_NAME_KEY]
+        public_location = data[PUBLIC_LOCATION_KEY]
+        vpn = defaultdict(lambda: None)
+    except Exception as e:
+        return {"error": f"Invalid token. {str(e)}"} 
+    
+    # join private network if provided
+    node_labels = {
+        STORAGE_CLASS_LABEL: storage_compatible
+    }
+    user = defaultdict(lambda: None)
+    if public_location is not None:
+        user = authenticate_user()
+        if user is None:
+            return {"error": "Must be logged in to join public pools"}
+        try:
+            vpn = get_vpn_details(
+                location=public_location,
+                user_cookie=USER_COOKIE)
+            node_labels[USER_NODE_LABEL] = user["username"]
+        except Exception as e:
+            return {"error": f"Are you authenticated? Error: {str(e)}"}
+        try:
+            validate_join_public_seed(
+                cluster_name=cluster_name,
+                join_key=token,
+                user_cookie=USER_COOKIE
+            )
+        except Exception as e:
+            return {"error": f"Error when joining network: {str(e)}"}
+    
+    # Generate docker compose recipe
+    compose = generate_compose_config(
+        write_to_file=False,
+        role="agent",
+        node_ip_address=ip_address,
+        pool_ip=f"https://{kalavai_seed_ip}:6443",
+        pool_token=kalavai_token,
+        num_gpus=num_gpus,
+        vpn_token=vpn["key"],
+        node_name=node_name,
+        node_labels=node_labels,
+        is_public=public_location is not None)
+    
+    return compose
+
+
 def join_pool(token, num_gpus=None, node_name=None, ip_address=None):
     compatibility = check_worker_compatibility()
     if len(compatibility["issues"]) > 0:
@@ -730,7 +793,7 @@ def join_pool(token, num_gpus=None, node_name=None, ip_address=None):
     except KeyboardInterrupt:
         return {"error": "Installation aborted. Leaving pool."}
     
-    result = init_user_workspace()
+    result = init_user_workspace(user_email=user["email"])
     if "error" in result:
         return {"error": f"Error when creating user workspace: {result}"}
     
@@ -761,6 +824,7 @@ def create_pool(cluster_name: str, ip_address: str, description: str="", token_m
     node_labels = {
         STORAGE_CLASS_LABEL: is_storage_compatible()
     }
+
     if location is not None:
         try:
             vpn = get_vpn_details(
@@ -857,10 +921,10 @@ def create_pool(cluster_name: str, ip_address: str, description: str="", token_m
     if "error" in result or ("failed" in result and len(result['failed']) > 0):
         return {"error": f"Error when initialising pool: {result}"}
     # init default namespace
-    init_user_workspace(force_namespace="default")
+    init_user_workspace(user_email=user["email"], force_namespace="default")
     if only_registered_users:
         # init user namespace
-        init_user_workspace()
+        init_user_workspace(user_email=user["email"])
     
     # register cluster (if user is logged in)
     result = register_pool(
@@ -875,6 +939,7 @@ def create_pool(cluster_name: str, ip_address: str, description: str="", token_m
         return {"warning": result["warning"]}
     
     return {"success"}
+
 
 def get_pool_token(mode: TokenType):
 

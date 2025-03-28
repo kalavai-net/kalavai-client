@@ -41,6 +41,7 @@ from kalavai_client.core import (
     fetch_devices,
     fetch_job_logs,
     fetch_gpus,
+    generate_worker_package,
     load_gpu_models,
     fetch_job_templates,
     fetch_job_defaults,
@@ -64,6 +65,7 @@ from kalavai_client.core import (
 )
 from kalavai_client.utils import (
     check_gpu_drivers,
+    decode_dict,
     load_template,
     run_cmd,
     user_confirm,
@@ -305,11 +307,10 @@ def pool__publish(*others, description=None, is_private=True):
     # - cluster is up and running
     # - cluster is connected to vpn (has net token)
     # - user is authenticated
-    try:
-        CLUSTER.is_seed_node()
-    except Exception as e:
-        console.log(f"[red]Problems with your pool: {str(e)}")
+    if not CLUSTER.is_seed_node():
+        console.log(f"You can only create workers from a seed node")
         return
+    
     choices = select_token_type()
     if choices["admin"]:
         mode = TokenType.ADMIN
@@ -343,10 +344,8 @@ def pool__unpublish(cluster_name=None, *others):
     # Check for:
     # - cluster is up and running
     # - user is authenticated
-    try:
-        CLUSTER.is_seed_node()
-    except Exception as e:
-        console.log(f"[red]Problems with your pool: {str(e)}")
+    if not CLUSTER.is_seed_node():
+        console.log(f"You can only create workers from a seed node")
         return
     
     result = unregister_pool()
@@ -356,6 +355,31 @@ def pool__unpublish(cluster_name=None, *others):
         console.log(f"[yellow]{result['warning']}")
     else:
         console.log(f"[green]Your cluster has been removed from {KALAVAI_PLATFORM_URL}")
+
+@arguably.command
+def pool__package_worker(output_file, *others, num_gpus=0, ip_address="0.0.0.0", node_name=None, storage_compatible=True):
+    """
+    [AUTH]Package a worker for distribution (docker compose only)
+    """
+
+    if not CLUSTER.is_seed_node():
+        console.log(f"[red]You can only create workers from a seed node")
+        return
+    
+    compose = generate_worker_package(
+        num_gpus=num_gpus,
+        ip_address=ip_address,
+        node_name=node_name,
+        storage_compatible=storage_compatible
+    )
+
+    if "error" in compose:
+        console.log(f"[red]{compose['error']}")
+    else:
+        console.log(f"[green]Worker package created: {output_file}")
+        with open(output_file, "w") as f:
+            f.write(compose)
+    
 
 @arguably.command
 def pool__list(*others, user_only=False):

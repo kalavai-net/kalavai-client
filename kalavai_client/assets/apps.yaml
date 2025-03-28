@@ -28,7 +28,7 @@ releases:
   - name: lago
     namespace: kalavai
     chart: kalavai/lago
-    installed: true
+    installed: {{not watcher_allow_unregistered_user}}
     set:
     - name: external.api.nodePort
       value: 32000
@@ -144,7 +144,7 @@ releases:
   - name: kalavai-watcher
     namespace: kalavai
     chart: kalavai/kalavai-watcher
-    version: "0.3.6"
+    version: "0.3.7"
     installed: true
     set:
     - name: namespace
@@ -152,9 +152,13 @@ releases:
     - name: replicas
       value: 2
     - name: image_tag
-      value: "v2025.03.12"
+      value: "v2025.03.16"
     - name: deployment.in_cluster
       value: "True"
+    - name: deployment.kalavai_username_key
+      value: "{{kalavai_username_key}}"
+    - name: deployment.kalavai_user_email_key
+      value: "{{kalavai_user_email_key}}"
     - name: deployment.use_auth_key
       value: "True"
     - name: deployment.admin_key

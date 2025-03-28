@@ -1,4 +1,6 @@
-# TODO: add helm versions here
+- name: kalavai_user_email_key
+  default: "kalavai.cluster.email"
+  description: "User email key to store user email in kalavai nodes"
 
 - name: kalavai_api_endpoint
   default: https://platform.kalavai.net/_/api

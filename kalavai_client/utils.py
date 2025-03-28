@@ -13,7 +13,7 @@ from rich.table import Table
 import yaml
 
 
-from kalavai_client.auth import KalavaiAuthClient
+from kalavai_client.anvil_auth import KalavaiAuthClient
 from kalavai_client.env import (
     SERVER_IP_KEY,
     DOCKER_COMPOSE_TEMPLATE,
@@ -92,7 +92,7 @@ def is_storage_compatible():
         return False
 ################
 
-def generate_compose_config(role, node_name, is_public, node_ip_address="0.0.0.0", num_gpus=0, node_labels=None, pool_ip=None, vpn_token=None, pool_token=None):
+def generate_compose_config(role, node_name, is_public, write_to_file=True, node_ip_address="0.0.0.0", num_gpus=0, node_labels=None, pool_ip=None, vpn_token=None, pool_token=None):
     
     if node_labels is not None:
         node_labels = " ".join([f"--node-label {key}={value}" for key, value in node_labels.items()])
@@ -119,8 +119,9 @@ def generate_compose_config(role, node_name, is_public, node_ip_address="0.0.0.0
     compose_yaml = load_template(
         template_path=DOCKER_COMPOSE_TEMPLATE,
         values=compose_values)
-    with open(USER_COMPOSE_FILE, "w") as f:
-        f.write(compose_yaml)
+    if write_to_file:
+        with open(USER_COMPOSE_FILE, "w") as f:
+            f.write(compose_yaml)
     return compose_yaml
 
 def is_watcher_alive(server_creds, user_cookie, timeout=30):
