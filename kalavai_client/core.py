@@ -13,6 +13,8 @@ import re
 
 from kalavai_client.cluster import CLUSTER
 from kalavai_client.utils import (
+    DEPLOY_LLM_SIDECARS_KEY,
+    NODE_ROLE_LABEL,
     check_gpu_drivers,
     generate_join_token,
     register_cluster,
@@ -576,38 +578,17 @@ def attach_to_pool(token, node_name=None):
         auth_key = data[AUTH_KEY]
         watcher_service = data[WATCHER_SERVICE_KEY]
         public_location = data[PUBLIC_LOCATION_KEY]
-        vpn = defaultdict(lambda: None)
     except Exception as e:
         return {"error": f"Invalid token. {str(e)}"} 
     
-    user = defaultdict(lambda: None)
-    if public_location is not None:
-        user = load_user_session()
-        if user is None:
-            return {"error ": "Must be logged in to join public pools"}
-        try:
-            vpn = get_vpn_details(
-                location=public_location,
-                user_cookie=USER_COOKIE)
-        except Exception as e:
-            return {"error": f"Are you authenticated? {str(e)}"}
-        try:
-            validate_join_public_seed(
-                cluster_name=cluster_name,
-                join_key=token,
-                user_cookie=USER_COOKIE
-            )
-        except Exception as e:
-            return {"error": f"Error when joining network: {str(e)}"}
-        
+    user = load_user_session()    
     # local agent join
     # 1. Generate local cache files
     # Generate docker compose recipe
     generate_compose_config(
         role="",
-        vpn_token=vpn["key"],
-        node_name=node_name,
-        is_public=public_location is not None)
+        vpn_token=public_location,
+        node_name=node_name)
     
     store_server_info(
         server_ip=kalavai_seed_ip,
@@ -617,7 +598,7 @@ def attach_to_pool(token, node_name=None):
         node_name=node_name,
         cluster_name=cluster_name,
         public_location=public_location,
-        user_api_key=user["api_key"])
+        user_api_key=None)
     
     run_cmd(f"docker compose -f {USER_COMPOSE_FILE} up -d")
     # ensure we are connected
@@ -693,8 +674,7 @@ def generate_worker_package(num_gpus=0, node_name=None, ip_address="0.0.0.0", st
         num_gpus=num_gpus,
         vpn_token=vpn["key"],
         node_name=node_name,
-        node_labels=node_labels,
-        is_public=public_location is not None)
+        node_labels=node_labels)
     
     return compose
 
@@ -723,35 +703,15 @@ def join_pool(token, num_gpus=None, node_name=None, ip_address=None):
         auth_key = data[AUTH_KEY]
         watcher_service = data[WATCHER_SERVICE_KEY]
         public_location = data[PUBLIC_LOCATION_KEY]
-        vpn = defaultdict(lambda: None)
     except Exception as e:
         return {"error": f"Invalid token. {str(e)}"} 
     
     # join private network if provided
     node_labels = {
-        STORAGE_CLASS_LABEL: is_storage_compatible()
+        STORAGE_CLASS_LABEL: is_storage_compatible(),
+        NODE_ROLE_LABEL: "worker"
     }
-    user = defaultdict(lambda: None)
-    if public_location is not None:
-        user = authenticate_user()
-        if user is None:
-            return {"error": "Must be logged in to join public pools"}
-        try:
-            vpn = get_vpn_details(
-                location=public_location,
-                user_cookie=USER_COOKIE)
-            node_labels[USER_NODE_LABEL] = user["username"]
-        except Exception as e:
-            return {"error": f"Are you authenticated? Error: {str(e)}"}
-        try:
-            validate_join_public_seed(
-                cluster_name=cluster_name,
-                join_key=token,
-                user_cookie=USER_COOKIE
-            )
-        except Exception as e:
-            return {"error": f"Error when joining network: {str(e)}"}
-        
+    user = load_user_session()    
     # local agent join
     # Generate docker compose recipe
     generate_compose_config(
@@ -760,10 +720,9 @@ def join_pool(token, num_gpus=None, node_name=None, ip_address=None):
         pool_ip=f"https://{kalavai_seed_ip}:6443",
         pool_token=kalavai_token,
         num_gpus=num_gpus,
-        vpn_token=vpn["key"],
+        vpn_token=public_location,
         node_name=node_name,
-        node_labels=node_labels,
-        is_public=public_location is not None)
+        node_labels=node_labels)
     
     store_server_info(
         server_ip=kalavai_seed_ip,
@@ -773,7 +732,7 @@ def join_pool(token, num_gpus=None, node_name=None, ip_address=None):
         node_name=node_name,
         cluster_name=cluster_name,
         public_location=public_location,
-        user_api_key=user["api_key"])
+        user_api_key=None)
     
     try:
         CLUSTER.start_worker_node()
@@ -793,13 +752,13 @@ def join_pool(token, num_gpus=None, node_name=None, ip_address=None):
     except KeyboardInterrupt:
         return {"error": "Installation aborted. Leaving pool."}
     
-    result = init_user_workspace(user_email=user["email"])
+    result = init_user_workspace(user_email=user["email"] if user is not None else None)
     if "error" in result:
         return {"error": f"Error when creating user workspace: {result}"}
     
     return cluster_name
 
-def create_pool(cluster_name: str, ip_address: str, description: str="", token_mode: TokenType=TokenType.USER, app_values: str=None, pool_config_values: str=None, num_gpus: int=0, node_name: str=None, only_registered_users: bool=False, location: str=None):
+def create_pool(cluster_name: str, ip_address: str, description: str="", token_mode: TokenType=TokenType.USER, app_values: str=None, pool_config_values: str=None, num_gpus: int=0, node_name: str=None, location: str=None):
 
     if not check_seed_compatibility():
         return {"error": "Requirements failed"}
@@ -810,29 +769,24 @@ def create_pool(cluster_name: str, ip_address: str, description: str="", token_m
     if pool_config_values is None:
         pool_config_values = POOL_CONFIG_DEFAULT_VALUES
 
-    node_name = f"{socket.gethostname()}-{uuid.uuid4().hex[:6]}" 
+    node_name = f"{socket.gethostname()}-{uuid.uuid4().hex[:6]}"
     
     # if only registered users are allowed, check user has logged in
-    user = defaultdict(lambda: None)
-    if only_registered_users or location is not None:
-        user = authenticate_user()
-        if user is None:
-            return {"error": "[white]--only-registered-users [red]or [white]--location[red] can only be used if the host is authenticated. Run [yellow]kalavai login[red] to authenticate"}
-
-    # join private network if provided
-    vpn = defaultdict(lambda: None)
+    user = load_user_session()
+    
     node_labels = {
-        STORAGE_CLASS_LABEL: is_storage_compatible()
+        STORAGE_CLASS_LABEL: is_storage_compatible(),
+        NODE_ROLE_LABEL: "server"
     }
 
-    if location is not None:
-        try:
-            vpn = get_vpn_details(
-                location=location,
-                user_cookie=USER_COOKIE)
-            node_labels[USER_NODE_LABEL] = user["username"]
-        except Exception as e:
-            return {"error": f"[red]Error when joining network: {str(e)}"}
+    # if location is not None:
+    #     try:
+    #         vpn = get_vpn_details(
+    #             location=location,
+    #             user_cookie=USER_COOKIE)
+    #         node_labels[USER_NODE_LABEL] = user["username"]
+    #     except Exception as e:
+    #         return {"error": f"[red]Error when joining network: {str(e)}"}
         
     if num_gpus is None:
         num_gpus = get_max_gpus()
@@ -840,12 +794,11 @@ def create_pool(cluster_name: str, ip_address: str, description: str="", token_m
     # Generate docker compose recipe
     generate_compose_config(
         role="server",
-        vpn_token=vpn["key"],
+        vpn_token=location,
         node_ip_address=ip_address,
         num_gpus=num_gpus,
         node_name=node_name,
-        node_labels=node_labels,
-        is_public=location is not None
+        node_labels=node_labels
     )
     
     # start server
@@ -874,7 +827,8 @@ def create_pool(cluster_name: str, ip_address: str, description: str="", token_m
         WATCHER_PORT_KEY: DEFAULT_WATCHER_PORT,
         WATCHER_SERVICE_KEY: watcher_service,
         USER_NODE_LABEL_KEY: USER_NODE_LABEL,
-        ALLOW_UNREGISTERED_USER_KEY: not only_registered_users
+        ALLOW_UNREGISTERED_USER_KEY: True, # Change this if only registered users are allowed,
+        DEPLOY_LLM_SIDECARS_KEY: location is not None
     }
 
     store_server_info(
@@ -887,7 +841,7 @@ def create_pool(cluster_name: str, ip_address: str, description: str="", token_m
         node_name=node_name,
         cluster_name=cluster_name,
         public_location=location,
-        user_api_key=user["api_key"])
+        user_api_key=None)
     
     # Generate helmfile recipe
     helm_yaml = load_template(
@@ -921,10 +875,12 @@ def create_pool(cluster_name: str, ip_address: str, description: str="", token_m
     if "error" in result or ("failed" in result and len(result['failed']) > 0):
         return {"error": f"Error when initialising pool: {result}"}
     # init default namespace
-    init_user_workspace(user_email=user["email"], force_namespace="default")
-    if only_registered_users:
-        # init user namespace
-        init_user_workspace(user_email=user["email"])
+    init_user_workspace(
+        user_email=user["email"] if user is not None else None,
+        force_namespace="default")
+    # if only_registered_users:
+    #     # init user namespace
+    #     init_user_workspace(user_email=user["email"])
     
     # register cluster (if user is logged in)
     result = register_pool(

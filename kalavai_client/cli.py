@@ -191,16 +191,19 @@ def select_token_type():
             break
     return {"admin": choice == 0, "user": choice == 1, "worker": choice == 2}
 
-def input_gpus():
+def input_gpus(auto_accept=False):
     num_gpus = 0
     try:
         has_gpus = check_gpu_drivers()
         if has_gpus:
             max_gpus = int(run_cmd("nvidia-smi -L | wc -l").decode())
-            num_gpus = user_confirm(
-                question=f"{max_gpus} NVIDIA GPU(s) detected. How many GPUs would you like to include?",
-                options=range(max_gpus+1)
-            ) 
+            if auto_accept:
+                num_gpus = max_gpus
+            else:
+                num_gpus = user_confirm(
+                    question=f"{max_gpus} NVIDIA GPU(s) detected. How many GPUs would you like to include?",
+                    options=range(max_gpus+1)
+                ) 
     except:
         console.log(f"[red]WARNING: error when fetching NVIDIA GPU info. GPUs will not be used on this local machine")
     return num_gpus
@@ -406,7 +409,7 @@ def pool__list(*others, user_only=False):
 
 
 @arguably.command
-def pool__start(cluster_name, *others,  only_registered_users: bool=False, ip_address: str=None, location: str=None, app_values: str=None, pool_config_values: str=None):
+def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None, app_values: str=None, pool_config_values: str=None, auto_accept: bool=False):
     """
     Start Kalavai pool and start/resume sharing resources.
 
@@ -419,19 +422,24 @@ def pool__start(cluster_name, *others,  only_registered_users: bool=False, ip_ad
         return
     
     # User acknowledgement
-    option = user_confirm(
-        question="Kalavai will now create a pool and a local worker using docker. This won't modify your system. Are you happy to proceed?",
-        options=["no", "yes"]
-    )
-    if option == 0:
-        console.log("Installation was cancelled and did not complete.")
-        return
+    if not auto_accept:
+        option = user_confirm(
+            question="Kalavai will now create a pool and a local worker using docker. This won't modify your system. Are you happy to proceed?",
+            options=["no", "yes"]
+        )
+        if option == 0:
+            console.log("Installation was cancelled and did not complete.")
+            return
     
     # select IP address (for external discovery)
     if ip_address is None and location is None:
-        # local IP
-        console.log(f"Scanning for valid IPs")
-        ip_address = select_ip_address()
+        if auto_accept:
+            ip_address = "0.0.0.0"
+            console.log("[yellow]Using [green]0.0.0.0 [yellow]for server address")
+        else:
+            # local IP
+            console.log(f"Scanning for valid IPs")
+            ip_address = select_ip_address()
     
     console.log(f"Using {ip_address} address for server")
 
@@ -442,8 +450,7 @@ def pool__start(cluster_name, *others,  only_registered_users: bool=False, ip_ad
         ip_address=ip_address,
         app_values=app_values,
         pool_config_values=pool_config_values,
-        num_gpus=input_gpus(),
-        only_registered_users=only_registered_users,
+        num_gpus=input_gpus(auto_accept=auto_accept),
         location=location
     )
 
@@ -500,7 +507,7 @@ def pool__check_token(token, *others, public=False):
     return True
 
 @arguably.command
-def pool__join(token, *others, node_name=None):
+def pool__join(token, *others, node_name=None, auto_accept=False):
     """
     Join Kalavai pool and start/resume sharing resources.
 
@@ -515,28 +522,34 @@ def pool__join(token, *others, node_name=None):
         return
     
     # check that is not attached to another instance
-    if os.path.exists(USER_LOCAL_SERVER_FILE):
+    if not auto_accept:
+        if os.path.exists(USER_LOCAL_SERVER_FILE):
+            option = user_confirm(
+                question="You seem to be connected to an instance already. Are you sure you want to join a new one?",
+                options=["no", "yes"]
+            )
+            if option == 0:
+                console.log("[green]Nothing happened.")
+                return
+    
+    num_gpus = input_gpus(auto_accept=auto_accept)
+
+    if not auto_accept:
         option = user_confirm(
-            question="You seem to be connected to an instance already. Are you sure you want to join a new one?",
+            question="Docker compose ready. Would you like Kalavai to deploy it?",
             options=["no", "yes"]
         )
         if option == 0:
-            console.log("[green]Nothing happened.")
+            console.log("[red]Installation aborted")
             return
-    
-    num_gpus = input_gpus()
-
-    option = user_confirm(
-        question="Docker compose ready. Would you like Kalavai to deploy it?",
-        options=["no", "yes"]
-    )
-    if option == 0:
-        console.log("[red]Installation aborted")
-        return
     
     # select IP address (for external discovery)
     console.log(f"Scanning for valid IPs")
-    ip_address = select_ip_address()
+    if auto_accept:
+        ip_address = "0.0.0.0"
+        console.log("[yellow]Using [green]0.0.0.0 [yellow]for server address")
+    else:
+        ip_address = select_ip_address()
     
     console.log("Connecting worker to the pool...")
     result = join_pool(

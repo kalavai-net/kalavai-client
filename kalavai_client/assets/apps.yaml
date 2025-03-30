@@ -28,7 +28,7 @@ releases:
   - name: lago
     namespace: kalavai
     chart: kalavai/lago
-    installed: {{not watcher_allow_unregistered_user}}
+    installed: {{deploy_llm_sidecars}}
     set:
     - name: external.api.nodePort
       value: 32000
@@ -79,7 +79,7 @@ releases:
     namespace: kalavai
     chart: kalavai/kalavai-helios
     version: "0.1.11"
-    installed: {{not watcher_allow_unregistered_user}}
+    installed: false #{{deploy_llm_sidecars}}
     set:
     - name: deployment.watcher_endpoint
       value: "http://{{watcher_service}}"
@@ -94,11 +94,11 @@ releases:
   - name: opencost
     namespace: opencost
     chart: opencost-charts/opencost
-    installed: {{not watcher_allow_unregistered_user}}
+    installed: {{deploy_llm_sidecars}}
   - name: prometheus
     namespace: prometheus-system
     chart: prometheus/prometheus
-    installed: {{not watcher_allow_unregistered_user}}
+    installed: {{deploy_llm_sidecars}}
     set:
     - name: prometheus-pushgateway.enabled
       value: false

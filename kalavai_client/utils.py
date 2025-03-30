@@ -38,6 +38,8 @@ CLUSTER_NAME_KEY = "cluster_name"
 AUTH_KEY = "watcher_admin_key"
 WRITE_AUTH_KEY = "watcher_write_key"
 ALLOW_UNREGISTERED_USER_KEY = "watcher_allow_unregistered_user"
+DEPLOY_LLM_SIDECARS_KEY = "deploy_llm_sidecars"
+NODE_ROLE_LABEL = "kalavai.node_role"
 USER_API_KEY = "user_api_key"
 READONLY_AUTH_KEY = "watcher_readonly_key"
 WATCHER_SERVICE_KEY = "watcher_service"
@@ -92,7 +94,7 @@ def is_storage_compatible():
         return False
 ################
 
-def generate_compose_config(role, node_name, is_public, write_to_file=True, node_ip_address="0.0.0.0", num_gpus=0, node_labels=None, pool_ip=None, vpn_token=None, pool_token=None):
+def generate_compose_config(role, node_name, write_to_file=True, node_ip_address="0.0.0.0", num_gpus=0, node_labels=None, pool_ip=None, vpn_token=None, pool_token=None):
     
     if node_labels is not None:
         node_labels = " ".join([f"--node-label {key}={value}" for key, value in node_labels.items()])
@@ -100,7 +102,7 @@ def generate_compose_config(role, node_name, is_public, write_to_file=True, node
     compose_values = {
         "user_path": user_path(""),
         "service_name": DEFAULT_CONTAINER_NAME,
-        "vpn": is_public,
+        "vpn": vpn_token is not None,
         "vpn_name": DEFAULT_VPN_CONTAINER_NAME,
         "node_ip_address": node_ip_address,
         "pool_ip": pool_ip,
@@ -113,7 +115,7 @@ def generate_compose_config(role, node_name, is_public, write_to_file=True, node
         "k3s_path": f"{CONTAINER_HOST_PATH}/{rand_suffix}/k3s",
         "etc_path": f"{CONTAINER_HOST_PATH}/{rand_suffix}/etc",
         "node_labels": node_labels,
-        "flannel_iface": DEFAULT_FLANNEL_IFACE if is_public else ""
+        "flannel_iface": DEFAULT_FLANNEL_IFACE if vpn_token is not None else ""
     }
     # generate local config files
     compose_yaml = load_template(
