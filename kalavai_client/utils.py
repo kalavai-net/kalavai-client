@@ -13,7 +13,8 @@ from rich.table import Table
 import yaml
 
 
-from kalavai_client.anvil_auth import KalavaiAuthClient
+from kalavai_client.supabase_auth import SupabaseAuthClient
+from kalavai_client.auth_interface import AuthInterface
 from kalavai_client.env import (
     SERVER_IP_KEY,
     DOCKER_COMPOSE_TEMPLATE,
@@ -22,6 +23,7 @@ from kalavai_client.env import (
     DEFAULT_VPN_CONTAINER_NAME,
     CONTAINER_HOST_PATH,
     USER_COMPOSE_FILE,
+    USER_COOKIE,
     user_path
 )
 
@@ -63,6 +65,10 @@ MANDATORY_POOLCONFIG_FIELDS = [
     CLUSTER_NAME_KEY,
     PUBLIC_LOCATION_KEY
 ]
+
+auth_obj : AuthInterface = SupabaseAuthClient(
+    user_cookie_file=USER_COOKIE
+)
 
 
 ####### Methods to check OS compatibility ########
@@ -151,72 +157,34 @@ def load_server_info(data_key, file):
         return None
     
 def user_login(user_cookie, username=None, password=None):
-    auth = KalavaiAuthClient(
-        user_cookie_file=user_cookie
-    )
-    user = auth.load_user_session()
+    user = auth_obj.load_user_session()
     if user is None:
-        user = auth.login(username=username, password=password)
+        user = auth_obj.login(username=username, password=password)
     return user
 
 def user_logout(user_cookie):
-    auth = KalavaiAuthClient(
-        user_cookie_file=user_cookie
-    )
-    auth.logout()
+    auth_obj.logout()
 
 def load_user_session(user_cookie):
-    auth = KalavaiAuthClient(
-        user_cookie_file=user_cookie
-    )
-    if not auth.is_logged_in():
+    if not auth_obj.is_logged_in():
         return None
-    return auth.load_user_session()
-
-def get_public_vpns(user_cookie):
-    auth = KalavaiAuthClient(
-        user_cookie_file=user_cookie
-    )
-    if not auth.is_logged_in():
-        raise ValueError("Cannot access vpns, user is not authenticated")
-    seeds = auth.call_function(
-        "get_public_vpns"
-    )
-    return seeds
+    return auth_obj.load_user_session()
 
 def get_public_seeds(user_only, user_cookie):
-    auth = KalavaiAuthClient(
-        user_cookie_file=user_cookie
-    )
-    if not auth.is_logged_in():
+    if not auth_obj.is_logged_in():
         raise ValueError("Cannot access vpns, user is not authenticated")
-    user = auth.load_user_session() if user_only else None
-    seeds = auth.call_function(
+    user = auth_obj.load_user_session() if user_only else None
+    seeds = auth_obj.call_function(
         "get_available_seeds",
         user
     )
     return seeds
 
-def get_vpn_details(location, user_cookie):
-    auth = KalavaiAuthClient(
-        user_cookie_file=user_cookie
-    )
-    if not auth.is_logged_in():
-        raise ValueError("Cannot access vpns, user is not authenticated")
-    vpn = auth.call_function(
-        "get_vpn_details",
-        location
-    )
-    return vpn
-
 def register_cluster(name, token, description, user_cookie, is_private=True):
-    auth = KalavaiAuthClient(
-        user_cookie_file=user_cookie
-    )
-    if not auth.is_logged_in():
+    if not auth_obj.is_logged_in():
         raise ValueError("Cannot register cluster, user is not authenticated")
-    user = auth.load_user_session()
-    seed = auth.call_function(
+    user = auth_obj.load_user_session()
+    seed = auth_obj.call_function(
         "register_seed",
         name,
         user,
@@ -227,42 +195,21 @@ def register_cluster(name, token, description, user_cookie, is_private=True):
     return seed
 
 def unregister_cluster(name, user_cookie):
-    auth = KalavaiAuthClient(
-        user_cookie_file=user_cookie
-    )
-    if not auth.is_logged_in():
+    if not auth_obj.is_logged_in():
         raise ValueError("Cannot unregister cluster, user is not authenticated")
-    user = auth.load_user_session()
-    seed = auth.call_function(
+    user = auth_obj.load_user_session()
+    seed = auth_obj.call_function(
         "unregister_seed",
         name,
         user,
     )
     return seed
 
-def validate_join_public_seed(cluster_name, join_key, user_cookie):
-    auth = KalavaiAuthClient(
-        user_cookie_file=user_cookie
-    )
-    if not auth.is_logged_in():
-        raise ValueError("Cannot notify join cluster, user is not authenticated")
-    user = auth.load_user_session()
-    seed = auth.call_function(
-        "validate_join_public_seed",
-        cluster_name,
-        join_key,
-        user,
-    )
-    return seed
-
 def send_pool_invite(cluster_name, invitee_addresses, user_cookie):
-    auth = KalavaiAuthClient(
-        user_cookie_file=user_cookie
-    )
-    if not auth.is_logged_in():
+    if not auth_obj.is_logged_in():
         raise ValueError("Cannot notify join cluster, user is not authenticated")
-    user = auth.load_user_session()
-    result = auth.call_function(
+    user = auth_obj.load_user_session()
+    result = auth_obj.call_function(
         "send_pool_invite",
         user,
         cluster_name,
@@ -286,20 +233,6 @@ def run_cmd(command):
         return return_value
     except OSError as error:
         return error # for exit code
-
-def join_vpn(location, user_cookie):
-    vpn = get_vpn_details(location=location, user_cookie=user_cookie)
-    token = vpn["key"]
-    if token is None:
-        raise ValueError(f"VPN location {location} not found or is private")
-    try:
-        data = decode_dict(token)
-        for field in ["server", "value"]:
-            assert field in data
-    except:
-        raise ValueError("Invalid net token")
-    run_cmd(f"sudo netclient join -t {token} >/dev/null 2>&1")
-    return vpn
 
 def leave_vpn(container_name):
     try:

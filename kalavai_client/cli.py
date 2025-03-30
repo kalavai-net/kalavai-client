@@ -21,7 +21,6 @@ from kalavai_client.env import (
     USER_LOCAL_SERVER_FILE,
     TEMPLATE_LABEL,
     KALAVAI_PLATFORM_URL,
-    DEFAULT_VPN_CONTAINER_NAME,
     CONTAINER_HOST_PATH,
     USER_COMPOSE_FILE,
     USER_HELM_APPS_FILE,
@@ -65,24 +64,18 @@ from kalavai_client.core import (
 )
 from kalavai_client.utils import (
     check_gpu_drivers,
-    decode_dict,
     load_template,
     run_cmd,
     user_confirm,
     generate_table,
     request_to_server,
     safe_remove,
-    leave_vpn,
     load_server_info,
     user_login,
     user_logout,
-    get_public_vpns,
-    register_cluster,
-    unregister_cluster,
     get_public_seeds,
     load_user_session,
     SERVER_IP_KEY,
-    NODE_NAME_KEY,
     CLUSTER_NAME_KEY
 )
 
@@ -281,25 +274,6 @@ def logout(*others):
         user_cookie=USER_COOKIE
     )
     console.log("[green]Log out successfull")
-
-@arguably.command
-def location__list(*others):
-    """
-    [AUTH] List public locations on Kalavai
-    """
-    try:
-        seeds = get_public_vpns(user_cookie=USER_COOKIE)
-    except Exception as e:
-        console.log(f"[red]Error: {str(e)}")
-        console.log("Are you authenticated? Try [yellow]kalavai login")
-        return
-    columns, rows = [], []
-    for idx, seed in enumerate(seeds):
-        columns = seed.keys()
-        rows.append([str(idx)] + list(seed.values()))
-    columns = ["VPN"] + list(columns)
-    table = generate_table(columns=columns, rows=rows)
-    console.log(table)
 
 @arguably.command
 def pool__publish(*others, description=None, is_private=True):

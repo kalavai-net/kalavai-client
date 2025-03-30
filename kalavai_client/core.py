@@ -21,10 +21,8 @@ from kalavai_client.utils import (
     request_to_server,
     load_server_info,
     decode_dict,
-    get_vpn_details,
     send_pool_invite,
     unregister_cluster,
-    validate_join_public_seed,
     generate_compose_config,
     store_server_info,
     is_watcher_alive,
@@ -633,37 +631,16 @@ def generate_worker_package(num_gpus=0, node_name=None, ip_address="0.0.0.0", st
         data = decode_dict(token["token"])
         kalavai_seed_ip = data[CLUSTER_IP_KEY]
         kalavai_token = data[CLUSTER_TOKEN_KEY]
-        cluster_name = data[CLUSTER_NAME_KEY]
         public_location = data[PUBLIC_LOCATION_KEY]
-        vpn = defaultdict(lambda: None)
     except Exception as e:
         return {"error": f"Invalid token. {str(e)}"} 
     
     # join private network if provided
     node_labels = {
-        STORAGE_CLASS_LABEL: storage_compatible
+        STORAGE_CLASS_LABEL: storage_compatible,
+        NODE_ROLE_LABEL: "worker"
     }
-    user = defaultdict(lambda: None)
-    if public_location is not None:
-        user = authenticate_user()
-        if user is None:
-            return {"error": "Must be logged in to join public pools"}
-        try:
-            vpn = get_vpn_details(
-                location=public_location,
-                user_cookie=USER_COOKIE)
-            node_labels[USER_NODE_LABEL] = user["username"]
-        except Exception as e:
-            return {"error": f"Are you authenticated? Error: {str(e)}"}
-        try:
-            validate_join_public_seed(
-                cluster_name=cluster_name,
-                join_key=token,
-                user_cookie=USER_COOKIE
-            )
-        except Exception as e:
-            return {"error": f"Error when joining network: {str(e)}"}
-    
+    user = load_user_session()
     # Generate docker compose recipe
     compose = generate_compose_config(
         write_to_file=False,
@@ -672,7 +649,7 @@ def generate_worker_package(num_gpus=0, node_name=None, ip_address="0.0.0.0", st
         pool_ip=f"https://{kalavai_seed_ip}:6443",
         pool_token=kalavai_token,
         num_gpus=num_gpus,
-        vpn_token=vpn["key"],
+        vpn_token=public_location,
         node_name=node_name,
         node_labels=node_labels)
     
