@@ -144,21 +144,19 @@ releases:
   - name: kalavai-watcher
     namespace: kalavai
     chart: kalavai/kalavai-watcher
-    version: "0.3.7"
+    version: "0.3.8"
     installed: true
     set:
     - name: namespace
       value: kalavai
     - name: replicas
-      value: 2
+      value: 1
     - name: image_tag
-      value: "v2025.03.16"
+      value: "v2025.03.18"
     - name: deployment.in_cluster
       value: "True"
     - name: deployment.kalavai_username_key
       value: "{{kalavai_username_key}}"
-    - name: deployment.kalavai_user_email_key
-      value: "{{kalavai_user_email_key}}"
     - name: deployment.use_auth_key
       value: "True"
     - name: deployment.admin_key

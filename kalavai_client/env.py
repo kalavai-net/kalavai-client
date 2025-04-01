@@ -50,7 +50,7 @@ POOL_CONFIG_DEFAULT_VALUES = resource_path("kalavai_client/assets/pool_config_va
 # user specific config files
 USER_TEMPLATES_FOLDER = user_path("templates", create_path=True)
 USER_LOCAL_SERVER_FILE = user_path(".server")
-USER_COOKIE = user_path(".user_cookie.pkl")
+USER_COOKIE = user_path(".user_cookie.json")
 USER_COMPOSE_FILE = user_path("docker-compose-worker.yaml")
 USER_GUI_COMPOSE_FILE = user_path("docker-compose-gui.yaml")
 USER_HELM_APPS_FILE = user_path("apps.yaml")

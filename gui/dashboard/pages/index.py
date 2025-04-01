@@ -1,4 +1,5 @@
 """The overview page of the app."""
+import os
 
 import reflex as rx
 
@@ -7,92 +8,79 @@ from ..backend.main_state import MainState
 from ..backend.pools_state import PoolsState
 from ..views.pools_table import PoolsView
 
-
+ACCESS_KEY = os.getenv("ACCESS_KEY", None)
 pools_view = PoolsView()
 
 
 def render_login() -> rx.Component:
+    if ACCESS_KEY is None:
+        return rx.flex(
+            rx.card(
+                rx.text("Access key not set"),
+                rx.text("Please set the ACCESS_KEY environment variable"),
+            ),
+        )
+    
     return rx.flex(
         rx.card(
             rx.cond(
                 MainState.is_loading,
                 rx.hstack(
                     rx.spinner(size="3"),
-                    rx.text("Signing in..."),
+                    rx.text("Verifying user key..."),
                     spacing="3"
                 ),
                 rx.vstack(
                     rx.center(
                         rx.heading(
-                            "Sign in to your account",
+                            "Enter your user key",
                             size="6",
                             as_="h2",
                             text_align="center",
                             width="100%",
                         ),
-                        rx.text("Required for public and invitation-only pools", size="2", color_scheme="grass"),
+                        rx.text("Required for accessing the dashboard", size="2", color_scheme="grass"),
                         direction="column",
                         spacing="4",
                         width="100%",
                     ),
                     rx.vstack(
                         rx.text(
-                            "Email address",
+                            "User Key",
                             size="3",
                             weight="medium",
                             text_align="left",
                             width="100%",
                         ),
                         rx.input(
-                            rx.input.slot(rx.icon("user")),
-                            on_blur=MainState.update_username,
-                            placeholder="user@kalavai.net",
-                            type="email",
+                            rx.input.slot(rx.icon("key")),
+                            on_blur=MainState.update_user_key,
+                            placeholder="Enter your user key",
+                            type="password",
                             size="3",
                             width="100%",
                         ),
-                        spacing="2",
-                        width="100%",
-                    ),
-                    rx.vstack(
-                        rx.hstack(
-                            rx.text(
-                                "Password",
-                                size="3",
-                                weight="medium",
-                            ),
+                        rx.cond(
+                            MainState.login_error_message,
                             rx.text(
                                 MainState.login_error_message,
                                 size="3",
                                 color_scheme="red"
                             ),
-                            justify="between",
-                            width="100%",
-                        ),
-                        rx.input(
-                            rx.input.slot(rx.icon("lock")),
-                            placeholder="Enter your password",
-                            on_blur=MainState.update_password,
-                            type="password",
-                            size="3",
-                            width="100%",
                         ),
                         spacing="2",
                         width="100%",
                     ),
-                    rx.button("Sign in", size="3", width="100%", on_click=MainState.signin, loading=MainState.is_loading),
-                    rx.center(
-                        rx.text("Don't have an account?", size="3"),
-                        rx.link("Sign up", href="https://platform.kalavai.net", is_external=True, size="3"),
-                        opacity="0.8",
-                        spacing="2",
-                        direction="row",
+                    rx.button(
+                        "Verify Key",
+                        size="3",
                         width="100%",
+                        on_click=MainState.authorize(ACCESS_KEY),
+                        loading=MainState.is_loading
                     ),
                     spacing="4",
                     width="100%",
                 ),
-
             ),
             max_width="28em",
             size="4",
@@ -107,7 +95,11 @@ def render_pool_manager() -> rx.Component:
         rx.cond(
             MainState.is_connected,
             rx.vstack(
-                rx.card(rx.text(f"Welcome back, {MainState.logged_user}"), rx.button("Sign out", on_click=MainState.signout, loading=PoolsState.is_loading)),
+                rx.hstack(
+                    rx.card(rx.text(f"Welcome back")),
+                    justify="between",
+                    width="100%",
+                ),
                 rx.link(
                     rx.button("Access dashboard"),
                     href="/dashboard",
@@ -137,8 +129,11 @@ def index() -> rx.Component:
         The UI for the overview page.
 
     """
-    return rx.cond(
-        MainState.is_logged_in,
-        render_pool_manager(),
-        render_login()
-    )
+    if ACCESS_KEY is None:
+        return render_pool_manager()
+    else:
+        return rx.cond(
+            MainState.is_logged_in,
+            render_pool_manager(),
+            render_login()
+        )

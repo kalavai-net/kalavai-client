@@ -12,6 +12,7 @@ from sys import exit
 import yaml
 
 import arguably
+from kalavai_client.auth import KalavaiAuth
 from rich.console import Console
 
 from kalavai_client.cluster import CLUSTER
@@ -71,12 +72,11 @@ from kalavai_client.utils import (
     request_to_server,
     safe_remove,
     load_server_info,
-    user_login,
-    user_logout,
     get_public_seeds,
-    load_user_session,
+    load_user_id,
     SERVER_IP_KEY,
-    CLUSTER_NAME_KEY
+    CLUSTER_NAME_KEY,
+    KALAVAI_AUTH
 )
 
 
@@ -206,18 +206,34 @@ def input_gpus(auto_accept=False):
 ##################
 
 @arguably.command
-def gui__start(*others, backend_only=False, gui_frontend_port=3000, gui_backend_port=8000, bridge_port=8001, log_level="critical"):
+def gui__start(
+    *others,
+    backend_only=False,
+    gui_frontend_port=3000,
+    gui_backend_port=8000,
+    bridge_port=8001,
+    log_level="critical",
+    protected_access=False
+):
     """Run GUI (docker) and kalavai core backend (api)"""
     if len(set([gui_frontend_port, gui_backend_port, bridge_port])) < 3:
         console.log("[red]Error: ports must be unique")
         return
+    
+    user_key = None
+    if protected_access:
+        user_key = load_user_id()
+        if user_key is None:
+            console.log("[red]Error: user key not found (required for protected access)")
+            return
     
     if not backend_only:
         values = {
             "gui_frontend_port": gui_frontend_port,
             "gui_backend_port": gui_backend_port,
             "bridge_port": bridge_port,
-            "path": user_path("")
+            "path": user_path(""),
+            "protected_access": user_key
         }
         compose_yaml = load_template(
             template_path=DOCKER_COMPOSE_GUI,
@@ -237,43 +253,17 @@ def gui__start(*others, backend_only=False, gui_frontend_port=3000, gui_backend_
         run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} down")
     console.log("[green]Kalavai GUI has been stopped")
 
+
 @arguably.command
-def login(*others,  username: str=None):
+def auth(user_key, *others):
     """
     [AUTH] (For public clusters only) Log in to Kalavai server.
-
-    Args:
-        *others: all the other positional arguments go here
     """
-    console.log(f"Kalavai account details. If you don't have an account, create one at [yellow]{KALAVAI_PLATFORM_URL}")
-    if username is None:
-        username = input("User email: ")
-    password = getpass()
-    user = user_login(
-        user_cookie=USER_COOKIE,
-        username=username,
-        password=password
-    )
-    
-    if user is not None:
-        console.log(f"[green]{username} logged in successfully")
+    KALAVAI_AUTH.save_auth(user_key)
+    if KALAVAI_AUTH.is_authenticated():
+        console.log(f"[green]User key stored")
     else:
-        console.log(f"[red]Invalid credentials for {username}")
-    
-    return user is not None
-
-@arguably.command
-def logout(*others):
-    """
-    [AUTH] (For public clusters only) Log out of Kalavai server.
-
-    Args:
-        *others: all the other positional arguments go here
-    """
-    user_logout(
-        user_cookie=USER_COOKIE
-    )
-    console.log("[green]Log out successfull")
+        console.log(f"[red]Invalid user key")
 
 @arguably.command
 def pool__publish(*others, description=None, is_private=True):
@@ -814,8 +804,6 @@ def storage__list(*other):
         return
 
     try:
-        user = load_user_session(user_cookie=USER_COOKIE)
-        username = user["username"] if user is not None else None
         result = request_to_server(
             method="post",
             endpoint="/v1/get_storage_usage",
@@ -828,8 +816,6 @@ def storage__list(*other):
         rows = []
         for namespace, storages in result.items():
             for name, values in storages.items():
-                if namespace == username:
-                    namespace = f"**{namespace}**"
                 columns = list(values.keys())
                 rows.append([namespace, name] + [f"{v:.2f} MB" if "capacity" in k else str(v) for k, v in values.items()])
         

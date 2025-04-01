@@ -86,7 +86,7 @@ def template(
         def templated_page():
             return rx.flex(
                 rx.cond(
-                    MainState.is_connected,
+                    MainState.is_logged_in & MainState.is_connected,
                     rx.flex(navbar(), sidebar()),
                     rx.flex()
                 ),

@@ -176,10 +176,9 @@ def job_delete(request: DeleteJobRequest):
     return result
 
 @app.get("/authenticate_user")
-def user_authenticate(username: str, password: str):
+def user_authenticate(user_id: str):
     result = authenticate_user(
-        username=username,
-        password=password
+        user_id=user_id
     )
     return result
 

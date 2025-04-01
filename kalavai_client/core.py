@@ -17,6 +17,7 @@ from kalavai_client.utils import (
     NODE_ROLE_LABEL,
     check_gpu_drivers,
     generate_join_token,
+    load_user_id,
     register_cluster,
     request_to_server,
     load_server_info,
@@ -45,10 +46,8 @@ from kalavai_client.utils import (
     WATCHER_PORT_KEY,
     WATCHER_SERVICE_KEY,
     USER_NODE_LABEL_KEY,
-    ALLOW_UNREGISTERED_USER_KEY
-)
-from kalavai_client.anvil_auth import (
-    KalavaiAuthClient
+    ALLOW_UNREGISTERED_USER_KEY,
+    KALAVAI_AUTH
 )
 from kalavai_client.env import (
     USER_COOKIE,
@@ -126,7 +125,7 @@ def set_schedulable(schedulable, node_names):
     except Exception as e:
         return {"error": f"Error when connecting to kalavai service: {str(e)}"}
 
-def init_user_workspace(user_email=None,force_namespace=None):
+def init_user_workspace(user_id=None, node_name=None, force_namespace=None):
     
     # load template config and populate with values
     sidecar_template_yaml = load_template(
@@ -138,8 +137,10 @@ def init_user_workspace(user_email=None,force_namespace=None):
         data = {"config": sidecar_template_yaml}
         if force_namespace is not None:
             data["force_namespace"] = force_namespace
-        if user_email is not None:
-            data["user_email"] = user_email
+        if user_id is not None:
+            data["user_id"] = user_id
+        if node_name is not None:
+            data["node_name"] = node_name
         result = request_to_server(
             method="post",
             endpoint="/v1/create_user_space",
@@ -497,31 +498,18 @@ def fetch_gpus(available=False):
 
     except Exception as e:
         return {"error": str(e)}
+    
+def authenticate_user(user_key=None):
+    if user_key is None:
+        KALAVAI_AUTH.save_auth(user_key)
+    
+    return KALAVAI_AUTH.load_user_session()
 
 def load_user_session():
-    auth = KalavaiAuthClient(
-        user_cookie_file=USER_COOKIE
-    )
-    return auth.load_user_session()
-    
-def authenticate_user(username=None, password=None):
-    auth = KalavaiAuthClient(
-        user_cookie_file=USER_COOKIE
-    )
-    user = auth.load_user_session()
-    if user is None:
-        user = auth.login(username=username, password=password)
-    
-    if user is None:
-        return {"error": "Username or password incorrect"}
-    return user
+    return KALAVAI_AUTH.load_user_session()
 
 def user_logout():
-    auth = KalavaiAuthClient(
-        user_cookie_file=USER_COOKIE
-    )
-    auth.logout()
-    return True
+    return KALAVAI_AUTH.clear_auth()
 
 def check_token(token, public=False):
     try:
@@ -579,7 +567,6 @@ def attach_to_pool(token, node_name=None):
     except Exception as e:
         return {"error": f"Invalid token. {str(e)}"} 
     
-    user = load_user_session()    
     # local agent join
     # 1. Generate local cache files
     # Generate docker compose recipe
@@ -640,7 +627,6 @@ def generate_worker_package(num_gpus=0, node_name=None, ip_address="0.0.0.0", st
         STORAGE_CLASS_LABEL: storage_compatible,
         NODE_ROLE_LABEL: "worker"
     }
-    user = load_user_session()
     # Generate docker compose recipe
     compose = generate_compose_config(
         write_to_file=False,
@@ -687,8 +673,7 @@ def join_pool(token, num_gpus=None, node_name=None, ip_address=None):
     node_labels = {
         STORAGE_CLASS_LABEL: is_storage_compatible(),
         NODE_ROLE_LABEL: "worker"
-    }
-    user = load_user_session()    
+    }  
     # local agent join
     # Generate docker compose recipe
     generate_compose_config(
@@ -729,7 +714,9 @@ def join_pool(token, num_gpus=None, node_name=None, ip_address=None):
     except KeyboardInterrupt:
         return {"error": "Installation aborted. Leaving pool."}
     
-    result = init_user_workspace(user_email=user["email"] if user is not None else None)
+    result = init_user_workspace(
+        user_id=load_user_id(),
+        node_name=node_name)
     if "error" in result:
         return {"error": f"Error when creating user workspace: {result}"}
     
@@ -747,9 +734,6 @@ def create_pool(cluster_name: str, ip_address: str, description: str="", token_m
         pool_config_values = POOL_CONFIG_DEFAULT_VALUES
 
     node_name = f"{socket.gethostname()}-{uuid.uuid4().hex[:6]}"
-    
-    # if only registered users are allowed, check user has logged in
-    user = load_user_session()
     
     node_labels = {
         STORAGE_CLASS_LABEL: is_storage_compatible(),
@@ -853,12 +837,13 @@ def create_pool(cluster_name: str, ip_address: str, description: str="", token_m
         return {"error": f"Error when initialising pool: {result}"}
     # init default namespace
     init_user_workspace(
-        user_email=user["email"] if user is not None else None,
+        user_id=load_user_id(),
+        node_name=node_name,
         force_namespace="default")
     # if only_registered_users:
     #     # init user namespace
-    #     init_user_workspace(user_email=user["email"])
-    
+    #     init_user_workspace(
+    #         user_id=load_user_id())
     # register cluster (if user is logged in)
     result = register_pool(
         cluster_name=cluster_name,

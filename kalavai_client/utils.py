@@ -12,9 +12,7 @@ from jinja2 import Template
 from rich.table import Table
 import yaml
 
-
-from kalavai_client.supabase_auth import SupabaseAuthClient
-from kalavai_client.auth_interface import AuthInterface
+from kalavai_client.auth import KalavaiAuth
 from kalavai_client.env import (
     SERVER_IP_KEY,
     DOCKER_COMPOSE_TEMPLATE,
@@ -66,7 +64,9 @@ MANDATORY_POOLCONFIG_FIELDS = [
     PUBLIC_LOCATION_KEY
 ]
 
-auth_obj : AuthInterface = SupabaseAuthClient(
+KALAVAI_AUTH = KalavaiAuth(
+    auth_service_url="dummy_url",
+    auth_service_key="dummy_key",
     user_cookie_file=USER_COOKIE
 )
 
@@ -155,67 +155,63 @@ def load_server_info(data_key, file):
             return json.load(f)[data_key]
     except:
         return None
-    
-def user_login(user_cookie, username=None, password=None):
-    user = auth_obj.load_user_session()
-    if user is None:
-        user = auth_obj.login(username=username, password=password)
-    return user
 
-def user_logout(user_cookie):
-    auth_obj.logout()
+def load_user_session():
+    return KALAVAI_AUTH.load_user_session()
 
-def load_user_session(user_cookie):
-    if not auth_obj.is_logged_in():
-        return None
-    return auth_obj.load_user_session()
+def load_user_id():
+    return KALAVAI_AUTH.get_user_id()
 
 def get_public_seeds(user_only, user_cookie):
-    if not auth_obj.is_logged_in():
-        raise ValueError("Cannot access vpns, user is not authenticated")
-    user = auth_obj.load_user_session() if user_only else None
-    seeds = auth_obj.call_function(
-        "get_available_seeds",
-        user
-    )
-    return seeds
+    return []
+    # if not auth_obj.is_logged_in():
+    #     raise ValueError("Cannot access vpns, user is not authenticated")
+    # user = auth_obj.load_user_session() if user_only else None
+    # seeds = auth_obj.call_function(
+    #     "get_available_seeds",
+    #     user
+    # )
+    # return seeds
 
 def register_cluster(name, token, description, user_cookie, is_private=True):
-    if not auth_obj.is_logged_in():
-        raise ValueError("Cannot register cluster, user is not authenticated")
-    user = auth_obj.load_user_session()
-    seed = auth_obj.call_function(
-        "register_seed",
-        name,
-        user,
-        description,
-        token,
-        is_private
-    )
-    return seed
+    return None
+    # if not auth_obj.is_logged_in():
+    #     raise ValueError("Cannot register cluster, user is not authenticated")
+    # user = auth_obj.load_user_session()
+    # seed = auth_obj.call_function(
+    #     "register_seed",
+    #     name,
+    #     user,
+    #     description,
+    #     token,
+    #     is_private
+    # )
+    # return seed
 
 def unregister_cluster(name, user_cookie):
-    if not auth_obj.is_logged_in():
-        raise ValueError("Cannot unregister cluster, user is not authenticated")
-    user = auth_obj.load_user_session()
-    seed = auth_obj.call_function(
-        "unregister_seed",
-        name,
-        user,
-    )
-    return seed
+    return None
+    # if not auth_obj.is_logged_in():
+    #     raise ValueError("Cannot unregister cluster, user is not authenticated")
+    # user = auth_obj.load_user_session()
+    # seed = auth_obj.call_function(
+    #     "unregister_seed",
+    #     name,
+    #     user,
+    # )
+    # return seed
 
 def send_pool_invite(cluster_name, invitee_addresses, user_cookie):
-    if not auth_obj.is_logged_in():
-        raise ValueError("Cannot notify join cluster, user is not authenticated")
-    user = auth_obj.load_user_session()
-    result = auth_obj.call_function(
-        "send_pool_invite",
-        user,
-        cluster_name,
-        invitee_addresses
-    )
-    return result
+    return None
+    # if not auth_obj.is_logged_in():
+    #     raise ValueError("Cannot notify join cluster, user is not authenticated")
+    # user = auth_obj.load_user_session()
+    # result = auth_obj.call_function(
+    #     "send_pool_invite",
+    #     user,
+    #     cluster_name,
+    #     invitee_addresses
+    # )
+    # return result
 
 def validate_poolconfig(poolconfig_file):
     if not Path(poolconfig_file).is_file():
@@ -268,9 +264,8 @@ def request_to_server(
         "X-API-KEY": auth_key
     }
 
-    user = load_user_session(user_cookie=user_cookie)
     headers["USER-KEY"] = load_server_info(data_key=USER_API_KEY, file=server_creds)
-    headers["USER"] = user["username"] if user is not None else None
+    headers["USER"] = load_user_id()
 
     response = requests.request(
         method=method,
