@@ -265,7 +265,9 @@ def request_to_server(
     }
 
     headers["USER-KEY"] = load_server_info(data_key=USER_API_KEY, file=server_creds)
-    headers["USER"] = load_user_id()
+    user_id = load_user_id()
+    if user_id is not None:
+        headers["USER"] = user_id
 
     response = requests.request(
         method=method,

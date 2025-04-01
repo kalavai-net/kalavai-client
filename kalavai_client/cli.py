@@ -496,6 +496,10 @@ def pool__join(token, *others, node_name=None, auto_accept=False):
                 console.log("[green]Nothing happened.")
                 return
     
+    user_id = load_user_id()
+    if user_id is None:
+        console.log("You are not authenticated. If you want to authenticate your node, use [yellow]kalavai auth <user_key>")
+    
     num_gpus = input_gpus(auto_accept=auto_accept)
 
     if not auto_accept:

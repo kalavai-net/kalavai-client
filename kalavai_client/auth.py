@@ -88,7 +88,10 @@ class KalavaiAuth():
         Returns:
             User key if session exists, None otherwise
         """
-        return self.user_session[_USER_KEY]
+        try:
+            return self.user_session[_USER_KEY]
+        except:
+            return None
 
 
 # Example usage
