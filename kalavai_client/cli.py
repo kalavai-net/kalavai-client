@@ -266,6 +266,14 @@ def auth(user_key, *others):
         console.log(f"[red]Invalid user key")
 
 @arguably.command
+def logout(*others):
+    """
+    Log out of Kalavai server.
+    """
+    KALAVAI_AUTH.clear_auth()
+    console.log(f"[green]User key removed")
+
+@arguably.command
 def pool__publish(*others, description=None, is_private=True):
     """
     [AUTH] Publish pool to Kalavai platform, where other users may be able to join

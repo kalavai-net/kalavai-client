@@ -71,9 +71,12 @@ class PoolsState(rx.State):
         
         async with self:
             # load available pools
-            pools = request_to_kalavai_core(
-                method="get",
-                endpoint="list_available_pools")
+            try:
+                pools = request_to_kalavai_core(
+                    method="get",
+                    endpoint="list_available_pools")
+            except Exception as e:
+                yield rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
             self.items = [
                 Pool(data=data) for data in pools
             ]
@@ -85,9 +88,12 @@ class PoolsState(rx.State):
         async with self:
             self.is_loading = True
 
-        ip_addresses = request_to_kalavai_core(
-            method="get",
-            endpoint="get_ip_addresses")
+        try:
+            ip_addresses = request_to_kalavai_core(
+                method="get",
+                endpoint="get_ip_addresses")
+        except Exception as e:
+            return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
 
         async with self:
             self.ip_addresses = ip_addresses
@@ -109,11 +115,13 @@ class PoolsState(rx.State):
                 else:
                     formatted_data[key] = value
         
-        result = request_to_kalavai_core(
-            method="post",
-            endpoint="create_pool",
-            json=formatted_data)
-
+        try:
+            result = request_to_kalavai_core(
+                method="post",
+                endpoint="create_pool",
+                json=formatted_data)
+        except Exception as e:
+            return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
         if "error" in result:
             return rx.toast.error(result["error"], position="top-center")
         
@@ -136,16 +144,19 @@ class PoolsState(rx.State):
         async with self:
             self.is_loading = True
         
-        if self.selected_join_action == "Join":
-            result = request_to_kalavai_core(
-                method="post",
-                endpoint="join_pool",
-                json={"token":self.token, "ip_address": self.selected_ip_address})
-        else:
-            result = request_to_kalavai_core(
-                method="post",
-                endpoint="attach_to_pool",
-                json={"token":self.token})
+        try:
+            if self.selected_join_action == "Join":
+                result = request_to_kalavai_core(
+                    method="post",
+                    endpoint="join_pool",
+                    json={"token":self.token, "ip_address": self.selected_ip_address})
+            else:
+                result = request_to_kalavai_core(
+                    method="post",
+                    endpoint="attach_to_pool",
+                    json={"token":self.token})
+        except Exception as e:
+            return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
 
         async with self:
             if "error" in result:
@@ -163,10 +174,13 @@ class PoolsState(rx.State):
             self.is_loading = True
         
         async with self:
-            result = request_to_kalavai_core(
-                method="post",
-                endpoint="stop_pool",
-                json={})
+            try:
+                result = request_to_kalavai_core(
+                    method="post",
+                    endpoint="stop_pool",
+                    json={})
+            except Exception as e:
+                return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
             if "error" in result:
                 self.is_loading = False
                 return rx.toast.error(result["error"], position="top-center")
@@ -181,19 +195,28 @@ class PoolsState(rx.State):
             self.is_loading = True
 
         async with self:
-            self.agent_running = request_to_kalavai_core(
-                method="get",
-                endpoint="is_agent_running")
+            try:
+                self.agent_running = request_to_kalavai_core(
+                    method="get",
+                    endpoint="is_agent_running")
+            except Exception as e:
+                return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
         
         async with self:
-            self.connected_to_server = request_to_kalavai_core(
-                method="get",
-                endpoint="is_connected")
+            try:
+                self.connected_to_server = request_to_kalavai_core(
+                    method="get",
+                    endpoint="is_connected")
+            except Exception as e:
+                return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
         
         async with self:
-            self.is_server = request_to_kalavai_core(
-                method="get",
-                endpoint="is_server")
+            try:
+                self.is_server = request_to_kalavai_core(
+                    method="get",
+                    endpoint="is_server")
+            except Exception as e:
+                return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
             self.is_loading = False
 
     @rx.event(background=True)
@@ -201,9 +224,12 @@ class PoolsState(rx.State):
         async with self:
             self.is_loading = True
 
-        result = request_to_kalavai_core(
-            method="post",
-            endpoint="pause_agent")
+        try:
+            result = request_to_kalavai_core(
+                method="post",
+                endpoint="pause_agent")
+        except Exception as e:
+            return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
         async with self:
             if "error" in result:
                 self.is_loading = False
@@ -218,9 +244,12 @@ class PoolsState(rx.State):
         async with self:
             self.is_loading = True
 
-        result = request_to_kalavai_core(
-            method="post",
-            endpoint="resume_agent")
+        try:
+            result = request_to_kalavai_core(
+                method="post",
+                endpoint="resume_agent")
+        except Exception as e:
+            return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
         async with self:
             if "error" in result:
                 self.is_loading = False
@@ -232,11 +261,14 @@ class PoolsState(rx.State):
 
     @rx.event
     def get_pool_token(self, mode):
-        result = request_to_kalavai_core(
-            method="get",
-            endpoint="get_pool_token",
-            params={"mode": self.token_modes.index(mode)}
-        )
+        try:
+            result = request_to_kalavai_core(
+                method="get",
+                endpoint="get_pool_token",
+                params={"mode": self.token_modes.index(mode)}
+            )
+        except Exception as e:
+            return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
         if "error" in result:
             self.update_token("")
             return rx.toast.error(result["error"], position="top-center")

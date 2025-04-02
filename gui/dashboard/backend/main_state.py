@@ -42,9 +42,12 @@ class MainState(rx.State):
         
         async with self:
             # is computer connected to a pool?
-            self.is_connected = request_to_kalavai_core(
-                method="get",
-                endpoint="is_connected")
+            try:
+                self.is_connected = request_to_kalavai_core(
+                    method="get",
+                    endpoint="is_connected")
+            except Exception as e:
+                return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
 
         async with self:
             # is the user authenticated?

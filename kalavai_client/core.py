@@ -722,7 +722,17 @@ def join_pool(token, num_gpus=None, node_name=None, ip_address=None):
     
     return cluster_name
 
-def create_pool(cluster_name: str, ip_address: str, description: str="", token_mode: TokenType=TokenType.USER, app_values: str=None, pool_config_values: str=None, num_gpus: int=0, node_name: str=None, location: str=None):
+def create_pool(
+        cluster_name: str,
+        ip_address: str,
+        description: str="",
+        token_mode: TokenType=TokenType.USER,
+        app_values: str=None,
+        pool_config_values: str=None,
+        num_gpus: int=0,
+        node_name: str=None,
+        location: str=None
+    ):
 
     if not check_seed_compatibility():
         return {"error": "Requirements failed"}
@@ -734,6 +744,7 @@ def create_pool(cluster_name: str, ip_address: str, description: str="", token_m
         pool_config_values = POOL_CONFIG_DEFAULT_VALUES
 
     node_name = f"{socket.gethostname()}-{uuid.uuid4().hex[:6]}"
+    user_id = load_user_id()
     
     node_labels = {
         STORAGE_CLASS_LABEL: is_storage_compatible(),
@@ -774,7 +785,8 @@ def create_pool(cluster_name: str, ip_address: str, description: str="", token_m
         ip_address = CLUSTER.get_vpn_ip()
 
     # populate local cred files
-    auth_key = str(uuid.uuid4())
+    
+    auth_key = user_id if user_id is not None else str(uuid.uuid4())
     write_auth_key = str(uuid.uuid4())
     readonly_auth_key = str(uuid.uuid4())
     
@@ -837,13 +849,13 @@ def create_pool(cluster_name: str, ip_address: str, description: str="", token_m
         return {"error": f"Error when initialising pool: {result}"}
     # init default namespace
     init_user_workspace(
-        user_id=load_user_id(),
+        user_id=user_id,
         node_name=node_name,
         force_namespace="default")
     # if only_registered_users:
     #     # init user namespace
     #     init_user_workspace(
-    #         user_id=load_user_id())
+    #         user_id=user_id)
     # register cluster (if user is logged in)
     result = register_pool(
         cluster_name=cluster_name,
