@@ -184,13 +184,13 @@ def select_token_type():
             break
     return {"admin": choice == 0, "user": choice == 1, "worker": choice == 2}
 
-def input_gpus(auto_accept=False):
+def input_gpus(non_interactive=False):
     num_gpus = 0
     try:
         has_gpus = check_gpu_drivers()
         if has_gpus:
             max_gpus = int(run_cmd("nvidia-smi -L | wc -l").decode())
-            if auto_accept:
+            if non_interactive:
                 num_gpus = max_gpus
             else:
                 num_gpus = user_confirm(
@@ -381,7 +381,7 @@ def pool__list(*others, user_only=False):
 
 
 @arguably.command
-def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None, app_values: str=None, pool_config_values: str=None, auto_accept: bool=False):
+def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None, app_values: str=None, pool_config_values: str=None, non_interactive: bool=False):
     """
     Start Kalavai pool and start/resume sharing resources.
 
@@ -394,7 +394,7 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
         return
     
     # User acknowledgement
-    if not auto_accept:
+    if not non_interactive:
         option = user_confirm(
             question="Kalavai will now create a pool and a local worker using docker. This won't modify your system. Are you happy to proceed?",
             options=["no", "yes"]
@@ -405,7 +405,7 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
     
     # select IP address (for external discovery)
     if ip_address is None and location is None:
-        if auto_accept:
+        if non_interactive:
             ip_address = "0.0.0.0"
             console.log("[yellow]Using [green]0.0.0.0 [yellow]for server address")
         else:
@@ -422,7 +422,7 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
         ip_address=ip_address,
         app_values=app_values,
         pool_config_values=pool_config_values,
-        num_gpus=input_gpus(auto_accept=auto_accept),
+        num_gpus=input_gpus(non_interactive=non_interactive),
         location=location
     )
 
