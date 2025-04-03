@@ -1,9 +1,13 @@
-from typing import List
+import os
+from typing import List, Optional
 import asyncio
 
 import reflex as rx
 
 from ..backend.utils import request_to_kalavai_core
+
+
+ACCESS_KEY = os.getenv("ACCESS_KEY", None)
 
 
 class MainState(rx.State):
@@ -15,9 +19,9 @@ class MainState(rx.State):
 
     username: str = ""
     password: str = ""
-    logged_user: str = ""
     is_loading: bool = False
     login_error_message: str = ""
+    user_key: str = ""
 
     @rx.event
     def update_username(self, username: str):
@@ -38,17 +42,21 @@ class MainState(rx.State):
         
         async with self:
             # is computer connected to a pool?
-            self.is_connected = request_to_kalavai_core(
-                method="get",
-                endpoint="is_connected")
+            try:
+                self.is_connected = request_to_kalavai_core(
+                    method="get",
+                    endpoint="is_connected")
+            except Exception as e:
+                return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
 
         async with self:
             # is the user authenticated?
-            user = request_to_kalavai_core(
-                method="get",
-                endpoint="load_user_session")
-            self.is_logged_in = user is not None
-            self.logged_user = user["username"] if user is not None else ""
+            # user = request_to_kalavai_core(
+            #     method="get",
+            #     endpoint="load_user_session")
+            # self.is_logged_in = user is not None
+            if ACCESS_KEY is None:
+                self.is_logged_in = True
             self.is_loading = False
 
     @rx.event(background=True)
@@ -58,29 +66,48 @@ class MainState(rx.State):
             self.is_connected = True
     
     @rx.event(background=True)
-    async def signin(self):
+    async def authorize(self, access_key: str):
+        """Authorize user with key.
+        
+        Args:
+            access_key: The configured access key from environment
+            user_key: The key entered by the user
+        """
         async with self:
             self.is_loading = True
             self.login_error_message = ""
-
+        
+        # Check if user key matches ACCESS_KEY
         async with self:
-            user = request_to_kalavai_core(
-                method="get",
-                endpoint="authenticate_user",
-                params={"username": self.username, "password": self.password})
-            if "error" in user:
-                self.login_error_message = user["error"]
+            self.is_logged_in = self.user_key == access_key
+            if self.is_logged_in:
+                self.login_error_message = ""
             else:
-                self.is_logged_in = True
-                self.logged_user = user["username"]
+                self.login_error_message = "Invalid user key"
+                
             self.is_loading = False
+
+        # async with self:
+        #     user = request_to_kalavai_core(
+        #         method="get",
+        #         endpoint="authenticate_user",
+        #         params={"user_id": self.username})
+        #     if "error" in user:
+        #         self.login_error_message = user["error"]
+        #     else:
+        #         self.is_logged_in = True
+        #     self.is_loading = False
     
     @rx.event(background=True)
     async def signout(self):
         async with self:
-            request_to_kalavai_core(
-                method="get",
-                endpoint="user_logout")
+            # request_to_kalavai_core(
+            #     method="get",
+            #     endpoint="user_logout")
             self.is_logged_in = False
             self.login_error_message = ""
             return rx.redirect("/")
+
+    def update_user_key(self, value: str):
+        """Update the user key."""
+        self.user_key = value

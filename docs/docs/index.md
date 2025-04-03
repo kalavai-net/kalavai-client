@@ -4,7 +4,7 @@
 
 ## What can you do with Kalavai
 
-Kalavai helps manage the complexity of bringing Large Language Models into practical applications. With Kalavai you can easily:
+Kalavai helps manage the complexity of bringing Large Language Models and Agentic AI into practical applications. With Kalavai you can easily:
 
 - **Deploy Large Language Models** in a single machine, or **seamlessly across multiple nodes**
 - Run a **Ray cluster** for your AI **training, fine tuning and serving** needs

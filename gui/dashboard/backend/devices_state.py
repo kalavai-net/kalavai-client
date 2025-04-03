@@ -58,10 +58,13 @@ class DevicesState(rx.State):
         async with self:
             self.is_loading = True
         
-        devices = request_to_kalavai_core(
-            method="get",
-            endpoint="fetch_devices"
-        )
+        try:
+            devices = request_to_kalavai_core(
+                method="get",
+                endpoint="fetch_devices"
+            )
+        except Exception as e:
+            return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
         async with self:
             self.is_loading = False
             if "error" in devices:
@@ -84,11 +87,14 @@ class DevicesState(rx.State):
     @rx.event(background=True)
     async def remove_entries(self):
         async with self:
-            result = request_to_kalavai_core(
-                method="post",
-                endpoint="delete_nodes",
-                json={"nodes": [self.items[row].data["name"] for row in self.selected_rows]}
-            )
+            try:
+                result = request_to_kalavai_core(
+                    method="post",
+                    endpoint="delete_nodes",
+                    json={"nodes": [self.items[row].data["name"] for row in self.selected_rows]}
+                )
+            except Exception as e:
+                return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
             if "error" in result:
                 return rx.toast.error(str(result["error"]), position="top-center")
             else:
@@ -97,11 +103,14 @@ class DevicesState(rx.State):
     @rx.event(background=True)
     async def toggle_unschedulable(self, state, index):
         async with self:
-            result = request_to_kalavai_core(
-                method="post",
-                endpoint="uncordon_nodes" if state else "cordon_nodes",
-                json={"nodes": [self.items[index].data["name"]]}
-            )
+            try:
+                result = request_to_kalavai_core(
+                    method="post",
+                    endpoint="uncordon_nodes" if state else "cordon_nodes",
+                    json={"nodes": [self.items[index].data["name"]]}
+                )
+            except Exception as e:
+                return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
             if "error" in result:
                 return rx.toast.error(str(result["error"]), position="top-center")
             else:
@@ -119,12 +128,14 @@ class DevicesState(rx.State):
         async with self:
             self.is_loading = True
 
-        result = request_to_kalavai_core(
-            method="post",
-            endpoint="send_pool_invites",
-            json={"invitees": self.invitees.split(",")}
-        )
-        
+        try:
+            result = request_to_kalavai_core(
+                method="post",
+                endpoint="send_pool_invites",
+                json={"invitees": self.invitees.split(",")}
+            )
+        except Exception as e:
+            return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
         async with self:
             self.set_invitees("")
             self.is_loading = False

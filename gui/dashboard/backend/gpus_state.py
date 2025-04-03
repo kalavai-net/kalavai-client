@@ -57,10 +57,13 @@ class GPUsState(rx.State):
         async with self:
             self.is_loading = True
         
-        devices = request_to_kalavai_core(
-            method="get",
-            endpoint="fetch_gpus"
-        )
+        try:
+            devices = request_to_kalavai_core(
+                method="get",
+                endpoint="fetch_gpus"
+            )
+        except Exception as e:
+            return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
         async with self:
             self.is_loading = False
             if "error" in devices:

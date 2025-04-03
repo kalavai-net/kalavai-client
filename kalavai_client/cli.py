@@ -12,6 +12,7 @@ from sys import exit
 import yaml
 
 import arguably
+from kalavai_client.auth import KalavaiAuth
 from rich.console import Console
 
 from kalavai_client.cluster import CLUSTER
@@ -21,7 +22,6 @@ from kalavai_client.env import (
     USER_LOCAL_SERVER_FILE,
     TEMPLATE_LABEL,
     KALAVAI_PLATFORM_URL,
-    DEFAULT_VPN_CONTAINER_NAME,
     CONTAINER_HOST_PATH,
     USER_COMPOSE_FILE,
     USER_HELM_APPS_FILE,
@@ -41,6 +41,7 @@ from kalavai_client.core import (
     fetch_devices,
     fetch_job_logs,
     fetch_gpus,
+    generate_worker_package,
     load_gpu_models,
     fetch_job_templates,
     fetch_job_defaults,
@@ -70,18 +71,12 @@ from kalavai_client.utils import (
     generate_table,
     request_to_server,
     safe_remove,
-    leave_vpn,
     load_server_info,
-    user_login,
-    user_logout,
-    get_public_vpns,
-    register_cluster,
-    unregister_cluster,
     get_public_seeds,
-    load_user_session,
+    load_user_id,
     SERVER_IP_KEY,
-    NODE_NAME_KEY,
-    CLUSTER_NAME_KEY
+    CLUSTER_NAME_KEY,
+    KALAVAI_AUTH
 )
 
 
@@ -189,16 +184,19 @@ def select_token_type():
             break
     return {"admin": choice == 0, "user": choice == 1, "worker": choice == 2}
 
-def input_gpus():
+def input_gpus(non_interactive=False):
     num_gpus = 0
     try:
         has_gpus = check_gpu_drivers()
         if has_gpus:
             max_gpus = int(run_cmd("nvidia-smi -L | wc -l").decode())
-            num_gpus = user_confirm(
-                question=f"{max_gpus} NVIDIA GPU(s) detected. How many GPUs would you like to include?",
-                options=range(max_gpus+1)
-            ) 
+            if non_interactive:
+                num_gpus = max_gpus
+            else:
+                num_gpus = user_confirm(
+                    question=f"{max_gpus} NVIDIA GPU(s) detected. How many GPUs would you like to include?",
+                    options=range(max_gpus+1)
+                ) 
     except:
         console.log(f"[red]WARNING: error when fetching NVIDIA GPU info. GPUs will not be used on this local machine")
     return num_gpus
@@ -208,18 +206,34 @@ def input_gpus():
 ##################
 
 @arguably.command
-def gui__start(*others, backend_only=False, gui_frontend_port=3000, gui_backend_port=8000, bridge_port=8001, log_level="critical"):
+def gui__start(
+    *others,
+    backend_only=False,
+    gui_frontend_port=3000,
+    gui_backend_port=8000,
+    bridge_port=8001,
+    log_level="critical",
+    protected_access=False
+):
     """Run GUI (docker) and kalavai core backend (api)"""
     if len(set([gui_frontend_port, gui_backend_port, bridge_port])) < 3:
         console.log("[red]Error: ports must be unique")
         return
+    
+    user_key = None
+    if protected_access:
+        user_key = load_user_id()
+        if user_key is None:
+            console.log("[red]Error: user key not found (required for protected access)")
+            return
     
     if not backend_only:
         values = {
             "gui_frontend_port": gui_frontend_port,
             "gui_backend_port": gui_backend_port,
             "bridge_port": bridge_port,
-            "path": user_path("")
+            "path": user_path(""),
+            "protected_access": user_key
         }
         compose_yaml = load_template(
             template_path=DOCKER_COMPOSE_GUI,
@@ -239,62 +253,25 @@ def gui__start(*others, backend_only=False, gui_frontend_port=3000, gui_backend_
         run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} down")
     console.log("[green]Kalavai GUI has been stopped")
 
+
 @arguably.command
-def login(*others,  username: str=None):
+def auth(user_key, *others):
     """
     [AUTH] (For public clusters only) Log in to Kalavai server.
-
-    Args:
-        *others: all the other positional arguments go here
     """
-    console.log(f"Kalavai account details. If you don't have an account, create one at [yellow]{KALAVAI_PLATFORM_URL}")
-    if username is None:
-        username = input("User email: ")
-    password = getpass()
-    user = user_login(
-        user_cookie=USER_COOKIE,
-        username=username,
-        password=password
-    )
-    
-    if user is not None:
-        console.log(f"[green]{username} logged in successfully")
+    KALAVAI_AUTH.save_auth(user_key)
+    if KALAVAI_AUTH.is_authenticated():
+        console.log(f"[green]User key stored")
     else:
-        console.log(f"[red]Invalid credentials for {username}")
-    
-    return user is not None
+        console.log(f"[red]Invalid user key")
 
 @arguably.command
 def logout(*others):
     """
-    [AUTH] (For public clusters only) Log out of Kalavai server.
-
-    Args:
-        *others: all the other positional arguments go here
+    Log out of Kalavai server.
     """
-    user_logout(
-        user_cookie=USER_COOKIE
-    )
-    console.log("[green]Log out successfull")
-
-@arguably.command
-def location__list(*others):
-    """
-    [AUTH] List public locations on Kalavai
-    """
-    try:
-        seeds = get_public_vpns(user_cookie=USER_COOKIE)
-    except Exception as e:
-        console.log(f"[red]Error: {str(e)}")
-        console.log("Are you authenticated? Try [yellow]kalavai login")
-        return
-    columns, rows = [], []
-    for idx, seed in enumerate(seeds):
-        columns = seed.keys()
-        rows.append([str(idx)] + list(seed.values()))
-    columns = ["VPN"] + list(columns)
-    table = generate_table(columns=columns, rows=rows)
-    console.log(table)
+    KALAVAI_AUTH.clear_auth()
+    console.log(f"[green]User key removed")
 
 @arguably.command
 def pool__publish(*others, description=None, is_private=True):
@@ -305,11 +282,10 @@ def pool__publish(*others, description=None, is_private=True):
     # - cluster is up and running
     # - cluster is connected to vpn (has net token)
     # - user is authenticated
-    try:
-        CLUSTER.is_seed_node()
-    except Exception as e:
-        console.log(f"[red]Problems with your pool: {str(e)}")
+    if not CLUSTER.is_seed_node():
+        console.log(f"You can only create workers from a seed node")
         return
+    
     choices = select_token_type()
     if choices["admin"]:
         mode = TokenType.ADMIN
@@ -343,10 +319,8 @@ def pool__unpublish(cluster_name=None, *others):
     # Check for:
     # - cluster is up and running
     # - user is authenticated
-    try:
-        CLUSTER.is_seed_node()
-    except Exception as e:
-        console.log(f"[red]Problems with your pool: {str(e)}")
+    if not CLUSTER.is_seed_node():
+        console.log(f"You can only create workers from a seed node")
         return
     
     result = unregister_pool()
@@ -356,6 +330,31 @@ def pool__unpublish(cluster_name=None, *others):
         console.log(f"[yellow]{result['warning']}")
     else:
         console.log(f"[green]Your cluster has been removed from {KALAVAI_PLATFORM_URL}")
+
+@arguably.command
+def pool__package_worker(output_file, *others, num_gpus=0, ip_address="0.0.0.0", node_name=None, storage_compatible=True):
+    """
+    [AUTH]Package a worker for distribution (docker compose only)
+    """
+
+    if not CLUSTER.is_seed_node():
+        console.log(f"[red]You can only create workers from a seed node")
+        return
+    
+    compose = generate_worker_package(
+        num_gpus=num_gpus,
+        ip_address=ip_address,
+        node_name=node_name,
+        storage_compatible=storage_compatible
+    )
+
+    if "error" in compose:
+        console.log(f"[red]{compose['error']}")
+    else:
+        console.log(f"[green]Worker package created: {output_file}")
+        with open(output_file, "w") as f:
+            f.write(compose)
+    
 
 @arguably.command
 def pool__list(*others, user_only=False):
@@ -382,7 +381,7 @@ def pool__list(*others, user_only=False):
 
 
 @arguably.command
-def pool__start(cluster_name, *others,  only_registered_users: bool=False, ip_address: str=None, location: str=None, app_values: str=None, pool_config_values: str=None):
+def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None, app_values: str=None, pool_config_values: str=None, non_interactive: bool=False):
     """
     Start Kalavai pool and start/resume sharing resources.
 
@@ -395,19 +394,24 @@ def pool__start(cluster_name, *others,  only_registered_users: bool=False, ip_ad
         return
     
     # User acknowledgement
-    option = user_confirm(
-        question="Kalavai will now create a pool and a local worker using docker. This won't modify your system. Are you happy to proceed?",
-        options=["no", "yes"]
-    )
-    if option == 0:
-        console.log("Installation was cancelled and did not complete.")
-        return
+    if not non_interactive:
+        option = user_confirm(
+            question="Kalavai will now create a pool and a local worker using docker. This won't modify your system. Are you happy to proceed?",
+            options=["no", "yes"]
+        )
+        if option == 0:
+            console.log("Installation was cancelled and did not complete.")
+            return
     
     # select IP address (for external discovery)
     if ip_address is None and location is None:
-        # local IP
-        console.log(f"Scanning for valid IPs")
-        ip_address = select_ip_address()
+        if non_interactive:
+            ip_address = "0.0.0.0"
+            console.log("[yellow]Using [green]0.0.0.0 [yellow]for server address")
+        else:
+            # local IP
+            console.log(f"Scanning for valid IPs")
+            ip_address = select_ip_address()
     
     console.log(f"Using {ip_address} address for server")
 
@@ -418,8 +422,7 @@ def pool__start(cluster_name, *others,  only_registered_users: bool=False, ip_ad
         ip_address=ip_address,
         app_values=app_values,
         pool_config_values=pool_config_values,
-        num_gpus=input_gpus(),
-        only_registered_users=only_registered_users,
+        num_gpus=input_gpus(non_interactive=non_interactive),
         location=location
     )
 
@@ -476,7 +479,7 @@ def pool__check_token(token, *others, public=False):
     return True
 
 @arguably.command
-def pool__join(token, *others, node_name=None):
+def pool__join(token, *others, node_name=None, auto_accept=False):
     """
     Join Kalavai pool and start/resume sharing resources.
 
@@ -491,28 +494,38 @@ def pool__join(token, *others, node_name=None):
         return
     
     # check that is not attached to another instance
-    if os.path.exists(USER_LOCAL_SERVER_FILE):
+    if not auto_accept:
+        if os.path.exists(USER_LOCAL_SERVER_FILE):
+            option = user_confirm(
+                question="You seem to be connected to an instance already. Are you sure you want to join a new one?",
+                options=["no", "yes"]
+            )
+            if option == 0:
+                console.log("[green]Nothing happened.")
+                return
+    
+    user_id = load_user_id()
+    if user_id is None:
+        console.log("You are not authenticated. If you want to authenticate your node, use [yellow]kalavai auth <user_key>")
+    
+    num_gpus = input_gpus(auto_accept=auto_accept)
+
+    if not auto_accept:
         option = user_confirm(
-            question="You seem to be connected to an instance already. Are you sure you want to join a new one?",
+            question="Docker compose ready. Would you like Kalavai to deploy it?",
             options=["no", "yes"]
         )
         if option == 0:
-            console.log("[green]Nothing happened.")
+            console.log("[red]Installation aborted")
             return
-    
-    num_gpus = input_gpus()
-
-    option = user_confirm(
-        question="Docker compose ready. Would you like Kalavai to deploy it?",
-        options=["no", "yes"]
-    )
-    if option == 0:
-        console.log("[red]Installation aborted")
-        return
     
     # select IP address (for external discovery)
     console.log(f"Scanning for valid IPs")
-    ip_address = select_ip_address()
+    if auto_accept:
+        ip_address = "0.0.0.0"
+        console.log("[yellow]Using [green]0.0.0.0 [yellow]for server address")
+    else:
+        ip_address = select_ip_address()
     
     console.log("Connecting worker to the pool...")
     result = join_pool(
@@ -803,8 +816,6 @@ def storage__list(*other):
         return
 
     try:
-        user = load_user_session(user_cookie=USER_COOKIE)
-        username = user["username"] if user is not None else None
         result = request_to_server(
             method="post",
             endpoint="/v1/get_storage_usage",
@@ -817,8 +828,6 @@ def storage__list(*other):
         rows = []
         for namespace, storages in result.items():
             for name, values in storages.items():
-                if namespace == username:
-                    namespace = f"**{namespace}**"
                 columns = list(values.keys())
                 rows.append([namespace, name] + [f"{v:.2f} MB" if "capacity" in k else str(v) for k, v in values.items()])
         

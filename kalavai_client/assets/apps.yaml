@@ -28,7 +28,7 @@ releases:
   - name: lago
     namespace: kalavai
     chart: kalavai/lago
-    installed: true
+    installed: {{deploy_llm_sidecars}}
     set:
     - name: external.api.nodePort
       value: 32000
@@ -79,7 +79,7 @@ releases:
     namespace: kalavai
     chart: kalavai/kalavai-helios
     version: "0.1.11"
-    installed: {{not watcher_allow_unregistered_user}}
+    installed: false #{{deploy_llm_sidecars}}
     set:
     - name: deployment.watcher_endpoint
       value: "http://{{watcher_service}}"
@@ -94,11 +94,11 @@ releases:
   - name: opencost
     namespace: opencost
     chart: opencost-charts/opencost
-    installed: {{not watcher_allow_unregistered_user}}
+    installed: {{deploy_llm_sidecars}}
   - name: prometheus
     namespace: prometheus-system
     chart: prometheus/prometheus
-    installed: {{not watcher_allow_unregistered_user}}
+    installed: {{deploy_llm_sidecars}}
     set:
     - name: prometheus-pushgateway.enabled
       value: false
@@ -144,17 +144,19 @@ releases:
   - name: kalavai-watcher
     namespace: kalavai
     chart: kalavai/kalavai-watcher
-    version: "0.3.6"
+    version: "0.3.8"
     installed: true
     set:
     - name: namespace
       value: kalavai
     - name: replicas
-      value: 2
+      value: 1
     - name: image_tag
-      value: "v2025.03.12"
+      value: "v2025.03.18"
     - name: deployment.in_cluster
       value: "True"
+    - name: deployment.kalavai_username_key
+      value: "{{kalavai_username_key}}"
     - name: deployment.use_auth_key
       value: "True"
     - name: deployment.admin_key

@@ -65,10 +65,13 @@ class JobsState(rx.State):
             self.templates = []
             self.template_params = []
 
-        templates = request_to_kalavai_core(
-            method="get",
-            endpoint="fetch_job_templates"
-        )
+        try:
+            templates = request_to_kalavai_core(
+                method="get",
+                endpoint="fetch_job_templates"
+            )
+        except Exception as e:
+            return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
         if "error" in templates:
             print("Error when fetching templates:", templates)
         else:
@@ -81,11 +84,14 @@ class JobsState(rx.State):
             self.selected_template = template
             self.template_params = []
         
-        params = request_to_kalavai_core(
-            method="get",
-            endpoint="fetch_job_defaults",
-            params={"name": self.selected_template}
-        )
+        try:
+            params = request_to_kalavai_core(
+                method="get",
+                endpoint="fetch_job_defaults",
+                params={"name": self.selected_template}
+            )
+        except Exception as e:
+            return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
         async with self:
             self.template_params = [p for p in params if p["name"] not in self.FORBIDDEN_PARAMS]
 
@@ -101,11 +107,14 @@ class JobsState(rx.State):
     async def remove_entries(self):
         async with self:
             for row in self.selected_rows:
-                result = request_to_kalavai_core(
-                    method="post",
-                    endpoint="delete_job",
-                    json={"name": self.items[row].data["name"], "force_namespace": self.items[row].data["owner"]}
-                )
+                try:
+                    result = request_to_kalavai_core(
+                        method="post",
+                        endpoint="delete_job",
+                        json={"name": self.items[row].data["name"], "force_namespace": self.items[row].data["owner"]}
+                    )
+                except Exception as e:
+                    return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
                 if "error" in result:
                     return rx.toast.error(result["error"], position="top-center")
                 else:
@@ -137,11 +146,14 @@ class JobsState(rx.State):
         async with self:
             print("job deployed:", form_data)
         
-        result = request_to_kalavai_core(
-            method="post",
-            endpoint="deploy_job",
-            json=data
-        )
+        try:
+            result = request_to_kalavai_core(
+                method="post",
+                endpoint="deploy_job",
+                json=data
+            )
+        except Exception as e:
+            return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
         if "error" in result:
             return rx.toast.error(str(result["error"]), position="top-center")
         else:
@@ -153,14 +165,17 @@ class JobsState(rx.State):
         async with self:
             self.logs = None
         
-        logs = request_to_kalavai_core(
-            method="get",
-            endpoint="fetch_job_logs",
-            params={
+        try:
+            logs = request_to_kalavai_core(
+                method="get",
+                endpoint="fetch_job_logs",
+                params={
                 "job_name": self.items[index].data["name"],
                 "force_namespace": self.items[index].data["owner"]
-            }
-        )
+                }
+            )
+        except Exception as e:
+            return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
         async with self:
             if "error" in logs:
                 self.logs = logs["error"]
@@ -183,9 +198,12 @@ class JobsState(rx.State):
         async with self:
             self.is_loading = True
         
-        all_jobs = request_to_kalavai_core(
-            method="get",
-            endpoint="fetch_job_names")
+        try:
+            all_jobs = request_to_kalavai_core(
+                method="get",
+                endpoint="fetch_job_names")
+        except Exception as e:
+            return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
         
         if "error" in all_jobs:
             async with self:
@@ -210,10 +228,13 @@ class JobsState(rx.State):
             async with self:
                 # go into details
                 self.items = []
-                details = request_to_kalavai_core(
-                    method="post",
-                    endpoint="fetch_job_details",
-                    json={"jobs": all_jobs})
+                try:
+                    details = request_to_kalavai_core(
+                        method="post",
+                        endpoint="fetch_job_details",
+                        json={"jobs": all_jobs})
+                except Exception as e:
+                    return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
                 if "error" not in details:
                     for job_details in details:
                         self.items.append(

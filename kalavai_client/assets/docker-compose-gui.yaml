@@ -10,6 +10,9 @@ services:
     environment:
     - KALAVAI_BRIDGE_URL=http://host.docker.internal
     - KALAVAI_BRIDGE_PORT={{bridge_port}}
+    {% if protected_access %}
+    - ACCESS_KEY={{protected_access}}
+    {% endif %}
     entrypoint: ["reflex"]
     command: >
       run

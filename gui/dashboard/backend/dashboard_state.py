@@ -41,15 +41,18 @@ class DashboardState(rx.State):
         async with self:
             self.is_loading = True
         
-        resources = request_to_kalavai_core(
-            method="get",
-            endpoint="fetch_resources"
-        )
+        try:
+            resources = request_to_kalavai_core(
+                method="get",
+                endpoint="fetch_resources"
+            )
 
-        all_jobs = request_to_kalavai_core(
-            method="get",
-            endpoint="fetch_job_names"
-        )
+            all_jobs = request_to_kalavai_core(
+                method="get",
+                endpoint="fetch_job_names"
+            )
+        except Exception as e:
+            return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
         
         async with self:
             # Resource utilisation

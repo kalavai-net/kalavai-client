@@ -7,10 +7,10 @@
 
 </div>
 
-⭐⭐⭐ **Kalavai and our LLM pools are open source, and free to use in both commercial and non-commercial purposes. If you find it useful, consider supporting us by [giving a star to our GitHub project](https://github.com/kalavai-net/kalavai-client), joining our [discord channel](https://discord.gg/YN6ThTJKbM), follow our [Substack](https://kalavainet.substack.com/) and give us a [review on Product Hunt](https://www.producthunt.com/products/kalavai/reviews/new).**
+⭐⭐⭐ **Kalavai and our AI pools are open source, and free to use in both commercial and non-commercial purposes. If you find it useful, consider supporting us by [giving a star to our GitHub project](https://github.com/kalavai-net/kalavai-client), joining our [discord channel](https://discord.gg/YN6ThTJKbM), follow our [Substack](https://kalavainet.substack.com/) and give us a [review on Product Hunt](https://www.producthunt.com/products/kalavai/reviews/new).**
 
 
-# Kalavai: turn your devices into a scalable LLM platform
+# Kalavai: turn your devices into a scalable AI platform
 
 ### Taming the adoption of Large Language Models
 
@@ -25,7 +25,7 @@
 
 ## What can Kalavai do?
 
-Kalavai's goal is to make using LLMs in real applications accessible and affordable to all. It's a _magic box_ that **integrates all the components required to make LLM useful in the age of massive computing**, from sourcing computing power, managing distributed infrastructure and storage, using industry-standard model engines and orchestration of LLMs. 
+Kalavai's goal is to make using AI (LLMs, AI agents) in real applications accessible and affordable to all. It's a _magic box_ that **integrates all the components required to make AI useful in the age of massive computing**, from model deployment and orchestration to Agentic AI. 
 
 ### Core features
 
@@ -39,18 +39,6 @@ Kalavai's goal is to make using LLMs in real applications accessible and afforda
 <details>
 
 **<summary>Video tutorials</summary>**
-
-### Aggregate multiple devices in an LLM pool
-
-https://github.com/user-attachments/assets/4be59886-1b76-4400-ab5c-c803e3e414ec
-
-### Deploy LLMs across the pool
-
-https://github.com/user-attachments/assets/ea57a2ab-3924-4097-be2a-504e0988fbb1
-
-### Single point of entry for all models (GUI + API)
-
-https://github.com/user-attachments/assets/7df73bbc-d129-46aa-8ce5-0735177dedeb
 
 ### Self-hosted LLM pools
 
@@ -165,7 +153,7 @@ pip install kalavai-client
 ```
 
 
-## Create a a local, private LLM pool
+## Create a a local, private AI pool
 
 > Kalavai is **free to use, no caps, for both commercial and non-commercial purposes**. All you need to get started is one or more computers that can see each other (i.e. within the same network), and you are good to go. If you are interested in join computers in different locations / networks, [contact us](mailto:info@kalavai.net) or [book a demo](https://app.onecal.io/b/kalavai/book-a-demo) with the founders.
 
@@ -180,13 +168,6 @@ This will expose the GUI and the backend services in localhost. By default, the 
 ![Kalavai logo](docs/docs/assets/images/ui_dashboard_multiple.png)
 
 Check out our [getting started guide](https://kalavai-net.github.io/kalavai-client/getting_started/) for next steps.
-
-
-## Public LLM pools: crowdsource community resources
-
-This is the **easiest and most powerful** way to experience Kalavai. It affords users the full resource capabilities of the community and access to all its deployed LLMs, via an [OpenAI-compatible endpoint](https://kalavai-net.github.io/kalavai-client/public_llm_pool/#single-api-endpoint) as well as a [UI-based playground](https://kalavai-net.github.io/kalavai-client/public_llm_pool/#ui-playground).
-
-Check out [our guide](https://kalavai-net.github.io/kalavai-client/public_llm_pool/) on how to join and start deploying LLMs.
 
 
 ## Enough already, let's run stuff!
@@ -222,7 +203,6 @@ The kalavai client, which controls and access pools, can be installed on any mac
 - [x] Kalavai client on Linux
 - [x] [TEMPLATE] Distributed LLM deployment
 - [x] Kalavai client on Windows (with WSL2)
-- [x] Public LLM pools
 - [x] Self-hosted LLM pools
 - [x] Collaborative LLM deployment
 - [x] Ray cluster support
@@ -262,7 +242,7 @@ Python version >= 3.6.
 ```bash
 sudo add-apt-repository ppa:deadsnakes/ppa
 sudo apt update
-sudo apt install python3.10 python3.10-dev python3-virtualenv
+sudo apt install python3.10 python3.10-dev python3-virtualenv python3-venv
 virtualenv -p python3.10 env
 source env/bin/activate
 sudo apt install  python3.10-venv python3.10-dev -y
