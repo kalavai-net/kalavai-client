@@ -34,6 +34,7 @@ write_files:
         # Set up a Python virtual environment and install kalavai-client
         sudo -u ubuntu bash -c 'virtualenv -p python3 ~/kalavai'
         sudo -u ubuntu bash -c '~/kalavai/bin/pip install kalavai-client'
+        sudo -u ubuntu bash -c 'kalavai auth {{user_id}}'
         sudo -u ubuntu bash -c 'kalavai pool start {{name}} --location {{vpn_key}} --non-interactive'
 
         # Mark first-boot complete
