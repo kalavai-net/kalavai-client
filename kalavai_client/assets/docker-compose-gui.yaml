@@ -2,7 +2,6 @@ services:
   kalavai_gui:
     container_name: kalavai_gui
     image: bundenth/kalavai-gui:latest
-    #network_mode: host
     extra_hosts:
     - "host.docker.internal:host-gateway"
     networks:

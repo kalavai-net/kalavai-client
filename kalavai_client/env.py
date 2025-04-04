@@ -3,15 +3,15 @@ from pathlib import Path
 import importlib.resources
 
 
-DEFAULT_KALAVAI_PATH = os.getenv("KALAVAI_PATH", None)
+DEFAULT_KALAVAI_PATH = os.getenv("KALAVAI_PATH", "")
 
 def user_path(relative_path, create_path=False):
     """Transform a relative path into the user's cache folder path"""
-    if DEFAULT_KALAVAI_PATH is not None:
-        kalavai_user_path = DEFAULT_KALAVAI_PATH
+    if len(DEFAULT_KALAVAI_PATH.strip()) > 0:
+        base = DEFAULT_KALAVAI_PATH
     else:
         base = os.path.expanduser("~")
-        kalavai_user_path = os.path.join(base, ".cache/kalavai")
+    kalavai_user_path = os.path.join(base, ".cache/kalavai")
     full_path = os.path.join(kalavai_user_path, relative_path)
     if create_path:
         Path(full_path).mkdir(parents=True, exist_ok=True)

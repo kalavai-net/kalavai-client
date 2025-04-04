@@ -36,13 +36,13 @@ write_files:
         sudo -u ubuntu bash -c 'source /home/ubuntu/kalavai/bin/activate && pip install kalavai-client'
         sudo -u ubuntu bash -c 'source /home/ubuntu/kalavai/bin/activate && KALAVAI_PATH=/home/ubuntu/.cache/kalavai kalavai auth {{user_id}}'
         sudo -u ubuntu bash -c 'source /home/ubuntu/kalavai/bin/activate && KALAVAI_PATH=/home/ubuntu/.cache/kalavai kalavai pool start {{name}} --location {{vpn_key}} --non-interactive'
-
+        
         # Mark first-boot complete
         touch /etc/first-boot-done
         sudo -u ubuntu bash -c 'shutdown -r now'
       fi
 
-  - path: /etc/systemd/system/kalavai-startup.service
+  - path: /etc/systemd/system/kalavai.service
     permissions: '0644'
     content: |
       [Unit]
@@ -50,11 +50,14 @@ write_files:
       After=network.target
 
       [Service]
-      Type=simple
       User=ubuntu
       WorkingDirectory=/home/ubuntu
-      ExecStart=/bin/bash -c "source /home/ubuntu/kalavai/bin/activate && KALAVAI_PATH=/home/ubuntu/.cache/kalavai kalavai gui start"
+      #ExecStart=/bin/bash -c ". /home/ubuntu/kalavai/bin/activate && KALAVAI_PATH=/home/ubuntu/.cache/kalavai kalavai gui start --protected-access"
+      ExecStart=/home/ubuntu/kalavai/bin/kalavai gui start --protected-access
       Restart=always
+      Environment=PATH=/home/ubuntu/kalavai/bin
+      Environment=PYTHONUNBUFFERED=1
+      Environment=KALAVAI_PATH=/home/ubuntu/.cache/kalavai
 
       [Install]
       WantedBy=multi-user.target
@@ -62,5 +65,5 @@ write_files:
 runcmd:
   - bash /usr/local/bin/first-boot.sh  # Ensure first-boot tasks run once
   - systemctl daemon-reload
-  - systemctl enable kalavai-startup.service
-  - systemctl start kalavai-startup.service
+  - systemctl enable kalavai.service
+  - systemctl start kalavai.service
