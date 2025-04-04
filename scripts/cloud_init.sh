@@ -32,10 +32,10 @@ write_files:
         usermod -aG docker ubuntu
 
         # Set up a Python virtual environment and install kalavai-client
-        sudo -u ubuntu bash -c 'virtualenv -p python3 ~/kalavai'
-        sudo -u ubuntu bash -c '~/kalavai/bin/pip install kalavai-client'
-        sudo -u ubuntu bash -c 'kalavai auth {{user_id}}'
-        sudo -u ubuntu bash -c 'kalavai pool start {{name}} --location {{vpn_key}} --non-interactive'
+        sudo -u ubuntu bash -c 'virtualenv -p python3 /home/ubuntu/kalavai'
+        sudo -u ubuntu bash -c 'source /home/ubuntu/kalavai/bin/activate && pip install kalavai-client'
+        sudo -u ubuntu bash -c 'source /home/ubuntu/kalavai/bin/activate && KALAVAI_PATH=/home/ubuntu/.cache/kalavai kalavai auth {{user_id}}'
+        sudo -u ubuntu bash -c 'source /home/ubuntu/kalavai/bin/activate && KALAVAI_PATH=/home/ubuntu/.cache/kalavai kalavai pool start {{name}} --location {{vpn_key}} --non-interactive'
 
         # Mark first-boot complete
         touch /etc/first-boot-done
@@ -53,7 +53,7 @@ write_files:
       Type=simple
       User=ubuntu
       WorkingDirectory=/home/ubuntu
-      ExecStart=/bin/bash -c "source /home/ubuntu/kalavai/bin/activate && kalavai gui start"
+      ExecStart=/bin/bash -c "source /home/ubuntu/kalavai/bin/activate && KALAVAI_PATH=/home/ubuntu/.cache/kalavai kalavai gui start"
       Restart=always
 
       [Install]

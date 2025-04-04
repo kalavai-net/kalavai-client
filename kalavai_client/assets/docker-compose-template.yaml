@@ -3,7 +3,6 @@ services:
   {{vpn_name}}:
     image: gravitl/netclient:v0.90.0
     container_name: {{vpn_name}}
-    #privileged: true
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
@@ -21,7 +20,6 @@ services:
     # {% endif %}
     environment:
       - HOST_NAME={{node_name}}
-      - IFACE_NAME={{flannel_iface}}
       - TOKEN={{vpn_token}}
     volumes:
       - /dev/net/tun:/dev/net/tun

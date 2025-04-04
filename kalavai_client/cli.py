@@ -6,13 +6,10 @@ import uuid
 import time
 import socket
 from pathlib import Path
-from getpass import getpass
-from sys import exit
 
 import yaml
 
 import arguably
-from kalavai_client.auth import KalavaiAuth
 from rich.console import Console
 
 from kalavai_client.cluster import CLUSTER
