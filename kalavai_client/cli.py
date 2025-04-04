@@ -217,13 +217,9 @@ def gui__start(
         console.log("[red]Error: ports must be unique")
         return
     
-    user_key = None
-    if protected_access:
-        user_key = load_user_id()
-        if user_key is None:
-            console.log("[red]Error: user key not found (required for protected access)")
-            return
-    
+    user_key = load_user_id()
+    if user_key is not None:
+        console.log(f"[green]Using user key: {user_key}")
     if not backend_only:
         values = {
             "gui_frontend_port": gui_frontend_port,
