@@ -36,6 +36,7 @@ write_files:
         sudo -u ubuntu bash -c 'source /home/ubuntu/kalavai/bin/activate && pip install kalavai-client'
         sudo -u ubuntu bash -c 'source /home/ubuntu/kalavai/bin/activate && KALAVAI_PATH=/home/ubuntu/.cache/kalavai kalavai auth {{user_id}}'
         sudo -u ubuntu bash -c 'source /home/ubuntu/kalavai/bin/activate && KALAVAI_PATH=/home/ubuntu/.cache/kalavai kalavai pool start {{name}} --location {{vpn_key}} --non-interactive'
+        sudo -u ubuntu bash -c 'source /home/ubuntu/kalavai/bin/activate && KALAVAI_PATH=/home/ubuntu/.cache/kalavai ACCESS_KEY={{user_id}} kalavai gui start'
         
         # Mark first-boot complete
         touch /etc/first-boot-done

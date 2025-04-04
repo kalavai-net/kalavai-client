@@ -100,7 +100,7 @@ def is_storage_compatible():
         return False
 ################
 
-def generate_compose_config(role, node_name, write_to_file=True, node_ip_address="0.0.0.0", num_gpus=0, node_labels=None, pool_ip=None, vpn_token=None, pool_token=None, user_id=None, backend=True, frontend=True):
+def generate_compose_config(role, node_name, write_to_file=True, node_ip_address="0.0.0.0", num_gpus=0, node_labels=None, pool_ip=None, vpn_token=None, pool_token=None):
     
     if node_labels is not None:
         node_labels = " ".join([f"--node-label {key}={value}" for key, value in node_labels.items()])
@@ -121,10 +121,7 @@ def generate_compose_config(role, node_name, write_to_file=True, node_ip_address
         "k3s_path": f"{CONTAINER_HOST_PATH}/{rand_suffix}/k3s",
         "etc_path": f"{CONTAINER_HOST_PATH}/{rand_suffix}/etc",
         "node_labels": node_labels,
-        "flannel_iface": DEFAULT_FLANNEL_IFACE if vpn_token is not None else "",
-        "backend": backend,
-        "frontend": frontend,
-        "protected_access": user_id
+        "flannel_iface": DEFAULT_FLANNEL_IFACE if vpn_token is not None else ""
     }
     # generate local config files
     compose_yaml = load_template(

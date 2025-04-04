@@ -1,6 +1,6 @@
 [project]
 name            = "kalavai-client"
-version         = "0.6.2"
+version         = "0.6.3"
 authors = [
   {name = "Carlos Fernandez Musoles", email = "carlos@kalavai.net"}
 ]

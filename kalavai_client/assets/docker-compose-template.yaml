@@ -14,49 +14,6 @@ services:
       - /dev/net/tun:/dev/net/tun
     restart: unless-stopped
 {% endif %}
-{% if backend %}
-  backend:
-    image: docker.io/bundenth/kalavai-backend:latest
-    container_name: backend
-    networks:
-    - kalavai-net
-    ports:
-    - "{{bridge_port | default(8001)}}:{{bridge_port | default(8001)}}"
-    command: >
-      backend
-      start
-      --bridge-port {{bridge_port | default(8001)}}
-    environment:
-      - KALAVAI_PATH=/root/.cache/kalavai
-    volumes:
-      - "{{user_path}}:/root/.cache/kalavai"
-    restart: unless-stopped
-{% endif %}
-{% if frontend %}
-  frontend:
-    container_name: frontend
-    image: bundenth/kalavai-gui:latest
-    networks:
-    - kalavai-net
-    environment:
-    - KALAVAI_BRIDGE_URL=http://backend
-    - KALAVAI_BRIDGE_PORT={{bridge_port | default(8001)}}
-    {% if protected_access %}
-    - ACCESS_KEY={{protected_access}}
-    {% endif %}
-    entrypoint: ["reflex"]
-    command: >
-      run
-      --backend-port {{gui_backend_port | default(8002)}}
-      --frontend-port {{gui_frontend_port | default(3000)}}
-    ports:
-    - "{{gui_backend_port | default(8002)}}:{{gui_backend_port | default(8002)}}"
-    - "{{gui_frontend_port | default(3000)}}:{{gui_frontend_port | default(3000)}}"
-    volumes:
-      - "{{user_path}}:/root/.cache/kalavai"
-    restart: unless-stopped
-{% endif %}
-
 # run worker only if command is set
 {%if command %}
   {{service_name}}:
@@ -107,7 +64,3 @@ services:
             capabilities: [gpu]
   {% endif %}
 {% endif %}
-
-networks:
-  kalavai-net:
-    driver: bridge
