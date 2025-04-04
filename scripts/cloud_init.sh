@@ -39,31 +39,7 @@ write_files:
         
         # Mark first-boot complete
         touch /etc/first-boot-done
-        sudo -u ubuntu bash -c 'shutdown -r now'
       fi
-
-  - path: /etc/systemd/system/kalavai.service
-    permissions: '0644'
-    content: |
-      [Unit]
-      Description=Start Kalavai GUI on boot
-      After=network.target
-
-      [Service]
-      User=ubuntu
-      WorkingDirectory=/home/ubuntu
-      #ExecStart=/bin/bash -c ". /home/ubuntu/kalavai/bin/activate && KALAVAI_PATH=/home/ubuntu/.cache/kalavai kalavai gui start --protected-access"
-      ExecStart=/home/ubuntu/kalavai/bin/kalavai gui start --protected-access
-      Restart=always
-      Environment=PATH=/home/ubuntu/kalavai/bin
-      Environment=PYTHONUNBUFFERED=1
-      Environment=KALAVAI_PATH=/home/ubuntu/.cache/kalavai
-
-      [Install]
-      WantedBy=multi-user.target
 
 runcmd:
   - bash /usr/local/bin/first-boot.sh  # Ensure first-boot tasks run once
-  - systemctl daemon-reload
-  - systemctl enable kalavai.service
-  - systemctl start kalavai.service

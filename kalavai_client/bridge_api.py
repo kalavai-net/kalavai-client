@@ -75,7 +75,8 @@ def pool_create(request: CreatePoolRequest, api_key: str = Depends(verify_api_ke
         only_registered_users=request.only_registered_users,
         location=request.location,
         description=request.description,
-        token_mode=request.token_mode
+        token_mode=request.token_mode,
+        frontend=request.frontend
     )
     return result
 
@@ -85,7 +86,8 @@ def pool_join(request: JoinPoolRequest, api_key: str = Depends(verify_api_key)):
         token=request.token,
         num_gpus=request.num_gpus,
         node_name=request.node_name,
-        ip_address=request.ip_address
+        ip_address=request.ip_address,
+        frontend=request.frontend
     )
     return result
 
@@ -93,7 +95,8 @@ def pool_join(request: JoinPoolRequest, api_key: str = Depends(verify_api_key)):
 def pool_attach(request: JoinPoolRequest, api_key: str = Depends(verify_api_key)):
     result = attach_to_pool(
         token=request.token,
-        node_name=request.node_name
+        node_name=request.node_name,
+        frontend=request.frontend
     )
     return result
 

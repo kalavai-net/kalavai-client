@@ -205,7 +205,6 @@ def input_gpus(non_interactive=False):
 @arguably.command
 def gui__start(
     *others,
-    backend_only=False,
     gui_frontend_port=3000,
     gui_backend_port=8000,
     bridge_port=8001,
@@ -224,32 +223,36 @@ def gui__start(
             console.log("[red]Error: user key not found (required for protected access)")
             return
     
-    if not backend_only:
-        values = {
-            "gui_frontend_port": gui_frontend_port,
-            "gui_backend_port": gui_backend_port,
-            "bridge_port": bridge_port,
-            "path": user_path(""),
-            "protected_access": user_key
-        }
-        compose_yaml = load_template(
-            template_path=DOCKER_COMPOSE_GUI,
-            values=values)
-        with open(USER_GUI_COMPOSE_FILE, "w") as f:
-            f.write(compose_yaml)
-        
-        run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} up -d")
+    values = {
+        "gui_frontend_port": gui_frontend_port,
+        "gui_backend_port": gui_backend_port,
+        "bridge_port": bridge_port,
+        "path": user_path("", create_path=True),
+        "protected_access": user_key
+    }
+    compose_yaml = load_template(
+        template_path=DOCKER_COMPOSE_GUI,
+        values=values)
+    with open(USER_GUI_COMPOSE_FILE, "w") as f:
+        f.write(compose_yaml)
+    
+    run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} up -d")
 
-        console.log(f"[green]Loading GUI, may take a few minutes. It will be available at http://localhost:{gui_frontend_port}")
+    console.log(f"[green]Loading GUI, may take a few minutes. It will be available at http://localhost:{gui_frontend_port}")
     print(
         "Deploying bridge API"
     )
     run_api(port=bridge_port, log_level=log_level)
-    
-    if not backend_only:
-        run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} down")
+    run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} down")
     console.log("[green]Kalavai GUI has been stopped")
 
+@arguably.command
+def backend__start(*others, bridge_port=8001, log_level="critical"):
+    """
+    Start the Kalavai backend
+    """
+    run_api(port=bridge_port, log_level=log_level)
+    console.log("[green]Kalavai backend has been stopped")
 
 @arguably.command
 def auth(user_key, *others):

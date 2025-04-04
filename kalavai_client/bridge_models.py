@@ -16,6 +16,7 @@ class CreatePoolRequest(BaseModel):
     location: str = None
     token_mode: TokenType = TokenType.USER
     description: str = ""
+    frontend: bool = False
 
 class NodesActionRequest(BaseModel):
     nodes: list[str]
@@ -25,7 +26,7 @@ class JoinPoolRequest(BaseModel):
     ip_address: str = None
     node_name: str = None
     num_gpus: int = None
-
+    frontend: bool = False
 class JobDetailsRequest(BaseModel):
     jobs: list[Job]
 

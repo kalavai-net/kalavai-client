@@ -573,7 +573,9 @@ def attach_to_pool(token, node_name=None):
     generate_compose_config(
         role="",
         vpn_token=public_location,
-        node_name=node_name)
+        node_name=node_name,
+        backend=True,
+        frontend=True)
     
     store_server_info(
         server_ip=kalavai_seed_ip,
@@ -637,7 +639,9 @@ def generate_worker_package(num_gpus=0, node_name=None, ip_address="0.0.0.0", st
         num_gpus=num_gpus,
         vpn_token=public_location,
         node_name=node_name,
-        node_labels=node_labels)
+        node_labels=node_labels,
+        backend=False,
+        frontend=False)
     
     return compose
 
@@ -684,7 +688,9 @@ def join_pool(token, num_gpus=None, node_name=None, ip_address=None):
         num_gpus=num_gpus,
         vpn_token=public_location,
         node_name=node_name,
-        node_labels=node_labels)
+        node_labels=node_labels,
+        backend=True,
+        frontend=True)
     
     store_server_info(
         server_ip=kalavai_seed_ip,
@@ -770,7 +776,10 @@ def create_pool(
         node_ip_address=ip_address,
         num_gpus=num_gpus,
         node_name=node_name,
-        node_labels=node_labels
+        node_labels=node_labels,
+        backend=True,
+        frontend=True,
+        user_id=user_id
     )
     
     # start server
@@ -789,7 +798,6 @@ def create_pool(
     auth_key = user_id if user_id is not None else str(uuid.uuid4())
     write_auth_key = str(uuid.uuid4())
     readonly_auth_key = str(uuid.uuid4())
-    
     watcher_service = f"{ip_address}:{DEFAULT_WATCHER_PORT}"
     values = {
         CLUSTER_NAME_KEY: cluster_name,
