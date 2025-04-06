@@ -782,7 +782,10 @@ def create_pool(
     # select IP address (for external discovery)
     if ip_address is None or location is not None:
         # load VPN ip
-        ip_address = CLUSTER.get_vpn_ip()
+        ip_address = None
+        while ip_address is None or len(ip_address) == 0:
+            ip_address = CLUSTER.get_vpn_ip()
+            time.sleep(10)
 
     # populate local cred files
     

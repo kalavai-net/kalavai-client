@@ -29,14 +29,20 @@ write_files:
 
         # Add the current user to the docker group
         groupadd docker || true
-        usermod -aG docker ubuntu
+        usermod -aG docker $USER
+        #newgrp docker
 
         # Set up a Python virtual environment and install kalavai-client
-        sudo -u ubuntu bash -c 'virtualenv -p python3 /home/ubuntu/kalavai'
-        sudo -u ubuntu bash -c 'source /home/ubuntu/kalavai/bin/activate && pip install kalavai-client'
-        sudo -u ubuntu bash -c 'source /home/ubuntu/kalavai/bin/activate && KALAVAI_PATH=/home/ubuntu/.cache/kalavai kalavai auth {{user_id}}'
-        sudo -u ubuntu bash -c 'source /home/ubuntu/kalavai/bin/activate && KALAVAI_PATH=/home/ubuntu/.cache/kalavai kalavai pool start {{name}} --location {{vpn_key}} --non-interactive'
-        sudo -u ubuntu bash -c 'source /home/ubuntu/kalavai/bin/activate && KALAVAI_PATH=/home/ubuntu/.cache/kalavai ACCESS_KEY={{user_id}} kalavai gui start'
+        # sudo -u ubuntu bash -c 'virtualenv -p python3 ~/kalavai'
+        # sudo -u ubuntu bash -c 'source ~/kalavai/bin/activate && pip install kalavai-client'
+        # sudo -u ubuntu bash -c 'source ~/kalavai/bin/activate && kalavai auth {{user_id}}'
+        # sudo -u ubuntu bash -c 'source ~/kalavai/bin/activate && kalavai pool start {{name}} --location {{vpn_key}} --non-interactive'
+        # sudo -u ubuntu bash -c 'source ~/kalavai/bin/activate && ACCESS_KEY={{user_id}} kalavai gui start'
+        virtualenv -p python3 ~/kalavai
+        source ~/kalavai/bin/activate && pip install kalavai-client
+        source ~/kalavai/bin/activate && kalavai auth {{user_id}}
+        source ~/kalavai/bin/activate && kalavai pool start {{name}} --location {{vpn_key}} --non-interactive
+        source ~/kalavai/bin/activate && kalavai gui start
         
         # Mark first-boot complete
         touch /etc/first-boot-done

@@ -209,7 +209,6 @@ def gui__start(
     gui_backend_port=8000,
     bridge_port=8001,
     log_level="critical",
-    protected_access=False,
     backend_only=False
 ):
     """Run GUI (docker) and kalavai core backend (api)"""
