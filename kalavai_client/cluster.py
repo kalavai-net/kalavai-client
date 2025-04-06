@@ -107,7 +107,7 @@ class dockerCluster(Cluster):
     
     def get_vpn_ip(self):
         command = populate_template(
-            template_str="docker exec -it {{container_name}} ifconfig {{iface_name}} | grep 'inet ' | awk '{gsub(/^addr:/, \"\", $2); print $2}'",
+            template_str="docker exec {{container_name}} ifconfig {{iface_name}} | grep 'inet ' | awk '{gsub(/^addr:/, \"\", $2); print $2}'",
             values_dict={"container_name": self.container_name, "iface_name": self.default_flannel_iface})
         return run_cmd(command).decode().strip()
         
