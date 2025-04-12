@@ -470,7 +470,7 @@ def pool__check_token(token, *others, public=False):
     return True
 
 @arguably.command
-def pool__join(token, *others, node_name=None, auto_accept=False):
+def pool__join(token, *others, node_name=None, non_interactive=False):
     """
     Join Kalavai pool and start/resume sharing resources.
 
@@ -485,7 +485,7 @@ def pool__join(token, *others, node_name=None, auto_accept=False):
         return
     
     # check that is not attached to another instance
-    if not auto_accept:
+    if not non_interactive:
         if os.path.exists(USER_LOCAL_SERVER_FILE):
             option = user_confirm(
                 question="You seem to be connected to an instance already. Are you sure you want to join a new one?",
@@ -499,9 +499,9 @@ def pool__join(token, *others, node_name=None, auto_accept=False):
     if user_id is None:
         console.log("You are not authenticated. If you want to authenticate your node, use [yellow]kalavai auth <user_key>")
     
-    num_gpus = input_gpus(auto_accept=auto_accept)
+    num_gpus = input_gpus(non_interactive=non_interactive)
 
-    if not auto_accept:
+    if not non_interactive:
         option = user_confirm(
             question="Docker compose ready. Would you like Kalavai to deploy it?",
             options=["no", "yes"]
@@ -512,7 +512,7 @@ def pool__join(token, *others, node_name=None, auto_accept=False):
     
     # select IP address (for external discovery)
     console.log(f"Scanning for valid IPs")
-    if auto_accept:
+    if non_interactive:
         ip_address = "0.0.0.0"
         console.log("[yellow]Using [green]0.0.0.0 [yellow]for server address")
     else:
