@@ -1,4 +1,5 @@
 from typing import List
+from collections import defaultdict
 
 import reflex as rx
 
@@ -20,7 +21,7 @@ class JobsState(rx.State):
     is_loading: bool = False
     logs: str = None
     items: List[Job] = []
-    selected_rows: set = set()
+    is_selected: dict[int, bool]
     templates: list[str] = []
     selected_template: str
     template_params: list[dict[str, str]] = []
@@ -98,15 +99,14 @@ class JobsState(rx.State):
     @rx.event(background=True)
     async def set_selected_row(self, index, state):
         async with self:
-            if state:
-                self.selected_rows.add(index)
-            else:
-                self.selected_rows.remove(index)
+            self.is_selected[index] = state
     
     @rx.event(background=True)
     async def remove_entries(self):
         async with self:
-            for row in self.selected_rows:
+            for row, state in self.is_selected.items():
+                if not state:
+                    continue
                 try:
                     result = request_to_kalavai_core(
                         method="post",
@@ -114,11 +114,12 @@ class JobsState(rx.State):
                         json={"name": self.items[row].data["name"], "force_namespace": self.items[row].data["owner"]}
                     )
                 except Exception as e:
-                    return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
+                    toast = rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
                 if "error" in result:
-                    return rx.toast.error(result["error"], position="top-center")
-                else:
-                    return rx.toast.success("Jobs deleted", position="top-center")
+                    toast = rx.toast.error(result["error"], position="top-center")
+            toast = rx.toast.success("Jobs deleted", position="top-center")
+            self.is_selected = {i: False for i in self.is_selected}
+            return toast
 
     @rx.event(background=True)
     async def deploy_job(self, form_data: dict):

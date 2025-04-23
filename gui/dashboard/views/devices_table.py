@@ -36,7 +36,7 @@ class DevicesView(TableView):
     def _decorate_name(self, item, index):
         return rx.hstack(
             rx.center(
-                rx.checkbox("", on_change=lambda checked: DevicesState.set_selected_row(index, checked)),
+                rx.checkbox("", checked=DevicesState.is_selected[index], on_change=lambda checked: DevicesState.set_selected_row(index, checked)),
                 rx.text(item),
                 spacing="2"
             ),

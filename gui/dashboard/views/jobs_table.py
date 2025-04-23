@@ -49,7 +49,7 @@ class JobsView(TableView):
     def _decorate_name(self, item, index):
         return rx.hstack(
             rx.center(
-                rx.checkbox("", on_change=lambda checked: JobsState.set_selected_row(index, checked)),
+                rx.checkbox("", checked=JobsState.is_selected[index], on_change=lambda checked: JobsState.set_selected_row(index, checked)),
                 rx.dialog.root(
                     rx.dialog.trigger(
                         rx.link(item, on_click=JobsState.load_logs(index))
