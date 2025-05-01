@@ -30,6 +30,9 @@ services:
     restart: unless-stopped
     command: >
       --command={{command}}
+    {% if user_id %}
+      --user_id={{user_id}}
+    {% endif %}
       --node_name="{{node_name}}"
       --node_ip="{{node_ip_address}}"
       {% if command == "server" %}

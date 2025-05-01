@@ -4,6 +4,7 @@ flannel_iface=""
 extra=""
 node_ip="0.0.0.0"
 node_name=$HOSTNAME
+user_id=""
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -30,6 +31,9 @@ while [ $# -gt 0 ]; do
       ;;
     --gpu=*)
       gpu="${1#*=}"
+      ;;
+    --user_id=*)
+      user_id="${1#*=}"
       ;;
     --extra=*)
       extra="${1#*=}"
@@ -64,6 +68,10 @@ if [ ! -z "${flannel_iface}" ]; then
     
 fi
 
+if [ ! -z "${user_id}" ]; then
+    user_id="--node-label kalavai.cluster.user="$user_id
+fi
+
 sleep 10
 
 if [[ "$command" == "server" ]]; then
@@ -81,6 +89,7 @@ if [[ "$command" == "server" ]]; then
         --service-node-port-range $port_range \
         $iface_server \
         --node-label gpu=$gpu \
+        $user_id \
         $extra
 else
     # worker agent
@@ -93,6 +102,7 @@ else
         --server $server_ip \
         --token $token \
         --node-name $node_name \
+        $user_id \
         $iface_worker \
         --node-label gpu=$gpu \
         $extra

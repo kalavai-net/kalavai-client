@@ -25,6 +25,7 @@ from kalavai_client.env import (
     user_path
 )
 
+KALAVAI_USER_ID = os.getenv("KALAVAI_USER_ID", None)
 
 GITHUB_ORG = "kalavai-net"
 GITHUB_REPO = "kalavai-client"
@@ -157,10 +158,14 @@ def load_server_info(data_key, file):
         return None
 
 def load_user_session():
-    return KALAVAI_AUTH.load_user_session()
+    if KALAVAI_USER_ID is None:
+        KALAVAI_USER_ID = KALAVAI_AUTH.load_user_session()
+    return KALAVAI_USER_ID
 
 def load_user_id():
-    return KALAVAI_AUTH.get_user_id()
+    if KALAVAI_USER_ID is None:
+        KALAVAI_USER_ID = KALAVAI_AUTH.get_user_id()
+    return KALAVAI_USER_ID
 
 def get_public_seeds(user_only, user_cookie):
     return []
