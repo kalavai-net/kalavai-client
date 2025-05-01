@@ -122,7 +122,8 @@ def generate_compose_config(role, node_name, write_to_file=True, node_ip_address
         "k3s_path": f"{CONTAINER_HOST_PATH}/{rand_suffix}/k3s",
         "etc_path": f"{CONTAINER_HOST_PATH}/{rand_suffix}/etc",
         "node_labels": node_labels,
-        "flannel_iface": DEFAULT_FLANNEL_IFACE if vpn_token is not None else ""
+        "flannel_iface": DEFAULT_FLANNEL_IFACE if vpn_token is not None else "",
+        "user_id": load_user_id()
     }
     # generate local config files
     compose_yaml = load_template(
