@@ -1,4 +1,4 @@
-FROM rayproject/ray:2.43.0-py310-gpu AS compile-image
+FROM rayproject/ray:2.43.0-py312-gpu AS compile-image
 
 WORKDIR $HOME/workspace
 
