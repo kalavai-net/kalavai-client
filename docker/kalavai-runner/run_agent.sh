@@ -51,6 +51,10 @@ done
 iface_server=""
 iface_worker=""
 
+# add random tail to node name to avoid clashes
+random_tail=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 6)
+node_name="${node_name}-${random_str}"
+
 if [ ! -z "${flannel_iface}" ]; then
     while [ true ]; do
         if [ -d "/sys/class/net/$flannel_iface" ]; then
