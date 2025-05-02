@@ -4,6 +4,7 @@ import importlib.resources
 
 
 DEFAULT_KALAVAI_PATH = os.getenv("KALAVAI_PATH", "")
+KALAVAI_USER_ID = os.getenv("KALAVAI_USER_ID", None)
 
 def user_path(relative_path, create_path=False):
     """Transform a relative path into the user's cache folder path"""

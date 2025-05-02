@@ -22,10 +22,9 @@ from kalavai_client.env import (
     CONTAINER_HOST_PATH,
     USER_COMPOSE_FILE,
     USER_COOKIE,
+    KALAVAI_USER_ID,
     user_path
 )
-
-KALAVAI_USER_ID = os.getenv("KALAVAI_USER_ID", None)
 
 GITHUB_ORG = "kalavai-net"
 GITHUB_REPO = "kalavai-client"
@@ -150,7 +149,6 @@ def is_watcher_alive(server_creds, user_cookie, timeout=30):
     return True
 
 
-
 def load_server_info(data_key, file):
     try:
         with open(file, "r") as f:
@@ -160,13 +158,17 @@ def load_server_info(data_key, file):
 
 def load_user_session():
     if KALAVAI_USER_ID is None:
-        KALAVAI_USER_ID = KALAVAI_AUTH.load_user_session()
-    return KALAVAI_USER_ID
+        user_id = KALAVAI_AUTH.load_user_session()
+    else:
+        user_id = KALAVAI_USER_ID
+    return user_id
 
 def load_user_id():
     if KALAVAI_USER_ID is None:
-        KALAVAI_USER_ID = KALAVAI_AUTH.get_user_id()
-    return KALAVAI_USER_ID
+        user_id = KALAVAI_AUTH.get_user_id()
+    else:
+        user_id = KALAVAI_USER_ID
+    return user_id
 
 def get_public_seeds(user_only, user_cookie):
     return []
