@@ -550,7 +550,7 @@ def uncordon_nodes(nodes):
 
 def attach_to_pool(token, node_name=None):
     if node_name is None:
-        node_name = f"{socket.gethostname()}-{uuid.uuid4().hex[:6]}"
+        node_name = socket.gethostname()
     
     # check token
     valid = check_token(token=token)
@@ -651,7 +651,7 @@ def join_pool(token, num_gpus=None, node_name=None, ip_address=None):
         num_gpus = get_max_gpus()
 
     if node_name is None:
-        node_name = f"{socket.gethostname()}-{uuid.uuid4().hex[:6]}"
+        node_name = socket.gethostname()
     
     # check token
     valid = check_token(token=token)
@@ -743,7 +743,7 @@ def create_pool(
     if pool_config_values is None:
         pool_config_values = POOL_CONFIG_DEFAULT_VALUES
 
-    node_name = f"{socket.gethostname()}-{uuid.uuid4().hex[:6]}"
+    node_name = socket.gethostname()
     user_id = load_user_id()
     
     node_labels = {
