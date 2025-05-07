@@ -1058,3 +1058,62 @@ def send_invites(invitees):
         user_cookie=USER_COOKIE
     )
     return result
+
+def add_node_labels(node_name: str, labels: dict):
+    """
+    Add labels to a node in the cluster.
+    
+    Args:
+        node_name (str): Name of the node to label
+        labels (dict): Dictionary of labels to add to the node
+        
+    Returns:
+        dict: Result of the operation with either success or error message
+    """
+    data = {
+        "node_name": node_name,
+        "labels": labels
+    }
+    try:
+        result = request_to_server(
+            method="post",
+            endpoint="/v1/add_labels_to_node",
+            data=data,
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        if "error" in result:
+            return {"error": result["error"]}
+        else:
+            return {"success": result}
+
+    except Exception as e:
+        return {"error": f"Error when adding labels to node {node_name}: {str(e)}"}
+
+def get_node_labels(node_names: list[str]):
+    """
+    Get labels for specified nodes in the cluster.
+    
+    Args:
+        node_names (list[str]): List of node names to fetch labels from
+        
+    Returns:
+        dict: Result containing the labels for each node or error message
+    """
+    data = {
+        "node_names": node_names
+    }
+    try:
+        result = request_to_server(
+            method="post",
+            endpoint="/v1/get_node_labels",
+            data=data,
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        if result is not None:
+            return {"labels": result}
+        else:
+            return {"error": "Failed to fetch node labels"}
+    except Exception as e:
+        return {"error": f"Error when fetching node labels: {str(e)}"}

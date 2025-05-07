@@ -14,7 +14,9 @@ from kalavai_client.bridge_models import (
     DeployJobRequest,
     DeleteJobRequest,
     JobDetailsRequest,
-    NodesActionRequest
+    NodesActionRequest,
+    NodeLabelsRequest,
+    GetNodeLabelsRequest
 )
 from kalavai_client.core import (
     create_pool,
@@ -46,6 +48,8 @@ from kalavai_client.core import (
     delete_nodes,
     cordon_nodes,
     uncordon_nodes,
+    add_node_labels,
+    get_node_labels,
     TokenType
 )
 from kalavai_client.utils import load_user_id
@@ -244,6 +248,20 @@ def pool_connected(user_only: bool=False, api_key: str = Depends(verify_api_key)
     result = list_available_pools(user_only=user_only)
     return result
 
+@app.post("/add_node_labels")
+def node_labels(request: NodeLabelsRequest, api_key: str = Depends(verify_api_key)):
+    result = add_node_labels(
+        node_name=request.node_name,
+        labels=request.labels
+    )
+    return result
+
+@app.post("/get_node_labels")
+def node_labels_get(request: GetNodeLabelsRequest, api_key: str = Depends(verify_api_key)):
+    result = get_node_labels(
+        node_names=request.node_names
+    )
+    return result
 
 def run_api(host="0.0.0.0", port=8001, log_level="critical"):
     uvicorn.run(

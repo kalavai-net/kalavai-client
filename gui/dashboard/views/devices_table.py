@@ -37,7 +37,67 @@ class DevicesView(TableView):
         return rx.hstack(
             rx.center(
                 rx.checkbox("", checked=DevicesState.is_selected[index], on_change=lambda checked: DevicesState.set_selected_row(index, checked)),
-                rx.text(item),
+                rx.dialog.root(
+                    rx.dialog.trigger(
+                        rx.link(item, on_click=DevicesState.load_node_labels(item))
+                    ),
+                    rx.dialog.content(
+                        rx.dialog.title(f"Device Labels: {item}"),
+                        rx.dialog.description("Manage labels for this device", margin_bottom="10px"),
+                        rx.vstack(
+                            # Current labels section
+                            rx.text("Current Labels", as_="div", size="2", margin_bottom="4px", weight="bold"),
+                            rx.cond(
+                                DevicesState.current_node_labels,
+                                rx.vstack(
+                                    rx.foreach(
+                                        DevicesState.current_node_labels.items(),
+                                        lambda x: rx.hstack(
+                                            rx.text(f"{x[0]}: {x[1]}", size="2"),
+                                            spacing="2"
+                                        )
+                                    ),
+                                    spacing="2"
+                                ),
+                                rx.text("No labels found", size="2", color="gray")
+                            ),
+                            rx.separator(size="4"),
+                            # Add new label section
+                            rx.text("Add New Label", as_="div", size="2", margin_bottom="4px", weight="bold"),
+                            rx.hstack(
+                                rx.input(
+                                    placeholder="Label key",
+                                    value=DevicesState.new_label_key,
+                                    on_change=DevicesState.set_new_label_key,
+                                    width="45%"
+                                ),
+                                rx.input(
+                                    placeholder="Label value",
+                                    value=DevicesState.new_label_value,
+                                    on_change=DevicesState.set_new_label_value,
+                                    width="45%"
+                                ),
+                                rx.button(
+                                    "Add",
+                                    on_click=DevicesState.add_node_label,
+                                    width="10%",
+                                    loading=DevicesState.is_loading
+                                ),
+                                width="100%",
+                                spacing="2"
+                            ),
+                            spacing="4"
+                        ),
+                        rx.dialog.close(
+                            rx.button(
+                                "Close",
+                            ),
+                        ),
+                        spacing="3",
+                        margin_top="16px",
+                        justify="end",
+                    )
+                ),
                 spacing="2"
             ),
             style={"padding_x": "10px"}

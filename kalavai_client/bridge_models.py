@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import List, Dict, Optional
 
 from kalavai_client.core import Job, TokenType
 
@@ -43,3 +44,10 @@ class DeployJobRequest(BaseModel):
 class DeleteJobRequest(BaseModel):
     name: str
     force_namespace: str = None
+
+class NodeLabelsRequest(BaseModel):
+    node_name: str
+    labels: Dict[str, str]
+
+class GetNodeLabelsRequest(BaseModel):
+    node_names: List[str]
