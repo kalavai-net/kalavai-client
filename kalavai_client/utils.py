@@ -246,7 +246,7 @@ def run_cmd(command, hide_output=False):
             return_value = subprocess.check_output(command, shell=True)
         else:
             if hide_output:
-                command = command + " >/dev/nul 2>&1"
+                command = command + " >/dev/null 2>&1"
             return_value = subprocess.check_output(command, shell=True, executable="/bin/bash")
         return return_value
     except OSError as error:
