@@ -73,17 +73,20 @@ KALAVAI_AUTH = KalavaiAuth(
 
 ####### Methods to check OS compatibility ########
 def check_gpu_drivers():
-    value = run_cmd("command -v nvidia-smi")
-    if len(value.decode("utf-8")) == 0:
-        # no nvidia installed, no need to check nvidia any further
-        return False
-    else:
-        # check drivers are set correctly
-        try:
-            value = run_cmd("nvidia-smi")
-            return True
-        except:
-            raise ("Nvidia not configured properly. Please check your drivers are installed and configured")
+    value = run_cmd("nvidia-smi", hide_output=True)
+    return len(value.decode("utf-8")) == 0
+
+def get_max_gpus():
+    try:
+        has_gpus = check_gpu_drivers()
+        if has_gpus:
+            return len(
+                [r for r in run_cmd("nvidia-smi -L").decode().split("\n") if len(r.strip())>0]
+            )
+        else:
+            return 0
+    except:
+        return 0
 
 def is_storage_compatible():
     """
@@ -92,6 +95,9 @@ def is_storage_compatible():
     Exclude: WSL
     """
     try:
+        import platform
+        if "windows" in platform.system().lower():
+            return True
         flagged = any([
             "microsoft" in run_cmd("cat /proc/version").decode().lower()
         ])
@@ -231,9 +237,17 @@ def validate_poolconfig(poolconfig_file):
             return False
     return True
 
-def run_cmd(command):
+def run_cmd(command, hide_output=False):
     try:
-        return_value = subprocess.check_output(command, shell=True, executable="/bin/bash")
+        import platform
+        if "windows" in platform.system().lower():
+            if hide_output:
+                command = command + " > $nul 2>&1"
+            return_value = subprocess.check_output(command, shell=True)
+        else:
+            if hide_output:
+                command = command + " >/dev/nul 2>&1"
+            return_value = subprocess.check_output(command, shell=True, executable="/bin/bash")
         return return_value
     except OSError as error:
         return error # for exit code

@@ -186,7 +186,9 @@ def input_gpus(non_interactive=False):
     try:
         has_gpus = check_gpu_drivers()
         if has_gpus:
-            max_gpus = int(run_cmd("nvidia-smi -L | wc -l").decode())
+            max_gpus = len(
+                [r for r in run_cmd("nvidia-smi -L").decode().split("\n") if len(r.strip())>0]
+            )
             if non_interactive:
                 num_gpus = max_gpus
             else:
