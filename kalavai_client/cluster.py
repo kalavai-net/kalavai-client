@@ -1,4 +1,5 @@
 import os
+import platform
 import time
 from pathlib import Path
 from abc import ABC, abstractmethod
@@ -96,7 +97,7 @@ class dockerCluster(Cluster):
         # wait for container to be setup
         while True:
             try:
-                run_cmd(f"docker cp {self.container_name}:/etc/rancher/k3s/k3s.yaml {self.kubeconfig_file} >/dev/null 2>&1")
+                run_cmd(f"docker cp {self.container_name}:/etc/rancher/k3s/k3s.yaml {self.kubeconfig_file}", hide_output=True)
                 break
             except:
                 pass
@@ -115,15 +116,15 @@ class dockerCluster(Cluster):
     def update_dependencies(self, dependencies_file=None, debug=False, retries=3):
         if dependencies_file is not None:
             self.dependencies_file = dependencies_file
-        if debug:
-            output = ""
-        else:
-            output = " >/dev/null 2>&1"
         while True:
             try:
                 home = user_path("")
-                run_cmd(f"docker run --rm --net=host -v {home}:{home} ghcr.io/helmfile/helmfile:v0.169.2 helmfile sync --file {self.dependencies_file} --kubeconfig {self.kubeconfig_file} {output}")
-                #run_cmd(f"helmfile sync --file {self.dependencies_file} --kubeconfig {self.kubeconfig_file} {output}")
+                # convert path on host to path on container (will be different in windows os)
+                target_path = "/cache/kalavai"
+                kubeconfig_path = f"{target_path}/{Path(self.kubeconfig_file).name}"
+                dependencies_path = f"{target_path}/{Path(self.dependencies_file).name}"
+
+                run_cmd(f"docker run --rm --net=host -v {home}:{target_path} ghcr.io/helmfile/helmfile:v0.169.2 helmfile sync --file {dependencies_path} --kubeconfig {kubeconfig_path}", hide_output=not debug)
                 break
             except Exception as e:
                 if retries > 0:
@@ -142,11 +143,18 @@ class dockerCluster(Cluster):
     def is_agent_running(self):
         if not os.path.isfile(self.compose_file):
             return False
-        status = self.container_name in run_cmd(f"docker compose -f {self.compose_file} ps --services --status=running").decode()
-        if not status:
+        try:
+            status = self.container_name in run_cmd(f"docker compose -f {self.compose_file} ps --services --status=running").decode()
+            if not status:
+                return False
+            if "windows" in platform.system().lower():
+                status = (0 == os.system(f'docker exec {self.container_name} ps aux | findstr /n /c:"k3s server" /c:"k3s agent"'))
+            else:
+                status = (0 == os.system(f'docker exec {self.container_name} ps aux | grep -v grep | grep -E "k3s (server|agent)"'))
+            return status
+        except Exception as e:
+            print(f"Error when checking agent. Is Docker installed and running?\n\n{str(e)}")
             return False
-        status = (0 == os.system(f'docker exec {self.container_name} ps aux | grep -v grep | grep -E "k3s (server|agent)"'))
-        return status
 
     def is_seed_node(self):
         if not os.path.isfile(self.compose_file):
@@ -154,7 +162,7 @@ class dockerCluster(Cluster):
         if not self.is_agent_running():
             return False
         try:
-            run_cmd(f"docker container exec {self.container_name} cat /var/lib/rancher/k3s/server/node-token >/dev/null 2>&1")
+            run_cmd(f"docker container exec {self.container_name} cat /var/lib/rancher/k3s/server/node-token", hide_output=True)
             return True
         except:
             return False
@@ -162,8 +170,12 @@ class dockerCluster(Cluster):
     def is_cluster_init(self):
         if not os.path.isfile(self.compose_file):
             return False
-        status = self.container_name in run_cmd(f"docker compose -f {self.compose_file} ps --services --all").decode()
-        return status
+        try:
+            status = self.container_name in run_cmd(f"docker compose -f {self.compose_file} ps --services --all").decode()
+            return status
+        except Exception as e:
+            print(f"Error when checking cluster. Is Docker installed and running?\n\n{str(e)}")
+            return False
 
     def pause_agent(self):
         status = False
@@ -177,7 +189,6 @@ class dockerCluster(Cluster):
     def restart_agent(self):
         try:
             run_cmd(f'docker compose -f {self.compose_file} start')
-
         except:
             pass
         time.sleep(5)
@@ -186,7 +197,6 @@ class dockerCluster(Cluster):
     def get_cluster_token(self):
         if self.is_seed_node():
             return run_cmd(f"docker container exec {self.container_name} cat /var/lib/rancher/k3s/server/node-token").decode()
-            #return run_cmd("sudo k3s token create --kubeconfig /etc/rancher/k3s/k3s.yaml --ttl 0").decode()
         else:
             return None
     
@@ -231,7 +241,7 @@ class k3sCluster(Cluster):
             flannel_iface = f"--flannel-iface {self.default_flannel_iface}"
         else:
             flannel_iface = ""
-        run_cmd(f'curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="{self.kube_version}" INSTALL_K3S_EXEC="server --node-ip {ip_address} --node-external-ip {ip_address} {flannel_iface} --flannel-backend wireguard-native {node_labels}" sh - >/dev/null 2>&1')
+        run_cmd(f'curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="{self.kube_version}" INSTALL_K3S_EXEC="server --node-ip {ip_address} --node-external-ip {ip_address} {flannel_iface} --flannel-backend wireguard-native {node_labels}" sh - ', hide_output=True)
         run_cmd(f"sudo cp /etc/rancher/k3s/k3s.yaml {self.kubeconfig_file}")
         run_cmd(f"sudo chown $USER {self.kubeconfig_file}")
 
@@ -245,8 +255,8 @@ class k3sCluster(Cluster):
             flannel_iface = f"--flannel-iface {self.default_flannel_iface}"
         else:
             flannel_iface = ""
-        command = f'curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="{self.kube_version}" INSTALL_K3S_EXEC="agent --token {token} --server https://{url}:6443 --node-name {node_name} --node-ip {ip_address} --node-external-ip {ip_address} {flannel_iface} {node_labels}" sh - >/dev/null 2>&1'
-        run_cmd(command)
+        command = f'curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="{self.kube_version}" INSTALL_K3S_EXEC="agent --token {token} --server https://{url}:6443 --node-name {node_name} --node-ip {ip_address} --node-external-ip {ip_address} {flannel_iface} {node_labels}" sh - '
+        run_cmd(command, hide_output=True)
         
 
     def update_dependencies(self, dependencies_file=None, debug=False, retries=3):
@@ -270,13 +280,13 @@ class k3sCluster(Cluster):
 
     def remove_agent(self):
         try:
-            run_cmd('/usr/local/bin/k3s-uninstall.sh >/dev/null 2>&1')
-            run_cmd('sudo rm -r /etc/rancher/node/ >/dev/null 2>&1')
+            run_cmd('/usr/local/bin/k3s-uninstall.sh', hide_output=True)
+            run_cmd('sudo rm -r /etc/rancher/node/', hide_output=True)
             return True
         except:
             pass
         try:
-            run_cmd('/usr/local/bin/k3s-agent-uninstall.sh >/dev/null 2>&1')
+            run_cmd('/usr/local/bin/k3s-agent-uninstall.sh', hide_output=True)
             return True
         except:
             pass
@@ -296,12 +306,12 @@ class k3sCluster(Cluster):
     def pause_agent(self):
         status = False
         try:
-            run_cmd('sudo systemctl stop k3s >/dev/null 2>&1')
+            run_cmd('sudo systemctl stop k3s', hide_output=True)
             status = True
         except:
             pass
         try:
-            run_cmd('sudo systemctl stop k3s-agent >/dev/null 2>&1')
+            run_cmd('sudo systemctl stop k3s-agent', hide_output=True)
             status = True
         except:
             pass
@@ -309,11 +319,11 @@ class k3sCluster(Cluster):
 
     def restart_agent(self):
         try:
-            run_cmd('sudo systemctl start k3s >/dev/null 2>&1')
+            run_cmd('sudo systemctl start k3s', hide_output=True)
         except:
             pass
         try:
-            run_cmd('sudo systemctl start k3s-agent >/dev/null 2>&1')
+            run_cmd('sudo systemctl start k3s-agent', hide_output=True)
         except:
             pass
         return self.is_agent_running()

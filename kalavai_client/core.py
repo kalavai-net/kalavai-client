@@ -33,6 +33,7 @@ from kalavai_client.utils import (
     get_public_seeds,
     load_template,
     is_storage_compatible,
+    get_max_gpus,
     NODE_NAME_KEY,
     MANDATORY_TOKEN_FIELDS,
     PUBLIC_LOCATION_KEY,
@@ -157,7 +158,7 @@ def check_seed_compatibility():
     logs = []
     # docker
     try:
-        run_cmd("docker version >/dev/null 2>&1")
+        run_cmd("docker ps", hide_output=True)
     except:
         logs.append("[red]Docker not installed. Install instructions:\n")
         logs.append("   Linux: https://docs.docker.com/engine/install/\n")
@@ -170,7 +171,7 @@ def check_worker_compatibility():
     logs = []
     # docker
     try:
-        run_cmd("docker version >/dev/null 2>&1")
+        run_cmd("docker ps", hide_output=True)
     except:
         logs.append("[red]Docker not installed. Install instructions:\n")
         logs.append("   Linux: https://docs.docker.com/engine/install/\n")
@@ -594,16 +595,6 @@ def attach_to_pool(token, node_name=None):
 
     return cluster_name
 
-def get_max_gpus():
-    try:
-        has_gpus = check_gpu_drivers()
-        if has_gpus:
-            return int(run_cmd("nvidia-smi -L | wc -l").decode())
-        else:
-            return 0
-    except:
-        return 0
-
 def generate_worker_package(num_gpus=0, node_name=None, ip_address="0.0.0.0", storage_compatible=True):
     # get pool data from token  
     token = get_pool_token(mode=TokenType.WORKER)
@@ -772,10 +763,9 @@ def create_pool(
         node_name=node_name,
         node_labels=node_labels
     )
-    
+
     # start server
     CLUSTER.start_seed_node()
-    
     while not CLUSTER.is_agent_running():
         time.sleep(10)
     
