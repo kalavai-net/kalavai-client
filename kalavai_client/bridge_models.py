@@ -1,53 +1,53 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Dict, Optional
 
 from kalavai_client.core import Job, TokenType
 
 
 class InvitesRequest(BaseModel):
-    invitees: list[str]
+    invitees: list[str] = Field(description="List of user identifiers to invite to the pool")
 
 class CreatePoolRequest(BaseModel):
-    cluster_name: str
-    ip_address: str
-    app_values: dict = None
-    num_gpus: int = None
-    node_name: str = None
-    only_registered_users: bool = False
-    location: str = None
-    token_mode: TokenType = TokenType.USER
-    description: str = ""
-    frontend: bool = False
+    cluster_name: str = Field(description="Name of the cluster to create")
+    ip_address: str = Field(description="IP address for the pool")
+    app_values: dict = Field(None, description="Application configuration values")
+    num_gpus: int = Field(None, description="Number of GPUs to allocate")
+    node_name: str = Field(None, description="Name of the node")
+    only_registered_users: bool = Field(False, description="Whether to restrict access to registered users only")
+    location: str = Field(None, description="Geographic location of the pool")
+    token_mode: TokenType = Field(TokenType.USER, description="Token type for authentication")
+    description: str = Field("", description="Description of the pool")
+    frontend: bool = Field(False, description="Whether this is a frontend request")
 
 class NodesActionRequest(BaseModel):
-    nodes: list[str]
+    nodes: list[str] = Field(description="List of node names to perform the action on")
 
 class JoinPoolRequest(BaseModel):
-    token: str
-    ip_address: str = None
-    node_name: str = None
-    num_gpus: int = None
-    frontend: bool = False
+    token: str = Field(description="Token to join the pool")
+    ip_address: str = Field(None, description="IP address for the node")
+    node_name: str = Field(None, description="Name of the node")
+    num_gpus: int = Field(None, description="Number of GPUs to allocate")
+    frontend: bool = Field(False, description="Whether this is a frontend request")
 class JobDetailsRequest(BaseModel):
-    jobs: list[Job]
+    jobs: list[Job] = Field(description="List of jobs to get details for")
 
 
 class StopPoolRequest(BaseModel):
-    skip_node_deletion: bool = False
+    skip_node_deletion: bool = Field(False, description="Whether to skip node deletion when stopping the pool")
 
 class DeployJobRequest(BaseModel):
-    template_name: str
-    values: dict
-    force_namespace: str = None
-    target_labels: dict[str, str] = None
+    template_name: str = Field(description="Name of the job template to use")
+    values: dict = Field(description="Job configuration values")
+    force_namespace: str = Field(None, description="Optional namespace override")
+    target_labels: dict[str, str] = Field(None, description="Optional target node labels")
 
 class DeleteJobRequest(BaseModel):
-    name: str
-    force_namespace: str = None
+    name: str = Field(description="Name of the job to delete")
+    force_namespace: str = Field(None, description="Optional namespace override")
 
 class NodeLabelsRequest(BaseModel):
-    node_name: str
-    labels: Dict[str, str]
+    node_name: str = Field(description="Name of the node to add labels to")
+    labels: Dict[str, str] = Field(description="Dictionary of labels to add to the node")
 
 class GetNodeLabelsRequest(BaseModel):
-    node_names: List[str]
+    node_names: List[str] = Field(description="List of node names to get labels for")
