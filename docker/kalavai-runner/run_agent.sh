@@ -59,13 +59,18 @@ if [ ! -z "${flannel_iface}" ]; then
     while [ true ]; do
         if [ -d "/sys/class/net/$flannel_iface" ]; then
             node_ip=$(ifconfig $flannel_iface | grep 'inet ' | awk '{gsub(/^addr:/, "", $2); print $2}')
-            echo "Interface exists: $node_ip"
-            break
+            # check the ip was set (it may take a while to do so)
+            if [ ! -z "${node_ip}" ]; then
+              echo "Interface exists: $node_ip"
+              break
+            else
+              echo "Interface exists, IP still not set..."
+            fi
         else
             echo "Interface not found. Retrying in 10 seconds..."
-            RETRY_COUNT=$((RETRY_COUNT + 1))
-            sleep 10
         fi
+        RETRY_COUNT=$((RETRY_COUNT + 1))
+        sleep 10
     done
     iface_server="--flannel-backend wireguard-native --flannel-iface "$flannel_iface
     iface_worker="--flannel-iface "$flannel_iface
