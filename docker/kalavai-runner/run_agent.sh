@@ -5,6 +5,7 @@ extra=""
 node_ip="0.0.0.0"
 node_name=$HOSTNAME
 user_id=""
+random_suffix=""
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -35,6 +36,9 @@ while [ $# -gt 0 ]; do
     --user_id=*)
       user_id="${1#*=}"
       ;;
+    --random_suffix=*)
+      random_suffix="${1#*=}"
+      ;;
     --extra=*)
       extra="${1#*=}"
       ;;
@@ -52,8 +56,11 @@ iface_server=""
 iface_worker=""
 
 # add random tail to node name to avoid clashes
-random_tail=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 6)
-node_name="${node_name}-${random_tail}"
+if [ -z "${random_suffix}" ]; then
+  random_suffix=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 6)
+fi
+
+node_name="${node_name}-${random_suffix}"
 
 if [ ! -z "${flannel_iface}" ]; then
     while [ true ]; do
