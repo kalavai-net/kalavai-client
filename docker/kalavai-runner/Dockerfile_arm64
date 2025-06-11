@@ -1,0 +1,23 @@
+ARG K3S_TAG="v1.31.1-k3s1-arm64"
+
+FROM rancher/k3s:$K3S_TAG AS k3s
+FROM arm64v8/ubuntu:24.04
+
+# Install the NVIDIA container toolkit
+RUN apt update && apt install wireguard -y
+
+COPY --from=k3s / / --exclude=/bin
+COPY --from=k3s /bin /bin
+
+RUN mkdir -p /workspace
+COPY run_agent.sh /workspace/
+RUN chmod +x /workspace/run_agent.sh
+
+VOLUME /var/lib/kubelet
+VOLUME /var/lib/rancher/k3s
+VOLUME /var/lib/cni
+VOLUME /var/log
+
+ENV PATH="$PATH:/bin/aux"
+
+ENTRYPOINT ["/workspace/run_agent.sh"]
