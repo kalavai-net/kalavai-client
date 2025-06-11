@@ -13,11 +13,9 @@ class CreatePoolRequest(BaseModel):
     app_values: dict = Field(None, description="Application configuration values")
     num_gpus: int = Field(None, description="Number of GPUs to allocate")
     node_name: str = Field(None, description="Name of the node")
-    only_registered_users: bool = Field(False, description="Whether to restrict access to registered users only")
     location: str = Field(None, description="Geographic location of the pool")
     token_mode: TokenType = Field(TokenType.USER, description="Token type for authentication")
     description: str = Field("", description="Description of the pool")
-    frontend: bool = Field(False, description="Whether this is a frontend request")
 
 class NodesActionRequest(BaseModel):
     nodes: list[str] = Field(description="List of node names to perform the action on")

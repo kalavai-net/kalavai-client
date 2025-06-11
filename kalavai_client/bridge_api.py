@@ -95,7 +95,6 @@ def pool_create(request: CreatePoolRequest, api_key: str = Depends(verify_api_ke
     - **location**: Location of the pool
     - **description**: Pool description
     - **token_mode**: Token type for authentication
-    - **frontend**: Whether this is a frontend request
     """
     result = create_pool(
         cluster_name=request.cluster_name,
@@ -103,11 +102,9 @@ def pool_create(request: CreatePoolRequest, api_key: str = Depends(verify_api_ke
         app_values=request.app_values,
         num_gpus=request.num_gpus,
         node_name=request.node_name,
-        only_registered_users=request.only_registered_users,
         location=request.location,
         description=request.description,
-        token_mode=request.token_mode,
-        frontend=request.frontend
+        token_mode=request.token_mode
     )
     return result
 
@@ -123,14 +120,12 @@ def pool_join(request: JoinPoolRequest, api_key: str = Depends(verify_api_key)):
     - **ip_address**: IP address for the node
     - **node_name**: Name of the node
     - **num_gpus**: Number of GPUs to allocate
-    - **frontend**: Whether this is a frontend request
     """
     result = join_pool(
         token=request.token,
         num_gpus=request.num_gpus,
         node_name=request.node_name,
-        ip_address=request.ip_address,
-        frontend=request.frontend
+        ip_address=request.ip_address
     )
     return result
 

@@ -101,7 +101,7 @@ class PoolsView(TableView):
                         rx.form(
                             rx.flex(
                                 rx.input(placeholder="Cluster name", name="cluster_name"),
-                                rx.text_area(placeholder="Description (markdown)", name="description"),
+                                #rx.text_area(placeholder="Description (markdown)", name="description"),
                                 #rx.checkbox("Is private", default=True, name="is_private"),
                                 rx.text("Local worker settings", size="3", weight="bold"),
                                 rx.select(
