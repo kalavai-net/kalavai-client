@@ -9,10 +9,10 @@
       
       
       
-        <link rel="prev" href="../public_llm_pool/">
+        <link rel="prev" href="../cli/">
       
       
-        <link rel="next" href="../petals/">
+        <link rel="next" href="../templates/">
       
       
       <link rel="icon" href="../assets/icons/browser.png">
@@ -437,27 +437,6 @@
                 
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="../public_llm_pool/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Public LLM pool
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
     
   
   
@@ -582,6 +561,48 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="4. Access your models">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ui-playground" class="md-nav__link">
+    <span class="md-ellipsis">
+      UI Playground
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#single-api-endpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      Single API endpoint
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check-available-llms" class="md-nav__link">
+    <span class="md-ellipsis">
+      Check available LLMs
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      Use models
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -606,48 +627,6 @@
   
 </nav>
       
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../petals/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Petals swarm
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../boinc/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    BOINC
-  </span>
-  
-
-      </a>
     </li>
   
 
@@ -851,6 +830,48 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="4. Access your models">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ui-playground" class="md-nav__link">
+    <span class="md-ellipsis">
+      UI Playground
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#single-api-endpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      Single API endpoint
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check-available-llms" class="md-nav__link">
+    <span class="md-ellipsis">
+      Check available LLMs
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      Use models
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -928,9 +949,8 @@
 
 
 <h1 id="self-hosted-llm-pools">Self-hosted LLM pools</h1>
-<p>⭐⭐⭐ <strong>Kalavai and our LLM pools are open source and free to use in both commercial and non-commercial purposes. If you find it useful, consider supporting us by <a href="https://github.com/kalavai-net/kalavai-client">giving a star to our GitHub project</a>, joining our <a href="https://discord.gg/YN6ThTJKbM">discord channel</a>, follow our <a href="https://kalavainet.substack.com/">Substack</a> and give us a <a href="https://www.producthunt.com/products/kalavai/reviews/new">review on Product Hunt</a>.</strong></p>
+<p>⭐⭐⭐ <strong>Kalavai and our LLM pools are open source and free to use in both commercial and non-commercial purposes. If you find it useful, consider supporting us by <a href="https://github.com/kalavai-net/kalavai-client">giving a star to our GitHub project</a>, joining our <a href="https://discord.gg/YN6ThTJKbM">discord channel</a> and follow our <a href="https://kalavainet.substack.com/">Substack</a>.</strong></p>
 <p>Ideal for AI teams that want to supercharge their resources without opening it to the public.</p>
-<p>For easy-mode LLM pools, check out our <a href="../public_llm_pool/">Public LLM pool</a>, which comes with managed LiteLLM API and OpenWebUI playground for all models.</p>
 <p>This guide will show you how to start a <strong>self-hosted LLM pool</strong> with your own hardware, configure it with a <strong>single API and UI Playground</strong> for all your models and <strong>deploy and access</strong> a Llama 3.1 8B instance.</p>
 <h2 id="what-youll-achieve">What you'll achieve</h2>
 <ol>
@@ -971,7 +991,7 @@ Storage webui-db (2Gi) created
 <p>Once it's ready, you can access the UI via its advertised endpoint (under <code>Jobs</code>), directly on your browser. The first time you login you'll be able to create an admin user. Check the <a href="https://docs.openwebui.com/">official documentation</a> for more details on the app.</p>
 <p><img alt="Access playground UI" src="../assets/images/webui.png" /></p>
 <h3 id="check-deployment-progress">Check deployment progress</h3>
-<p>Jobs may take a while to deploy. Check the progress with:</p>
+<p>Jobs may take a while to deploy. Check the progress in the <code>Jobs</code> page, or using the CLI:</p>
 <pre><code class="language-bash">$ kalavai job list
 
 ┏━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
@@ -984,8 +1004,7 @@ Storage webui-db (2Gi) created
 </code></pre>
 <p>In this case, <code>litellm</code> has been deployed but <code>webui-1</code> is still pending schedule. If a job cannot be scheduled due to lack of resources, consider adding more nodes or reducing the requested resources via the <code>values.yaml</code> files.</p>
 <h2 id="3-deploy-models-with-compatible-frameworks">3. Deploy models with compatible frameworks</h2>
-<p>Using a self-hosted LLM pool is the same as using a public one, with the only difference being access. Your self-hosted LLM pool is private and only those you give a joining token access to can see and use it. </p>
-<p>To deploy a multi-node, multi-GPU vLLM model, check out the <a href="../public_llm_pool/#new-vllm-model">section under Public LLM pools</a>.</p>
+<p>Your self-hosted LLM pool is private and only those you give a joining token access to can see and use it. </p>
 <p>In this section, we'll look into how to deploy a model with another of our supported model engines: <a href="https://github.com/kalavai-net/kalavai-client/blob/main/templates/llamacpp/README.md">llama.cpp</a></p>
 <p>We provide an <a href="https://github.com/kalavai-net/kalavai-client/blob/main/examples/llms/llamacpp-llama-8b.yaml">example of template values to deploy Llama 3.1 8B model</a>. Copy its content in your machine into a <code>values.yaml</code> file. Feel free to modify its values. If you use the default values, the deployment will use the following parameters:</p>
 <ul>
@@ -1046,8 +1065,91 @@ Pod meta-llama-3-1-8b-instruct-q4-k-m-gguf-cpu-0                                
 </code></pre>
 <p>The logs include individual logs for each worker.</p>
 <h2 id="4-access-your-models">4. Access your models</h2>
-<p>Once they are donwloaded and loaded into memory, your models will be readily available both via the LiteLLM API as well as through the UI Playground. Check out our <a href="../public_llm_pool/#a-use-existing-models">full guide on how to access deployed models</a> via API and the playground.</p>
-<p><img alt="Accessing llamacpp model from UI" src="../assets/images/llama_webui.png" /></p>
+<p>Once they are donwloaded and loaded into memory, your models will be readily available both via the LiteLLM API as well as through the UI Playground. </p>
+<h3 id="ui-playground">UI Playground</h3>
+<p>The pool comes with an OpenWebUI deployment (<code>playground</code> job) to make it easy to test model inference with LLMs via the browser. Within the UI you can select the model you wish to test and have a chat.</p>
+<p><img alt="Playground UI" src="../assets/images/webui.png" /></p>
+<p><em><strong>Note:</strong> the playground is a shared instance to help users test models without code and should not be used in production. You need to create a playground account to access it. This can be different to your Kalavai account details. The creation of a new user is necessary to keep things like user chat history and preferences.</em></p>
+<h3 id="single-api-endpoint">Single API endpoint</h3>
+<p>All interactions to models in the pool are brokered by a <a href="https://docs.litellm.ai/docs/">LiteLLM endpoint</a> that is installed in the system. To interact with it you need a LITELLM_URL and a LITELLM_KEY.</p>
+<p>The <code>LITELLM_URL</code> is the endpoint displayed in the <code>Jobs</code> page for the <code>litellm</code> job.</p>
+<p>The <code>LITELLM_KEY</code> is shown on the <code>My LLM Pools</code> page of <a href="https://platform.kalavai.net">our platform</a>. It is also displayed in the description of the pool when you join it.</p>
+<p><img alt="LiteLLM key shown" src="../assets/images/litellm_key.png" /></p>
+<p>In this example:</p>
+<ul>
+<li><code>LITELLM_URL=http://192.168.68.67:30535</code></li>
+<li><code>LITELLM_KEY=sk-qoQC5lijoaBwXoyi_YP1xA</code></li>
+</ul>
+<h3 id="check-available-llms">Check available LLMs</h3>
+<p>Using cURL:</p>
+<pre><code class="language-bash">curl -X GET &quot;&lt;LITELLM_URL&gt;/v1/models&quot; \
+  -H 'Authorization: Bearer &lt;LITELLM_KEY&gt;' \
+  -H &quot;accept: application/json&quot; \
+  -H &quot;Content-Type: application/json&quot;
+</code></pre>
+<p>Using python:</p>
+<pre><code class="language-python">import requests
+
+LITELLM_URL = &quot;http://192.168.68.67:30535&quot;
+LITELLM_KEY = &quot;sk-qoQC5lijoaBwXoyi_YP1xA&quot;
+
+
+def list_models():
+    response = requests.get(
+        f&quot;{LITELLM_URL}/v1/models&quot;,
+        headers={&quot;Authorization&quot;: f&quot;Bearer {LITELLM_KEY}&quot;}
+    )
+    return response.json()
+
+
+if __name__ == &quot;__main__&quot;:
+    print(
+        list_models()
+    )
+</code></pre>
+<h3 id="use-models">Use models</h3>
+<p>Using cURL:</p>
+<pre><code class="language-bash">curl --location '&lt;LITELLM_URL&gt;/chat/completions' \
+  --header 'Authorization: Bearer &lt;LITELLM_KEY&gt;' \
+  --header 'Content-Type: application/json' \
+  --data '{
+      &quot;model&quot;: &quot;&lt;MODEL_NAME&gt;&quot;,
+      &quot;messages&quot;: [
+          {
+          &quot;role&quot;: &quot;user&quot;,
+          &quot;content&quot;: &quot;what llm are you&quot;
+          }
+      ]
+  }'
+</code></pre>
+<p>Using python:</p>
+<pre><code class="language-python">import requests
+
+LITELLM_URL = &quot;http://192.168.68.67:30535&quot;
+LITELLM_KEY = &quot;sk-qoQC5lijoaBwXoyi_YP1xA&quot;
+
+def model_inference():
+    response = requests.post(
+        f&quot;{LITELLM_URL}/chat/completions&quot;,
+        headers={&quot;Authorization&quot;: f&quot;Bearer {LITELLM_KEY}&quot;},
+        json={
+            &quot;model&quot;: &quot;&lt;MODEL_NAME&gt;&quot;,
+            &quot;messages&quot;: [
+            {
+                &quot;role&quot;: &quot;user&quot;,
+                &quot;content&quot;: &quot;what llm are you&quot;
+            }]
+        }
+    )
+    return response.json()
+
+
+if __name__ == &quot;__main__&quot;:
+    print(
+        model_inference()
+    )
+</code></pre>
+<p>For more details on the endpoint(s) parameters, check out <a href="https://docs.litellm.ai/docs/simple_proxy">LiteLLM documentation</a> and the <a href="https://litellm-api.up.railway.app/">Swagger API</a></p>
 <h2 id="5-clean-up">5. Clean up</h2>
 <p>Remove models:</p>
 <pre><code class="language-bash">kalavai job delete &lt;name of the model&gt;

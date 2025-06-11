@@ -516,74 +516,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../public_llm_pool/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Public LLM pool
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../self_hosted_llm_pool/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
     Self-hosted LLM pool
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../petals/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Petals swarm
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../boinc/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    BOINC
   </span>
   
 
@@ -786,15 +723,15 @@
 <h1 id="compatibility-matrix">Compatibility matrix</h1>
 <p>If your system is not currently supported, <a href="https://github.com/kalavai-net/kalavai-client/issues">open an issue</a> and request it. We are expanding this list constantly.</p>
 <h3 id="os-compatibility">OS compatibility</h3>
+<p>Currently <strong>seed nodes</strong> are supported exclusively on linux machines (x86_64 platform). However Kalavai supports mix-pools, i.e. having Windows and MacOS computers as workers.</p>
 <p>Since <strong>worker nodes</strong> run inside docker, any machine that can run docker <strong>should</strong> be compatible with Kalavai. Here are instructions for <a href="https://docs.docker.com/engine/install/">linux</a>, <a href="https://docs.docker.com/desktop/setup/install/windows-install/">Windows</a> and <a href="https://docs.docker.com/desktop/setup/install/mac-install/">MacOS</a>.</p>
-<p>The kalavai client, which controls and access pools, can be installed on any machine that has python 3.6+.</p>
-<p><strong>Support for Windows and MacOS workers is experimental</strong>: kalavai workers run on docker containers that require access to the host network interfaces, thus systems that do not support containers natively (Windows and MacOS) may have difficulties finding each other.</p>
-<p>Any system that runs python 3.6+ is able to run the <code>kalavai-client</code> and therefore connect and operate an LLM pool, <a href="../getting_started/#3-attach-more-clients">without sharing with the pool</a>. Your computer won't be adding its capacity to the pool, but it wil be able to deploy jobs and interact with models.</p>
+<p>The kalavai client, which controls and access pools, can be installed on any machine that has python 3.10+.</p>
 <h3 id="hardware-compatibility">Hardware compatibility:</h3>
 <ul>
-<li><code>amd64</code> or <code>x86_64</code> CPU architecture</li>
+<li><code>amd64</code> or <code>x86_64</code> CPU architecture for seed and worker nodes.</li>
+<li><code>arm64</code> CPU architecture for worker nodes.</li>
 <li>NVIDIA GPU</li>
-<li>AMD and Intel GPUs are currently not supported (yet!)</li>
+<li>Mac M series, AMD and Intel GPUs are currently not supported (<a href="https://kalavai-net.github.io/kalavai-client/compatibility/#help-testing-amd-gpus">interested in helping us test it?</a>)</li>
 </ul>
 <h2 id="help-testing-new-systems">Help testing new systems</h2>
 <p>If you want to help testing Kalavai in new Windows / Linux based systems (thank you!), follow the next steps:</p>
