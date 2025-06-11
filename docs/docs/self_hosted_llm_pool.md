@@ -189,9 +189,7 @@ All interactions to models in the pool are brokered by a [LiteLLM endpoint](http
 
 The `LITELLM_URL` is the endpoint displayed in the `Jobs` page for the `litellm` job.
 
-The `LITELLM_KEY` is shown on the `My LLM Pools` page of [our platform](https://platform.kalavai.net). It is also displayed in the description of the pool when you join it.
-
-![LiteLLM key shown](assets/images/litellm_key.png)
+The `LITELLM_KEY` is the one you have generated above.
 
 In this example:
 

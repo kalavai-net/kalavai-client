@@ -172,15 +172,15 @@ The kalavai client, which controls and access pools, can be installed on any mac
 
 - [x] Kalavai client on Linux
 - [x] [TEMPLATE] Distributed LLM deployment
-- [x] Kalavai client on Windows (with WSL2)
+- [x] Kalavai client on Windows (worker only)
+- [x] Kalavai client on Windows WSL2 (seed and worker)
 - [x] Self-hosted LLM pools
 - [x] Collaborative LLM deployment
 - [x] Ray cluster support
-- [x] Kalavai client on Mac
+- [x] Kalavai client on Mac (worker only)
 - [x] Kalavai pools UI
-- [ ] [TEMPLATE] [GPUStack](https://github.com/gpustack/gpustack) support
-- [ ] [TEMPLATE] [exo](https://github.com/exo-explore/exo) support
 - [ ] Support for AMD GPUs
+- [ ] Support for Mac M GPUs
 - [x] Docker install path
 
 
