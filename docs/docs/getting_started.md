@@ -44,14 +44,20 @@ Loading GUI, may take a few minutes. It will be available at http://localhost:30
 
 This will expose the GUI and the backend services in localhost. By default, the GUI is accessible via [http://localhost:3000](http://localhost:3000)
 
-Note that to use the GUI you will need a free account in the platform. [Create one here](https://platform.kalavai.net).
-
 
 ### 1. Create an LLM pool
 
-After you have logged in with your account, you can create your LLM pool by clicking on the `circle-plus` button. Give the pool a name, and select an IP to use as the pool address. Note that this address will need to be visible by worker machines that want to join in.
+After you have started the GUI, you can create your LLM pool by clicking on the `circle-plus` button. Give the pool a name, and select an IP to use as the pool address. Note that this address will need to be visible by worker machines that want to join in.
 
 ![Create an LLM pool](assets/images/ui_create_cluster.png)
+
+You can also create a pool using the CLI command:
+
+```bash
+kalavai pool start NAME
+```
+
+**Note: Currently seed nodes are only supported in Linux x86_64.** 
 
 
 ### 2. Add worker nodes
@@ -65,9 +71,21 @@ Increase the power of your AI pool by inviting others to join. For that, you nee
 
 ![Invite others to join](assets/images/ui_devices_invite.png)
 
+Or use the CLI:
+
+```bash
+kalavai pool token --worker
+```
+
 Copy the joining token and share it with others. On the machines you want to add to the pool, after logging in to kalavai GUI, paste the joining token in the text field under `Access with token`, and click join
 
 ![Use the token to join](assets/images/ui_join_part1.png)
+
+Or join with the CLI:
+
+```bash
+kalavai pool join <TOKEN>
+```
 
 Kalavai asks you if you want to join (run workloads in the local machine) or attach (use the node to access and control the pool, without running workloads) to the pool. 
 
@@ -101,6 +119,12 @@ Any device can leave the pool at any point and its workload will get reassigned.
 
 ![Leave the pool](assets/images/ui_leave_pool.png)
 
+Or do so with the CLI:
+
+```bash
+kalavai pool stop
+```
+
 ## What's next
 
-Now that you know how to get a pool up and running, check our [end to end tutorial](./self_hosted_llm_pool.md) on how to self-host an LLM Pool, or go full on easy-mode by [joining a public pool](public_llm_pool.md).
+Now that you know how to get a pool up and running, check our [end to end tutorial](self_hosted_llm_pool.md) on how to self-host an LLM Pool.

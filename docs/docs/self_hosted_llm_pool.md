@@ -10,11 +10,9 @@ tags:
 
 # Self-hosted LLM pools
 
-⭐⭐⭐ **Kalavai and our LLM pools are open source and free to use in both commercial and non-commercial purposes. If you find it useful, consider supporting us by [giving a star to our GitHub project](https://github.com/kalavai-net/kalavai-client), joining our [discord channel](https://discord.gg/YN6ThTJKbM), follow our [Substack](https://kalavainet.substack.com/) and give us a [review on Product Hunt](https://www.producthunt.com/products/kalavai/reviews/new).**
+⭐⭐⭐ **Kalavai and our LLM pools are open source and free to use in both commercial and non-commercial purposes. If you find it useful, consider supporting us by [giving a star to our GitHub project](https://github.com/kalavai-net/kalavai-client), joining our [discord channel](https://discord.gg/YN6ThTJKbM) and follow our [Substack](https://kalavainet.substack.com/).**
 
 Ideal for AI teams that want to supercharge their resources without opening it to the public.
-
-For easy-mode LLM pools, check out our [Public LLM pool](./public_llm_pool.md), which comes with managed LiteLLM API and OpenWebUI playground for all models.
 
 This guide will show you how to start a **self-hosted LLM pool** with your own hardware, configure it with a **single API and UI Playground** for all your models and **deploy and access** a Llama 3.1 8B instance.
 
@@ -28,7 +26,7 @@ This guide will show you how to start a **self-hosted LLM pool** with your own h
 ## 1. Pre-requisites
 
 - [Install kalavai CLI](getting_started.md#getting-started) on each machine
-- Set up a [2 machine LLM pool](./getting_started.md), i.e. a seed node and one worker
+- Set up a [2 machine LLM pool](getting_started.md), i.e. a seed node and one worker
 
 **_Note: the following commands can be executed on any machine that is part of the pool, provided you have used `admin` or `user` access modes to generate the token. If you have used `worker`, deployments are only allowed in the seed node._**
 
@@ -84,7 +82,7 @@ Once it's ready, you can access the UI via its advertised endpoint (under `Jobs`
 
 ### Check deployment progress
 
-Jobs may take a while to deploy. Check the progress with:
+Jobs may take a while to deploy. Check the progress in the `Jobs` page, or using the CLI:
 
 ```bash
 $ kalavai job list
@@ -103,9 +101,7 @@ In this case, `litellm` has been deployed but `webui-1` is still pending schedul
 
 ## 3. Deploy models with compatible frameworks
 
-Using a self-hosted LLM pool is the same as using a public one, with the only difference being access. Your self-hosted LLM pool is private and only those you give a joining token access to can see and use it. 
-
-To deploy a multi-node, multi-GPU vLLM model, check out the [section under Public LLM pools](./public_llm_pool.md#new-vllm-model).
+Your self-hosted LLM pool is private and only those you give a joining token access to can see and use it. 
 
 In this section, we'll look into how to deploy a model with another of our supported model engines: [llama.cpp](https://github.com/kalavai-net/kalavai-client/blob/main/templates/llamacpp/README.md)
 
@@ -176,9 +172,117 @@ The logs include individual logs for each worker.
 
 ## 4. Access your models
 
-Once they are donwloaded and loaded into memory, your models will be readily available both via the LiteLLM API as well as through the UI Playground. Check out our [full guide on how to access deployed models](./public_llm_pool.md#a-use-existing-models) via API and the playground.
+Once they are donwloaded and loaded into memory, your models will be readily available both via the LiteLLM API as well as through the UI Playground. 
 
-![Accessing llamacpp model from UI](assets/images/llama_webui.png)
+### UI Playground
+
+The pool comes with an OpenWebUI deployment (`playground` job) to make it easy to test model inference with LLMs via the browser. Within the UI you can select the model you wish to test and have a chat.
+
+![Playground UI](assets/images/webui.png)
+
+_**Note:** the playground is a shared instance to help users test models without code and should not be used in production. You need to create a playground account to access it. This can be different to your Kalavai account details. The creation of a new user is necessary to keep things like user chat history and preferences._
+
+
+### Single API endpoint
+
+All interactions to models in the pool are brokered by a [LiteLLM endpoint](https://docs.litellm.ai/docs/) that is installed in the system. To interact with it you need a LITELLM_URL and a LITELLM_KEY.
+
+The `LITELLM_URL` is the endpoint displayed in the `Jobs` page for the `litellm` job.
+
+The `LITELLM_KEY` is shown on the `My LLM Pools` page of [our platform](https://platform.kalavai.net). It is also displayed in the description of the pool when you join it.
+
+![LiteLLM key shown](assets/images/litellm_key.png)
+
+In this example:
+
+- `LITELLM_URL=http://192.168.68.67:30535`
+- `LITELLM_KEY=sk-qoQC5lijoaBwXoyi_YP1xA`
+
+### Check available LLMs
+
+Using cURL:
+
+```bash
+curl -X GET "<LITELLM_URL>/v1/models" \
+  -H 'Authorization: Bearer <LITELLM_KEY>' \
+  -H "accept: application/json" \
+  -H "Content-Type: application/json"
+```
+
+Using python:
+
+```python
+import requests
+
+LITELLM_URL = "http://192.168.68.67:30535"
+LITELLM_KEY = "sk-qoQC5lijoaBwXoyi_YP1xA"
+
+
+def list_models():
+    response = requests.get(
+        f"{LITELLM_URL}/v1/models",
+        headers={"Authorization": f"Bearer {LITELLM_KEY}"}
+    )
+    return response.json()
+
+
+if __name__ == "__main__":
+    print(
+        list_models()
+    )
+```
+
+
+### Use models
+
+Using cURL:
+
+```bash
+curl --location '<LITELLM_URL>/chat/completions' \
+  --header 'Authorization: Bearer <LITELLM_KEY>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+      "model": "<MODEL_NAME>",
+      "messages": [
+          {
+          "role": "user",
+          "content": "what llm are you"
+          }
+      ]
+  }'
+```
+
+Using python:
+
+```python
+import requests
+
+LITELLM_URL = "http://192.168.68.67:30535"
+LITELLM_KEY = "sk-qoQC5lijoaBwXoyi_YP1xA"
+
+def model_inference():
+    response = requests.post(
+        f"{LITELLM_URL}/chat/completions",
+        headers={"Authorization": f"Bearer {LITELLM_KEY}"},
+        json={
+            "model": "<MODEL_NAME>",
+            "messages": [
+            {
+                "role": "user",
+                "content": "what llm are you"
+            }]
+        }
+    )
+    return response.json()
+
+
+if __name__ == "__main__":
+    print(
+        model_inference()
+    )
+```
+
+For more details on the endpoint(s) parameters, check out [LiteLLM documentation](https://docs.litellm.ai/docs/simple_proxy) and the [Swagger API](https://litellm-api.up.railway.app/)
 
 
 ## 5. Clean up

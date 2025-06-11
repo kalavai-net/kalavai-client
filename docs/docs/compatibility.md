@@ -11,20 +11,19 @@ If your system is not currently supported, [open an issue](https://github.com/ka
 
 ### OS compatibility
 
+Currently **seed nodes** are supported exclusively on linux machines (x86_64 platform). However Kalavai supports mix-pools, i.e. having Windows and MacOS computers as workers.
+
 Since **worker nodes** run inside docker, any machine that can run docker **should** be compatible with Kalavai. Here are instructions for [linux](https://docs.docker.com/engine/install/), [Windows](https://docs.docker.com/desktop/setup/install/windows-install/) and [MacOS](https://docs.docker.com/desktop/setup/install/mac-install/).
 
-The kalavai client, which controls and access pools, can be installed on any machine that has python 3.6+.
-
-**Support for Windows and MacOS workers is experimental**: kalavai workers run on docker containers that require access to the host network interfaces, thus systems that do not support containers natively (Windows and MacOS) may have difficulties finding each other.
-
-Any system that runs python 3.6+ is able to run the `kalavai-client` and therefore connect and operate an LLM pool, [without sharing with the pool](getting_started.md#3-attach-more-clients). Your computer won't be adding its capacity to the pool, but it wil be able to deploy jobs and interact with models.
+The kalavai client, which controls and access pools, can be installed on any machine that has python 3.10+.
 
 
 ### Hardware compatibility:
 
-- `amd64` or `x86_64` CPU architecture
+- `amd64` or `x86_64` CPU architecture for seed and worker nodes.
+- `arm64` CPU architecture for worker nodes.
 - NVIDIA GPU
-- AMD and Intel GPUs are currently not supported (yet!)
+- Mac M series, AMD and Intel GPUs are currently not supported ([interested in helping us test it?](https://kalavai-net.github.io/kalavai-client/compatibility/#help-testing-amd-gpus))
 
 
 ## Help testing new systems

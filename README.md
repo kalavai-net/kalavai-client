@@ -7,30 +7,28 @@
 
 </div>
 
-⭐⭐⭐ **Kalavai and our AI pools are open source, and free to use in both commercial and non-commercial purposes. If you find it useful, consider supporting us by [giving a star to our GitHub project](https://github.com/kalavai-net/kalavai-client), joining our [discord channel](https://discord.gg/YN6ThTJKbM), follow our [Substack](https://kalavainet.substack.com/) and give us a [review on Product Hunt](https://www.producthunt.com/products/kalavai/reviews/new).**
+⭐⭐⭐ **Kalavai platform is open source, and free to use in both commercial and non-commercial purposes. If you find it useful, consider supporting us by [giving a star to our GitHub project](https://github.com/kalavai-net/kalavai-client), joining our [discord channel](https://discord.gg/YN6ThTJKbM) and follow our [Substack](https://kalavainet.substack.com/).**
 
 
 # Kalavai: turn your devices into a scalable AI platform
 
-### Taming the adoption of Large Language Models
+> AI in the cloud is not aligned with you, it's aligned with the company that owns it. Make sure you own your AI
 
-> Kalavai is an **open source** tool that turns **everyday devices** into your very own LLM platform. It aggregates resources from multiple machines, including desktops and laptops, and is **compatible with most model engines** to make LLM deployment and orchestration simple and reliable.
+### Taming the adoption of self-hosted GenAI
 
-<div align="center">
-
-<a href="https://www.producthunt.com/products/kalavai/reviews?utm_source=badge-product_review&utm_medium=badge&utm_souce=badge-kalavai" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/product_review.svg?product_id=720725&theme=neutral" alt="Kalavai - The&#0032;first&#0032;platform&#0032;to&#0032;crowdsource&#0032;AI&#0032;computation | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
-
-</div>
+Kalavai is an **open source** tool that turns **any devices** into a self-hosted AI platform. It aggregates resources from multiple machines, including cloud, on prem and personal computers, and is **compatible with most model engines** to make model deployment and orchestration simple and reliable.
 
 
 ## What can Kalavai do?
 
-Kalavai's goal is to make using AI (LLMs, AI agents) in real applications accessible and affordable to all. It's a _magic box_ that **integrates all the components required to make AI useful in the age of massive computing**, from model deployment and orchestration to Agentic AI. 
+Kalavai's goal is to make using self-hosted AI (GenAI models and agents) in real applications accessible and affordable to all. It's a tool that transforms machines into a _magic box_ that **integrates all the components required to make AI useful in the age of massive computing**, from model deployment and orchestration to Agentic AI. 
 
 ### Core features
 
 - Manage **multiple devices resources as one**. One pool of RAM, CPUs and GPUs
-- **Deploy Large Language Models seamlessly across devices**, wherever they are (multiple clouds, on premises, personal devices)
+- **Deploy open source models seamlessly across devices**, wherever they are (cloud, on premises, personal devices)
+- Beyond LLMs: not just for large language models, but text-to-speech, speech-to-text, image understanding, coding generation and embedding models.
+- The hybrid dream: build on your laptop, move to the cloud (any!) with zero changes
 - Auto-discovery: all **models are automatically exposed** through a single OpenAI-like API and a ChatGPT-like UI playground
 - Compatible with [most popular model engines](#support-for-llm-engines)
 - [Easy to expand](https://github.com/kalavai-net/kube-watcher/tree/main/templates) to custom workloads
@@ -38,19 +36,19 @@ Kalavai's goal is to make using AI (LLMs, AI agents) in real applications access
 
 <details>
 
-**<summary>Video tutorials</summary>**
+**<summary>Powered by Kalavai</summary>**
 
-### Self-hosted LLM pools
-
-https://github.com/user-attachments/assets/0d2316f3-79ea-46ac-b41e-8ef720f52672
+- [CoGen AI](https://cogenai.kalavai.net): A community hosted alternative to OpenAI API for unlimited inference.
+- [Create your own Free Cursor/Windsurf Clone](https://www.youtube.com/watch?v=6zHSo7oeCDQ&t=21s)
 
 
 </details>
 
+
 ### Latest updates
 
+- 11 June 2025: Native support for Mac and Raspberry pi devices (ARM).
 - 20 February 2025: New shiny GUI interface to control LLM pools and deploy models
-- 6 February 2025: 🔥🔥🔥 Access  **DeepSeek R1 model for free** when you join our [public LLM pool](https://kalavai-net.github.io/kalavai-client/public_llm_pool/)
 - 31 January 2025: `kalavai-client` is now a [PyPI package](https://pypi.org/project/kalavai-client/), easier to install than ever!
 <details>
 <summary>More news</summary>
@@ -103,8 +101,6 @@ The `kalavai-client` is the main tool to interact with the Kalavai platform, to 
 
 <summary>Requirements</summary>
 
-### Requirements
-
 For workers sharing resources with the pool:
 
 - A laptop, desktop or Virtual Machine
@@ -112,37 +108,8 @@ For workers sharing resources with the pool:
 
 > **Support for Windows and MacOS workers is experimental**: kalavai workers run on docker containers that require access to the host network interfaces, thus systems that do not support containers natively (Windows and MacOS) may have difficulties finding each other.
 
-Any system that runs python 3.6+ is able to run the `kalavai-client` and therefore connect and operate an LLM pool, [without sharing with the pool](). Your computer won't be adding its capacity to the pool, but it wil be able to deploy jobs and interact with models.
-
 </details>
 
-<details>
-
-<summary> Common issues</summary>
-
-If you see the following error:
-
-```bash
-fatal error: Python.h: No such file or directory | #include <Python.h>
-```
-
-Make sure you also install python3-dev package. For ubuntu distros:
-
-```bash
-sudo apt install python3-dev
-```
-
-If you see:
-```bash
-AttributeError: install_layout. Did you mean: 'install_platlib'?
-      [end of output]
-```
-
-Upgrade your setuptools:
-```bash
-pip install -U setuptools
-```
-</details>
 
 ### Install the client
 
@@ -185,6 +152,8 @@ If your system is not currently supported, [open an issue](https://github.com/ka
 
 ### OS compatibility
 
+Currently **seed nodes** are supported exclusively on linux machines (x86_64 platform). However Kalavai supports mix-pools, i.e. having Windows and MacOS computers as workers.
+
 Since **worker nodes** run inside docker, any machine that can run docker **should** be compatible with Kalavai. Here are instructions for [linux](https://docs.docker.com/engine/install/), [Windows](https://docs.docker.com/desktop/setup/install/windows-install/) and [MacOS](https://docs.docker.com/desktop/setup/install/mac-install/).
 
 The kalavai client, which controls and access pools, can be installed on any machine that has python 3.10+.
@@ -192,9 +161,10 @@ The kalavai client, which controls and access pools, can be installed on any mac
 
 ### Hardware compatibility:
 
-- `amd64` or `x86_64` CPU architecture
+- `amd64` or `x86_64` CPU architecture for seed and worker nodes.
+- `arm64` CPU architecture for worker nodes.
 - NVIDIA GPU
-- AMD and Intel GPUs are currently not supported ([interested in helping us test it?](https://kalavai-net.github.io/kalavai-client/compatibility/#help-testing-amd-gpus))
+- Mac M series, AMD and Intel GPUs are currently not supported ([interested in helping us test it?](https://kalavai-net.github.io/kalavai-client/compatibility/#help-testing-amd-gpus))
 
 </details>
 
