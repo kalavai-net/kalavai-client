@@ -152,7 +152,7 @@ releases:
     - name: replicas
       value: 1
     - name: image_tag
-      value: "v2025.06.6"
+      value: "v2025.06.7"
     - name: deployment.in_cluster
       value: "True"
     - name: deployment.kalavai_username_key

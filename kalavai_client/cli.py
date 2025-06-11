@@ -325,7 +325,7 @@ def pool__unpublish(cluster_name=None, *others):
         console.log(f"[green]Your cluster has been removed from {KALAVAI_PLATFORM_URL}")
 
 @arguably.command
-def pool__package_worker(output_file, *others, num_gpus=0, ip_address="0.0.0.0", node_name=None, storage_compatible=True):
+def pool__package_worker(output_file, *others, platform="amd64", num_gpus=0, ip_address="0.0.0.0", node_name=None, storage_compatible=True):
     """
     [AUTH]Package a worker for distribution (docker compose only)
     """
@@ -335,6 +335,7 @@ def pool__package_worker(output_file, *others, num_gpus=0, ip_address="0.0.0.0",
         return
     
     compose = generate_worker_package(
+        target_platform=platform,
         num_gpus=num_gpus,
         ip_address=ip_address,
         node_name=node_name,
@@ -374,7 +375,7 @@ def pool__list(*others, user_only=False):
 
 
 @arguably.command
-def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None, app_values: str=None, pool_config_values: str=None, non_interactive: bool=False):
+def pool__start(cluster_name, *others,  platform="amd64", ip_address: str=None, location: str=None, app_values: str=None, pool_config_values: str=None, non_interactive: bool=False):
     """
     Start Kalavai pool and start/resume sharing resources.
 
@@ -411,6 +412,7 @@ def pool__start(cluster_name, *others,  ip_address: str=None, location: str=None
     console.log(f"[green]Creating {cluster_name} pool, this may take a few minutes...")
 
     result = create_pool(
+        target_platform=platform,
         cluster_name=cluster_name,
         ip_address=ip_address,
         app_values=app_values,
@@ -472,7 +474,7 @@ def pool__check_token(token, *others, public=False):
     return True
 
 @arguably.command
-def pool__join(token, *others, node_name=None, non_interactive=False):
+def pool__join(token, *others, platform="amd64", node_name=None, non_interactive=False):
     """
     Join Kalavai pool and start/resume sharing resources.
 
@@ -522,6 +524,7 @@ def pool__join(token, *others, node_name=None, non_interactive=False):
     
     console.log("Connecting worker to the pool...")
     result = join_pool(
+        target_platform=platform,
         token=token,
         node_name=node_name,
         num_gpus=num_gpus,

@@ -106,12 +106,13 @@ def is_storage_compatible():
         return False
 ################
 
-def generate_compose_config(role, node_name, write_to_file=True, node_ip_address="0.0.0.0", num_gpus=0, node_labels=None, pool_ip=None, vpn_token=None, pool_token=None):
+def generate_compose_config(role, node_name, target_platform="amd64", write_to_file=True, node_ip_address="0.0.0.0", num_gpus=0, node_labels=None, pool_ip=None, vpn_token=None, pool_token=None):
     
     if node_labels is not None:
         node_labels = " ".join([f"--node-label {key}={value}" for key, value in node_labels.items()])
     rand_suffix = uuid.uuid4().hex[:8]
     compose_values = {
+        "target_platform": target_platform,
         "user_path": user_path(""),
         "service_name": DEFAULT_CONTAINER_NAME,
         "vpn": vpn_token is not None,

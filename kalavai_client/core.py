@@ -595,7 +595,7 @@ def attach_to_pool(token, node_name=None):
 
     return cluster_name
 
-def generate_worker_package(num_gpus=0, node_name=None, ip_address="0.0.0.0", storage_compatible=True):
+def generate_worker_package(target_platform="amd64", num_gpus=0, node_name=None, ip_address="0.0.0.0", storage_compatible=True):
     # get pool data from token  
     token = get_pool_token(mode=TokenType.WORKER)
     if "error" in token:
@@ -620,6 +620,7 @@ def generate_worker_package(num_gpus=0, node_name=None, ip_address="0.0.0.0", st
     }
     # Generate docker compose recipe
     compose = generate_compose_config(
+        target_platform=target_platform,
         write_to_file=False,
         role="agent",
         node_ip_address=ip_address,
@@ -633,7 +634,13 @@ def generate_worker_package(num_gpus=0, node_name=None, ip_address="0.0.0.0", st
     return compose
 
 
-def join_pool(token, num_gpus=None, node_name=None, ip_address=None):
+def join_pool(
+        token,
+        num_gpus=None,
+        node_name=None,
+        ip_address=None,
+        target_platform="amd64"
+):
     compatibility = check_worker_compatibility()
     if len(compatibility["issues"]) > 0:
         return {"error": compatibility["issues"]}
@@ -668,6 +675,7 @@ def join_pool(token, num_gpus=None, node_name=None, ip_address=None):
     # local agent join
     # Generate docker compose recipe
     generate_compose_config(
+        target_platform=target_platform,
         role="agent",
         node_ip_address=ip_address,
         pool_ip=f"https://{kalavai_seed_ip}:6443",
@@ -722,7 +730,8 @@ def create_pool(
         pool_config_values: str=None,
         num_gpus: int=0,
         node_name: str=None,
-        location: str=None
+        location: str=None,
+        target_platform: str="amd64"
     ):
 
     if not check_seed_compatibility():
@@ -756,6 +765,7 @@ def create_pool(
     
     # Generate docker compose recipe
     generate_compose_config(
+        target_platform=target_platform,
         role="server",
         vpn_token=location,
         node_ip_address=ip_address,
