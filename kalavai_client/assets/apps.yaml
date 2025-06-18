@@ -18,8 +18,35 @@ repositories:
     url: https://opencost.github.io/opencost-helm-chart
   - name: minio
     url: https://charts.min.io/
+  - name: langfuse
+    url: https://langfuse.github.io/langfuse-k8s
 
 releases:
+  - name: langfuse
+    namespace: kalavai
+    chart: langfuse/langfuse
+    installed: {{deploy_langfuse}}
+    set:
+      - name: langfuse.salt.secretKeyRef.name
+        value: "langfuse"
+      - name: langfuse.salt.secretKeyRef.key
+        value: "salt"
+      - name: redis.auth.username
+        value: "default"
+      - name: redis.auth.password
+        value: "{{langfuse_redis_password}}"
+      - name: langfuse.nextauth.secret.secretKeyRef.name
+        value: "langfuse"
+      - name: langfuse.nextauth.secret.secretKeyRef.key
+        value: "nextauth-secret"
+      - name: postgresql.auth.password
+        value: "{{langfuse_postgresql_password}}"
+      - name: clickhouse.auth.password
+        value: "{{langfuse_clickhouse_password}}"
+      - name: langfuse.web.service.nodePort
+        value: {{langfuse_service_port}}
+      - name: langfuse.web.service.type
+        value: "NodePort"
   - name: datashim
     namespace: dlf
     chart: kalavai/kalavai-datashim
@@ -28,7 +55,7 @@ releases:
   - name: lago
     namespace: kalavai
     chart: kalavai/lago
-    installed: {{deploy_llm_sidecars}}
+    installed: {{deploy_lago}}
     set:
     - name: external.api.nodePort
       value: 32000
@@ -79,7 +106,7 @@ releases:
     namespace: kalavai
     chart: kalavai/kalavai-helios
     version: "0.1.11"
-    installed: false #{{deploy_llm_sidecars}}
+    installed: false
     set:
     - name: deployment.watcher_endpoint
       value: "http://{{watcher_service}}"
@@ -94,11 +121,11 @@ releases:
   - name: opencost
     namespace: opencost
     chart: opencost-charts/opencost
-    installed: {{deploy_llm_sidecars}}
+    installed: {{deploy_opencost}}
   - name: prometheus
     namespace: prometheus-system
     chart: prometheus/prometheus
-    installed: {{deploy_llm_sidecars}}
+    installed: {{deploy_prometheus}}
     set:
     - name: prometheus-pushgateway.enabled
       value: false
@@ -152,7 +179,7 @@ releases:
     - name: replicas
       value: 1
     - name: image_tag
-      value: "v2025.06.7"
+      value: "v2025.06.12"
     - name: deployment.in_cluster
       value: "True"
     - name: deployment.kalavai_username_key

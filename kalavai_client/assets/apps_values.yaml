@@ -1,3 +1,24 @@
+### APS ###
+- name: deploy_lago
+  default: "False"
+  description: "Deploy Lago payment system"
+
+- name: deploy_opencost
+  default: "False"
+  description: "Deploy Opencost cost monitoring system"
+
+- name: deploy_prometheus
+  default: "True"
+  description: "Deploy Prometheus system monitoring system"
+
+- name: deploy_langfuse
+  default: "False"
+  description: "Deploy Langfuse LLM tracing system"
+
+######
+
+### VARIABLES ###
+
 - name: kalavai_api_endpoint
   default: https://platform.kalavai.net/_/api
   description: ""
@@ -78,4 +99,21 @@
 
 - name: minio_rootPassword
   default: "password"
+  description: ""
+
+# LANGFUSE
+- name: langfuse_postgresql_password
+  default: "db_password"
+  description: ""
+
+- name: langfuse_clickhouse_password
+  default: "ch_password"
+  description: ""
+
+- name: langfuse_redis_password
+  default: "redis_password"
+  description: ""
+
+- name: langfuse_service_port
+  default: 30200
   description: ""

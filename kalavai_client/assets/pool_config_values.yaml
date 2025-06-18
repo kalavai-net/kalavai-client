@@ -1,12 +1,24 @@
-# STORAGE #
-- name: storage_label_selector
-  default: "kalavai.storage.enabled:True"
+# LANGFUSE #
+- name: langfuse_encryption_key
+  default: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+  description: "Generate with `openssl rand -hex 32`"
+
+- name: langfuse_salt_key
+  default: "sk-1234567890"
   description: ""
 
-- name: storage_class_name
-  default: "longhorn-model"
+- name: langfuse_nextauth_secret
+  default: "some_secret"
   description: ""
 
-- name: storage_replicas
-  default: 1
+- name: langfuse_redis_password
+  default: "rd_password"
   description: ""
+
+# - name: langfuse_s3_user
+#   default: "admin"
+#   description: ""
+
+# - name: langfuse_s3_password
+#   default: "s3_password"
+#   description: ""
