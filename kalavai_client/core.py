@@ -13,7 +13,6 @@ import re
 
 from kalavai_client.cluster import CLUSTER
 from kalavai_client.utils import (
-    DEPLOY_LLM_SIDECARS_KEY,
     NODE_ROLE_LABEL,
     check_gpu_drivers,
     generate_join_token,
@@ -80,6 +79,7 @@ class Job(BaseModel):
     workers: Optional[str] = None
     endpoint: Optional[str] = None
     status: Optional[str] = None
+    host_nodes: Optional[str] = None
 
 class DeviceStatus(BaseModel):
     name: str
@@ -198,19 +198,22 @@ def get_ip_addresses(subnet=None):
             raise ValueError(f"No IPs available on subnet {subnet}")
     return ips
 
-def fetch_resources():
+def fetch_resources(node_names: list[str]=None):
+    data = {}
+    if node_names is not None:
+        data["node_names"] = node_names
     try:
         total = request_to_server(
             method="get",
             endpoint="/v1/get_cluster_total_resources",
-            data={},
+            data=data,
             server_creds=USER_LOCAL_SERVER_FILE,
             user_cookie=USER_COOKIE
         )
         available = request_to_server(
             method="get",
             endpoint="/v1/get_cluster_available_resources",
-            data={},
+            data=data,
             server_creds=USER_LOCAL_SERVER_FILE,
             user_cookie=USER_COOKIE
         )
@@ -224,14 +227,14 @@ def fetch_job_defaults(name):
         "template": name
     }
     try:
-        defaults = request_to_server(
+        metadata = request_to_server(
             method="get",
             endpoint="/v1/job_defaults",
             data=data,
             server_creds=USER_LOCAL_SERVER_FILE,
             user_cookie=USER_COOKIE
         )
-        return defaults
+        return metadata
     except Exception as e:
         return {"error": str(e)}
     
@@ -296,14 +299,18 @@ def fetch_job_details(jobs: list[Job]):
             )
             workers_status = defaultdict(int)
             restart_counts = 0
+            host_nodes = set()
             for ns, ss in result.items():
                 if ns != namespace: # same job name, different namespace
                     continue
                 for _, values in ss.items():
-                    # TODO: get nodes involved in deployment (needs kubewatcher)
                     if "conditions" in values and values["conditions"] is not None:
                         restart_counts = sum([c["restart_count"] for c in values["conditions"]])
                     workers_status[values["status"]] += 1
+                    # get nodes involved in deployment (needs kubewatcher)
+                    if "node_name" in values:
+                        host_nodes.add(values["node_name"])
+
             workers = "\n".join([f"{k}: {v}" for k, v in workers_status.items()])
             if restart_counts > 0:
                 workers += f"\n({restart_counts} restart)"
@@ -320,7 +327,8 @@ def fetch_job_details(jobs: list[Job]):
                 server_creds=USER_LOCAL_SERVER_FILE,
                 user_cookie=USER_COOKIE
             )
-            node_ports = [f"{p['node_port']} (mapped to {p['port']})" for s in result.values() for p in s["ports"]]
+            #node_ports = [f"{p['node_port']} (mapped to {p['port']})" for s in result.values() for p in s["ports"]]
+            node_ports = [f"{p['node_port']}" for s in result.values() for p in s["ports"]]
 
             urls = [f"http://{load_server_info(data_key=SERVER_IP_KEY, file=USER_LOCAL_SERVER_FILE)}:{node_port}" for node_port in node_ports]
             if "Ready" in workers_status and len(workers_status) == 1:
@@ -338,7 +346,8 @@ def fetch_job_details(jobs: list[Job]):
                     name=deployment,
                     workers=workers,
                     endpoint="\n".join(urls),
-                    status=str(status))
+                    status=str(status),
+                    host_nodes=" ".join(host_nodes))
             )
 
         except Exception as e:
@@ -802,8 +811,7 @@ def create_pool(
         WATCHER_PORT_KEY: DEFAULT_WATCHER_PORT,
         WATCHER_SERVICE_KEY: watcher_service,
         USER_NODE_LABEL_KEY: USER_NODE_LABEL,
-        ALLOW_UNREGISTERED_USER_KEY: True, # Change this if only registered users are allowed,
-        DEPLOY_LLM_SIDECARS_KEY: location is not None
+        ALLOW_UNREGISTERED_USER_KEY: True, # Change this if only registered users are allowed
     }
 
     store_server_info(
