@@ -207,28 +207,43 @@ def input_gpus(non_interactive=False):
 @arguably.command
 def gui__start(
     *others,
-    gui_frontend_port=3000,
-    gui_backend_port=8000,
-    bridge_port=8001,
     log_level="critical",
     backend_only=False
 ):
     """Run GUI (docker) and kalavai core backend (api)"""
-    if len(set([gui_frontend_port, gui_backend_port, bridge_port])) < 3:
-        console.log("[red]Error: ports must be unique")
-        return
+    ports_needed = 1 if backend_only else 3
+    # find 3 available ports
+    ip = socket.gethostbyname (socket.gethostname())
+    ports = []
+    for port in range(49152,65535):
+        try:
+            serv = socket.socket(socket.AF_INET,socket.SOCK_STREAM) # create a new socket
+            serv.bind((ip, port)) # bind socket with address
+            serv.close()
+            ports.append(port)
+        except:
+            #port closed
+            pass
+        if len(ports) >= ports_needed:
+            break
     
+    if len(ports) < ports_needed:
+        # if not found, error
+        console.log(f"[red]Cannot initialise GUI: Could not find {ports_needed} free ports in your machine")    
+        return
+    console.log(f"Using ports: {ports}")
+
     user_key = load_user_id()
     if user_key is not None:
         console.log(f"[green]Using user key: {user_key}")
     if not backend_only:
         values = {
-            "gui_frontend_port": gui_frontend_port,
-            "gui_backend_port": gui_backend_port,
-            "bridge_port": bridge_port,
+            "gui_frontend_port": ports[1],
+            "gui_backend_port": ports[2],
+            "bridge_port": ports[0],
             "path": user_path("", create_path=True),
             "protected_access": user_key
-    }
+        }
         compose_yaml = load_template(
             template_path=DOCKER_COMPOSE_GUI,
             values=values)
@@ -241,7 +256,7 @@ def gui__start(
     print(
         "Deploying bridge API"
     )
-    run_api(port=bridge_port, log_level=log_level)
+    run_api(port=ports[0], log_level=log_level)
 
     if not backend_only:
         run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} down")
@@ -1096,11 +1111,21 @@ def job__defaults(template_name, *others):
         return
     
     # deploy template with kube-watcher
-    defaults = fetch_job_defaults(name=template_name)
+    data = fetch_job_defaults(name=template_name)
+    metadata = data["metadata"]
+    defaults = data["defaults"]
     if "error" in defaults:
         console.log(f"[red]Error when fetching job defaults: {defaults}")
     print(
         json.dumps(defaults, indent=3)
+    )
+    print(
+        "*****************",
+        "Metadata",
+        "*****************"
+    )
+    print(
+        json.dumps(metadata, indent=3)
     )
 
 
