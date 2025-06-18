@@ -44,7 +44,8 @@ class DashboardState(rx.State):
         try:
             resources = request_to_kalavai_core(
                 method="get",
-                endpoint="fetch_resources"
+                endpoint="fetch_resources",
+                json={}
             )
 
             all_jobs = request_to_kalavai_core(

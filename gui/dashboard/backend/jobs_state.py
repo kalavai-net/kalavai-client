@@ -10,6 +10,13 @@ class Job(rx.Base):
     """The item class."""
     data: dict
 
+class TemplateData(rx.Base):
+    """The template data class."""
+    name: str
+    description: str
+    icon_url: str
+    docs_url: str
+
 class JobsState(rx.State):
     """The state class."""
 
@@ -18,17 +25,23 @@ class JobsState(rx.State):
         "endpoint_ports"
     ]
 
+    current_deploy_step: int = 0
     is_loading: bool = False
     logs: str = None
     items: List[Job] = []
     is_selected: dict[int, bool]
     templates: list[str] = []
-    selected_template: str
+    selected_template: str = ""
     template_params: list[dict[str, str]] = []
+    template_metadata: TemplateData = None
+    selected_labels: dict[str, str] = {}
+    new_label_key: str
+    new_label_value: str
 
     total_items: int = 0
     offset: int = 0
     limit: int = 12  # Number of rows per page
+
 
     @rx.var(cache=True)
     def page_number(self) -> int:
@@ -45,6 +58,9 @@ class JobsState(rx.State):
         start_index = self.offset
         end_index = start_index + self.limit
         return self.items[start_index:end_index]
+    
+    def set_deploy_step(self, step: int):
+        self.current_deploy_step = step
 
     def prev_page(self):
         if self.page_number > 1:
@@ -59,12 +75,22 @@ class JobsState(rx.State):
 
     def last_page(self):
         self.offset = (self.total_pages - 1) * self.limit
+    
+    def reset_values(self):
+        self.templates = []
+        self.template_params = []
+        self.template_metadata = None
+        self.selected_template = ""
+        self.set_deploy_step(0)
+        self.selected_labels = {}
+    
+    def filter_templates(self, templates):
+        return [t for t in templates if t not in ["custom"]]
 
     @rx.event(background=True)
     async def load_templates(self):
         async with self:
-            self.templates = []
-            self.template_params = []
+            self.reset_values()
 
         try:
             templates = request_to_kalavai_core(
@@ -77,24 +103,34 @@ class JobsState(rx.State):
             print("Error when fetching templates:", templates)
         else:
             async with self:
-                self.templates = [t for t in templates if t not in ["custom"]]
+                self.templates = self.filter_templates(templates)
             
     @rx.event(background=True)
     async def load_template_parameters(self, template):
         async with self:
             self.selected_template = template
             self.template_params = []
+            self.template_metadata = None
         
         try:
-            params = request_to_kalavai_core(
+            data = request_to_kalavai_core(
                 method="get",
                 endpoint="fetch_job_defaults",
                 params={"name": self.selected_template}
             )
+            params = data["defaults"]
+            metadata = data["metadata"]
         except Exception as e:
             return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
         async with self:
             self.template_params = [p for p in params if p["name"] not in self.FORBIDDEN_PARAMS]
+            if metadata:
+                self.template_metadata = TemplateData(
+                    name=metadata["name"] if "name" in metadata else "N/A",
+                    description=metadata["description"] if "description" in metadata else "N/A",
+                    icon_url=metadata["icon"] if "icon" in metadata else "N/A",
+                    docs_url=metadata["docs"] if "docs" in metadata else "N/A"
+                )
 
     @rx.event(background=True)
     async def set_selected_row(self, index, state):
@@ -132,14 +168,9 @@ class JobsState(rx.State):
             "template_name": self.selected_template,
             "values": form_data
         }
-        if "NODE_SELECTORS" in form_data:
-            try:
-                import json
-                data["target_labels"] = json.loads(form_data["NODE_SELECTORS"])
-                del form_data["NODE_SELECTORS"]
-            except Exception as e:
-                rx.toast.error(f"Error converting NODE_SELECTORS: {str(e)}", position="top-center")
-
+        if self.selected_labels:
+            data["target_labels"] = self.selected_labels
+        
         force_namespace = form_data.pop("force_namespace", None)
         if force_namespace is not None and len(force_namespace.strip()) > 0:
             data["force_namespace"] = force_namespace
@@ -244,3 +275,25 @@ class JobsState(rx.State):
                             )
                         )
                 self.is_loading = False
+
+    @rx.event(background=True)
+    async def set_new_label_key(self, value: str):
+        """Set the new label key."""
+        async with self:
+            self.new_label_key = value
+    
+    @rx.event(background=True)
+    async def set_new_label_value(self, value: str):
+        """Set the new label key."""
+        async with self:
+            self.new_label_value = value
+
+    @rx.event(background=True)
+    async def add_label(self):
+        """Add a new label to the deployment."""
+        async with self:
+            self.selected_labels[self.new_label_key] = self.new_label_value
+        
+        async with self:
+            self.new_label_key = ""
+            self.new_label_value = ""

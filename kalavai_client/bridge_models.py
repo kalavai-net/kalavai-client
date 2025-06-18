@@ -18,7 +18,7 @@ class CreatePoolRequest(BaseModel):
     description: str = Field("", description="Description of the pool")
 
 class NodesActionRequest(BaseModel):
-    nodes: list[str] = Field(description="List of node names to perform the action on")
+    nodes: list[str] = Field(None, description="List of node names to perform the action on")
 
 class JoinPoolRequest(BaseModel):
     token: str = Field(description="Token to join the pool")

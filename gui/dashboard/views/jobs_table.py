@@ -13,16 +13,18 @@ class JobsView(TableView):
             table_state=JobsState,
             show_columns={
                 "name": ("dollar-sign", "Name of the job, click to access logs"),
-                "owner": ("user", "User that deployed the job"),
+                #"owner": ("user", "User that deployed the job"),
                 "workers": ("pickaxe", "Workers status"),
+                "host_nodes": ("computer", "Where the job is currently running"),
                 "endpoint": ("calendar", "Services exposed (if any) by the job"),
                 "status": ("notebook-pen", "<b>Workload status</b><br><br>Running: ready<br>Working: initialising<br>Pending: not enough resources to deploy<br>Error: something went wrong")
             },
             item_id="Name",
             render_mapping={
                 "name": lambda idx, x: rx.table.cell(self._decorate_name(x, idx)),
-                "owner": lambda idx, x: rx.table.cell(x),
+                #"owner": lambda idx, x: rx.table.cell(x),
                 "workers": lambda idx, x: rx.table.cell(x),
+                "host_nodes": lambda idx, x: rx.table.cell(x),
                 "endpoint": lambda idx, x: rx.table.cell(x),
                 "status": lambda idx, x: rx.table.cell(job_badge(x))
             }
@@ -110,58 +112,27 @@ class JobsView(TableView):
                         )
                     ),
                     rx.dialog.content(
-                        rx.dialog.title("Deploy your LLM"),
-                        rx.dialog.description("Select the model you want to deploy in the pool", margin_bottom="10px"),
-                        rx.form(
-                            rx.flex(
-                                rx.text("Model template", as_="div", size="2", margin_bottom="4px", weight="bold"),
-                                rx.select(
-                                    JobsState.templates,
-                                    placeholder="Select model engine",
-                                    on_change=JobsState.load_template_parameters
-                                ),
-                                rx.text("Template details", as_="div", size="2", margin_bottom="4px", weight="bold"),
-                                rx.separator(size="4"),
-                                rx.foreach(
-                                    JobsState.template_params,
-                                    lambda item: self.show_parameter(item),
-                                ),
-                                rx.separator(size="4"),
-                                direction="column",
-                                spacing="2",
-                                margin_botton="10px"
+                        rx.dialog.title("Deploy your job"),
+                        rx.flex(
+                            rx.match(
+                                JobsState.current_deploy_step,
+                                (0, self.select_template()),
+                                (1, self.select_targets()),
+                                (2, self.select_parameters())
                             ),
-                            rx.flex(
-                                rx.text("Deployment details", as_="div", size="2", margin_bottom="4px", weight="bold"),
-                                rx.input(placeholder='Target specific nodes (dict of labels)', name="NODE_SELECTORS"),
-                                rx.input(placeholder="Force namespace (admin only)", name="force_namespace"),
-                                direction="column",
-                                spacing="2",
-                                margin_botton="10px",
-                            ),
-                            rx.flex(
-                                rx.dialog.close(
+                            rx.dialog.close(
+                                rx.flex(
                                     rx.button(
                                         "Cancel",
-                                        color_scheme="gray",
                                         variant="soft",
+                                        color_scheme="gray",
+                                        on_click=JobsState.set_deploy_step(0)
                                     ),
-                                ),
-                                rx.dialog.close(
-                                    rx.button(
-                                        "Deploy",
-                                        type="submit",
-                                        on_click=rx.toast("Deployment submitted", position="top-center")
-                                    )
-                                ),
-                                spacing="3",
-                                margin_top="16px",
-                                justify="end",
+                                    justify="start"
+                                )
                             ),
-                            direction="column",
                             spacing="4",
-                            margin_botton="10px",
-                            on_submit=JobsState.deploy_job
+                            direction="column"
                         )
                     )
                 ),
@@ -220,4 +191,159 @@ class JobsView(TableView):
                 padding_bottom="1em",
             ),            
         )
+    
+    ## DEPLOYMENT STEP SCREENS #
+    def select_template(self):
+        return rx.flex(
+            rx.hstack(
+                rx.button(
+                    "Next",
+                    on_click=JobsState.set_deploy_step(1),
+                    disabled=self.table_state.selected_template == "",
+                    variant="surface",
+                ),
+                justify="end"
+            ),
+            rx.text("1. Select the template you want to deploy", size="3", margin_bottom="10px"),
+            rx.text("Model template", as_="div", size="2", margin_bottom="4px", weight="bold"),
+            rx.select(
+                JobsState.templates,
+                placeholder="Select model engine",
+                on_change=JobsState.load_template_parameters
+            ),
+            rx.cond(
+                JobsState.template_metadata,
+                rx.flex(
+                    rx.card(
+                        rx.link(
+                            rx.flex(
+                                rx.image(src=JobsState.template_metadata.icon_url, width="100px", height="auto"),
+                                rx.box(
+                                    rx.heading(JobsState.template_metadata.name),
+                                    rx.text(
+                                        JobsState.template_metadata.description
+                                    ),
+                                ),
+                                spacing="2",
+                            ),
+                            href=JobsState.template_metadata.docs_url,
+                            is_external=True
+                        ),
+                        as_child=True,
+                        width="60%"
+                    ),
+                    justify="center"
+                ),
+                rx.flex()
+            ),
+            direction="column",
+            spacing="2",
+            margin_botton="10px",
+        )
+    
+    def select_targets(self):
+        return rx.flex(
+            rx.hstack(
+                rx.button(
+                    "Previous",
+                    on_click=JobsState.set_deploy_step(0),
+                    variant="surface"
+                ),
+                rx.button(
+                    "Next",
+                    on_click=JobsState.set_deploy_step(2),
+                    variant="surface"
+                ),
+                justify="end"
+            ),
+            rx.text("2. Target specific nodes (leave blank for auto deploy)", as_="div", size="3", margin_bottom="4px", weight="bold"),
+            rx.cond(
+                JobsState.selected_labels,
+                rx.flex(
+                    rx.text('Current labels', size="1", margin_bottom="4px"),
+                    rx.vstack(
+                        rx.foreach(
+                            JobsState.selected_labels.items(),
+                            lambda x: rx.hstack(
+                                rx.text(f"{x[0]}: {x[1]}", size="2", color="gray"),
+                                spacing="2"
+                            )
+                        ),
+                        spacing="2"
+                    ),
+                    direction="column"
+                ),
+                rx.text("No labels selected", size="2", color="gray")
+            ),
+            rx.hstack(
+                rx.input(
+                    placeholder="Key",
+                    value=JobsState.new_label_key,
+                    on_change=JobsState.set_new_label_key,
+                    width="45%"
+                ),
+                rx.input(
+                    placeholder="Value",
+                    value=JobsState.new_label_value,
+                    on_change=JobsState.set_new_label_value,
+                    width="45%"
+                ),
+                rx.button(
+                    "Add",
+                    on_click=JobsState.add_label,
+                    width="10%",
+                    loading=JobsState.is_loading
+                ),
+            ),
+            #rx.input(placeholder="Force namespace (admin only)", name="force_namespace"),
+            direction="column",
+            spacing="2",
+            margin_botton="10px",
+        )
+    
+    def select_parameters(self):
+        return rx.flex(
+            rx.hstack(
+                rx.button(
+                    "Previous",
+                    on_click=JobsState.set_deploy_step(1),
+                    variant="surface"
+                ),
+                justify="end"
+            ),
+            rx.text("3. Populate template values", size="3", margin_bottom="10px"),
+            rx.form(
+                rx.flex(
+                    rx.text("Template values (hover for more info)", as_="div", size="2", margin_bottom="4px", weight="bold"),
+                    rx.separator(size="4"),
+                    rx.foreach(
+                        JobsState.template_params,
+                        lambda item: self.show_parameter(item),
+                    ),
+                    rx.separator(size="4"),
+                    rx.dialog.close(
+                        rx.hstack(
+                            rx.button(
+                                "Deploy",
+                                type="submit",
+                                on_click=rx.toast("Deployment submitted", position="top-center")
+                            ),
+                            justify="end"
+                        )
+                    ),
+                    direction="column",
+                    spacing="2",
+                    margin_botton="10px"
+                ),
+                direction="column",
+                spacing="4",
+                margin_botton="10px",
+                on_submit=JobsState.deploy_job
+            ),
+            direction="column",
+            spacing="2",
+            margin_botton="10px",
+        )
+    
+    
 

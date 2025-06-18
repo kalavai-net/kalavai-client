@@ -244,9 +244,9 @@ def send_pool_invites(request: InvitesRequest, api_key: str = Depends(verify_api
     summary="Fetch resources",
     description="Get available resources",
     response_description="Resource information")
-def resources(api_key: str = Depends(verify_api_key)):
+def resources(request: NodesActionRequest, api_key: str = Depends(verify_api_key)):
     """Get available resources"""
-    return fetch_resources()
+    return fetch_resources(node_names=request.nodes)
 
 @app.get("/fetch_job_names",
     summary="Fetch job names",
@@ -317,7 +317,7 @@ def job_templates(api_key: str = Depends(verify_api_key)):
 @app.get("/fetch_job_defaults",
     summary="Fetch job defaults",
     description="Get default values for a job template",
-    response_description="Job default values")
+    response_description="Job metadata values")
 def job_templates(name: str, api_key: str = Depends(verify_api_key)):
     """
     Get job defaults with the following parameters:

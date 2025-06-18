@@ -39,21 +39,34 @@ class DevicesView(TableView):
                 rx.checkbox("", checked=DevicesState.is_selected[index], on_change=lambda checked: DevicesState.set_selected_row(index, checked)),
                 rx.dialog.root(
                     rx.dialog.trigger(
-                        rx.link(item, on_click=DevicesState.load_node_labels(item))
+                        rx.link(item, on_click=DevicesState.load_node_details(item))
                     ),
                     rx.dialog.content(
-                        rx.dialog.title(f"Device Labels: {item}"),
-                        rx.dialog.description("Manage labels for this device", margin_bottom="10px"),
+                        rx.dialog.title(f"Device Details for {item}"),
+                        #rx.dialog.description("Manage device", margin_bottom="10px"),
                         rx.vstack(
+                            rx.text("Free resources", as_="div", size="2", margin_bottom="4px", weight="bold"),
+                            #rx.text(DevicesState.current_node_resources),
+                            rx.cond(
+                                DevicesState.current_node_resources,
+                                rx.foreach(
+                                    DevicesState.current_node_resources.items(),
+                                    lambda x: rx.hstack(
+                                        rx.text(f"{x[0]}: {x[1]}", size="2", color_scheme="gray")
+                                    )
+                                ),
+                                rx.text("No resources found", size="2", color="gray")
+                            ),
+                            rx.separator(size="4"),
                             # Current labels section
-                            rx.text("Current Labels", as_="div", size="2", margin_bottom="4px", weight="bold"),
+                            rx.text("Current Labels", as_="div", size="1", margin_bottom="4px", weight="bold"),
                             rx.cond(
                                 DevicesState.current_node_labels,
                                 rx.vstack(
                                     rx.foreach(
                                         DevicesState.current_node_labels.items(),
                                         lambda x: rx.hstack(
-                                            rx.text(f"{x[0]}: {x[1]}", size="2"),
+                                            rx.text(f"{x[0]}: {x[1]}", size="2", color_scheme="gray"),
                                             spacing="2"
                                         )
                                     ),

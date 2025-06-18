@@ -21,6 +21,7 @@ class DevicesState(rx.State):
     
     # Label management
     current_labels: Dict[str, Dict[str, str]] = {}  # node_name -> labels
+    current_resources: Dict[str, Dict] = {} # available -> resources; total -> resources
     new_label_key: str = ""
     new_label_value: str = ""
     selected_node: str = ""
@@ -31,6 +32,18 @@ class DevicesState(rx.State):
         if not self.selected_node or self.selected_node not in self.current_labels:
             return {}
         return self.current_labels[self.selected_node]
+    
+    @rx.var
+    def current_node_resources(self) -> Dict[str, str]:
+        """Get the labels for the currently selected node."""
+        if not self.selected_node or self.selected_node not in self.current_resources:
+            return {}
+        # format resources
+        resources = {}
+        for key, value in self.current_resources[self.selected_node]["total"].items():
+            available = self.current_resources[self.selected_node]["available"][key]
+            resources[key] = f"{available} out of {value}"
+        return resources
 
     total_items: int = 0
     offset: int = 0
@@ -159,14 +172,14 @@ class DevicesState(rx.State):
             return rx.toast.info("Nothing was sent", position="top-center")
 
     @rx.event(background=True)
-    async def load_node_labels(self, node_name: str):
-        """Load labels for a specific node."""
+    async def load_node_details(self, node_name: str):
+        """Load details for a specific node."""
         async with self:
             self.selected_node = node_name
             self.is_loading = True
         
         try:
-            result = request_to_kalavai_core(
+            labels_result = request_to_kalavai_core(
                 method="post",
                 endpoint="get_node_labels",
                 json={"node_names": [node_name]}
@@ -176,12 +189,29 @@ class DevicesState(rx.State):
         
         async with self:
             self.is_loading = False
-            if "error" in result:
-                return rx.toast.error(str(result["error"]), position="top-center")
-            elif "labels" in result and node_name in result["labels"]:
-                self.current_labels[node_name] = result["labels"][node_name]
+            if "error" in labels_result:
+                return rx.toast.error(str(labels_result["error"]), position="top-center")
+            elif "labels" in labels_result and node_name in labels_result["labels"]:
+                self.current_labels[node_name] = labels_result["labels"][node_name]
             else:
                 self.current_labels[node_name] = {}
+        
+        try:
+            resources_result = request_to_kalavai_core(
+                method="get",
+                endpoint="fetch_resources",
+                json={"node_names": [node_name]}
+            )
+        except Exception as e:
+            return rx.toast.error(f"Error loading resources: {e}", position="top-center")
+        
+        async with self:
+            self.is_loading = False
+            if "error" in resources_result:
+                return rx.toast.error(str(resources_result["error"]), position="top-center")
+            else:
+                # format resources
+                self.current_resources[node_name] = resources_result
 
     @rx.event(background=True)
     async def add_node_label(self):
