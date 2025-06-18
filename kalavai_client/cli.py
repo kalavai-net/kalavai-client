@@ -252,7 +252,7 @@ def gui__start(
         
         run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} up -d")
 
-        console.log(f"[green]Loading GUI, may take a few minutes. It will be available at http://localhost:{gui_frontend_port}")
+        console.log(f"[green]Loading GUI, may take a few minutes. It will be available at http://localhost:{ports[1]}")
     print(
         "Deploying bridge API"
     )

@@ -18,17 +18,3 @@
 #   disableRevisionCounter: "true"
 #   dataEngine: "v1"
 
-# Langfuse secrets
-apiVersion: v1
-kind: Secret
-type: Opaque
-metadata:
-  name: langfuse
-  namespace: kalavai
-stringData:
-  salt: {{langfuse_salt_key}}
-  encryption-key: {{langfuse_encryption_key}} # Generate with `openssl rand -hex 32`
-  nextauth-secret: {{langfuse_nextauth_secret}}
-  redis-password: {{langfuse_redis_password}}
-  # s3-user: {{langfuse_s3_user}}
-  # s3-password: {{langfuse_s3_password}}
