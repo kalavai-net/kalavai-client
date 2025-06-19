@@ -12,6 +12,7 @@ def stats_card(
     max_value: int,
     icon: str,
     icon_color: LiteralAccentColor,
+    page_link: str = "#",
 ) -> rx.Component:
     percentage_change = 0
     change = "increase"
@@ -50,7 +51,7 @@ def stats_card(
                         ),
                         spacing="1"
                     ),
-                    rx.text(stat_name, size="4", weight="bold"),
+                    rx.link(stat_name, href=page_link, size="4", weight="bold"),
                     spacing="1",
                     height="100%",
                     align_items="start",
@@ -200,6 +201,7 @@ def stats_cards() -> rx.Component:
     return rx.grid(
         stats_card(
             stat_name="Devices",
+            page_link="/devices",
             value=DashboardState.online_devices,
             max_value=DashboardState.total_devices,
             icon="computer",
@@ -207,6 +209,7 @@ def stats_cards() -> rx.Component:
         ),
         stats_card(
             stat_name="Jobs",
+            page_link="/jobs",
             value=DashboardState.online_jobs,
             max_value=DashboardState.total_jobs,
             icon="cpu",

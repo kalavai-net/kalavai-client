@@ -45,75 +45,89 @@ class DevicesView(TableView):
                         rx.dialog.title(f"Device Details for {item}"),
                         #rx.dialog.description("Manage device", margin_bottom="10px"),
                         rx.vstack(
-                            rx.text("Free resources", as_="div", size="2", margin_bottom="4px", weight="bold"),
-                            #rx.text(DevicesState.current_node_resources),
-                            rx.cond(
-                                DevicesState.current_node_resources,
-                                rx.foreach(
-                                    DevicesState.current_node_resources.items(),
-                                    lambda x: rx.hstack(
-                                        rx.text(f"{x[0]}: {x[1]}", size="2", color_scheme="gray")
-                                    )
+                            rx.tabs.root(
+                                rx.tabs.list(
+                                    rx.tabs.trigger("Available resources", value="resources_tab"),
+                                    rx.tabs.trigger("Device labels", value="labels_tab")
                                 ),
-                                rx.text("No resources found", size="2", color="gray")
-                            ),
-                            rx.separator(size="4"),
-                            # Current labels section
-                            rx.text("Current Labels", as_="div", size="1", margin_bottom="4px", weight="bold"),
-                            rx.cond(
-                                DevicesState.current_node_labels,
-                                rx.vstack(
-                                    rx.foreach(
-                                        DevicesState.current_node_labels.items(),
-                                        lambda x: rx.hstack(
-                                            rx.text(f"{x[0]}: {x[1]}", size="2", color_scheme="gray"),
-                                            spacing="2"
-                                        )
+                                rx.tabs.content(
+                                    rx.vstack(
+                                        rx.cond(
+                                            DevicesState.current_node_resources,
+                                            rx.vstack(
+                                                rx.foreach(
+                                                    DevicesState.current_node_resources.items(),
+                                                    lambda x: rx.hstack(
+                                                        rx.text(f"{x[0]}: {x[1]}", size="2", color_scheme="gray")
+                                                    )
+                                                ),
+                                                spacing="2"
+                                            ),
+                                            rx.text("No resources found", size="2", color="gray")
+                                        ),
+                                        spacing="4"
                                     ),
-                                    spacing="2"
+                                    value="resources_tab"
                                 ),
-                                rx.text("No labels found", size="2", color="gray")
+                                rx.tabs.content(
+                                    rx.vstack(
+                                        # Current labels section
+                                        rx.cond(
+                                            DevicesState.current_node_labels,
+                                            rx.vstack(
+                                                rx.foreach(
+                                                    DevicesState.current_node_labels.items(),
+                                                    lambda x: rx.hstack(
+                                                        rx.text(f"{x[0]}: {x[1]}", size="2", color_scheme="gray"),
+                                                        spacing="2"
+                                                    )
+                                                ),
+                                                spacing="2"
+                                            ),
+                                            rx.text("No labels found", size="2", color="gray")
+                                        ),
+                                        rx.separator(size="4"),
+                                        # Add new label section
+                                        rx.text("Add New Label", as_="div", size="2", margin_bottom="4px", weight="bold"),
+                                        rx.hstack(
+                                            rx.input(
+                                                placeholder="Label key",
+                                                value=DevicesState.new_label_key,
+                                                on_change=DevicesState.set_new_label_key,
+                                                width="45%"
+                                            ),
+                                            rx.input(
+                                                placeholder="Label value",
+                                                value=DevicesState.new_label_value,
+                                                on_change=DevicesState.set_new_label_value,
+                                                width="45%"
+                                            ),
+                                            rx.button(
+                                                "Add",
+                                                on_click=DevicesState.add_node_label,
+                                                width="10%",
+                                                loading=DevicesState.is_loading
+                                            ),
+                                            width="100%",
+                                            spacing="2"
+                                        ),
+                                        spacing="4"
+                                    ),
+                                    value="labels_tab"
+                                ),
+                                spacing="4"
+                            
                             ),
-                            rx.separator(size="4"),
-                            # Add new label section
-                            rx.text("Add New Label", as_="div", size="2", margin_bottom="4px", weight="bold"),
-                            rx.hstack(
-                                rx.input(
-                                    placeholder="Label key",
-                                    value=DevicesState.new_label_key,
-                                    on_change=DevicesState.set_new_label_key,
-                                    width="45%"
-                                ),
-                                rx.input(
-                                    placeholder="Label value",
-                                    value=DevicesState.new_label_value,
-                                    on_change=DevicesState.set_new_label_value,
-                                    width="45%"
-                                ),
+                            rx.dialog.close(
                                 rx.button(
-                                    "Add",
-                                    on_click=DevicesState.add_node_label,
-                                    width="10%",
-                                    loading=DevicesState.is_loading
+                                    "Close",
                                 ),
-                                width="100%",
-                                spacing="2"
                             ),
                             spacing="4"
-                        ),
-                        rx.dialog.close(
-                            rx.button(
-                                "Close",
-                            ),
-                        ),
-                        spacing="3",
-                        margin_top="16px",
-                        justify="end",
+                        )
                     )
-                ),
-                spacing="2"
-            ),
-            style={"padding_x": "10px"}
+                )
+            )
         )
     
     def _decorate_schedulable(self, item, index):

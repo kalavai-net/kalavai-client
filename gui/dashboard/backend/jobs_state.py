@@ -191,6 +191,9 @@ class JobsState(rx.State):
         else:
             return rx.toast.success("Job deployed", position="top-center")
 
+    @rx.event
+    async def open_endpoint(self, index):
+        return rx.redirect(self.items[index].data["endpoint"], is_external=True)
     
     @rx.event(background=True)
     async def load_logs(self, index):

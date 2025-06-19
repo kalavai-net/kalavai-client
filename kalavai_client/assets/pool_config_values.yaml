@@ -1,7 +1,4 @@
-# - name: langfuse_s3_user
-#   default: "admin"
-#   description: ""
+- name: storage_class_name
+  default: "longhorn"
+  description: ""
 
-# - name: langfuse_s3_password
-#   default: "s3_password"
-#   description: ""

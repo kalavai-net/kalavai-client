@@ -25,9 +25,14 @@ class JobsView(TableView):
                 #"owner": lambda idx, x: rx.table.cell(x),
                 "workers": lambda idx, x: rx.table.cell(x),
                 "host_nodes": lambda idx, x: rx.table.cell(x),
-                "endpoint": lambda idx, x: rx.table.cell(x),
+                "endpoint": lambda idx, x: rx.table.cell(self._decorate_url(x, idx)),
                 "status": lambda idx, x: rx.table.cell(job_badge(x))
             }
+        )
+
+    def _decorate_url(self, item, index):
+        return rx.flex(
+            rx.link(item, on_click=JobsState.open_endpoint(index))
         )
     
     def show_parameter(self, item: rx.Var):
