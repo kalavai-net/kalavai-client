@@ -35,23 +35,32 @@ class JobsView(TableView):
             rx.link(item, on_click=JobsState.open_endpoint(index))
         )
     
-    def show_parameter(self, item: rx.Var):
-        return rx.hstack(
-            rx.hover_card.root(
-                rx.hover_card.trigger(
-                    rx.text(item["name"])
-                ),
-                rx.hover_card.content(
-                    rx.markdown(f'_{item["description"]}_')
-                    
-                )
-            ),            
-            #rx.hstack(
-            rx.separator(size="1"),
-            rx.input(default_value=item["default"], width="60%", name=item["name"]),
-            #),
-            justify="between"
-        )
+    def show_parameter(self, item: rx.Var, required=True):
+        def _display(item):
+            return rx.hstack(
+                rx.hover_card.root(
+                    rx.hover_card.trigger(
+                        rx.text(item["name"])
+                    ),
+                    rx.hover_card.content(
+                        rx.markdown(f'_{item["description"]}_')
+                        
+                    )
+                ),            
+                #rx.separator(size="1"),
+                rx.input(default_value=item["default"], width="60%", name=item["name"]),
+                justify="between"
+            )
+        if required:
+            return rx.cond(
+                item["required"],
+                _display(item)
+            )
+        else:
+            return rx.cond(
+                ~item["required"],
+                _display(item)
+            )
 
     def _decorate_name(self, item, index):
         return rx.hstack(
@@ -319,13 +328,24 @@ class JobsView(TableView):
             rx.text("3. Populate template values", size="3", margin_bottom="10px"),
             rx.form(
                 rx.flex(
-                    rx.text("Template values (hover for more info)", as_="div", size="2", margin_bottom="4px", weight="bold"),
+                    rx.text("Required values (hover for more info)", as_="div", size="2", margin_bottom="4px", weight="bold"),
                     rx.separator(size="4"),
                     rx.foreach(
                         JobsState.template_params,
-                        lambda item: self.show_parameter(item),
+                        lambda item: self.show_parameter(item, required=True),
                     ),
                     rx.separator(size="4"),
+                    rx.accordion.root(
+                        rx.accordion.item(
+                            header="Advanced parameters",
+                            content=rx.foreach(
+                                JobsState.template_params,
+                                lambda item: self.show_parameter(item, required=False),
+                            )
+                        ),
+                        collapsible=True,
+                        color_scheme="gray"
+                    ),
                     rx.dialog.close(
                         rx.hstack(
                             rx.button(

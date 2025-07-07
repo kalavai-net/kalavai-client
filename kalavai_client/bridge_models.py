@@ -18,7 +18,7 @@ class CreatePoolRequest(BaseModel):
     description: str = Field("", description="Description of the pool")
 
 class NodesActionRequest(BaseModel):
-    nodes: list[str] = Field(None, description="List of node names to perform the action on")
+    nodes: list[str] = Field(None, description="List of node names to perform the action on, defaults to None")
 
 class JoinPoolRequest(BaseModel):
     token: str = Field(description="Token to join the pool")
@@ -26,9 +26,9 @@ class JoinPoolRequest(BaseModel):
     node_name: str = Field(None, description="Name of the node")
     num_gpus: int = Field(None, description="Number of GPUs to allocate")
     frontend: bool = Field(False, description="Whether this is a frontend request")
+
 class JobDetailsRequest(BaseModel):
     jobs: list[Job] = Field(description="List of jobs to get details for")
-
 
 class StopPoolRequest(BaseModel):
     skip_node_deletion: bool = Field(False, description="Whether to skip node deletion when stopping the pool")
@@ -46,6 +46,3 @@ class DeleteJobRequest(BaseModel):
 class NodeLabelsRequest(BaseModel):
     node_name: str = Field(description="Name of the node to add labels to")
     labels: Dict[str, str] = Field(description="Dictionary of labels to add to the node")
-
-class GetNodeLabelsRequest(BaseModel):
-    node_names: List[str] = Field(description="List of node names to get labels for")

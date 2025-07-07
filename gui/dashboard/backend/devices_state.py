@@ -180,7 +180,7 @@ class DevicesState(rx.State):
         
         try:
             labels_result = request_to_kalavai_core(
-                method="post",
+                method="get",
                 endpoint="get_node_labels",
                 json={"node_names": [node_name]}
             )

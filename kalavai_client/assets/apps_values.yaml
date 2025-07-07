@@ -8,10 +8,14 @@
   description: "Deploy Opencost cost monitoring system"
 
 - name: deploy_prometheus
-  default: "True"
+  default: "False"
   description: "Deploy Prometheus system monitoring system"
 
 - name: deploy_langfuse
+  default: "False"
+  description: "Deploy Langfuse LLM tracing system"
+
+- name: deploy_kuberay
   default: "False"
   description: "Deploy Langfuse LLM tracing system"
 

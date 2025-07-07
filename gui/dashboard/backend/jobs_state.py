@@ -20,11 +20,6 @@ class TemplateData(rx.Base):
 class JobsState(rx.State):
     """The state class."""
 
-    FORBIDDEN_PARAMS: list[str] = [
-        "id_field",
-        "endpoint_ports"
-    ]
-
     current_deploy_step: int = 0
     is_loading: bool = False
     logs: str = None
@@ -118,12 +113,17 @@ class JobsState(rx.State):
                 endpoint="fetch_job_defaults",
                 params={"name": self.selected_template}
             )
-            params = data["defaults"]
-            metadata = data["metadata"]
+            params = data
+            data = request_to_kalavai_core(
+                method="get",
+                endpoint="fetch_job_metadata",
+                params={"name": self.selected_template}
+            )
+            metadata = data
         except Exception as e:
             return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
         async with self:
-            self.template_params = [p for p in params if p["name"] not in self.FORBIDDEN_PARAMS]
+            self.template_params = [p for p in params if p["editable"]]
             if metadata:
                 self.template_metadata = TemplateData(
                     name=metadata["name"] if "name" in metadata else "N/A",

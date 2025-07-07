@@ -113,7 +113,7 @@ releases:
   - name: kuberay
     namespace: kuberay
     chart: kuberay/kuberay-operator
-    installed: true
+    installed: {{deploy_kuberay}}
     version: "1.2.2"
   - name: kuberay-apiserver
     namespace: kuberay
@@ -154,7 +154,7 @@ releases:
     - name: replicas
       value: 1
     - name: image_tag
-      value: "v2025.06.15"
+      value: "v2025.07.6"
     - name: deployment.in_cluster
       value: "True"
     - name: deployment.kalavai_username_key
@@ -184,7 +184,7 @@ releases:
   - name: nvidia-gpu-operator
     namespace: kalavai
     chart: kalavai/gpu
-    installed: true    
+    installed: false    
   - name: hami-vgpu
     namespace: kalavai
     chart: kalavai/hami

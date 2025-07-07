@@ -26,7 +26,8 @@ dependencies = [
     "importlib_resources==6.5.2",
     "pydantic==2.10.6",
     "fastapi==0.115.8",
-    "uvicorn==0.34.0"
+    "uvicorn==0.34.0",
+    "fastapi-mcp>=0.3.4"
 ]
 
 [project.optional-dependencies]

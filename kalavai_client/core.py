@@ -74,7 +74,7 @@ from kalavai_client.env import (
 )
 
 class Job(BaseModel):
-    owner: Optional[str] = None
+    owner: Optional[str] = "default"
     name: Optional[str] = None
     workers: Optional[str] = None
     endpoint: Optional[str] = None

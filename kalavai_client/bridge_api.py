@@ -2,10 +2,13 @@
 Core kalavai service.
 Used as a bridge between the kalavai-client app and the reflex frontend
 """
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Query, Body
+from typing import Optional, List
+from fastapi_mcp import FastApiMCP
 from starlette.requests import Request
 import uvicorn
 
+from kalavai_client.core import Job
 from kalavai_client.bridge_models import (
     CreatePoolRequest,
     InvitesRequest,
@@ -15,8 +18,7 @@ from kalavai_client.bridge_models import (
     DeleteJobRequest,
     JobDetailsRequest,
     NodesActionRequest,
-    NodeLabelsRequest,
-    GetNodeLabelsRequest
+    NodeLabelsRequest
 )
 from kalavai_client.core import (
     create_pool,
@@ -79,8 +81,10 @@ async def verify_api_key(request: Request):
     return api_key
 
 @app.post("/create_pool", 
-    summary="Create a new pool",
-    description="Creates a new pool with the specified configuration",
+    operation_id="create_pool",
+    summary="Create a new Kalavai compute pool",
+    tags=["pool_management"],
+    description="Creates a new distributed compute pool that allows multiple nodes to join and share GPU resources. The pool acts as a Kubernetes cluster where users can deploy and manage machine learning jobs across multiple devices.",
     response_description="Result of pool creation")
 def pool_create(request: CreatePoolRequest, api_key: str = Depends(verify_api_key)):
     """
@@ -109,8 +113,10 @@ def pool_create(request: CreatePoolRequest, api_key: str = Depends(verify_api_ke
     return result
 
 @app.post("/join_pool",
-    summary="Join an existing pool",
-    description="Join a pool using a token",
+    operation_id="join_pool",
+    summary="Join an existing Kalavai pool as a compute node",
+    description="Joins a running Kalavai pool by providing a valid join token. This endpoint registers the current machine as a compute node in the pool, making its GPU resources available for job scheduling. The node will receive workloads based on the pool's scheduling policy.",
+    tags=["pool_management"],
     response_description="Result of joining the pool")
 def pool_join(request: JoinPoolRequest, api_key: str = Depends(verify_api_key)):
     """
@@ -130,8 +136,10 @@ def pool_join(request: JoinPoolRequest, api_key: str = Depends(verify_api_key)):
     return result
 
 @app.post("/attach_to_pool",
-    summary="Attach to an existing pool",
-    description="Attach to a pool using a token",
+    operation_id="attach_to_pool",
+    summary="Attach to a pool for management purposes",
+    description="Attaches to an existing Kalavai pool for administrative and monitoring purposes without contributing compute resources. This is typically used by frontend applications or management tools that need to interact with the pool but don't provide GPU resources.",
+    tags=["pool_management"],
     response_description="Result of attaching to the pool")
 def pool_attach(request: JoinPoolRequest, api_key: str = Depends(verify_api_key)):
     """
@@ -149,8 +157,10 @@ def pool_attach(request: JoinPoolRequest, api_key: str = Depends(verify_api_key)
     return result
 
 @app.post("/stop_pool",
-    summary="Stop a pool",
-    description="Stop the current pool",
+    operation_id="stop_pool",
+    summary="Stop and clean up the current Kalavai pool",
+    description="Gracefully shuts down the current Kalavai pool, terminating all running jobs and optionally removing all compute nodes from the cluster. This operation is irreversible and will disconnect all nodes from the pool.",
+    tags=["pool_management"],
     response_description="Result of stopping the pool")
 def pool_stop(request: StopPoolRequest, api_key: str = Depends(verify_api_key)):
     """
@@ -164,8 +174,10 @@ def pool_stop(request: StopPoolRequest, api_key: str = Depends(verify_api_key)):
     return result
 
 @app.post("/delete_nodes",
-    summary="Delete nodes",
-    description="Delete specified nodes from the pool",
+    operation_id="delete_nodes",
+    summary="Remove specific nodes from the pool",
+    description="Removes specified compute nodes from the Kalavai pool. This operation will terminate any jobs running on the target nodes and clean up their resources. Use with caution as it may interrupt running workloads.",
+    tags=["pool_management"],
     response_description="Result of node deletion")
 def device_delete(request: NodesActionRequest, api_key: str = Depends(verify_api_key)):
     """
@@ -179,8 +191,10 @@ def device_delete(request: NodesActionRequest, api_key: str = Depends(verify_api
     return result
 
 @app.post("/cordon_nodes",
-    summary="Cordon nodes",
-    description="Mark nodes as unschedulable",
+    operation_id="cordon_nodes",
+    summary="Mark nodes as unschedulable",
+    description="Marks specified nodes as unschedulable, preventing new jobs from being assigned to them while allowing existing jobs to complete. This is useful for maintenance operations or when you want to gradually remove nodes from the pool.",
+    tags=["pool_management"],
     response_description="Result of cordoning nodes")
 def device_cordon(request: NodesActionRequest, api_key: str = Depends(verify_api_key)):
     """
@@ -194,8 +208,10 @@ def device_cordon(request: NodesActionRequest, api_key: str = Depends(verify_api
     return result
 
 @app.post("/uncordon_nodes",
-    summary="Uncordon nodes",
-    description="Mark nodes as schedulable",
+    operation_id="uncordon_nodes",
+    summary="Mark nodes as schedulable again",
+    description="Re-enables job scheduling on previously cordoned nodes, allowing them to receive new workloads. This reverses the effect of the cordon operation.",
+    tags=["pool_management"],
     response_description="Result of uncordoning nodes")
 def device_uncordon(request: NodesActionRequest, api_key: str = Depends(verify_api_key)):
     """
@@ -209,8 +225,10 @@ def device_uncordon(request: NodesActionRequest, api_key: str = Depends(verify_a
     return result
 
 @app.get("/get_pool_token",
-    summary="Get pool token",
-    description="Get a token for the pool",
+    operation_id="get_pool_token",
+    summary="Generate a token for pool access",
+    description="Generates a secure token that can be used to join or attach to the current Kalavai pool. Different token types provide different levels of access - join tokens allow nodes to contribute resources, while attach tokens allow management access.",
+    tags=["auth"],
     response_description="Pool token")
 def get_token(mode: int, api_key: str = Depends(verify_api_key)):
     """
@@ -221,16 +239,20 @@ def get_token(mode: int, api_key: str = Depends(verify_api_key)):
     return get_pool_token(mode=TokenType(mode))
 
 @app.get("/fetch_devices",
-    summary="Fetch devices",
-    description="Get list of available devices",
+    operation_id="fetch_devices",
+    summary="Get list of all compute devices in the pool",
+    description="Retrieves information about all compute devices (nodes) currently connected to the Kalavai pool, including their status, available resources, and current workload distribution.",
+    tags=["info"],
     response_description="List of devices")
 def get_devices(api_key: str = Depends(verify_api_key)):
     """Get list of available devices"""
     return fetch_devices()
 
 @app.post("/send_pool_invites",
-    summary="Send pool invites",
-    description="Send invites to join the pool",
+    operation_id="send_pool_invites",
+    summary="Send invitations to join the pool",
+    description="Sends invitations to potential users or nodes to join the current Kalavai pool. Invitees will receive tokens that allow them to connect to the pool and contribute their resources.",
+    tags=["avoid"],
     response_description="Result of sending invites")
 def send_pool_invites(request: InvitesRequest, api_key: str = Depends(verify_api_key)):
     """
@@ -241,24 +263,30 @@ def send_pool_invites(request: InvitesRequest, api_key: str = Depends(verify_api
     return send_invites(invitees=request.invitees)
 
 @app.get("/fetch_resources",
-    summary="Fetch resources",
-    description="Get available resources",
+    operation_id="fetch_resources",
+    summary="Get resource utilization for specific nodes",
+    description="Retrieves detailed resource information (CPU, memory, GPU usage) for the pool; optionally for a list of specified nodes in the pool (as {'nodes': node_list}). This helps monitor resource utilization and plan workload distribution.",
+    tags=["info"],
     response_description="Resource information")
-def resources(request: NodesActionRequest, api_key: str = Depends(verify_api_key)):
+def resources(request: Optional[NodesActionRequest]=NodesActionRequest(), api_key: str = Depends(verify_api_key)):
     """Get available resources"""
     return fetch_resources(node_names=request.nodes)
 
 @app.get("/fetch_job_names",
-    summary="Fetch job names",
-    description="Get list of job names",
+    operation_id="fetch_job_names",
+    summary="Get list of all jobs (model deployments) in the pool",
+    description="Retrieves the names of all jobs and models currently deployed or scheduled in the Kalavai pool. This provides an overview of all workloads in the system.",
+    tags=["info"],
     response_description="List of job names")
 def job_names(api_key: str = Depends(verify_api_key)):
     """Get list of job names"""
     return fetch_job_names()
 
 @app.get("/fetch_gpus",
-    summary="Fetch GPUs",
-    description="Get list of available GPUs",
+    operation_id="fetch_gpus",
+    summary="Get GPU information across the pool",
+    description="Retrieves detailed information about all GPUs in the Kalavai pool, including their availability status, current utilization, and which jobs are using them. Can filter to show only available GPUs.",
+    tags=["info"],
     response_description="List of GPUs")
 def gpus(available: bool = False, api_key: str = Depends(verify_api_key)):
     """
@@ -269,26 +297,26 @@ def gpus(available: bool = False, api_key: str = Depends(verify_api_key)):
     return fetch_gpus(available=available)
 
 @app.post("/fetch_job_details",
-    summary="Fetch job details",
-    description="Get details for specified jobs",
+    operation_id="fetch_job_details",
+    summary="Get detailed information about specific job and model deployments",
+    description="Given a list of jobs (as {'jobs': [{'name': job_name}]}'), retrieves comprehensive information about specified jobs or models including their status, resource usage, runtime, and configuration. Useful for monitoring and debugging job execution.",
+    tags=["info"],
     response_description="Job details")
 def job_details(request: JobDetailsRequest, api_key: str = Depends(verify_api_key)):
-    """
-    Get job details with the following parameters:
-    
-    - **jobs**: List of jobs to get details for
-    """
+    """Get job details"""
     return fetch_job_details(jobs=request.jobs)
 
 @app.get("/fetch_job_logs",
-    summary="Fetch job logs",
-    description="Get logs for a specific job",
+    operation_id="fetch_job_logs",
+    summary="Get execution logs for a specific job",
+    description="Retrieves the execution logs for a specified job, providing real-time or historical output from the job's containers. Useful for debugging, monitoring progress, and understanding job behavior.",
+    tags=["info", "avoid"],
     response_description="Job logs")
 def job_logs(
     job_name: str,
-    force_namespace: str = None,
-    pod_name: str = None,
-    tail: int = 100,
+    force_namespace: str = Query(None),
+    pod_name: str = Query(None),
+    tail: int = Query(100),
     api_key: str = Depends(verify_api_key)
 ):
     """
@@ -307,28 +335,60 @@ def job_logs(
     )
 
 @app.get("/fetch_job_templates",
-    summary="Fetch job templates",
-    description="Get available job templates",
-    response_description="List of job templates")
+    operation_id="fetch_job_templates",
+    summary="Get available job and model engines templates",
+    description="Retrieves a list of all available job templates that can be used to deploy workloads. Templates provide predefined configurations for model engine frameworks.",
+    tags=["info"],
+    response_description="List of job and model engine templates")
 def job_templates(api_key: str = Depends(verify_api_key)):
     """Get available job templates"""
     return fetch_job_templates()
 
 @app.get("/fetch_job_defaults",
-    summary="Fetch job defaults",
-    description="Get default values for a job template",
-    response_description="Job metadata values")
-def job_templates(name: str, api_key: str = Depends(verify_api_key)):
-    """
-    Get job defaults with the following parameters:
-    
-    - **name**: Name of the job template
-    """
-    return fetch_job_defaults(name=name)
+    operation_id="fetch_job_defaults",
+    summary="Get default values for a job or model engine template deployment",
+    description="Retrieves the default values for a specific job or model engine template deployment. This helps users understand what parameters are required and what their default values are before deploying a job.",
+    tags=["info"],
+    response_description="Job and model engine default values")
+def job_defaults(name: str, api_key: str = Depends(verify_api_key)):
+    result = fetch_job_defaults(name=name)
+    return result["defaults"]
+
+@app.get("/fetch_job_metadata",
+    operation_id="fetch_job_metadata",
+    summary="Get metadata with information about a given job or model engine template deployment",
+    description="Retrieves the metadata associated with a specific job or model engine template deployment. This helps users understand what the template can be used for.",
+    tags=["info"],
+    response_description="Job and model engine metadata values")
+def job_metadata(name: str, api_key: str = Depends(verify_api_key)):
+    result = fetch_job_defaults(name=name)
+    return result["metadata"]
+
+@app.get("/fetch_job_rules",
+    operation_id="fetch_job_rules",
+    summary="Get the rules associated with the use of a given job or model engine template",
+    description="Retrieves the rules associated with a specific job or model engine template deployment. This helps users and AI agents determine if a given model engine template is adequate for the task.",
+    tags=["info"],
+    response_description="Job and model engine rules")
+def job_rules(name: str, api_key: str = Depends(verify_api_key)):
+    result = job_metadata(name=name)
+    return result["template_rules"]
+
+@app.get("/fetch_job_values_rules",
+    operation_id="fetch_job_values_rules",
+    summary="Get information on how to provide values to the parameters of a specific job or model engine template",
+    description="Retrieves information necessary to fill up the values required to deploy a specific job or model engine template. This helps users and AI agents generate the values dictionary for a job or model engine template deployment.",
+    tags=["info"],
+    response_description="Job and model engine info for values")
+def job_values_rules(name: str, api_key: str = Depends(verify_api_key)):
+    result = job_metadata(name=name)
+    return result["values_rules"]
 
 @app.post("/deploy_job",
-    summary="Deploy job",
-    description="Deploy a new job",
+    operation_id="deploy_job",
+    summary="Deploy a new job to the pool",
+    description="Deploys a new job to the Kalavai pool using a specified template and configuration. The job will be scheduled on appropriate nodes based on resource availability and any specified target labels.",
+    tags=["job_management"],
     response_description="Result of job deployment")
 def job_deploy(request: DeployJobRequest, api_key: str = Depends(verify_api_key)):
     """
@@ -348,8 +408,10 @@ def job_deploy(request: DeployJobRequest, api_key: str = Depends(verify_api_key)
     return result
 
 @app.post("/delete_job",
-    summary="Delete job",
-    description="Delete a job",
+    operation_id="delete_job",
+    summary="Terminate and remove a job from the pool",
+    description="Terminates a running job and removes it from the Kalavai pool. This will stop all containers associated with the job and free up the resources they were using.",
+    tags=["job_management"],
     response_description="Result of job deletion")
 def job_delete(request: DeleteJobRequest, api_key: str = Depends(verify_api_key)):
     """
@@ -365,8 +427,10 @@ def job_delete(request: DeleteJobRequest, api_key: str = Depends(verify_api_key)
     return result
 
 @app.get("/authenticate_user",
-    summary="Authenticate user",
-    description="Authenticate a user",
+    operation_id="authenticate_user",
+    summary="Authenticate a user with the Kalavai system",
+    description="Authenticates a user against the Kalavai system, establishing their identity and permissions. This is required for accessing pool management features and deploying jobs.",
+    tags=["info", "auth"],
     response_description="Authentication result")
 def user_authenticate(user_id: str, api_key: str = Depends(verify_api_key)):
     """
@@ -380,8 +444,10 @@ def user_authenticate(user_id: str, api_key: str = Depends(verify_api_key)):
     return result
 
 @app.get("/load_user_session",
-    summary="Load user session",
-    description="Load the current user session",
+    operation_id="load_user_session",
+    summary="Load current user session information",
+    description="Retrieves information about the currently authenticated user's session, including their identity, permissions, and any active connections to pools.",
+    tags=["info", "auth"],
     response_description="User session information")
 def user_session(api_key: str = Depends(verify_api_key)):
     """Load the current user session"""
@@ -389,8 +455,10 @@ def user_session(api_key: str = Depends(verify_api_key)):
     return result
 
 @app.get("/user_logout",
-    summary="User logout",
-    description="Log out the current user",
+    operation_id="user_logout",
+    summary="Log out the current user",
+    description="Terminates the current user's session and clears authentication credentials. This should be called when the user is done using the system to ensure proper cleanup.",
+    tags=["auth"],
     response_description="Logout result")
 def logout_user():
     """Log out the current user"""
@@ -398,8 +466,10 @@ def logout_user():
     return result
 
 @app.get("/is_connected",
-    summary="Check connection",
-    description="Check if connected to a pool",
+    operation_id="is_connected",
+    summary="Check if connected to a Kalavai pool",
+    description="Verifies whether the current instance is connected to a Kalavai pool. Returns connection status and pool information if connected.",
+    tags=["agent_management"],
     response_description="Connection status")
 def pool_connected():
     """Check if connected to a pool"""
@@ -407,8 +477,10 @@ def pool_connected():
     return result
 
 @app.get("/is_agent_running",
-    summary="Check agent status",
-    description="Check if the agent is running",
+    operation_id="is_agent_running",
+    summary="Check if the Kalavai agent is running",
+    description="Verifies whether the Kalavai agent service is currently running on this machine. The agent is responsible for managing pool connections and job execution.",
+    tags=["agent_management"],
     response_description="Agent status")
 def agent_running():
     """Check if the agent is running"""
@@ -416,8 +488,10 @@ def agent_running():
     return result
 
 @app.get("/is_server",
-    summary="Check server status",
-    description="Check if running as server",
+    operation_id="is_server",
+    summary="Check if running as a pool server",
+    description="Determines whether this instance is running as a Kalavai pool server (coordinator) or as a client node. Server instances manage the pool while client instances contribute resources.",
+    tags=["agent_management"],
     response_description="Server status")
 def server():
     """Check if running as server"""
@@ -425,8 +499,10 @@ def server():
     return result
 
 @app.post("/pause_agent",
-    summary="Pause agent",
-    description="Pause the agent",
+    operation_id="pause_agent",
+    summary="Pause the Kalavai agent service",
+    description="Temporarily pauses the Kalavai agent, stopping it from accepting new jobs or participating in pool operations. Existing jobs will continue running until completion.",
+    tags=["agent_management"],
     response_description="Result of pausing agent")
 def agent_pause():
     """Pause the agent"""
@@ -434,8 +510,10 @@ def agent_pause():
     return result
 
 @app.post("/resume_agent",
-    summary="Resume agent",
-    description="Resume the agent",
+    operation_id="resume_agent",
+    summary="Resume the Kalavai agent service",
+    description="Resumes the previously paused Kalavai agent, allowing it to accept new jobs and participate in pool operations again.",
+    tags=["agent_management"],
     response_description="Result of resuming agent")
 def agent_resume():
     """Resume the agent"""
@@ -443,8 +521,10 @@ def agent_resume():
     return result
 
 @app.get("/get_ip_addresses",
-    summary="Get IP addresses",
-    description="Get available IP addresses",
+    operation_id="get_ip_addresses",
+    summary="Get available IP addresses for pool configuration",
+    description="Retrieves a list of available IP addresses that can be used for pool configuration. Optionally filters by subnet to help with network planning and pool setup.",
+    tags=["agent_management"],
     response_description="List of IP addresses")
 def ip_addresses(subnet: str = None, api_key: str = Depends(verify_api_key)):
     """
@@ -456,8 +536,10 @@ def ip_addresses(subnet: str = None, api_key: str = Depends(verify_api_key)):
     return result
 
 @app.get("/list_available_pools",
-    summary="List available pools",
-    description="Get list of available pools",
+    operation_id="list_available_pools",
+    summary="List all available Kalavai pools",
+    description="Retrieves a list of all Kalavai pools that are currently available for connection. Can filter to show only pools owned by the current user or all public pools.",
+    tags=["agent_management"],
     response_description="List of available pools")
 def pool_connected(user_only: bool = False, api_key: str = Depends(verify_api_key)):
     """
@@ -469,8 +551,10 @@ def pool_connected(user_only: bool = False, api_key: str = Depends(verify_api_ke
     return result
 
 @app.post("/add_node_labels",
-    summary="Add node labels",
-    description="Add labels to a node",
+    operation_id="add_node_labels",
+    summary="Add custom labels to a compute node",
+    description="Adds custom labels to a specific compute node in the pool. Labels can be used for job scheduling, resource allocation, and organizational purposes. Labels are key-value pairs that help categorize and identify nodes.",
+    tags=["pool_management"],
     response_description="Result of adding labels")
 def node_labels(request: NodeLabelsRequest, api_key: str = Depends(verify_api_key)):
     """
@@ -485,20 +569,39 @@ def node_labels(request: NodeLabelsRequest, api_key: str = Depends(verify_api_ke
     )
     return result
 
-@app.post("/get_node_labels",
-    summary="Get node labels",
-    description="Get labels for specified nodes",
+@app.get("/get_node_labels",
+    operation_id="get_node_labels",
+    summary="Get labels for specified compute nodes",
+    description="Retrieves all labels associated with specified compute nodes in the pool. Labels provide metadata about nodes and can be used for filtering and scheduling decisions.",
+    tags=["info"],
     response_description="Node labels")
-def node_labels_get(request: GetNodeLabelsRequest, api_key: str = Depends(verify_api_key)):
+def node_labels_get(request: Optional[NodesActionRequest]=NodesActionRequest(), api_key: str = Depends(verify_api_key)):
     """
     Get node labels with the following parameters:
     
     - **node_names**: List of node names to get labels for
     """
     result = get_node_labels(
-        node_names=request.node_names
+        node_names=request.nodes
     )
     return result
+
+### BUILD MCP WRAPPER ###
+mcp = FastApiMCP(
+    app,
+    name="Protected MCP",
+    #exclude_operations=[],
+    exclude_tags=[
+        "auth",
+        "agent_management",
+        "job_management",
+        "pool_management",
+        "avoid"
+    ]
+)
+mcp.mount()
+##########################
+
 
 def run_api(host="0.0.0.0", port=8001, log_level="critical"):
     uvicorn.run(
