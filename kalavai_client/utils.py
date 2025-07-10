@@ -268,6 +268,7 @@ def request_to_server(
         endpoint,
         data,
         server_creds,
+        params=None,
         force_url=None,
         force_key=None,
         user_cookie=None,
@@ -296,6 +297,7 @@ def request_to_server(
         method=method,
         url=f"http://{service_url}{endpoint}",
         json=data,
+        params=params,
         headers=headers,
         timeout=timeout
     )

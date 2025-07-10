@@ -336,13 +336,21 @@ def job_logs(
 
 @app.get("/fetch_job_templates",
     operation_id="fetch_job_templates",
-    summary="Get available job and model engines templates",
-    description="Retrieves a list of all available job templates that can be used to deploy workloads. Templates provide predefined configurations for model engine frameworks.",
+    summary="Get available job templates",
+    description="Retrieves a list of all available job templates that can be used to deploy workloads. Templates provide predefined configurations for frameworks.",
     tags=["info"],
-    response_description="List of job and model engine templates")
+    response_description="List of job templates")
 def job_templates(api_key: str = Depends(verify_api_key)):
-    """Get available job templates"""
     return fetch_job_templates()
+
+@app.get("/fetch_model_templates",
+    operation_id="fetch_model_templates",
+    summary="Get available model engines templates",
+    description="Retrieves a list of all available model engine templates that can be used to deploy models. Templates provide predefined configurations for model engine frameworks.",
+    tags=["info"],
+    response_description="List of model engine templates")
+def model_templates(api_key: str = Depends(verify_api_key)):
+    return fetch_job_templates(type="model")
 
 @app.get("/fetch_job_defaults",
     operation_id="fetch_job_defaults",

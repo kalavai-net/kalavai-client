@@ -238,13 +238,17 @@ def fetch_job_defaults(name):
     except Exception as e:
         return {"error": str(e)}
     
-def fetch_job_templates():
+def fetch_job_templates(type: str=None):
+    data = None
+    if type is not None:
+        data = {"type": type}
     try:
         templates = request_to_server(
             method="get",
             endpoint="/v1/get_job_templates",
             server_creds=USER_LOCAL_SERVER_FILE,
             data=None,
+            params=data,
             user_cookie=USER_COOKIE
         )
         return templates
