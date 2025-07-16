@@ -105,6 +105,29 @@ def is_storage_compatible():
         return False
 ################
 
+def extract_auth_token(headers):
+    """
+    Extract auth token. Valid headers:
+        X-API-KEY: token
+        X-API-Key: token
+        Authorization: Bearer token
+        authorization: Bearer token
+    """
+    #return headers.get("X-API-Key")
+    bearer = None
+    try:
+        for header in ["Authorization", "authorization", "X-API-KEY", "X-API-Key"]:
+            bearer = headers.get(header, None)
+            if bearer is not None:
+                break
+        if bearer is not None and " " in bearer:
+            return bearer.split()[-1]
+        else:
+            return bearer
+    except Exception as e:
+        return {"error": str(e)}
+
+
 def generate_compose_config(role, node_name, target_platform="amd64", write_to_file=True, node_ip_address="0.0.0.0", num_gpus=0, node_labels=None, pool_ip=None, vpn_token=None, pool_token=None):
     
     if node_labels is not None:

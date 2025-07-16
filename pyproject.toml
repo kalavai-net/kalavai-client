@@ -12,7 +12,7 @@ license         = "Apache-2.0"
 license-files   = ["LICENSE"]
 keywords        = ["LLM", "platform"]
 readme          = {file = "README.md", content-type = "text/markdown"}
-requires-python = ">=3.4"
+requires-python = ">=3.10"
 dependencies = [
     "requests>= 2.25",
     "psutil==5.9.8",
@@ -27,7 +27,7 @@ dependencies = [
     "pydantic==2.10.6",
     "fastapi==0.115.8",
     "uvicorn==0.34.0",
-    "fastapi-mcp>=0.3.4"
+    "fastapi-mcp==0.3.0"
 ]
 
 [project.optional-dependencies]

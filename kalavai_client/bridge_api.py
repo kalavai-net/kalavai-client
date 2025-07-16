@@ -54,7 +54,10 @@ from kalavai_client.core import (
     get_node_labels,
     TokenType
 )
-from kalavai_client.utils import load_user_id
+from kalavai_client.utils import (
+    load_user_id,
+    extract_auth_token
+)
 
 app = FastAPI(
     title="Kalavai Bridge API",
@@ -75,7 +78,7 @@ async def verify_api_key(request: Request):
     user_id = load_user_id()
     if user_id is None:
         return None
-    api_key = request.headers.get("X-API-KEY")
+    api_key = extract_auth_token(headers=request.headers)
     if api_key != user_id:
         raise HTTPException(status_code=401, detail="Request requires API Key")
     return api_key
