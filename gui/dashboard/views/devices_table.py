@@ -217,47 +217,31 @@ class DevicesView(TableView):
                     ),
                     rx.dialog.content(
                         rx.dialog.title("Add new devices to the pool"),
-                        rx.dialog.description("Invite other users directly or share the joining token to add new devices to this pool", margin_bottom="10px"),
-                        rx.tabs.root(
-                            rx.tabs.list(
-                                rx.tabs.trigger("Invite", value="invite"),
-                                rx.tabs.trigger("Generate token", value="token")
+                        rx.dialog.description("Invite other users to share resources and add computing power to this pool", margin_bottom="10px"),
+                        rx.flex(
+                            rx.link("How to join a pool", href="https://kalavai-net.github.io/kalavai-client/getting_started/#2-add-worker-nodes", is_external=True),
+                            rx.text("Access mode for the token"),
+                            rx.radio(
+                                PoolsState.token_modes,
+                                on_change=PoolsState.get_pool_token,
+                                direction="column"
                             ),
-                            rx.tabs.content(
-                                rx.hstack(
-                                    rx.text_area(placeholder="Invite others by email (comma-separated list)", width="85%", on_change=DevicesState.set_invitees),
-                                    rx.button("Send", width="15%", on_click=DevicesState.send_invites, loading=DevicesState.is_loading),
-                                ),
-                                value="invite"
-                            ),
-                            rx.tabs.content(
+                            rx.cond(
+                                PoolsState.token == "",
+                                rx.flex(rx.card(rx.text("Select token access"))),
                                 rx.flex(
-                                    rx.text("Access mode for the token"),
-                                    rx.radio(
-                                        PoolsState.token_modes,
-                                        on_change=PoolsState.get_pool_token,
-                                        direction="column"
-                                    ),
-                                    rx.cond(
-                                        PoolsState.token == "",
-                                        rx.flex(),
-                                        rx.flex(
-                                            rx.card(rx.text(PoolsState.token)),
-                                            rx.button(rx.icon("copy"), on_click=[rx.set_clipboard(PoolsState.token), rx.toast.success("Copied", position="top-center")]),
-                                        ),
-                                    ),
-                                    
-                                    rx.separator(size="4"),
-                                    direction="column",
-                                    spacing="2",
-                                    margin_botton="10px"
+                                    rx.card(rx.text(PoolsState.token)),
+                                    rx.button(rx.icon("copy"), on_click=[rx.set_clipboard(PoolsState.token), rx.toast.success("Copied", position="top-center")]),
+                                   
                                 ),
-                                value="token"
-                            )
+                            ),
+                            rx.separator(size="4"),
+                            direction="column",
+                            spacing="2",
+                            margin_botton="10px"
                         ),
                         rx.hstack(
-                            rx.text("For private pools, only machines in the same network can connect to the pool. Go Pro to create over-the-internet pools, where any machine with internet access can join", weight="bold", width="85%"),
-                            rx.button("Go Pro", color_scheme="purple", width="15%"),
+                            rx.text("Machines must be able to see each other (shared private network or with a public IP). This is not required when using Managed pools.", weight="bold", width="85%")
                         ),
                         rx.dialog.close(
                             rx.button(

@@ -21,11 +21,21 @@ def render_pool_manager() -> rx.Component:
                     justify="between",
                     width="100%",
                 ),
-                rx.link(
-                    rx.button("Access dashboard"),
-                    href="/dashboard",
-                    color_scheme="purple",
-                    is_external=False,
+                # rx.link(
+                #     rx.button("Access dashboard"),
+                #     href="/dashboard",
+                #     color_scheme="purple",
+                #     is_external=False,
+                # ),
+                rx.card(
+                    rx.vstack(
+                        rx.text("Getting started", weight="bold"),
+                        rx.link("Explore your available resources", href="/dashboard", is_external=False),
+                        rx.link("Add resources to your pool", href="https://kalavai-net.github.io/kalavai-client/getting_started/#2-add-worker-nodes", is_external=True),
+                        rx.link("Deploy jobs and models", href="/jobs", is_external=False),
+                        rx.link("Kalavai documentation", href="https://kalavai-net.github.io/kalavai-client/", is_external=True),
+                        spacing="3"
+                    )
                 ),
                 spacing="3"
             ),

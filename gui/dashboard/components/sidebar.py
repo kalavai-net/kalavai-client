@@ -96,6 +96,7 @@ def sidebar_item(text: str, url: str) -> rx.Component:
         rx.hstack(
             rx.match(
                 text,
+                ("Home", sidebar_item_icon("home")),
                 ("Dashboard", sidebar_item_icon("gauge")),
                 ("Devices", sidebar_item_icon("laptop")),
                 ("GPUs", sidebar_item_icon("microchip")),
@@ -154,6 +155,7 @@ def sidebar() -> rx.Component:
 
     # The ordered page routes.
     ordered_page_routes = [
+        "/",
         "/dashboard",
         "/devices",
         "/gpus",

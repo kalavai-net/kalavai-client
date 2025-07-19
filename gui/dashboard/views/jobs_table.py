@@ -231,12 +231,16 @@ class JobsView(TableView):
                     rx.card(
                         rx.link(
                             rx.flex(
-                                rx.image(src=JobsState.template_metadata.icon_url, width="100px", height="auto"),
+                                rx.image(src=JobsState.template_metadata.icon_url, width="100px", height="100px"),
                                 rx.box(
-                                    rx.heading(JobsState.template_metadata.name),
-                                    rx.text(
-                                        JobsState.template_metadata.description
+                                    rx.vstack(
+                                        rx.heading(JobsState.template_metadata.name),
+                                        rx.text(
+                                            JobsState.template_metadata.description
+                                        ),
+                                        rx.text(f"Extra info: {JobsState.template_metadata.info}"),
                                     ),
+                                    spacing="3"
                                 ),
                                 spacing="2",
                             ),

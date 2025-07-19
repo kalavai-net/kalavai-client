@@ -16,6 +16,7 @@ class TemplateData(rx.Base):
     description: str
     icon_url: str
     docs_url: str
+    info: str
 
 class JobsState(rx.State):
     """The state class."""
@@ -129,7 +130,8 @@ class JobsState(rx.State):
                     name=metadata["name"] if "name" in metadata else "N/A",
                     description=metadata["description"] if "description" in metadata else "N/A",
                     icon_url=metadata["icon"] if "icon" in metadata else "N/A",
-                    docs_url=metadata["docs"] if "docs" in metadata else "N/A"
+                    docs_url=metadata["docs"] if "docs" in metadata else "N/A",
+                    info=metadata["info"] if "info" in metadata else "N/A",
                 )
 
     @rx.event(background=True)
