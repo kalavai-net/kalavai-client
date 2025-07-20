@@ -39,6 +39,7 @@ from kalavai_client.utils import (
     CLUSTER_IP_KEY,
     CLUSTER_NAME_KEY,
     AUTH_KEY,
+    USER_ID_KEY,
     WATCHER_SERVICE_KEY,
     CLUSTER_TOKEN_KEY,
     READONLY_AUTH_KEY,
@@ -809,6 +810,7 @@ def create_pool(
     values = {
         CLUSTER_NAME_KEY: cluster_name,
         CLUSTER_IP_KEY: ip_address,
+        USER_ID_KEY: user_id if user_id is not None else "",
         AUTH_KEY: auth_key,
         READONLY_AUTH_KEY: readonly_auth_key,
         WRITE_AUTH_KEY: write_auth_key,
@@ -883,6 +885,22 @@ def create_pool(
         return {"warning": result["warning"]}
     
     return {"success"}
+
+def update_pool(debug=True):
+    try:
+        CLUSTER.validate_cluster()
+    except Exception as e:
+        return {"error": f"Problems with your pool: {str(e)}"}
+    
+    if not CLUSTER.is_seed_node():
+        return {"error": "You can only update a pool from the seed node."}
+    
+    # update dependencies
+    try:
+        CLUSTER.update_dependencies(debug=debug)
+        return {"success": "Pool updating. Expect some downtime on core services"}
+    except Exception as e:
+        return {"error": f"[red]Error when updating pool: {str(e)}"}
 
 
 def get_pool_token(mode: TokenType):
