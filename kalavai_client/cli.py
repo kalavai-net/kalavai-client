@@ -58,7 +58,8 @@ from kalavai_client.core import (
     stop_pool,
     uncordon_nodes,
     TokenType,
-    unregister_pool
+    unregister_pool,
+    update_pool
 )
 from kalavai_client.utils import (
     check_gpu_drivers,
@@ -208,7 +209,8 @@ def input_gpus(non_interactive=False):
 def gui__start(
     *others,
     log_level="critical",
-    backend_only=False
+    backend_only=False,
+    version="latest"
 ):
     """Run GUI (docker) and kalavai core backend (api)"""
     ports_needed = 1 if backend_only else 3
@@ -242,7 +244,8 @@ def gui__start(
             "gui_backend_port": ports[2],
             "bridge_port": ports[0],
             "path": user_path("", create_path=True),
-            "protected_access": user_key
+            "protected_access": user_key,
+            "gui_version": version
         }
         compose_yaml = load_template(
             template_path=DOCKER_COMPOSE_GUI,
@@ -679,23 +682,12 @@ def pool__update(*others):
     """
     Update kalavai pool
     """
-    try:
-        CLUSTER.validate_cluster()
-    except Exception as e:
-        console.log(f"[red]Problems with your pool: {str(e)}")
-        return
-    
-    if not CLUSTER.is_seed_node():
-        console.log("You can only update a pool from the seed node.")
-        return
-    
-    # update dependencies
-    try:
-        CLUSTER.update_dependencies(debug=True)
-        console.log("Pool updating. Expect some downtime on core services")
-    except Exception as e:
-        console.log(f"[red]Error when updating pool: {str(e)}")
-        return
+    result = update_pool(debug=True)
+
+    if "error" in result:
+        console.log(f"[red]{result['error']}")
+    else:
+        console.log(f"[green]{result}")
 
 
 @arguably.command
