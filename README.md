@@ -21,7 +21,7 @@ Kalavai is an **open source** tool that turns **any devices** into a self-hosted
 
 ## What can Kalavai do?
 
-Kalavai's goal is to make using self-hosted AI (GenAI models and agents) in real applications accessible and affordable to all. It's a tool that transforms machines into a _magic box_ that **integrates all the components required to make AI useful in the age of massive computing**, from model deployment, monitoring and orchestration to Agentic AI. 
+Kalavai's goal is to make using self-hosted AI (GenAI models and agents) in real applications accessible and affordable to all.
 
 ### Core features
 
@@ -132,19 +132,17 @@ pip install kalavai-client
 
 ## Create a a local, private AI pool
 
-> Kalavai is **free to use, no caps, for both commercial and non-commercial purposes**. All you need to get started is one or more computers that can see each other (i.e. within the same network), and you are good to go. If you are interested in join computers in different locations / networks, [contact us](mailto:info@kalavai.net) or [book a demo](https://app.onecal.io/b/kalavai/book-a-demo) with the founders.
-
 You can create and manage your pools with the new kalavai GUI, which can be started with:
 
 ```bash
 kalavai gui start
 ```
 
-This will expose the GUI and the backend services in localhost. By default, the GUI is accessible via [http://localhost:49153](http://localhost:49153). In the UI users can create and join LLM pools, monitor devices, deploy LLMs and more.
+This will expose the GUI and the backend services in localhost. By default, the GUI is accessible via [http://localhost:49153](http://localhost:49153). In the UI users can create and join AI pools, monitor devices, deploy LLMs and more.
 
 ![Kalavai logo](docs/docs/assets/images/ui_dashboard_multiple.png)
 
-Check out our [getting started guide](https://kalavai-net.github.io/kalavai-client/getting_started/) for next steps.
+Check out our [getting started guide](https://kalavai-net.github.io/kalavai-client/getting_started/) for next steps on how to add more workers to your pool.
 
 
 ## Enough already, let's run stuff!
