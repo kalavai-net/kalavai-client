@@ -468,7 +468,7 @@
             
   
   <span class="md-ellipsis">
-    Community computing
+    Examples
   </span>
   
 
@@ -478,7 +478,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
-            Community computing
+            Examples
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -680,7 +680,7 @@
 <p>There are three core components:</p>
 <ul>
 <li><strong>Kalavai client</strong>: python CLI program that lets users create and interact with LLM pools distributed across multiple machines.</li>
-<li><strong>Seed node</strong>: master / server machine that initialises and manages an LLM pool. This is the node where the client runs the start command (<code>kalavai pool start &lt;pool&gt;</code>)</li>
+<li><strong>Seed node</strong>: master / server machine that initialises and manages an LLM pool. This is the node where the client runs the start command (<code>kalavai pool start &lt;pool&gt;</code>). Note that seed nodes must remain on and available for the platform to remain operational.</li>
 <li><strong>Worker node</strong>: any machine that joins an LLM pool, where the LLM workload will be deployed to. This are nodes that run the join command (<code>kalavai pool join &lt;token&gt;</code>)</li>
 </ul>
 <p>Typically a client will be installed in both the seed and worker nodes, but since v0.5.0, clients can also be installed on external machines. This is useful to be able to connect and send work to your pool from any machine.</p>
