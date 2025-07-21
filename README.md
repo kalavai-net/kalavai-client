@@ -10,7 +10,7 @@
 ⭐⭐⭐ **Kalavai platform is open source, and free to use in both commercial and non-commercial purposes. If you find it useful, consider supporting us by [giving a star to our GitHub project](https://github.com/kalavai-net/kalavai-client), joining our [discord channel](https://discord.gg/YN6ThTJKbM) and follow our [Substack](https://kalavainet.substack.com/).**
 
 
-# Kalavai: turn your devices into a scalable AI platform
+# Kalavai: a platform to self-hosting AI on easy mode
 
 > AI in the cloud is not aligned with you, it's aligned with the company that owns it. Make sure you own your AI
 
@@ -21,15 +21,14 @@ Kalavai is an **open source** tool that turns **any devices** into a self-hosted
 
 ## What can Kalavai do?
 
-Kalavai's goal is to make using self-hosted AI (GenAI models and agents) in real applications accessible and affordable to all. It's a tool that transforms machines into a _magic box_ that **integrates all the components required to make AI useful in the age of massive computing**, from model deployment and orchestration to Agentic AI. 
+Kalavai's goal is to make using self-hosted AI (GenAI models and agents) in real applications accessible and affordable to all. It's a tool that transforms machines into a _magic box_ that **integrates all the components required to make AI useful in the age of massive computing**, from model deployment, monitoring and orchestration to Agentic AI. 
 
 ### Core features
 
-- Manage **multiple devices resources as one**. One pool of RAM, CPUs and GPUs
-- **Deploy open source models seamlessly across devices**, wherever they are (cloud, on premises, personal devices)
-- Beyond LLMs: not just for large language models, but text-to-speech, speech-to-text, image understanding, coding generation and embedding models.
-- The hybrid dream: build on your laptop, move to the cloud (any!) with zero changes
-- Auto-discovery: all **models are automatically exposed** through a single OpenAI-like API and a ChatGPT-like UI playground
+- Manage **multiple devices resources as one**, wherever they come from (hybrid cloud, on prem, personal devices)
+- **Deploy open source models seamlessly across devices**, with zero-cost migration
+- Beyond LLMs: not just for large language models, but text-to-speech, speech-to-text, image generation, video understanding, coding generation and embedding models.
+- Production-ready: **models are automatically exposed** through a single OpenAI-like API and a ChatGPT-like UI playground, with off-the-shelf monitoring and evaluation framework.
 - Compatible with [most popular model engines](#support-for-llm-engines)
 - [Easy to expand](https://github.com/kalavai-net/kube-watcher/tree/main/templates) to custom workloads
 
@@ -63,17 +62,24 @@ Kalavai's goal is to make using self-hosted AI (GenAI models and agents) in real
 
 </details>
 
-### Support for LLM engines
+### Support for AI engines
 
-We currently support out of the box the following LLM engines:
+We currently support out of the box the following AI engines:
 
-- [vLLM](https://docs.vllm.ai/en/latest/)
-- [llama.cpp](https://github.com/ggerganov/llama.cpp)
-- [Aphrodite Engine](https://github.com/aphrodite-engine/aphrodite-engine)
-- [Petals](https://github.com/bigscience-workshop/petals)
+- [vLLM](https://docs.vllm.ai/en/latest/): most popular GPU-based model inference.
+- [llama.cpp](https://github.com/ggerganov/llama.cpp): CPU-based GGUF model inference.
+- [SGLang](https://github.com/sgl-project/sglang): Super fast GPU-based model inference.
+- [n8n](https://n8n.io/): no-code workload automation framework.
+- [Flowise](https://flowiseai.com/): no-code agentic AI workload framework.
+- [Speaches](https://speaches.ai/): audio (speech-to-text and text-to-speech) model inference.
+- [Langfuse](https://langfuse.com/): open source evaluation and monitoring GenAI framework.
+- [OpenWebUI](https://docs.openwebui.com/): ChatGPT-like UI playground to interface with any models.
 
 Coming soon:
 
+- [diffusers](https://huggingface.co/docs/diffusers/en/index)
+- [Aphrodite Engine](https://github.com/aphrodite-engine/aphrodite-engine)
+- [Petals](https://github.com/bigscience-workshop/petals)
 - [exo](https://github.com/exo-explore/exo)
 - [GPUstack](https://docs.gpustack.ai/0.4/overview/)
 - [RayServe](https://docs.ray.io/en/latest/serve/index.html)
@@ -101,12 +107,16 @@ The `kalavai-client` is the main tool to interact with the Kalavai platform, to 
 
 <summary>Requirements</summary>
 
+For seed nodes:
+- A 64 bits x86 based Linux machine (laptop, desktop or VM)
+- [Docker engine installed](https://docs.docker.com/engine/install/ubuntu/) with [privilege access](https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities).
+
 For workers sharing resources with the pool:
 
-- A laptop, desktop or Virtual Machine
+- A laptop, desktop or Virtual Machine (MacOS, Linux or Windows; ARM or x86)
+- If self-hosting, workers should be on the same network as the seed node. Looking for over-the-internet connectivity? Check out our [managed seeds](https://platform.kalavai.net)
 - Docker engine installed (for [linux](https://docs.docker.com/engine/install/ubuntu/), [Windows and MacOS](https://docs.docker.com/desktop/)) with [privilege access](https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities).
 
-> **Support for Windows and MacOS workers is experimental**: kalavai workers run on docker containers that require access to the host network interfaces, thus systems that do not support containers natively (Windows and MacOS) may have difficulties finding each other.
 
 </details>
 
@@ -130,7 +140,7 @@ You can create and manage your pools with the new kalavai GUI, which can be star
 kalavai gui start
 ```
 
-This will expose the GUI and the backend services in localhost. By default, the GUI is accessible via [http://localhost:3000](http://localhost:3000). In the UI users can create and join LLM pools, monitor devices, deploy LLMs and more.
+This will expose the GUI and the backend services in localhost. By default, the GUI is accessible via [http://localhost:49153](http://localhost:49153). In the UI users can create and join LLM pools, monitor devices, deploy LLMs and more.
 
 ![Kalavai logo](docs/docs/assets/images/ui_dashboard_multiple.png)
 
@@ -139,7 +149,9 @@ Check out our [getting started guide](https://kalavai-net.github.io/kalavai-clie
 
 ## Enough already, let's run stuff!
 
-Check our [examples](examples/) to put your new AI pool to good use! For an end to end tour, check our [self-hosted](https://kalavai-net.github.io/kalavai-client/self_hosted_llm_pool/) and [public LLM pools](https://kalavai-net.github.io/kalavai-client/public_llm_pool/) guides.
+For an end to end tour on building your own OpenAI-like service, check our [self-hosted](https://kalavai-net.github.io/kalavai-client/self_hosted_llm_pool/) guide.
+
+Check our [examples](examples/) to put your new AI pool to good use!
 
 
 ## Compatibility matrix
@@ -207,7 +219,7 @@ Anything missing here? Give us a shout in the [discussion board](https://github.
 
 <summary>Expand</summary>
 
-Python version >= 3.6.
+Python version >= 3.10.
 
 ```bash
 sudo add-apt-repository ppa:deadsnakes/ppa

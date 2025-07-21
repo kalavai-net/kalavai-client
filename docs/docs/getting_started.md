@@ -15,8 +15,17 @@ From release **v0.5.0, you can now install `kalavai` client in non-worker comput
 
 ### Requirements to run the client
 
+For seed nodes:
+- A 64 bits x86 based Linux machine (laptop, desktop or VM)
+- [Docker engine installed](https://docs.docker.com/engine/install/ubuntu/) with [privilege access](https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities).
 - Python 3.10+
-- For seed and workers: Docker engine installed (for [linux](https://docs.docker.com/engine/install/ubuntu/), [Windows and MacOS](https://docs.docker.com/desktop/)) with [privilege access](https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities).
+
+For workers sharing resources with the pool:
+
+- A laptop, desktop or Virtual Machine (MacOS, Linux or Windows; ARM or x86)
+- If self-hosting, workers should be on the same network as the seed node. Looking for over-the-internet connectivity? Check out our [managed seeds](#1b-managed-pools-create-a-seed)
+- Docker engine installed (for [linux](https://docs.docker.com/engine/install/ubuntu/), [Windows and MacOS](https://docs.docker.com/desktop/)) with [privilege access](https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities).
+- Python 3.10+
 
 
 ### Install the client
