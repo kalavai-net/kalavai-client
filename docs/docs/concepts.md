@@ -14,7 +14,7 @@ Kalavai **turns devices into a scalable LLM platform**. It connects multiple mac
 There are three core components:
 
 - **Kalavai client**: python CLI program that lets users create and interact with LLM pools distributed across multiple machines.
-- **Seed node**: master / server machine that initialises and manages an LLM pool. This is the node where the client runs the start command (`kalavai pool start <pool>`)
+- **Seed node**: master / server machine that initialises and manages an LLM pool. This is the node where the client runs the start command (`kalavai pool start <pool>`). Note that seed nodes must remain on and available for the platform to remain operational.
 - **Worker node**: any machine that joins an LLM pool, where the LLM workload will be deployed to. This are nodes that run the join command (`kalavai pool join <token>`)
 
 Typically a client will be installed in both the seed and worker nodes, but since v0.5.0, clients can also be installed on external machines. This is useful to be able to connect and send work to your pool from any machine.

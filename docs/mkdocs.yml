@@ -7,7 +7,7 @@ nav:
     - Choosing job resources: choose_job_resources.md
     - Compatibility: compatibility.md
     - CLI: cli.md
-  - Community computing:
+  - Examples:
     - Self-hosted LLM pool: self_hosted_llm_pool.md
   - Applications: 
     - Job templates: templates.md

@@ -1,13 +1,13 @@
 # Welcome to Kalavai
 
-> Kalavai is an **open source** platform that turns **any device** into a self-hosted AI platform. We help you aggregate resources from multiple machines: home desktops, gaming laptops, work computers, cloud VMs... When you need to **go beyond**, Kalavai **facilitates matchmaking** of resources so anyone in our community can tap into a larger pool of devices by **inspiring others to join** your cause.
+> Kalavai is an **open source** platform that turns **any device** into a self-hosted AI platform. 
 
-## What can you do with Kalavai
+## How Kalavai can help you
 
-Kalavai helps manage the complexity of bringing Large Language Models and Agentic AI into practical applications. With Kalavai you can easily:
-
-- **Deploy GenAI Models** in a single machine, or **seamlessly across multiple nodes**
-- Run a **Ray cluster** for your AI **training, fine tuning and serving** needs
+- We help you **aggregate resources from multiple machines**: home desktops, work computers, cloud VMs, raspberry pi's, Mac, etc.
+- Our platform has **ready-made templates for users to deploy common AI building blocks**: model inference (vLLM, llama.cpp, SGLang and more), automation workflows (n8n and Flowise), evaluation and monitoring tools (Langfuse), production tools (LiteLLM, OpenWebUI)
+- Support for **multimodal GenAI**: Text-only, Text-to-Speech, Speech-to-Text, Image generation, Image / Video understanding.
+- **Allocation of resources is managed automatically**. If your deployment requires multiple machines, we handle the workload distribution.
 
 
 ## Want to be notified of the latest features? 
