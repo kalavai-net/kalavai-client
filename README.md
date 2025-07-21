@@ -10,7 +10,7 @@
 ⭐⭐⭐ **Kalavai platform is open source, and free to use in both commercial and non-commercial purposes. If you find it useful, consider supporting us by [giving a star to our GitHub project](https://github.com/kalavai-net/kalavai-client), joining our [discord channel](https://discord.gg/YN6ThTJKbM) and follow our [Substack](https://kalavainet.substack.com/).**
 
 
-# Kalavai: a platform to self-hosting AI on easy mode
+# Kalavai: a platform to self-host AI on easy mode
 
 > AI in the cloud is not aligned with you, it's aligned with the company that owns it. Make sure you own your AI
 
@@ -142,7 +142,7 @@ This will expose the GUI and the backend services in localhost. By default, the 
 
 ![Kalavai logo](docs/docs/assets/images/ui_dashboard_multiple.png)
 
-Check out our [getting started guide](https://kalavai-net.github.io/kalavai-client/getting_started/) for next steps on how to add more workers to your pool.
+Check out our [getting started guide](https://kalavai-net.github.io/kalavai-client/getting_started/) for next steps on how to add more workers to your pool, or use our [managed seeds service](https://kalavai-net.github.io/kalavai-client/getting_started/#1b-managed-pools-create-a-seed) for over-the-internet AI pools.
 
 
 ## Enough already, let's run stuff!
