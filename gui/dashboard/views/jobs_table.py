@@ -2,6 +2,7 @@ import reflex as rx
 
 from ..views.generic_table import TableView
 from ..backend.jobs_state import JobsState, Job
+from ..backend.dashboard_state import DashboardState
 from ..components.status_badge import job_badge
 
 
@@ -269,7 +270,7 @@ class JobsView(TableView):
                 ),
                 rx.button(
                     "Next",
-                    on_click=JobsState.set_deploy_step(2),
+                    on_click=[JobsState.set_deploy_step(2), DashboardState.load_data],
                     variant="surface"
                 ),
                 justify="end"
@@ -321,6 +322,7 @@ class JobsView(TableView):
     
     def select_parameters(self):
         return rx.flex(
+            rx.text("3. Populate template values", size="3", margin_bottom="10px"),
             rx.hstack(
                 rx.button(
                     "Previous",
@@ -329,7 +331,6 @@ class JobsView(TableView):
                 ),
                 justify="end"
             ),
-            rx.text("3. Populate template values", size="3", margin_bottom="10px"),
             rx.form(
                 rx.flex(
                     rx.text("Required values (hover for more info)", as_="div", size="2", margin_bottom="4px", weight="bold"),
@@ -350,6 +351,46 @@ class JobsView(TableView):
                         collapsible=True,
                         color_scheme="gray"
                     ),
+                    rx.text("Available resources", as_="div", size="2", margin_bottom="4px", weight="bold"),
+                    rx.tabs.root(
+                        rx.tabs.list(
+                            rx.tabs.trigger("Workers", value="workers"),
+                            rx.tabs.trigger("CPU", value="cpu"),
+                            rx.tabs.trigger("RAM", value="ram"),
+                            rx.tabs.trigger("GPU", value="gpu"),
+                        ),
+                        rx.tabs.content(
+                            rx.text(f"Workers: {DashboardState.online_devices}/{DashboardState.total_devices}"),
+                            value="workers",
+                        ),
+                        rx.tabs.content(
+                            rx.text(f"CPUs: {DashboardState.online_cpus}/{DashboardState.total_cpus}"),
+                            value="cpu",
+                        ),
+                        rx.tabs.content(
+                            rx.text(f"RAM: {DashboardState.online_ram:.2f}/{DashboardState.total_ram:.2f} GB"),
+                            value="ram",
+                        ),
+                        rx.tabs.content(
+                            rx.text(f"GPUs: {DashboardState.online_gpus}/{DashboardState.total_gpus}"),
+                            value="gpu",
+                        ),
+                        default_value="workers",
+                    ),
+                    # rx.accordion.root(
+                    #     rx.accordion.item(
+                    #         header="Available resources",
+                    #         content=[
+                    #             rx.text(f"Devices: {DashboardState.online_devices}/{DashboardState.total_devices}"),
+                    #             rx.text(f"CPUs: {DashboardState.online_cpus:.1f}/{DashboardState.total_cpus:.1f}"),
+                    #             rx.text(f"RAM: {DashboardState.online_ram:.2f}/{DashboardState.total_ram:.2f} GB"),
+                    #             rx.text(f"GPUs: {DashboardState.online_gpus}/{DashboardState.total_gpus}"),
+                    #         ],
+                    #         on_click=DashboardState.load_data,
+                    #         collapsible=True,
+                    #         color_scheme="gray"
+                    #     )
+                    # ),
                     rx.dialog.close(
                         rx.hstack(
                             rx.button(

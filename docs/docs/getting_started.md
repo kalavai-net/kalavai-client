@@ -90,7 +90,7 @@ Once your seed is up and running and the status is `Healthy`, you can access the
 
 Increase the power of your AI pool by adding resources from other devices. For that, you need to generate a joining token. You can do this by using the seed GUI or the CLI.
 
-**Using the seed GUI**
+**[On the seed node] Using the GUI**
 
 Use the navigation panel to go to `Devices`, and then click the `circle-plus` button to add new devices. You can select the `Access mode`, which determine the level of access new nodes will have over the pool:
 - `admin`: Same level of access than the seed node, including generating new joining tokens and deleting nodes.
@@ -99,13 +99,15 @@ Use the navigation panel to go to `Devices`, and then click the `circle-plus` bu
 
 ![Invite others to join](assets/images/ui_devices_invite.png)
 
-**Using the CLI**
+**[On the seed node] Using the CLI**
 
-From the command-line, run the following to obtain your joining token:
+**Alternatively**, if you do not want to use the GUI, you can join from the command-line. Run the following to obtain your joining token:
 
 ```bash
 kalavai pool token --worker
 ```
+
+**[On the worker node] Join the pool**
 
 Once you have the joining token, use it on the machines you want to add to the pool. Workers can use the GUI interface to make this step easier too:
 
@@ -121,7 +123,7 @@ Kalavai asks you if you want to join (run workloads in the local machine) or att
 
 ![Choose to join or attach](assets/images/ui_join_part2.png)
 
-For command-liners, join with the CLI:
+**Alternatively**, for command-liners, join with the CLI:
 
 ```bash
 kalavai pool join <TOKEN>
