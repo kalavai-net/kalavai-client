@@ -38,20 +38,15 @@ class JobsView(TableView):
     
     def show_parameter(self, item: rx.Var, required=True):
         def _display(item):
-            return rx.hstack(
-                rx.hover_card.root(
-                    rx.hover_card.trigger(
-                        rx.text(item["name"])
+            return rx.tooltip(
+                    rx.hstack(
+                        rx.text(item["name"]),
+                        rx.input(default_value=item["default"], width="60%", name=item["name"]),
+                        justify="between"
                     ),
-                    rx.hover_card.content(
-                        rx.markdown(f'_{item["description"]}_')
-                        
-                    )
-                ),            
-                #rx.separator(size="1"),
-                rx.input(default_value=item["default"], width="60%", name=item["name"]),
-                justify="between"
+                    content=f'{item["description"]}'
             )
+            
         if required:
             return rx.cond(
                 item["required"],
@@ -219,7 +214,7 @@ class JobsView(TableView):
                 ),
                 justify="end"
             ),
-            rx.text("1. Select the template you want to deploy", size="3", margin_bottom="10px"),
+            rx.text("1. Select the template you want to deploy", as_="div", size="4", margin_bottom="10px", weight="bold"),
             rx.text("Model template", as_="div", size="2", margin_bottom="4px", weight="bold"),
             rx.select(
                 JobsState.templates,
@@ -275,7 +270,7 @@ class JobsView(TableView):
                 ),
                 justify="end"
             ),
-            rx.text("2. Target specific nodes (leave blank for auto deploy)", as_="div", size="3", margin_bottom="4px", weight="bold"),
+            rx.text("2. Target specific nodes (leave blank for auto deploy)", as_="div", size="4", margin_bottom="10px", weight="bold"),
             rx.cond(
                 JobsState.selected_labels,
                 rx.flex(
@@ -322,7 +317,6 @@ class JobsView(TableView):
     
     def select_parameters(self):
         return rx.flex(
-            rx.text("3. Populate template values", size="3", margin_bottom="10px"),
             rx.hstack(
                 rx.button(
                     "Previous",
@@ -331,10 +325,18 @@ class JobsView(TableView):
                 ),
                 justify="end"
             ),
+            rx.text("3. Populate template values", as_="div", size="4", margin_bottom="10px", weight="bold"),
+            rx.accordion.root(
+                rx.accordion.item(
+                    header="What do these values mean",
+                    content=rx.markdown(JobsState.template_metadata.values_rules)
+                ),
+                collapsible=True,
+                color_scheme="gray",
+                variant="outline"
+            ),
             rx.form(
                 rx.flex(
-                    rx.text("Required values (hover for more info)", as_="div", size="2", margin_bottom="4px", weight="bold"),
-                    rx.separator(size="4"),
                     rx.foreach(
                         JobsState.template_params,
                         lambda item: self.show_parameter(item, required=True),
@@ -349,7 +351,8 @@ class JobsView(TableView):
                             )
                         ),
                         collapsible=True,
-                        color_scheme="gray"
+                        color_scheme="gray",
+                        variant="outline"
                     ),
                     rx.text("Available resources", as_="div", size="2", margin_bottom="4px", weight="bold"),
                     rx.tabs.root(

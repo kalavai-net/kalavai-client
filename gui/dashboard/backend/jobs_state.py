@@ -17,6 +17,9 @@ class TemplateData(rx.Base):
     icon_url: str
     docs_url: str
     info: str
+    values_rules: str
+    template_rules: str
+
 
 class JobsState(rx.State):
     """The state class."""
@@ -132,6 +135,8 @@ class JobsState(rx.State):
                     icon_url=metadata["icon"] if "icon" in metadata else "N/A",
                     docs_url=metadata["docs"] if "docs" in metadata else "N/A",
                     info=metadata["info"] if "info" in metadata else "N/A",
+                    template_rules=metadata["template_rules"] if "info" in metadata else "N/A",
+                    values_rules=metadata["values_rules"] if "info" in metadata else "N/A"
                 )
 
     @rx.event(background=True)
