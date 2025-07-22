@@ -888,16 +888,17 @@
 <p><strong>Important: if you are self hosting seed nodes, only nodes within the same network as the seed node can be added successfully. This limitation does not apply to our managed seeds</strong></p>
 </blockquote>
 <p>Increase the power of your AI pool by adding resources from other devices. For that, you need to generate a joining token. You can do this by using the seed GUI or the CLI.</p>
-<p><strong>Using the seed GUI</strong></p>
+<p><strong>[On the seed node] Using the GUI</strong></p>
 <p>Use the navigation panel to go to <code>Devices</code>, and then click the <code>circle-plus</code> button to add new devices. You can select the <code>Access mode</code>, which determine the level of access new nodes will have over the pool:
 - <code>admin</code>: Same level of access than the seed node, including generating new joining tokens and deleting nodes.
 - <code>user</code>: Can deploy jobs, but lacks admin access over nodes.
 - <code>worker</code>: Workers carry on jobs, but cannot deploy their own jobs or manage devices.</p>
 <p><img alt="Invite others to join" src="../assets/images/ui_devices_invite.png" /></p>
-<p><strong>Using the CLI</strong></p>
-<p>From the command-line, run the following to obtain your joining token:</p>
+<p><strong>[On the seed node] Using the CLI</strong></p>
+<p><strong>Alternatively</strong>, if you do not want to use the GUI, you can join from the command-line. Run the following to obtain your joining token:</p>
 <pre><code class="language-bash">kalavai pool token --worker
 </code></pre>
+<p><strong>[On the worker node] Join the pool</strong></p>
 <p>Once you have the joining token, use it on the machines you want to add to the pool. Workers can use the GUI interface to make this step easier too:</p>
 <pre><code class="language-bash">kalavai gui start
 </code></pre>
@@ -905,7 +906,7 @@
 <p><img alt="Use the token to join" src="../assets/images/ui_join_part1.png" /></p>
 <p>Kalavai asks you if you want to join (run workloads in the local machine) or attach (use the node to access and control the pool, without running workloads) to the pool. </p>
 <p><img alt="Choose to join or attach" src="../assets/images/ui_join_part2.png" /></p>
-<p>For command-liners, join with the CLI:</p>
+<p><strong>Alternatively</strong>, for command-liners, join with the CLI:</p>
 <pre><code class="language-bash">kalavai pool join &lt;TOKEN&gt;
 </code></pre>
 <p>Or attach with the CLI:</p>
