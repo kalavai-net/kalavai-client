@@ -326,22 +326,26 @@ class JobsView(TableView):
                 justify="end"
             ),
             rx.text("3. Populate template values", as_="div", size="4", margin_bottom="10px", weight="bold"),
-            rx.accordion.root(
-                rx.accordion.item(
-                    header="What do these values mean",
-                    content=rx.markdown(JobsState.template_metadata.values_rules)
-                ),
-                collapsible=True,
-                color_scheme="gray",
-                variant="outline"
-            ),
+            # rx.accordion.root(
+            #     rx.accordion.item(
+            #         header="What do these values mean",
+            #         content=rx.markdown(JobsState.template_metadata.values_rules)
+            #     ),
+            #     collapsible=True,
+            #     color_scheme="gray",
+            #     variant="outline"
+            # ),
             rx.form(
                 rx.flex(
-                    rx.foreach(
-                        JobsState.template_params,
-                        lambda item: self.show_parameter(item, required=True),
+                    rx.flex(
+                        rx.foreach(
+                            JobsState.template_params,
+                            lambda item: self.show_parameter(item, required=True),
+                        ),
+                        spacing="1",
+                        justify="between",
+                        direction="column"
                     ),
-                    rx.separator(size="4"),
                     rx.accordion.root(
                         rx.accordion.item(
                             header="Advanced parameters",
@@ -380,32 +384,21 @@ class JobsView(TableView):
                         ),
                         default_value="workers",
                     ),
-                    # rx.accordion.root(
-                    #     rx.accordion.item(
-                    #         header="Available resources",
-                    #         content=[
-                    #             rx.text(f"Devices: {DashboardState.online_devices}/{DashboardState.total_devices}"),
-                    #             rx.text(f"CPUs: {DashboardState.online_cpus:.1f}/{DashboardState.total_cpus:.1f}"),
-                    #             rx.text(f"RAM: {DashboardState.online_ram:.2f}/{DashboardState.total_ram:.2f} GB"),
-                    #             rx.text(f"GPUs: {DashboardState.online_gpus}/{DashboardState.total_gpus}"),
-                    #         ],
-                    #         on_click=DashboardState.load_data,
-                    #         collapsible=True,
-                    #         color_scheme="gray"
-                    #     )
-                    # ),
                     rx.dialog.close(
                         rx.hstack(
-                            rx.button(
-                                "Deploy",
-                                type="submit",
-                                on_click=rx.toast("Deployment submitted", position="top-center")
+                            rx.tooltip(
+                                rx.button(
+                                    "Deploy",
+                                    type="submit",
+                                    on_click=rx.toast("Deployment submitted", position="top-center")
+                                ),
+                                content="If your pool does not have enough resources available the job will be queued with **pending** status until sufficient resources are freed."
                             ),
                             justify="end"
                         )
                     ),
                     direction="column",
-                    spacing="2",
+                    spacing="4",
                     margin_botton="10px"
                 ),
                 direction="column",
