@@ -175,7 +175,6 @@ def is_watcher_alive(server_creds, user_cookie, timeout=30):
             timeout=timeout
         )
     except Exception as e:
-        print(str(e))
         return False
     return True
 
