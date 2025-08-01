@@ -313,7 +313,7 @@ def fetch_job_details(jobs: list[Job]):
                         restart_counts = sum([c["restart_count"] for c in values["conditions"]])
                     workers_status[values["status"]] += 1
                     # get nodes involved in deployment (needs kubewatcher)
-                    if "node_name" in values:
+                    if "node_name" in values and values["node_name"] is not None:
                         host_nodes.add(values["node_name"])
 
             workers = "\n".join([f"{k}: {v}" for k, v in workers_status.items()])
@@ -454,9 +454,18 @@ def fetch_devices():
         return {"error": str(e)}
 
 def fetch_job_logs(job_name, force_namespace=None, pod_name=None, tail=100):
+    return fetch_pod_logs(
+        label_key=TEMPLATE_LABEL,
+        label_value=job_name,
+        pod_name=pod_name,
+        force_namespace=force_namespace,
+        tail=tail
+    )
+
+def fetch_pod_logs(label_key, label_value, force_namespace=None, pod_name=None, tail=100):
     data = {
-        "label": TEMPLATE_LABEL,
-        "value": job_name,
+        "label": label_key,
+        "value": label_value,
         "tail": tail
     }
     if force_namespace is not None:
@@ -609,9 +618,16 @@ def attach_to_pool(token, node_name=None):
 
     return cluster_name
 
-def generate_worker_package(target_platform="amd64", num_gpus=0, node_name=None, ip_address="0.0.0.0", storage_compatible=True):
+def generate_worker_package(
+        target_platform="amd64",
+        num_gpus=0,
+        node_name=None,
+        ip_address="0.0.0.0",
+        storage_compatible=True,
+        mode=TokenType.WORKER
+):
     # get pool data from token  
-    token = get_pool_token(mode=TokenType.WORKER)
+    token = get_pool_token(mode=mode)
     if "error" in token:
         return {"error": f"[red]Error when getting pool token: {token['error']}"}
     

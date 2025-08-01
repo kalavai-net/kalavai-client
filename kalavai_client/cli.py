@@ -27,6 +27,8 @@ from kalavai_client.env import (
     USER_TEMPLATES_FOLDER,
     DOCKER_COMPOSE_GUI,
     USER_GUI_COMPOSE_FILE,
+    KALAVAI_SERVICE_LABEL,
+    KALAVAI_SERVICE_LABEL_VALUE,
     user_path,
     resource_path,
 )
@@ -37,6 +39,7 @@ from kalavai_client.core import (
     fetch_job_details,
     fetch_devices,
     fetch_job_logs,
+    fetch_pod_logs,
     fetch_gpus,
     generate_worker_package,
     load_gpu_models,
@@ -689,6 +692,25 @@ def pool__update(*others):
     else:
         console.log(f"[green]{result}")
 
+@arguably.command
+def pool__logs(*others):
+    """
+    Get the logs for the Kalavai API
+    """
+    logs = []
+
+    logs.append("Getting Kalavai API logs...")
+
+    logs = fetch_pod_logs(
+        label_key=KALAVAI_SERVICE_LABEL,
+        label_value=KALAVAI_SERVICE_LABEL_VALUE,
+        force_namespace="kalavai"
+    )  
+    for name, log in logs.items():
+        console.log(f"[yellow]LOGS for service: {name}")
+        for key, value in log.items():
+            console.log(f"[yellow]{key}")
+            console.log(json.dumps(value, indent=2))
 
 @arguably.command
 def pool__status(*others, log_file=None):
