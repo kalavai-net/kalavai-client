@@ -27,6 +27,7 @@ class JobsState(rx.State):
     current_deploy_step: int = 0
     is_loading: bool = False
     logs: str = None
+    service_logs: str = None
     items: List[Job] = []
     is_selected: dict[int, bool]
     templates: list[str] = []
@@ -85,6 +86,36 @@ class JobsState(rx.State):
     
     def filter_templates(self, templates):
         return [t for t in templates if t not in ["custom"]]
+    
+    @rx.event(background=True)
+    async def load_service_logs(self):
+        async with self:
+            self.service_logs = None
+        
+        try:
+            logs = request_to_kalavai_core(
+                method="get",
+                endpoint="fetch_service_logs"
+            )
+        except Exception as e:
+            return rx.toast.error(f"{e}", position="top-center")
+        async with self:
+            if "error" in logs:
+                self.logs = logs["error"]
+            else:
+                formatted_logs = []
+                for name, info in logs.items():
+                    formatted_logs.append("------")
+                    formatted_logs.append(f"--> Service: {name} in {info['pod']['spec']['node_name']}")
+                    formatted_logs.append("------")
+                    formatted_logs.extend(info['logs'].split("\n"))
+                    formatted_logs.append("")
+                    #logs = {name: log.split("\n") for name, log in logs.items()}
+                if len(formatted_logs) == 0:
+                    self.service_logs = "No logs found. Is this your job?"
+                else:
+                    self.service_logs = "\n".join(formatted_logs)
+
 
     @rx.event(background=True)
     async def load_templates(self):

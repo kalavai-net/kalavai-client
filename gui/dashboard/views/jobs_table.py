@@ -185,6 +185,49 @@ class JobsView(TableView):
                         style={"max_width": 450},
                     ),
                 ),
+                rx.alert_dialog.root(
+                    rx.alert_dialog.trigger(
+                        rx.button(
+                            rx.icon("info", size=20),
+                            "",
+                            size="3",
+                            variant="surface",
+                            display=["none", "none", "none", "flex"],
+                            on_click=JobsState.load_service_logs
+                        )
+                    ),
+                    rx.alert_dialog.content(
+                        rx.alert_dialog.title("Kalavai API service logs"),
+                        rx.alert_dialog.description(
+                            "Kalavai API service status.",
+                            size="2",
+                        ),
+                        rx.flex(
+                            rx.container(
+                                rx.vstack(
+                                    rx.scroll_area(
+                                        rx.code_block(JobsState.service_logs),
+                                        scrollbars="vertical",
+                                        style={"height": 500}
+                                    )
+                                ),
+                                stack_children_full_width=True
+                            ),
+                            rx.alert_dialog.cancel(
+                                rx.button(
+                                    "OK",
+                                    variant="soft",
+                                    color_scheme="gray",
+                                ),
+                            ),
+                            spacing="3",
+                            margin_top="16px",
+                            justify="end",
+                            direction="column"
+                        ),
+                        style={"max_width": 1000},
+                    ),
+                ),
                 rx.button(
                     rx.icon("refresh-cw", size=20),
                     "",
@@ -346,6 +389,7 @@ class JobsView(TableView):
                         justify="between",
                         direction="column"
                     ),
+                    rx.separator(size="4"),
                     rx.accordion.root(
                         rx.accordion.item(
                             header="Advanced parameters",
@@ -384,6 +428,20 @@ class JobsView(TableView):
                         ),
                         default_value="workers",
                     ),
+                    # rx.accordion.root(
+                    #     rx.accordion.item(
+                    #         header="Available resources",
+                    #         content=[
+                    #             rx.text(f"Devices: {DashboardState.online_devices}/{DashboardState.total_devices}"),
+                    #             rx.text(f"CPUs: {DashboardState.online_cpus:.1f}/{DashboardState.total_cpus:.1f}"),
+                    #             rx.text(f"RAM: {DashboardState.online_ram:.2f}/{DashboardState.total_ram:.2f} GB"),
+                    #             rx.text(f"GPUs: {DashboardState.online_gpus}/{DashboardState.total_gpus}"),
+                    #         ],
+                    #         on_click=DashboardState.load_data,
+                    #         collapsible=True,
+                    #         color_scheme="gray"
+                    #     )
+                    # ),
                     rx.dialog.close(
                         rx.hstack(
                             rx.tooltip(

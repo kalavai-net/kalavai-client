@@ -217,23 +217,69 @@ class DevicesView(TableView):
                     ),
                     rx.dialog.content(
                         rx.dialog.title("Add new devices to the pool"),
-                        rx.dialog.description("Invite other users to share resources and add computing power to this pool", margin_bottom="10px"),
                         rx.flex(
                             rx.link("How to join a pool", href="https://kalavai-net.github.io/kalavai-client/getting_started/#2-add-worker-nodes", is_external=True),
-                            rx.text("Access mode for the token"),
+                            rx.markdown("### Access mode for the token"),
+                            rx.text("What permissions to grant the worker node"),
                             rx.radio(
                                 PoolsState.token_modes,
                                 on_change=PoolsState.get_pool_token,
                                 direction="column"
                             ),
+                            rx.markdown("### How to join"),
                             rx.cond(
                                 PoolsState.token == "",
-                                rx.flex(rx.card(rx.text("Select token access"))),
-                                rx.flex(
-                                    rx.card(rx.text(PoolsState.token)),
-                                    rx.button(rx.icon("copy"), on_click=[rx.set_clipboard(PoolsState.token), rx.toast.success("Copied", position="top-center")]),
-                                   
-                                ),
+                                rx.flex(rx.card(rx.text("Select token access first"))),
+                                rx.tabs.root(
+                                    rx.tabs.list(
+                                        rx.tabs.trigger("Using docker", value="yaml"),
+                                        rx.tabs.trigger("Using kalavai cli", value="cli")
+                                    ),
+                                    rx.tabs.content(
+                                        rx.flex(
+                                            rx.markdown("### Worker specs"),
+                                            rx.text("Select the specs for the target worker you want to join the pool"),
+                                            rx.card(
+                                                rx.tooltip(
+                                                    rx.flex(
+                                                        rx.text("GPUs"),
+                                                        rx.input(placeholder="0", value="0", on_change=PoolsState.set_worker_gpus),
+                                                        spacing="4"
+                                                    ),
+                                                    content="Number of GPUs present in the worker (0 for no GPU)"
+                                                ),
+                                                rx.tooltip(
+                                                    rx.flex(
+                                                        rx.text("Target platform"),
+                                                        rx.radio(
+                                                            PoolsState.target_platforms,
+                                                            on_change=PoolsState.set_worker_platform,
+                                                            direction="row",
+                                                        ),
+                                                        spacing="4"
+                                                    ),
+                                                    content="Windows and Linux (amd64), Mac and Raspberry Pi (arm64)"
+                                                ),
+                                                justify="end"
+                                            ),
+                                            rx.button("Generate worker yaml", on_click=PoolsState.generate_worker_config),
+                                            rx.markdown("#### Download the worker.yaml config on the worker node and run the following command from the folder that contains the config:"),
+                                            rx.card(rx.text("docker compose -f worker.yaml up -d")),
+                                            spacing="4",
+                                            direction="column"
+                                        ),
+                                        value="yaml"
+                                    ),
+                                    rx.tabs.content(
+                                        rx.text("Use the following token to join the pool with the kalavai CLI"),
+                                        rx.flex(
+                                            rx.card(rx.text(PoolsState.token)),
+                                            rx.button(rx.icon("copy"), on_click=[rx.set_clipboard(PoolsState.token), rx.toast.success("Copied", position="top-center")])
+                                        ),
+                                        value="cli",
+                                    ),
+                                    default_value="yaml"
+                                )
                             ),
                             rx.separator(size="4"),
                             direction="column",
@@ -241,7 +287,7 @@ class DevicesView(TableView):
                             margin_botton="10px"
                         ),
                         rx.hstack(
-                            rx.text("Machines must be able to see each other (shared private network or with a public IP). This is not required when using Managed pools.", weight="bold", width="85%")
+                            rx.markdown("_Machines must be able to see each other (shared private network or with a public IP). This is not required when using Managed pools._", width="85%")
                         ),
                         rx.dialog.close(
                             rx.button(

@@ -9,6 +9,10 @@ from starlette.requests import Request
 import uvicorn
 
 from kalavai_client.core import Job
+from kalavai_client.env import (
+    KALAVAI_SERVICE_LABEL,
+    KALAVAI_SERVICE_LABEL_VALUE
+)
 from kalavai_client.bridge_models import (
     CreatePoolRequest,
     InvitesRequest,
@@ -18,7 +22,8 @@ from kalavai_client.bridge_models import (
     DeleteJobRequest,
     JobDetailsRequest,
     NodesActionRequest,
-    NodeLabelsRequest
+    NodeLabelsRequest,
+    WorkerConfigRequest
 )
 from kalavai_client.core import (
     create_pool,
@@ -34,6 +39,7 @@ from kalavai_client.core import (
     fetch_job_logs,
     fetch_job_templates,
     fetch_job_defaults,
+    fetch_pod_logs,
     deploy_job,
     delete_job,
     authenticate_user,
@@ -52,6 +58,7 @@ from kalavai_client.core import (
     uncordon_nodes,
     add_node_labels,
     get_node_labels,
+    generate_worker_package,
     TokenType
 )
 from kalavai_client.utils import (
@@ -241,6 +248,21 @@ def get_token(mode: int, api_key: str = Depends(verify_api_key)):
     """
     return get_pool_token(mode=TokenType(mode))
 
+@app.post("/generate_worker_config",
+    operation_id="generate_worker_config",
+    summary="Generate a config file for a remote worker to connect to the pool",
+    description="Generate a config file for a remote worker to connect to the pool. Different token types provide different levels of access - join tokens allow nodes to contribute resources, while attach tokens allow management access.",
+    tags=["pool_management"],
+    response_description="Worker config file")
+def generate_worker_config(request: WorkerConfigRequest, api_key: str = Depends(verify_api_key)):
+    return generate_worker_package(
+        node_name=request.node_name,
+        mode=TokenType(request.mode),
+        target_platform=request.target_platform,
+        num_gpus=request.num_gpus,
+        ip_address=request.ip_address,
+        storage_compatible=request.storage_compatible)
+
 @app.get("/fetch_devices",
     operation_id="fetch_devices",
     summary="Get list of all compute devices in the pool",
@@ -250,6 +272,15 @@ def get_token(mode: int, api_key: str = Depends(verify_api_key)):
 def get_devices(api_key: str = Depends(verify_api_key)):
     """Get list of available devices"""
     return fetch_devices()
+
+@app.get("/fetch_service_logs",
+    operation_id="fetch_service_logs",
+    summary="Get logs for the kalavai API service",
+    description="Get logs for the kalavai API service, including internal logs, debugging messages and status of the service.",
+    tags=["info"],
+    response_description="Logs")
+def get_service_logs(api_key: str = Depends(verify_api_key)):
+    return fetch_pod_logs(label_key=KALAVAI_SERVICE_LABEL, label_value=KALAVAI_SERVICE_LABEL_VALUE, force_namespace="kalavai")
 
 @app.post("/send_pool_invites",
     operation_id="send_pool_invites",

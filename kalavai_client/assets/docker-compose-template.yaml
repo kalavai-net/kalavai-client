@@ -3,7 +3,7 @@ services:
   {{vpn_name}}:
     image: gravitl/netclient:v0.90.0
     container_name: {{vpn_name}}
-    platform: linux/amd64
+    platform: linux/{{target_platform}}
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
@@ -21,6 +21,7 @@ services:
     image: docker.io/bundenth/kalavai-runner:{{target_platform}}-latest
     pull_policy: always
     container_name: {{service_name}}
+    platform: linux/{{target_platform}}
   {% if vpn %}
     depends_on:
     - {{vpn_name}}

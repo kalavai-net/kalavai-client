@@ -17,6 +17,15 @@ class CreatePoolRequest(BaseModel):
     token_mode: TokenType = Field(TokenType.USER, description="Token type for authentication")
     description: str = Field("", description="Description of the pool")
 
+class WorkerConfigRequest(BaseModel):
+    node_name: str = Field(None, description="Name for the worker node")
+    mode: int = Field(2, description="Access mode for the worker (admin, worker or user)")
+    target_platform: str = Field("amd64", description="Target platform architecture for the worker (amd64 or arm64)")
+    num_gpus: int = Field(0, description="Number of GPUs to use on the worker node")
+    ip_address: str = Field("0.0.0.0", description="IP address of the worker node")
+    storage_compatible: bool = Field(True, description="Whether to use the node's storage capacity for volumes")
+
+
 class NodesActionRequest(BaseModel):
     nodes: list[str] = Field(None, description="List of node names to perform the action on, defaults to None")
 

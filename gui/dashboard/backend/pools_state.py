@@ -30,6 +30,13 @@ class PoolsState(rx.State):
     offset: int = 0
     limit: int = 12  # Number of rows per page
 
+    # worker management
+    target_platforms: List[str] = ["amd64", "arm64"]
+    worker_config: str = None
+    worker_mode: str = None
+    worker_num_gpus: int = 0
+    worker_platform: str = None
+
     @rx.var(cache=True)
     def page_number(self) -> int:
         return (self.offset // self.limit) + 1
@@ -261,6 +268,7 @@ class PoolsState(rx.State):
 
     @rx.event
     def get_pool_token(self, mode):
+        self.worker_mode = mode
         try:
             result = request_to_kalavai_core(
                 method="get",
@@ -278,3 +286,42 @@ class PoolsState(rx.State):
     @rx.event
     def update_token(self, token):
         self.token = token
+    
+    @rx.event
+    def set_worker_gpus(self, num_gpus):
+        if len(num_gpus.strip()) == 0:
+            return
+        try:
+            self.worker_num_gpus = int(num_gpus)
+        except:
+            return rx.toast.error("Invalid value for Number of GPUs (only integers allowed)", position="top-center")
+    
+    @rx.event
+    def set_worker_platform(self, platform):
+        if platform not in self.target_platforms:
+            return rx.toast.error(f"Invalid target platform. Must be one of the following: {self.target_platforms}", position="top-center")
+        self.worker_platform = platform
+
+    @rx.event(background=True)
+    async def generate_worker_config(self):
+        if self.worker_mode is None:
+            return rx.toast.error("Worker mode not selected", position="top-center")
+        if self.worker_platform is None:
+            return rx.toast.error("Target platform not selected", position="top-center")
+        data = {
+            "mode": self.token_modes.index(self.worker_mode),
+            "target_platform": self.worker_platform,
+            "num_gpus": self.worker_num_gpus
+        }
+        try:
+            result = request_to_kalavai_core(
+                method="post",
+                endpoint="generate_worker_config",
+                json=data
+            )
+        except Exception as e:
+            return rx.toast.error(f"Error generating worker config: {e}", position="top-center")
+        
+        async with self:
+            self.worker_config = result
+            return rx.download(data=self.worker_config, filename="worker.yaml")
