@@ -20,6 +20,8 @@ repositories:
     url: https://charts.min.io/
   - name: langfuse
     url: https://langfuse.github.io/langfuse-k8s
+  - name: hami-charts
+    url: https://project-hami.github.io/HAMi
 
 releases:
   - name: datashim
@@ -185,9 +187,30 @@ releases:
     namespace: kalavai
     chart: kalavai/gpu
     installed: false    
+  # - name: hami-vgpu
+  #   namespace: kalavai
+  #   chart: kalavai/hami
+  #   installed: true
+  #   set:
+  #   - name: resourceCores
+  #     value: "nvidia.com/gpucores"
+  #   - name: devicePlugin.runtimeClassName
+  #     value: "nvidia"
+  #   - name: scheduler.defaultSchedulerPolicy.nodeSchedulerPolicy
+  #     value: "binpack"
+  #   - name: scheduler.defaultSchedulerPolicy.gpuSchedulerPolicy
+  #     value: "binpack"
+  #   - name: scheduler.defaultCores
+  #     value: "100"
+  #   - name: scheduler.kubeScheduler.imageTag
+  #     value: v1.31.1
+  #   - name: devicePlugin.deviceMemoryScaling
+  #     value: "1"
+  #   - name: devicePlugin.deviceSplitCount
+  #     value: "1"
   - name: hami-vgpu
     namespace: kalavai
-    chart: kalavai/hami
+    chart: hami-charts/hami
     installed: true
     set:
     - name: resourceCores
@@ -206,13 +229,5 @@ releases:
       value: "1"
     - name: devicePlugin.deviceSplitCount
       value: "1"
-    # - name: scheduler.customWebhook.port
-    #   value: "30498"
-    # - name: scheduler.service.schedulerPort
-    #   value: "30498"
-    # - name: scheduler.service.monitorPort
-    #   value: "30493"
-    # - name: devicePlugin.service.httpPort
-    #   value: "30492"
     
 
