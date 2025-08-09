@@ -26,6 +26,11 @@ class DevicesState(rx.State):
     new_label_value: str = ""
     selected_node: str = ""
 
+    total_items: int = 0
+    offset: int = 0
+    limit: int = 10  # Number of rows per page
+    
+
     @rx.var
     def current_node_labels(self) -> Dict[str, str]:
         """Get the labels for the currently selected node."""
@@ -44,10 +49,6 @@ class DevicesState(rx.State):
             available = self.current_resources[self.selected_node]["available"][key]
             resources[key] = f"{available} out of {value}"
         return resources
-
-    total_items: int = 0
-    offset: int = 0
-    limit: int = 12  # Number of rows per page
 
     @rx.var(cache=True)
     def page_number(self) -> int:
@@ -105,10 +106,15 @@ class DevicesState(rx.State):
     async def remove_entries(self):
         async with self:
             try:
+                all_elements = []
+                for row, state in self.is_selected.items():
+                    if state:
+                        element = row + (self.page_number-1) * self.limit # 'row' is only local to current page, we need to calculate global row
+                        all_elements.append(self.items[element].data["name"])
                 result = request_to_kalavai_core(
                     method="post",
                     endpoint="delete_nodes",
-                    json={"nodes": [self.items[row].data["name"] for row, state in self.is_selected.items() if state]}
+                    json={"nodes": all_elements} #[self.items[row].data["name"] for row, state in self.is_selected.items() if state]}
                 )
             except Exception as e:
                 return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")

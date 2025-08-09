@@ -40,7 +40,7 @@ class JobsState(rx.State):
 
     total_items: int = 0
     offset: int = 0
-    limit: int = 12  # Number of rows per page
+    limit: int = 10  # Number of rows per page
 
 
     @rx.var(cache=True)
@@ -83,6 +83,7 @@ class JobsState(rx.State):
         self.selected_template = ""
         self.set_deploy_step(0)
         self.selected_labels = {}
+        self.is_selected = {}
     
     def filter_templates(self, templates):
         return [t for t in templates if t not in ["custom"]]
@@ -179,13 +180,14 @@ class JobsState(rx.State):
     async def remove_entries(self):
         async with self:
             for row, state in self.is_selected.items():
+                element = row + (self.page_number-1) * self.limit # 'row' is only local to current page, we need to calculate global row
                 if not state:
                     continue
                 try:
                     result = request_to_kalavai_core(
                         method="post",
                         endpoint="delete_job",
-                        json={"name": self.items[row].data["name"], "force_namespace": self.items[row].data["owner"]}
+                        json={"name": self.items[element].data["name"], "force_namespace": self.items[element].data["owner"]}
                     )
                 except Exception as e:
                     toast = rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
