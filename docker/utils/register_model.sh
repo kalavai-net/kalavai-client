@@ -1,6 +1,7 @@
 #!/bin/bash
 
 cache_dir="/cache"
+job_id="None"
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -25,6 +26,9 @@ while [ $# -gt 0 ]; do
     --model_info=*)
       model_info="${1#*=}"
       ;;
+    --job_id=*)
+      job_id="${1#*=}"
+      ;;
     *)
       printf "***************************\n"
       printf "* Error: Invalid argument.*\n"
@@ -41,7 +45,7 @@ result=$(curl -X POST "$litellm_base_url/model/new" \
     -d '{
           "model_name": "'$litellm_model_name'",
           "model_info": '"$model_info"',
-          "litellm_params": {"model": "'$provider'/'$model_id'", "api_base": "'$api_base'", "api_key": "DUMMY"}
+          "litellm_params": {"model": "'$provider'/'$model_id'", "api_base": "'$api_base'", "api_key": "DUMMY", "job_id": "'$job_id'"}
         }' 2>&1)
 
 
