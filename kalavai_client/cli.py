@@ -1166,38 +1166,47 @@ def job__delete(name, *others, force_namespace: str=None):
 
 
 @arguably.command
-def job__estimate(billion_parameters, *others, precision=32):
-    """Guesstimate of resources needed based on required memory and current resources"""
-    try:
-        CLUSTER.validate_cluster()
-    except Exception as e:
-        console.log(f"[red]Problems with your pool: {str(e)}")
-        return
-    
-    average_vram = 8
-    required_memory = float(billion_parameters) * (precision / 8) / 1.2
-    available_gpus = load_gpu_models()
-    vrams = []
-    for _, gpus in available_gpus:
-        for model in gpus["gpus"]:
-            vrams.extend([int(model["memory"])/1000] * int(gpus["capacity"]) )
-    vrams = sorted(vrams, reverse=False)
+def job__estimate(
+    *others, 
+    model_size: float,
+    precision: str = "fp16",
+    context_window: int = 2048,
+    batch_size: int = 1,
+    num_layers: int = 32, # total layers, or num_key_value_heads, whatever is minimum (impacts KV cache)
+    hidden_dim: int = 4096,
+    overhead_factor: float = 0.15
+):
+    # Bytes per parameter based on precision
+    precision_bytes = {
+        "fp32": 4,
+        "fp16": 2,
+        "int8": 1,
+        "int4": 0.5
+    }
 
-    console.log(f"There are {len(vrams)} GPUs available ({sum(vrams)}GBs)")
-    console.log(f"A [yellow]{billion_parameters}B[white] model requires [yellow]~{required_memory:.2f}GB vRAM[white] at {precision}bits precision")
+    if precision not in precision_bytes:
+        raise ValueError(f"Unsupported precision: {precision}. Choose from {list(precision_bytes.keys())}")
 
-    if sum(vrams) < required_memory:
-        console.log("Current capacity is insufficient to host the model, but it can be scheduled for when it is!")
-        console.log(f"Average devices have {average_vram}GB vRAM, use {math.ceil(required_memory/(average_vram))} GPU workers")
-    else:
-        current_vram = 0
-        n_devices = 0
-        for mem in vrams:
-            current_vram += mem
-            n_devices += 1
-            if current_vram > required_memory:
-                break
-        console.log(f"Looking at current capacity, use [green]{n_devices} GPU workers[white] for a total [green]{current_vram:.2f} GB vRAM")  
+    # Model parameters
+    total_params = model_size * 1e9
+    model_weights_vram = total_params * precision_bytes[precision] / 1e9  # GB
+
+    # KV Cache memory
+    # Approximation: KV cache = batch × layers × hidden_dim × 2 (K/V) × context × bytes
+    kv_cache_vram = (
+        batch_size * num_layers * hidden_dim * 2 * context_window * precision_bytes[precision]
+    ) / 1e9  # GB
+
+    # Total VRAM including overhead
+    total_vram = model_weights_vram + kv_cache_vram
+    total_vram *= (1 + overhead_factor)
+
+    result = {
+        "model_weights_vram_gb": round(model_weights_vram, 2),
+        "kv_cache_vram_gb": round(kv_cache_vram, 2),
+        "estimated_total_vram_gb": round(total_vram, 2)
+    }
+    console.log(f"[green]{result}")
 
 @arguably.command
 def job__status(name, *others):
