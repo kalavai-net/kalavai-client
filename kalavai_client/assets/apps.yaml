@@ -2,6 +2,13 @@ helmDefaults:
   timeout: 1200
 
 repositories:
+  # amd gpu operator: https://github.com/ROCm/gpu-operator
+  - name: rocm
+    url: https://rocm.github.io/gpu-operator
+  # required by rocm
+  - name: jetstacks
+    url: https://charts.jetstack.io
+  ###
   - name: kuberay
     url: https://ray-project.github.io/kuberay-helm/
   - name: nvidia
@@ -24,6 +31,20 @@ repositories:
     url: https://project-hami.github.io/HAMi
 
 releases:
+  - name: certificates
+    namespace: kalavai
+    chart: jetstacks/cert-manager
+    version: v1.15.1
+    installed: true
+    set:
+    - name: crds.enabled
+      value: true
+  - name: rocm
+    needs: 
+    - kalavai/certificates
+    namespace: kalavai
+    chart: rocm/gpu-operator-charts
+    installed: true
   - name: datashim
     namespace: dlf
     chart: kalavai/kalavai-datashim
@@ -156,7 +177,7 @@ releases:
     - name: replicas
       value: 1
     - name: image_tag
-      value: "v2025.08.2" #"v2025.07.34"
+      value: "v2025.08.3" #"v2025.07.34"
     - name: deployment.in_cluster
       value: "True"
     - name: deployment.kalavai_username_key
@@ -186,28 +207,7 @@ releases:
   - name: nvidia-gpu-operator
     namespace: kalavai
     chart: kalavai/gpu
-    installed: false    
-  # - name: hami-vgpu
-  #   namespace: kalavai
-  #   chart: kalavai/hami
-  #   installed: true
-  #   set:
-  #   - name: resourceCores
-  #     value: "nvidia.com/gpucores"
-  #   - name: devicePlugin.runtimeClassName
-  #     value: "nvidia"
-  #   - name: scheduler.defaultSchedulerPolicy.nodeSchedulerPolicy
-  #     value: "binpack"
-  #   - name: scheduler.defaultSchedulerPolicy.gpuSchedulerPolicy
-  #     value: "binpack"
-  #   - name: scheduler.defaultCores
-  #     value: "100"
-  #   - name: scheduler.kubeScheduler.imageTag
-  #     value: v1.31.1
-  #   - name: devicePlugin.deviceMemoryScaling
-  #     value: "1"
-  #   - name: devicePlugin.deviceSplitCount
-  #     value: "1"
+    installed: false
   - name: hami-vgpu
     namespace: kalavai
     chart: hami-charts/hami

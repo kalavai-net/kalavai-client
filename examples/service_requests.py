@@ -8,11 +8,11 @@ import time
 from typing import List, Dict, Any
 
 # Configuration
-API_URL = "http://0.0.0.0:30617/v1/chat/completions"  # Replace with your OpenAI-compatible API URL
+API_URL = "https://api.cogenai.kalavai.net/v1/chat/completions"  # Replace with your OpenAI-compatible API URL
 API_KEY = "sk-1234"  # Replace with your actual API key
-MODEL = "qwen2.5-1.5b-instruct-q2_k.gguf"  # Replace with your model name
-NUM_PARALLEL_CALLS = 1  # Change this to adjust number of parallel requests
-NUM_REQUESTS = 1  # Total number of requests to make
+MODEL = "qwen-qwen3-30b-a3b-instruct-2507"  # Replace with your model name
+NUM_PARALLEL_CALLS = 15  # Change this to adjust number of parallel requests
+NUM_REQUESTS = 15  # Total number of requests to make
 PROMPT_TEMPLATE = "Explain the concept of {topic} in simple terms."
 TOPICS = ["quantum computing", "machine learning", "neural networks", "artificial intelligence", "blockchain"]
 
