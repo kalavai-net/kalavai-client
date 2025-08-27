@@ -505,7 +505,7 @@ def fetch_gpus(available=False):
                 status = gpu["ready"] if "ready" in gpu else True
                 if available and not status:
                     continue
-                row_gpus.append( (f"{gpu['model']} ({math.floor(int(gpu['memory'])/1000)} GBs)", str(status)))
+                row_gpus.append( (f"{gpu['model']} ({gpu['memory']}) vRAM)", str(status)))
             if len(row_gpus) > 0:
                 models, statuses = zip(*row_gpus)
                 #rows.append([node, "\n".join(statuses), "\n".join(models), str(gpus["available"]), str(gpus["capacity"])])
