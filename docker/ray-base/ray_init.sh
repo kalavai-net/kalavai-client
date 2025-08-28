@@ -12,7 +12,7 @@ round() {
   printf "%.${2}f" "${1}"
 }
 
-source /home/ray/workspace/env/bin/activate
+#source /home/ray/workspace/env/bin/activate
 
 case "$subcommand" in
   worker)
