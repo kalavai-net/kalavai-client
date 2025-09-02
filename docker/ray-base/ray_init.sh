@@ -95,8 +95,8 @@ case "$subcommand" in
     # start the ray daemon
     memory=$(echo "$ray_object_store_memory*0.75" | bc -l)
     round_mem=$(round ${memory} 0)
-    RAY_BACKEND_LOG_LEVEL=error ray start --head --include-dashboard=True --dashboard-host=0.0.0.0 --port=$ray_port --object-store-memory=$round_mem $ray_block
-
+    RAY_BACKEND_LOG_LEVEL=error ray start --head --port=$ray_port --object-store-memory=$round_mem $ray_block
+    # --include-dashboard=True --dashboard-host=0.0.0.0
     # wait until all workers are active
     for (( i=0; i < $ray_init_timeout; i+=5 )); do
         active_nodes=`python3 -c 'import ray; ray.init(); print(sum(node["Alive"] for node in ray.nodes()))'`
