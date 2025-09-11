@@ -8,13 +8,64 @@ import time
 from typing import List, Dict, Any
 
 # Configuration
-API_URL = "http://51.159.157.183:32492/v1/chat/completions"  # Replace with your OpenAI-compatible API URL
+API_URL = "http://51.159.157.183:30947/v1/chat/completions"  # Replace with your OpenAI-compatible API URL
 API_KEY = "sk-1234"  # Replace with your actual API key
-MODEL = "Qwen/Qwen3-0.6B"  # Replace with your model name
-NUM_PARALLEL_CALLS = 1  # Change this to adjust number of parallel requests
-NUM_REQUESTS = 1  # Total number of requests to make
-PROMPT_TEMPLATE = "Explain the concept of {topic} in simple terms."
-TOPICS = ["quantum computing", "machine learning", "neural networks", "artificial intelligence", "blockchain"]
+MODEL = "Qwen/Qwen3-14B"  # Replace with your model name
+NUM_PARALLEL_CALLS = 50  # Change this to adjust number of parallel requests
+NUM_REQUESTS = 50  # Total number of requests to make
+PROMPT_TEMPLATE = "Answer the following question: {topic}"
+TOPICS = [
+    "How would you describe the culture and lifestyle in France?",
+    "In what ways has Einstein’s theory of relativity influenced modern science and technology?",
+    "Why is gold considered valuable both scientifically and economically?",
+    "What makes Mars a strong candidate for future human exploration?",
+    "How did George Washington shape the early years of the United States?",
+    "Why are whales considered important to marine ecosystems?",
+    "How do the continents of Earth differ in terms of climate and biodiversity?",
+    "Why is mathematics considered the foundation of science?",
+    "How has Shakespeare’s 'Romeo and Juliet' influenced literature and popular culture?",
+    "Why is photosynthesis essential for life on Earth?",
+    "What were the major consequences of World War II on global politics?",
+    "How is diamond used in both industry and jewelry?",
+    "Why is the Mona Lisa regarded as one of the most famous paintings in the world?",
+    "How does oxygen support human life and biological processes?",
+    "What challenges do climbers face when scaling Mount Everest?",
+    "How has Japan’s culture influenced its economic growth and global presence?",
+    "Why is the Pacific Ocean important for world trade and climate?",
+    "How did the moon landing change humanity’s view of space exploration?",
+    "Why is the cheetah considered a unique species among big cats?",
+    "How does water’s boiling point change with altitude, and why?",
+    "Why is the human heart vital to overall health and survival?",
+    "How has ice hockey shaped Canadian national identity?",
+    "How did the invention of the telephone transform communication?",
+    "Why is the number two considered the first prime number?",
+    "How has the Chinese language influenced culture and global communication?",
+    "Why is Canberra the capital of Australia instead of Sydney or Melbourne?",
+    "How does teamwork contribute to success in soccer?",
+    "Why is water often called the universal solvent?",
+    "How has Japan balanced tradition with modernity in its society?",
+    "How does the Nile River impact the countries it flows through?",
+    "Why was the discovery of penicillin a turning point in medicine?",
+    "How has the speed of light shaped our understanding of physics?",
+    "Why did France gift the Statue of Liberty to the United States?",
+    "How has avocado become a staple in diets around the world?",
+    "Why is the lotus flower considered significant in Indian culture?",
+    "What makes Jupiter’s moon system so fascinating to scientists?",
+    "How do astronomers study distant stars and galaxies?",
+    "Why is the Sahara Desert both a challenge and a resource for nearby nations?",
+    "How does nitrogen contribute to Earth’s atmosphere and ecosystems?",
+    "Why is English often used as a global language of communication?",
+    "How did Charles Babbage’s ideas influence modern computing?",
+    "How is Diwali celebrated, and what does it symbolize?",
+    "What role has Cairo played in Egypt’s history and development?",
+    "Why is O-negative blood considered the universal donor type?",
+    "How does the Fahrenheit scale differ from Celsius in practical use?",
+    "What role has the British pound played in global finance?",
+    "How has Homer’s 'Odyssey' influenced storytelling through history?",
+    "Why are kidneys essential for maintaining a healthy body?",
+    "How does Vatican City function as both a country and a religious center?",
+    "Why is nitrogen the most abundant gas in Earth’s atmosphere?"
+]
 
 # Optional: Add a delay between requests (in seconds) to avoid rate limiting
 DELAY_BETWEEN_REQUESTS = 0.0  # Set to 0.1 or higher if needed
@@ -29,7 +80,7 @@ async def make_request(session: aiohttp.ClientSession, request_id: int, topic: s
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": PROMPT_TEMPLATE.format(topic=topic)}
         ],
-        "max_tokens": 1000,
+        "max_tokens": 500,
         "temperature": 0.7
     }
     

@@ -7,8 +7,7 @@
 
 # #RUN python3 -m venv /home/ray/workspace/env
 # #RUN . /home/ray/workspace/env/bin/activate && \
-# RUN pip install ray[serve-grpc,default]==2.43.0 huggingface-hub --no-cache-dir && \
-#     rm -rf /home/ray/.cache/pip
+# RUN pip install ray[serve-grpc,default]==2.43.0 huggingface-hub --no-cache-dir
 
 # COPY download_hf.py .
 # COPY download_model.sh .
