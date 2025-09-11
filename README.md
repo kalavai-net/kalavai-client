@@ -7,7 +7,9 @@
 
 </div>
 
-⭐⭐⭐ **Kalavai platform is open source, and free to use in both commercial and non-commercial purposes. If you find it useful, consider supporting us by [giving a star to our GitHub project](https://github.com/kalavai-net/kalavai-client), joining our [discord channel](https://discord.gg/YN6ThTJKbM) and follow our [Substack](https://kalavainet.substack.com/).**
+<!-- ⭐⭐⭐ **Kalavai platform is open source, and free to use in both commercial and non-commercial purposes. If you find it useful, consider supporting us by [giving a star to our GitHub project](https://github.com/kalavai-net/kalavai-client), joining our [discord channel](https://discord.gg/YN6ThTJKbM) and follow our [Substack](https://kalavainet.substack.com/).** -->
+
+### ⭐⭐⭐ Kalavai is offering GPU and other resources to interesting Open Source projects that want to push the envelope but are struggling to fund computing resources. If you are a research lab wanting to do research on LLMs, or a small startup trying to beat the tech giants with frugal models, we want to help [Apply here](https://form.typeform.com/to/C1SFzEdK)
 
 
 # Kalavai: a platform to self-host AI on easy mode
