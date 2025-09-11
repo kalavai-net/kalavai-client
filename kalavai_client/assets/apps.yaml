@@ -35,7 +35,7 @@ releases:
     namespace: kalavai
     chart: jetstacks/cert-manager
     version: v1.15.1
-    installed: true
+    installed: {{deploy_cert_manager|default("False", true)}}
     set:
     - name: crds.enabled
       value: true
@@ -44,16 +44,11 @@ releases:
     - kalavai/certificates
     namespace: kalavai
     chart: rocm/gpu-operator-charts
-    installed: true
-  - name: datashim
-    namespace: dlf
-    chart: kalavai/kalavai-datashim
-    version: "0.4.0"
-    installed: false
+    installed: {{deploy_rocm|default("false", true)}}
   - name: lago
     namespace: kalavai
     chart: kalavai/lago
-    installed: {{deploy_lago}}
+    installed: {{deploy_lago|default("false", true)}}
     set:
     - name: external.api.nodePort
       value: 32000
@@ -68,7 +63,7 @@ releases:
     - kalavai/longhorn
     namespace: minio
     chart: minio/minio
-    installed: false
+    installed: {{deploy_minio|default("false", true)}}
     set:
     - name: replicas
       value: {{minio_replicas}}
@@ -104,7 +99,7 @@ releases:
     namespace: kalavai
     chart: kalavai/kalavai-helios
     version: "0.1.11"
-    installed: false
+    installed: {{deploy_helios|default("false", true)}}
     set:
     - name: deployment.watcher_endpoint
       value: "http://{{watcher_service}}"
@@ -119,33 +114,37 @@ releases:
   - name: opencost
     namespace: opencost
     chart: opencost-charts/opencost
-    installed: {{deploy_opencost}}
+    installed: {{deploy_opencost|default("false", true)}}
   - name: prometheus
     namespace: prometheus-system
     chart: prometheus/prometheus
-    installed: {{deploy_prometheus}}
+    installed: {{deploy_prometheus|default("false", true)}}
     set:
     - name: prometheus-pushgateway.enabled
       value: false
     - name: alertmanager.enabled
       value: false
+    - name: server.retention
+      value: {{prometheus_server_retention}}
+    - name: server.persistentVolume.size
+      value: {{prometheus_disk_size}}
   - name: volcano-sh
     namespace: kalavai
     chart: volcano-sh/volcano
-    installed: true
+    installed: {{deploy_volcano|default("false", true)}}
   - name: kuberay
     namespace: kuberay
     chart: kuberay/kuberay-operator
-    installed: {{deploy_kuberay}}
+    installed: {{deploy_kuberay|default("false", true)}}
     version: "1.2.2"
   - name: kuberay-apiserver
     namespace: kuberay
     chart: kuberay/kuberay-apiserver
-    installed: false
+    installed: {{deploy_kuberay|default("false", true)}}
   - name: longhorn
     namespace: kalavai
     chart: longhorn/longhorn
-    installed: false
+    installed: {{deploy_longhorn|default("false", true)}}
     set:
     # security issue! enable for testing only
     - name: service.ui.type
@@ -162,22 +161,18 @@ releases:
       value: "{{longhorn_label_selector_value}}"
     - name: defaultSettings.storageMinimalAvailablePercentage
       value: {{longhorn_minimal_available_percentage}}
-  - name: lws
-    namespace: kalavai
-    chart: kalavai/lws
-    installed: false
   - name: kalavai-watcher
     namespace: kalavai
     chart: kalavai/kalavai-watcher
     version: "0.3.8"
-    installed: true
+    installed: {{deploy_watcher|default("false", true)}}
     set:
     - name: namespace
       value: kalavai
     - name: replicas
       value: 1
     - name: image_tag
-      value: "v2025.08.4" #"v2025.07.34"
+      value: "v2025.09.1" #"v2025.07.34"
     - name: deployment.in_cluster
       value: "True"
     - name: deployment.kalavai_username_key
@@ -204,14 +199,10 @@ releases:
       value: {{longhorn_manager_endpoint}}
     - name: service.nodePort
       value: {{watcher_port}}
-  - name: nvidia-gpu-operator
-    namespace: kalavai
-    chart: kalavai/gpu
-    installed: false
   - name: hami-vgpu
     namespace: kalavai
     chart: hami-charts/hami
-    installed: true
+    installed: {{deploy_hami|default("false", true)}}
     set:
     - name: resourceCores
       value: "nvidia.com/gpucores"

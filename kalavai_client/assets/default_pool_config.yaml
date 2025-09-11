@@ -1,0 +1,67 @@
+server:
+  platform: "amd64"
+  ip_address: null
+  location: null
+  name: "kalavai_cluster"
+
+core:
+  # Deploy systems
+  deploy:
+  - volcano
+  - cert_manager
+  - rocm
+  - watcher
+  - hami
+  #- lago
+  #- opencost
+  - prometheus
+  #- kuberay
+  #- minio
+  # "Kalavai API endpoint"
+  kalavai_api_endpoint: "https://platform.kalavai.net/_/api"
+  # "Opencost endpoint"
+  opencost_endpoint: "http://opencost.opencost.svc.cluster.local:9003"
+  # "Longhorn manager endpoint"
+  longhorn_manager_endpoint: "http://longhorn-backend.kalavai.svc.cluster.local:9500"
+  # "Helios harvest interval"
+  helios_harvest_interval: 120
+  # "Watcher is shared pool"
+  watcher_is_shared_pool: "True"
+  # "Prometheus endpoint"
+  prometheus_endpoint: "http://prometheus-server.prometheus-system.svc.cluster.local:80"
+  # "Prometheus server retention"
+  prometheus_server_retention: "30d"
+  # "Prometheus disk size"
+  prometheus_disk_size: "8Gi"
+  # "Longhorn UI port"
+  longhorn_ui_port: 30000
+  # "Longhorn manager port"
+  longhorn_manager_port: "" #31011
+  # "Longhorn minimal available percentage"
+  longhorn_minimal_available_percentage: 5
+  # "Longhorn label selector key"
+  longhorn_label_selector_key: "kalavai.storage.enabled"
+  # "Longhorn label selector"
+  longhorn_label_selector: "True"
+  # "Longhorn replicas"
+  longhorn_replicas: 2
+  # "MinIO replicas"
+  minio_replicas: 2
+  # "MinIO resources memory"
+  minio_resources_memory: "1Gi"
+  # "MinIO persistence storage class"
+  minio_persistence_storageClass: "longhorn"
+  # "MinIO persistence size"
+  minio_persistence_size: "10Gi"
+  # "MinIO service port"
+  minio_service_port: 32000
+  # "MinIO console port"
+  minio_console_port: 32001
+  # "MinIO root user"
+  minio_rootUser: "admin"
+  # "MinIO root password"
+  minio_rootPassword: "password"
+
+pool:
+  # Name of the storage class to use for the pool
+  storage_class_name: "longhorn"

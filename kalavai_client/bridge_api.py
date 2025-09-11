@@ -102,10 +102,8 @@ def pool_create(request: CreatePoolRequest, api_key: str = Depends(verify_api_ke
     
     - **cluster_name**: Name of the cluster
     - **ip_address**: IP address for the pool
-    - **app_values**: Application configuration values
     - **num_gpus**: Number of GPUs to allocate
     - **node_name**: Name of the node
-    - **only_registered_users**: Whether to restrict to registered users
     - **location**: Location of the pool
     - **description**: Pool description
     - **token_mode**: Token type for authentication
@@ -113,7 +111,6 @@ def pool_create(request: CreatePoolRequest, api_key: str = Depends(verify_api_ke
     result = create_pool(
         cluster_name=request.cluster_name,
         ip_address=request.ip_address,
-        app_values=request.app_values,
         num_gpus=request.num_gpus,
         node_name=request.node_name,
         location=request.location,

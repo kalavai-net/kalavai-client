@@ -1,4 +1,0 @@
-- name: storage_class_name
-  default: "longhorn"
-  description: ""
-

@@ -10,7 +10,6 @@ class InvitesRequest(BaseModel):
 class CreatePoolRequest(BaseModel):
     cluster_name: str = Field(description="Name of the cluster to create")
     ip_address: str = Field(description="IP address for the pool")
-    app_values: dict = Field(None, description="Application configuration values")
     num_gpus: int = Field(None, description="Number of GPUs to allocate")
     node_name: str = Field(None, description="Name of the node")
     location: str = Field(None, description="Geographic location of the pool")

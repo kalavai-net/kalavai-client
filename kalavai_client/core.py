@@ -1,4 +1,5 @@
 import os
+import yaml
 import time
 from collections import defaultdict
 import math
@@ -71,7 +72,8 @@ from kalavai_client.env import (
     HELM_APPS_VALUES,
     POOL_CONFIG_DEFAULT_VALUES,
     POOL_CONFIG_TEMPLATE,
-    FORBIDEDEN_IPS
+    FORBIDEDEN_IPS,
+    DEFAULT_POOL_CONFIG_TEMPLATE
 )
 
 class Job(BaseModel):
@@ -752,47 +754,56 @@ def join_pool(
     return cluster_name
 
 def create_pool(
-        cluster_name: str,
-        ip_address: str,
+        cluster_name: str=None,
+        ip_address: str=None,
+        location: str=None,
+        target_platform: str="amd64",
+        pool_config_file: str=None,
         description: str="",
         token_mode: TokenType=TokenType.USER,
-        app_values: str=None,
-        pool_config_values: str=None,
-        num_gpus: int=0,
+        num_gpus: int=-1,
         node_name: str=None,
-        location: str=None,
-        target_platform: str="amd64"
+        apps: list=[]
     ):
 
     if not check_seed_compatibility():
         return {"error": "Requirements failed"}
     
-    if app_values is None:
-        app_values = HELM_APPS_VALUES
-    
-    if pool_config_values is None:
-        pool_config_values = POOL_CONFIG_DEFAULT_VALUES
+    if pool_config_file is None:
+        pool_config_file = DEFAULT_POOL_CONFIG_TEMPLATE
 
-    node_name = socket.gethostname()
+    if node_name is None:
+        node_name = socket.gethostname()
+
     user_id = load_user_id()
     
     node_labels = {
         STORAGE_CLASS_LABEL: is_storage_compatible(),
         NODE_ROLE_LABEL: "server"
     }
-
-    # if location is not None:
-    #     try:
-    #         vpn = get_vpn_details(
-    #             location=location,
-    #             user_cookie=USER_COOKIE)
-    #         node_labels[USER_NODE_LABEL] = user["username"]
-    #     except Exception as e:
-    #         return {"error": f"[red]Error when joining network: {str(e)}"}
         
-    if num_gpus is None:
+    if num_gpus < 0:
         num_gpus = get_max_gpus()
-    
+
+    # load values from pool config
+    with open(pool_config_file, "r") as f:
+        config_values = yaml.safe_load(f)
+    # use default values if not provided
+    try:
+        cluster_name = config_values["server"]["name"] if cluster_name is None else cluster_name
+        ip_address = config_values["server"]["ip_address"] if ip_address is None else ip_address
+        location = config_values["server"]["location"] if location is None else location
+        target_platform = config_values["server"]["platform"] if target_platform is None else target_platform
+        app_values = config_values["core"]
+        post_config_values = config_values["pool"]
+        deploy_apps = {
+            f"deploy_{app}": True for app in config_values["core"]["deploy"]
+        }
+        for app in apps:
+            deploy_apps[f"deploy_{app}"] = True
+    except Exception as e:
+        return {"error": f"Error when loading pool config. Missing format? {str(e)}"}
+
     # Generate docker compose recipe
     generate_compose_config(
         target_platform=target_platform,
@@ -818,13 +829,12 @@ def create_pool(
             time.sleep(10)
 
     # populate local cred files
-    
     auth_key = user_id if user_id is not None else str(uuid.uuid4())
     write_auth_key = str(uuid.uuid4())
     readonly_auth_key = str(uuid.uuid4())
     watcher_service = f"{ip_address}:{DEFAULT_WATCHER_PORT}"
     values = {
-        CLUSTER_NAME_KEY: cluster_name,
+        #CLUSTER_NAME_KEY: cluster_name,
         CLUSTER_IP_KEY: ip_address,
         USER_ID_KEY: user_id if user_id is not None else "",
         AUTH_KEY: auth_key,
@@ -851,8 +861,8 @@ def create_pool(
     # Generate helmfile recipe
     helm_yaml = load_template(
         template_path=HELM_APPS_FILE,
-        values=values,
-        default_values_path=app_values,
+        values={**values, **deploy_apps, **app_values},
+        #default_values_path=app_values,
         force_defaults=True)
     with open(USER_HELM_APPS_FILE, "w") as f:
         f.write(helm_yaml)
@@ -864,11 +874,6 @@ def create_pool(
         )
     except Exception as e:
         return {"error": f"Error when updating dependencies: {str(e)}"}
-
-    if location is not None:
-        # TODO: register with kalavai if it's a public cluster
-        pass
-        #pool__publish()
     
     # wait until the server is ready to create objects
     while True:
@@ -876,7 +881,7 @@ def create_pool(
         if is_watcher_alive(server_creds=USER_LOCAL_SERVER_FILE, user_cookie=USER_COOKIE):
             break
 
-    result = pool_init(pool_config_values_path=pool_config_values)
+    result = pool_init(config_values=post_config_values)
     if "error" in result or ("failed" in result and len(result['failed']) > 0):
         return {"error": f"Error when initialising pool: {result}"}
     # init default namespace
@@ -953,16 +958,15 @@ def get_pool_token(mode: TokenType):
     except Exception as e:
         return {"error": f"Error when generating token: {str(e)}"}
 
-def pool_init(pool_config_values_path=None):
+def pool_init(config_values=None):
     """Deploy configured objects to initialise pool"""
-    if pool_config_values_path is None:
+    if config_values is None:
         return
     
     # load template config and populate with values
     sidecar_template_yaml = load_template(
         template_path=POOL_CONFIG_TEMPLATE,
-        values={},
-        default_values_path=pool_config_values_path)
+        values=config_values)
 
     try:
         result = request_to_server(

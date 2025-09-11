@@ -396,7 +396,8 @@ def pool__list(*others, user_only=False):
 
 
 @arguably.command
-def pool__start(cluster_name, *others,  platform="amd64", ip_address: str=None, location: str=None, app_values: str=None, pool_config_values: str=None, non_interactive: bool=False):
+def pool__start(*others,  pool_config_file=None, apps: list=None, platform="amd64", ip_address: str=None, location: str=None, app_values: str=None, pool_config_values: str=None, non_interactive: bool=False):
+
     """
     Start Kalavai pool and start/resume sharing resources.
 
@@ -430,16 +431,15 @@ def pool__start(cluster_name, *others,  platform="amd64", ip_address: str=None, 
     
     console.log(f"Using {ip_address} address for server")
 
-    console.log(f"[green]Creating {cluster_name} pool, this may take a few minutes...")
+    console.log(f"[green]Creating pool, this may take a few minutes...")
 
     result = create_pool(
-        target_platform=platform,
-        cluster_name=cluster_name,
         ip_address=ip_address,
-        app_values=app_values,
-        pool_config_values=pool_config_values,
-        num_gpus=input_gpus(non_interactive=non_interactive),
-        location=location
+        location=location,
+        target_platform=platform,
+        pool_config_file=pool_config_file,
+        apps=apps,
+        num_gpus=input_gpus(non_interactive=non_interactive)
     )
 
     if "warning" in result:
