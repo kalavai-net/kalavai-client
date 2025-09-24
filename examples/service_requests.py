@@ -8,9 +8,9 @@ import time
 from typing import List, Dict, Any
 
 # Configuration
-API_URL = "http://51.159.157.183:30947/v1/chat/completions"  # Replace with your OpenAI-compatible API URL
-API_KEY = "sk-1234"  # Replace with your actual API key
-MODEL = "Qwen/Qwen3-14B"  # Replace with your model name
+API_URL = "https://api.cogenai.kalavai.net/v1/chat/completions"  # Replace with your OpenAI-compatible API URL
+API_KEY = ""  # Replace with your actual API key
+MODEL = "Hastagaras/Jamet-8B-L3-MK.V-Blackroot"  # Replace with your model name
 NUM_PARALLEL_CALLS = 50  # Change this to adjust number of parallel requests
 NUM_REQUESTS = 50  # Total number of requests to make
 PROMPT_TEMPLATE = "Answer the following question: {topic}"
@@ -80,7 +80,7 @@ async def make_request(session: aiohttp.ClientSession, request_id: int, topic: s
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": PROMPT_TEMPLATE.format(topic=topic)}
         ],
-        "max_tokens": 500,
+        "max_tokens": 1000,
         "temperature": 0.7
     }
     

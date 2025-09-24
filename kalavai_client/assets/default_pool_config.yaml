@@ -9,12 +9,12 @@ core:
   deploy:
   - volcano
   - cert_manager
-  - rocm
+  #- rocm
   - watcher
   - hami
   #- lago
   #- opencost
-  - prometheus
+  #- prometheus
   #- kuberay
   #- minio
   # "Kalavai API endpoint"
