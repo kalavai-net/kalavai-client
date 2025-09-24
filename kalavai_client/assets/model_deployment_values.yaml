@@ -1,0 +1,68 @@
+Qwen/Qwen3-4B-Instruct-2507-FP8:
+  size: 6 # should include weights + context window + batch size memory requirements
+  cuda:
+    template: vllm
+    values:
+      gpu_backend: "cuda"
+      litellm_key: ""
+      workers: ""
+      model_id: Qwen/Qwen3-4B-Instruct-2507-FP8
+      working_memory: 14
+      hf_token: ""
+      cpus: 2
+      gpus: 1
+      memory: 12
+      tensor_parallel_size: 1
+      pipeline_parallel_size: 1
+      tool_call_parser: hermes
+      extra: "--dtype float16 --enforce-eager --quantization fp8"
+  rocm:
+    template: vllm
+    values:
+      gpu_backend: "rocm"
+      litellm_key: ""
+      workers: ""
+      model_id: Qwen/Qwen3-4B-Instruct-2507-FP8
+      working_memory: 14
+      hf_token: ""
+      cpus: 2
+      gpus: 1
+      memory: 12
+      tensor_parallel_size: 1
+      pipeline_parallel_size: 1
+      tool_call_parser: hermes
+      extra: "--dtype float16 --enforce-eager"
+Qwen/Qwen3-0.6B:
+  size: 4 # should include weights + context window + batch size memory requirements
+  cuda:
+    template: vllm
+    values:
+      gpu_backend: "cuda"
+      litellm_key: ""
+      workers: ""
+      model_id: Qwen/Qwen3-0.6B
+      working_memory: 8
+      hf_token: ""
+      cpus: 2
+      gpus: 1
+      memory: 8
+      tensor_parallel_size: 1
+      pipeline_parallel_size: 1
+      tool_call_parser: hermes
+      extra: "--dtype float16"
+  rocm:
+    template: vllm
+    values:
+      gpu_backend: "rocm"
+      litellm_key: ""
+      workers: ""
+      model_id: Qwen/Qwen3-0.6B
+      working_memory: 8
+      hf_token: ""
+      cpus: 2
+      gpus: 1
+      memory: 8
+      tensor_parallel_size: 1
+      pipeline_parallel_size: 1
+      tool_call_parser: hermes
+      extra: "--dtype float16"

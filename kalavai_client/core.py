@@ -2,7 +2,7 @@ import os
 import yaml
 import time
 from collections import defaultdict
-import math
+import random
 import uuid
 import socket
 import ipaddress
@@ -69,8 +69,7 @@ from kalavai_client.env import (
     USER_NODE_LABEL,
     DEFAULT_WATCHER_PORT,
     HELM_APPS_FILE,
-    HELM_APPS_VALUES,
-    POOL_CONFIG_DEFAULT_VALUES,
+    MODEL_DEPLOYMENT_VALUES_MAPPING,
     POOL_CONFIG_TEMPLATE,
     FORBIDEDEN_IPS,
     DEFAULT_POOL_CONFIG_TEMPLATE
@@ -103,6 +102,70 @@ class TokenType(Enum):
     ADMIN = 0
     USER = 1
     WORKER = 2
+
+
+def get_deployment_values(model_id: str):
+    """
+    Given a model ID and the resources in the pool, identify key
+    computing values required to deploy the model.
+    - GPU_BACKEND: rocm or cuda
+    - WORKERS: number of nodes to use
+    - 
+    """
+    # get hardcoded deployment values (per model)
+    with open(MODEL_DEPLOYMENT_VALUES_MAPPING, "r") as f:
+        mapping = yaml.safe_load(f)
+
+    def _parse_memory_str(memory: str):
+        memory = memory.replace("G", "")
+        return int(memory)
+    
+    def _get_num_workers(memory_values: list[int], size):
+        workers = 0
+        available_memory = 0
+        for gpu_mem in memory_values:
+            available_memory += gpu_mem
+            workers += 1
+            if available_memory >= size:
+                break
+        return workers
+    
+    # get resources
+    if model_id in mapping:
+        model_size = mapping[model_id]["size"]
+        # get gpus and extract available memory
+        nvidia_gpu_mems = []
+        amd_gpu_mems = []
+        backends = set()
+        for node_name, gpus in load_gpu_models():
+            for gpu in gpus["gpus"]:
+                if "nvidia" in gpu["model"].lower():
+                    nvidia_gpu_mems.append(_parse_memory_str(gpu["memory"]))
+                    backends.add("cuda")
+                else:
+                    amd_gpu_mems.append(_parse_memory_str(gpu["memory"]))
+                    backends.add("rocm")
+        nvidia_gpu_mems = sorted(nvidia_gpu_mems, reverse=False)
+        amd_gpu_mems = sorted(amd_gpu_mems, reverse=False)
+        # calculate num workers required
+        if sum(nvidia_gpu_mems) >= model_size and sum(amd_gpu_mems) < model_size:
+            gpu_backend = "cuda"
+            num_workers = _get_num_workers(memory_values=nvidia_gpu_mems, size=model_size)
+        elif sum(amd_gpu_mems) >= model_size and sum(nvidia_gpu_mems) < model_size:
+            gpu_backend = "rocm"
+            num_workers = _get_num_workers(memory_values=amd_gpu_mems, size=model_size)
+        else:
+            gpu_backend = random.choice(list(backends))
+            num_workers = _get_num_workers(
+                memory_values=amd_gpu_mems if gpu_backend == "rocm" else nvidia_gpu_mems,
+                size=model_size
+            )
+        # populate selected template
+        mapping[model_id][gpu_backend]["values"]["workers"] = num_workers
+        mapping[model_id][gpu_backend]["values"]["pipeline_parallel_size"] = num_workers
+
+        return mapping[model_id][gpu_backend]
+    return None
 
 
 def set_schedulable(schedulable, node_names):
@@ -545,7 +608,7 @@ def check_token(token, public=False):
         if public:
             if data[PUBLIC_LOCATION_KEY] is None:
                 raise ValueError("Token is not valid for public pools. Did you start the cluster with a public_location?")
-        return {"status": True}
+        return {"status": True, "data": data}
     except Exception as e:
         return {"error": str(e)}
     

@@ -56,6 +56,7 @@ USER_WORKSPACE_TEMPLATE = resource_path("kalavai_client/assets/user_workspace.ya
 DEFAULT_USER_WORKSPACE_VALUES = resource_path("kalavai_client/assets/user_workspace_values.yaml")
 POOL_CONFIG_TEMPLATE = resource_path("kalavai_client/assets/pool_config_template.yaml")
 POOL_CONFIG_DEFAULT_VALUES = resource_path("kalavai_client/assets/pool_config_values.yaml")
+MODEL_DEPLOYMENT_VALUES_MAPPING = resource_path("kalavai_client/assets/model_deployment_values.yaml")
 # user specific config files
 USER_TEMPLATES_FOLDER = user_path("templates", create_path=True)
 USER_LOCAL_SERVER_FILE = user_path(".server")

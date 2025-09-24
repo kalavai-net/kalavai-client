@@ -59,6 +59,7 @@ from kalavai_client.core import (
     add_node_labels,
     get_node_labels,
     generate_worker_package,
+    get_deployment_values,
     TokenType
 )
 from kalavai_client.utils import (
@@ -445,6 +446,20 @@ def job_deploy(request: DeployJobRequest, api_key: str = Depends(verify_api_key)
         target_labels=request.target_labels
     )
     return result
+
+@app.get("/get_deployment_values",
+    operation_id="get_deployment_values",
+    summary="Get deployment template values for a given model",
+    description="Given a model id from Huggingface, return the deployment template values required to load the model instance in the pool, including number of workers, number of gpus and gpu backend.",
+    tags=["job_management"],
+    response_description="Deployment template values")
+def get_deployment_template_values(model_id: str, api_key: str = Depends(verify_api_key)):
+    """
+    Get the deployment template values for a given model id:
+    
+    - **model_id**: Model id from Huggingface type mode
+    """
+    return get_deployment_values(model_id=model_id)
 
 @app.post("/delete_job",
     operation_id="delete_job",

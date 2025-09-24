@@ -62,7 +62,8 @@ from kalavai_client.core import (
     uncordon_nodes,
     TokenType,
     unregister_pool,
-    update_pool
+    update_pool,
+    get_deployment_values
 )
 from kalavai_client.utils import (
     check_gpu_drivers,
@@ -482,7 +483,7 @@ def pool__token(*others, admin=False, user=False, worker=False):
     return join_token
 
 @arguably.command
-def pool__check_token(token, *others, public=False):
+def pool__check_token(token, *others, public=False, verbose=False):
     """
     Utility to check the validity of a join token
     """
@@ -490,6 +491,8 @@ def pool__check_token(token, *others, public=False):
     if "error" in result:
         console.log(f"[red]Error in token: {result}")
         return False
+    if verbose:
+        console.log(json.dumps(result["data"], indent=2))
     
     console.log("[green]Token format is correct")
     return True
@@ -1166,6 +1169,12 @@ def job__delete(name, *others, force_namespace: str=None):
 
 
 @arguably.command
+def job__model_requirements(model_id: str, *others):
+    values = get_deployment_values(model_id=model_id)
+    console.log(values)
+
+
+@arguably.command
 def job__estimate(
     *others, 
     model_size: float,
@@ -1180,6 +1189,7 @@ def job__estimate(
     precision_bytes = {
         "fp32": 4,
         "fp16": 2,
+        "fp8": 1,
         "int8": 1,
         "int4": 0.5
     }
