@@ -10,9 +10,10 @@ from typing import List, Dict, Any
 # Configuration
 API_URL = "https://api.cogenai.kalavai.net/v1/chat/completions"  # Replace with your OpenAI-compatible API URL
 API_KEY = ""  # Replace with your actual API key
-MODEL = "Hastagaras/Jamet-8B-L3-MK.V-Blackroot"  # Replace with your model name
-NUM_PARALLEL_CALLS = 50  # Change this to adjust number of parallel requests
-NUM_REQUESTS = 50  # Total number of requests to make
+MODEL = "mistralai/Mistral-Nemo-Instruct-2407"  # Replace with your model name
+NUM_PARALLEL_CALLS = 100  # Change this to adjust number of parallel requests
+NUM_REQUESTS = 1  # Total number of requests to make
+MAX_OUTPUT_TOKENS = 50
 PROMPT_TEMPLATE = "Answer the following question: {topic}"
 TOPICS = [
     "How would you describe the culture and lifestyle in France?",
@@ -67,9 +68,6 @@ TOPICS = [
     "Why is nitrogen the most abundant gas in Earth’s atmosphere?"
 ]
 
-# Optional: Add a delay between requests (in seconds) to avoid rate limiting
-DELAY_BETWEEN_REQUESTS = 0.0  # Set to 0.1 or higher if needed
-
 async def make_request(session: aiohttp.ClientSession, request_id: int, topic: str) -> Dict[str, Any]:
     """
     Make a single asynchronous HTTP request to the OpenAI-compatible API.
@@ -80,7 +78,7 @@ async def make_request(session: aiohttp.ClientSession, request_id: int, topic: s
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": PROMPT_TEMPLATE.format(topic=topic)}
         ],
-        "max_tokens": 1000,
+        "max_tokens": MAX_OUTPUT_TOKENS,
         "temperature": 0.7
     }
     
@@ -142,10 +140,6 @@ async def run_concurrent_requests(num_parallel_calls: int, num_requests: int, to
             topic = topics[i % len(topics)]
             task = make_request(session, i + 1, topic)
             tasks.append(task)
-            
-            # Add delay between requests if specified
-            if DELAY_BETWEEN_REQUESTS > 0:
-                await asyncio.sleep(DELAY_BETWEEN_REQUESTS)
         
         # Execute tasks with concurrency limit
         semaphore = asyncio.Semaphore(num_parallel_calls)
