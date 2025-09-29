@@ -96,7 +96,20 @@ sleep 5
 
 # set MTU limitations
 echo "Setting MTU limits..."
-ip link set mtu $mtu $flannel_iface
+# Loop through all interfaces
+for iface in $(ls /sys/class/net); do
+    type=$(cat /sys/class/net/$iface/type)
+    state=$(cat /sys/class/net/$iface/operstate)
+
+    # Skip if it's a loopback (type 772) or not up
+    if [ "$type" -eq 772 ]; then
+        echo "Skipping $iface (loopback)"
+        continue
+    fi
+    echo "Setting MTU $mtu on $iface (state: $state)"
+    ip link set mtu "$mtu" dev "$iface"
+done
+#ip link set mtu $mtu $flannel_iface
 ifconfig
 
 sleep 10
