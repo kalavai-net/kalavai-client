@@ -4,6 +4,7 @@ services:
     image: gravitl/netclient:v0.90.0
     container_name: {{vpn_name}}
     platform: linux/{{target_platform}}
+    privileged: true
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
@@ -11,6 +12,7 @@ services:
     environment:
       - HOST_NAME={{node_name}}
       - TOKEN={{vpn_token}}
+      - MTU={{mtu}}
     volumes:
       - /dev/net/tun:/dev/net/tun
     restart: unless-stopped
@@ -58,6 +60,7 @@ services:
       {% if node_labels %}
       --extra="{{node_labels}}"
       {% endif %}
+      --mtu={{mtu}}
 
     # volumes:
     # - {{k3s_path}}:/var/lib/rancher/k3s # Persist data

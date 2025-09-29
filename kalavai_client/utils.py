@@ -129,7 +129,7 @@ def extract_auth_token(headers):
         return {"error": str(e)}
 
 
-def generate_compose_config(role, node_name, target_platform="amd64", write_to_file=True, node_ip_address="0.0.0.0", num_gpus=0, node_labels=None, pool_ip=None, vpn_token=None, pool_token=None):
+def generate_compose_config(role, node_name, mtu="1420", target_platform="amd64", write_to_file=True, node_ip_address="0.0.0.0", num_gpus=0, node_labels=None, pool_ip=None, vpn_token=None, pool_token=None):
     
     if node_labels is not None:
         node_labels = " ".join([f"--node-label {key}={value}" for key, value in node_labels.items()])
@@ -140,6 +140,7 @@ def generate_compose_config(role, node_name, target_platform="amd64", write_to_f
         "service_name": DEFAULT_CONTAINER_NAME,
         "vpn": vpn_token is not None,
         "vpn_name": DEFAULT_VPN_CONTAINER_NAME,
+        "mtu": mtu,
         "node_ip_address": node_ip_address,
         "pool_ip": pool_ip,
         "pool_token": pool_token,

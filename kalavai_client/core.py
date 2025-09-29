@@ -734,7 +734,8 @@ def join_pool(
         num_gpus=None,
         node_name=None,
         ip_address=None,
-        target_platform="amd64"
+        target_platform="amd64",
+        mtu="1420"
 ):
     compatibility = check_worker_compatibility()
     if len(compatibility["issues"]) > 0:
@@ -777,6 +778,7 @@ def join_pool(
         pool_token=kalavai_token,
         num_gpus=num_gpus,
         vpn_token=public_location,
+        mtu=mtu,
         node_name=node_name,
         node_labels=node_labels)
     
@@ -826,6 +828,7 @@ def create_pool(
         token_mode: TokenType=TokenType.USER,
         num_gpus: int=-1,
         node_name: str=None,
+        mtu: str=None,
         apps: list=[]
     ):
 
@@ -857,6 +860,7 @@ def create_pool(
         ip_address = config_values["server"]["ip_address"] if ip_address is None else ip_address
         location = config_values["server"]["location"] if location is None else location
         target_platform = config_values["server"]["platform"] if target_platform is None else target_platform
+        mtu = config_values["server"]["mtu"] if mtu is None else mtu
         app_values = config_values["core"]
         post_config_values = config_values["pool"]
         deploy_apps = {
@@ -868,6 +872,8 @@ def create_pool(
         return {"error": f"Error when loading pool config. Missing format? {str(e)}"}
 
     # Generate docker compose recipe
+    if ip_address is None:
+        ip_address = "0.0.0.0"
     generate_compose_config(
         target_platform=target_platform,
         role="server",
@@ -875,7 +881,8 @@ def create_pool(
         node_ip_address=ip_address,
         num_gpus=num_gpus,
         node_name=node_name,
-        node_labels=node_labels
+        node_labels=node_labels,
+        mtu=mtu
     )
 
     # start server

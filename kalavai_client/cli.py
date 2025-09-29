@@ -397,7 +397,7 @@ def pool__list(*others, user_only=False):
 
 
 @arguably.command
-def pool__start(*others,  pool_config_file=None, apps: list=None, platform="amd64", ip_address: str=None, location: str=None, app_values: str=None, pool_config_values: str=None, non_interactive: bool=False):
+def pool__start(*others,  pool_config_file=None, apps: list=None, mtu: str=None, platform="amd64", ip_address: str=None, location: str=None, app_values: str=None, pool_config_values: str=None, non_interactive: bool=False):
 
     """
     Start Kalavai pool and start/resume sharing resources.
@@ -440,7 +440,8 @@ def pool__start(*others,  pool_config_file=None, apps: list=None, platform="amd6
         target_platform=platform,
         pool_config_file=pool_config_file,
         apps=apps,
-        num_gpus=input_gpus(non_interactive=non_interactive)
+        num_gpus=input_gpus(non_interactive=non_interactive),
+        mtu=mtu
     )
 
     if "warning" in result:
@@ -498,7 +499,7 @@ def pool__check_token(token, *others, public=False, verbose=False):
     return True
 
 @arguably.command
-def pool__join(token, *others, platform="amd64", node_name=None, non_interactive=False):
+def pool__join(token, *others, mtu=None, platform="amd64", node_name=None, non_interactive=False):
     """
     Join Kalavai pool and start/resume sharing resources.
 
@@ -552,7 +553,8 @@ def pool__join(token, *others, platform="amd64", node_name=None, non_interactive
         token=token,
         node_name=node_name,
         num_gpus=num_gpus,
-        ip_address=ip_address
+        ip_address=ip_address,
+        mtu=mtu
     )
     if "error" in result:
         console.log(f"[red]Error when connecting: {result}")

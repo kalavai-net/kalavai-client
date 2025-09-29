@@ -6,6 +6,7 @@ node_ip="0.0.0.0"
 node_name=$HOSTNAME
 user_id=""
 random_suffix=""
+mtu="1280"
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -41,6 +42,9 @@ while [ $# -gt 0 ]; do
       ;;
     --extra=*)
       extra="${1#*=}"
+      ;;
+    --mtu=*)
+      mtu="${1#*=}"
       ;;
     *)
       printf "***************************\n"
@@ -87,6 +91,13 @@ fi
 if [ ! -z "${user_id}" ]; then
     user_id="--node-label kalavai.cluster.user="$user_id
 fi
+
+sleep 5
+
+# set MTU limitations
+echo "Setting MTU limits..."
+ip link set mtu $mtu $flannel_iface
+ifconfig
 
 sleep 10
 
