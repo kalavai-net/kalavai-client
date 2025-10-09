@@ -746,6 +746,9 @@ def join_pool(
 
     if node_name is None:
         node_name = socket.gethostname()
+
+    if mtu is None:
+        mtu = "1420"
     
     # check token
     valid = check_token(token=token)
