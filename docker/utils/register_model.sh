@@ -45,7 +45,7 @@ result=$(curl -X POST "$litellm_base_url/model/new" \
     -d '{
           "model_name": "'$litellm_model_name'",
           "model_info": '"$model_info"',
-          "litellm_params": {"model": "'$provider'/'$model_id'", "api_base": "'$api_base'", "api_key": "DUMMY", "job_id": "'$job_id'"}
+          "litellm_params": {"drop_params": false, "model": "'$provider'/'$model_id'", "api_base": "'$api_base'", "api_key": "DUMMY", "job_id": "'$job_id'"}
         }' 2>&1)
 
 

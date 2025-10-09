@@ -10,10 +10,10 @@ from typing import List, Dict, Any
 # Configuration
 API_URL = "https://api.cogenai.kalavai.net/v1/chat/completions"  # Replace with your OpenAI-compatible API URL
 API_KEY = ""  # Replace with your actual API key
-MODEL = "mistralai/Mistral-Nemo-Instruct-2407"  # Replace with your model name
+MODEL = "mistralai/Mistral-Nemo-Instruct-2407" #Mistral-Nemo-Instruct-2407"  # Replace with your model name
 NUM_PARALLEL_CALLS = 100  # Change this to adjust number of parallel requests
 NUM_REQUESTS = 1  # Total number of requests to make
-MAX_OUTPUT_TOKENS = 50
+MAX_OUTPUT_TOKENS = 200
 PROMPT_TEMPLATE = "Answer the following question: {topic}"
 TOPICS = [
     "How would you describe the culture and lifestyle in France?",
@@ -76,6 +76,7 @@ async def make_request(session: aiohttp.ClientSession, request_id: int, topic: s
         "model": MODEL,
         "messages": [
             {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "assistant", "content": "I'm here to help!"},
             {"role": "user", "content": PROMPT_TEMPLATE.format(topic=topic)}
         ],
         "max_tokens": MAX_OUTPUT_TOKENS,
