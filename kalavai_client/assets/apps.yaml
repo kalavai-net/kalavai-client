@@ -45,6 +45,7 @@ releases:
     namespace: kalavai
     chart: rocm/gpu-operator-charts
     installed: {{deploy_rocm|default("false", true)}}
+    version: "v1.15.1"
   - name: lago
     namespace: kalavai
     chart: kalavai/lago
@@ -134,6 +135,7 @@ releases:
     namespace: kalavai
     chart: volcano-sh/volcano
     installed: {{deploy_volcano|default("false", true)}}
+    version: "1.13.0"
   - name: kuberay
     namespace: kuberay
     chart: kuberay/kuberay-operator
@@ -205,6 +207,7 @@ releases:
     namespace: kalavai
     chart: hami-charts/hami
     installed: {{deploy_hami|default("false", true)}}
+    version: "2.5.2"
     set:
     - name: resourceCores
       value: "nvidia.com/gpucores"

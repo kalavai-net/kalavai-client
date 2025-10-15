@@ -60,7 +60,9 @@ services:
       {% if node_labels %}
       --extra="{{node_labels}}"
       {% endif %}
+      {% if mtu != "" %}
       --mtu={{mtu}}
+      {% endif %}
 
     # volumes:
     # - {{k3s_path}}:/var/lib/rancher/k3s # Persist data

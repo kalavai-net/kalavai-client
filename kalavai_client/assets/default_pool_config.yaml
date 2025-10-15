@@ -3,7 +3,7 @@ server:
   ip_address: null
   location: null
   name: "kalavai_cluster"
-  mtu: 1280
+  mtu: ""
   watcher_image_tag: "v2025.10.3"
 
 core:
@@ -11,7 +11,7 @@ core:
   deploy:
   - volcano
   - cert_manager
-  #- rocm
+  - rocm
   - watcher
   - hami
   #- lago
