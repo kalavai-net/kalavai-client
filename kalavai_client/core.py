@@ -47,6 +47,7 @@ from kalavai_client.utils import (
     WRITE_AUTH_KEY,
     WATCHER_PORT_KEY,
     WATCHER_SERVICE_KEY,
+    WATCHER_IMAGE_TAG_KEY,
     USER_NODE_LABEL_KEY,
     ALLOW_UNREGISTERED_USER_KEY,
     KALAVAI_AUTH
@@ -764,6 +765,7 @@ def create_pool(
         ip_address: str=None,
         location: str=None,
         target_platform: str="amd64",
+        watcher_image_tag: str=None,
         pool_config_file: str=None,
         description: str="",
         token_mode: TokenType=TokenType.USER,
@@ -799,6 +801,7 @@ def create_pool(
         config_values = yaml.safe_load(f)
     # use default values if not provided
     try:
+        watcher_image_tag = config_values["server"]["watcher_image_tag"] if watcher_image_tag is None else watcher_image_tag
         cluster_name = config_values["server"]["name"] if cluster_name is None else cluster_name
         ip_address = config_values["server"]["ip_address"] if ip_address is None else ip_address
         location = config_values["server"]["location"] if location is None else location
@@ -856,7 +859,8 @@ def create_pool(
         WATCHER_PORT_KEY: DEFAULT_WATCHER_PORT,
         WATCHER_SERVICE_KEY: watcher_service,
         USER_NODE_LABEL_KEY: USER_NODE_LABEL,
-        ALLOW_UNREGISTERED_USER_KEY: True, # Change this if only registered users are allowed
+        WATCHER_IMAGE_TAG_KEY: watcher_image_tag,
+        ALLOW_UNREGISTERED_USER_KEY: True # Change this if only registered users are allowed
     }
 
     store_server_info(

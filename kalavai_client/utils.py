@@ -44,6 +44,7 @@ USER_API_KEY = "user_api_key"
 READONLY_AUTH_KEY = "watcher_readonly_key"
 WATCHER_SERVICE_KEY = "watcher_service"
 WATCHER_PORT_KEY = "watcher_port"
+WATCHER_IMAGE_TAG_KEY = "watcher_image_tag"
 ENDPOINT_PORTS_KEY = "endpoint_ports"
 TEMPLATE_ID_FIELD = "id_field"
 TEMPLATE_ID_KEY = "deployment_id"
@@ -155,8 +156,19 @@ def extract_auth_token(headers):
         return {"error": str(e)}
 
 
-def generate_compose_config(role, node_name, mtu="1420", target_platform="amd64", write_to_file=True, node_ip_address="0.0.0.0", num_gpus=0, node_labels=None, pool_ip=None, vpn_token=None, pool_token=None):
-    
+def generate_compose_config(
+    role,
+    node_name,
+    mtu="1420",
+    target_platform="amd64",
+    write_to_file=True,
+    node_ip_address="0.0.0.0",
+    num_gpus=0,
+    node_labels=None,
+    pool_ip=None,
+    vpn_token=None,
+    pool_token=None
+):
     if node_labels is not None:
         node_labels = " ".join([f"--node-label {key}={value}" for key, value in node_labels.items()])
     rand_suffix = uuid.uuid4().hex[:8]
