@@ -402,7 +402,7 @@ def pool__start(
     *others, 
     pool_config_file=None,
     apps: list=None,
-    mtu: str=None,
+    mtu: str="",
     watcher_image_tag: str=None,
     platform="amd64",
     ip_address: str=None,
@@ -521,7 +521,7 @@ def pool__check_token(token, *others, public=False, verbose=False):
 def pool__join(
     token,
     *others,
-    mtu=None,
+    mtu="",
     platform="amd64",
     node_name=None,
     non_interactive=False,

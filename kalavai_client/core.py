@@ -672,7 +672,7 @@ def join_pool(
         node_name=None,
         ip_address=None,
         target_platform="amd64",
-        mtu="1420",
+        mtu="",
         node_labels={}
 ):
     compatibility = check_worker_compatibility()
@@ -684,9 +684,6 @@ def join_pool(
 
     if node_name is None:
         node_name = socket.gethostname()
-
-    if mtu is None:
-        mtu = "1420"
     
     # check token
     valid = check_token(token=token)
@@ -771,7 +768,7 @@ def create_pool(
         token_mode: TokenType=TokenType.USER,
         num_gpus: int=-1,
         node_name: str=None,
-        mtu: str=None,
+        mtu: str="",
         apps: list=[],
         node_labels: dict={}
     ):
@@ -806,7 +803,7 @@ def create_pool(
         ip_address = config_values["server"]["ip_address"] if ip_address is None else ip_address
         location = config_values["server"]["location"] if location is None else location
         target_platform = config_values["server"]["platform"] if target_platform is None else target_platform
-        mtu = config_values["server"]["mtu"] if mtu is None else mtu
+        mtu = config_values["server"]["mtu"] if mtu == "" or mtu is None else mtu
         app_values = config_values["core"]
         post_config_values = config_values["pool"]
         deploy_apps = {

@@ -159,7 +159,7 @@ def extract_auth_token(headers):
 def generate_compose_config(
     role,
     node_name,
-    mtu="1420",
+    mtu="",
     target_platform="amd64",
     write_to_file=True,
     node_ip_address="0.0.0.0",
