@@ -104,70 +104,6 @@ class TokenType(Enum):
     WORKER = 2
 
 
-def get_deployment_values(model_id: str):
-    """
-    Given a model ID and the resources in the pool, identify key
-    computing values required to deploy the model.
-    - GPU_BACKEND: rocm or cuda
-    - WORKERS: number of nodes to use
-    - 
-    """
-    # get hardcoded deployment values (per model)
-    with open(MODEL_DEPLOYMENT_VALUES_MAPPING, "r") as f:
-        mapping = yaml.safe_load(f)
-
-    def _parse_memory_str(memory: str):
-        memory = memory.replace("G", "")
-        return int(memory)
-    
-    def _get_num_workers(memory_values: list[int], size):
-        workers = 0
-        available_memory = 0
-        for gpu_mem in memory_values:
-            available_memory += gpu_mem
-            workers += 1
-            if available_memory >= size:
-                break
-        return workers
-    
-    # get resources
-    if model_id in mapping:
-        model_size = mapping[model_id]["size"]
-        # get gpus and extract available memory
-        nvidia_gpu_mems = []
-        amd_gpu_mems = []
-        backends = set()
-        for node_name, gpus in load_gpu_models():
-            for gpu in gpus["gpus"]:
-                if "nvidia" in gpu["model"].lower():
-                    nvidia_gpu_mems.append(_parse_memory_str(gpu["memory"]))
-                    backends.add("cuda")
-                else:
-                    amd_gpu_mems.append(_parse_memory_str(gpu["memory"]))
-                    backends.add("rocm")
-        nvidia_gpu_mems = sorted(nvidia_gpu_mems, reverse=False)
-        amd_gpu_mems = sorted(amd_gpu_mems, reverse=False)
-        # calculate num workers required
-        if sum(nvidia_gpu_mems) >= model_size and sum(amd_gpu_mems) < model_size:
-            gpu_backend = "cuda"
-            num_workers = _get_num_workers(memory_values=nvidia_gpu_mems, size=model_size)
-        elif sum(amd_gpu_mems) >= model_size and sum(nvidia_gpu_mems) < model_size:
-            gpu_backend = "rocm"
-            num_workers = _get_num_workers(memory_values=amd_gpu_mems, size=model_size)
-        else:
-            gpu_backend = random.choice(list(backends))
-            num_workers = _get_num_workers(
-                memory_values=amd_gpu_mems if gpu_backend == "rocm" else nvidia_gpu_mems,
-                size=model_size
-            )
-        # populate selected template
-        mapping[model_id][gpu_backend]["values"]["workers"] = num_workers
-        mapping[model_id][gpu_backend]["values"]["pipeline_parallel_size"] = num_workers
-
-        return mapping[model_id][gpu_backend]
-    return None
-
-
 def set_schedulable(schedulable, node_names):
     """
     Delete job in the cluster
@@ -735,7 +671,8 @@ def join_pool(
         node_name=None,
         ip_address=None,
         target_platform="amd64",
-        mtu="1420"
+        mtu="1420",
+        node_labels={}
 ):
     compatibility = check_worker_compatibility()
     if len(compatibility["issues"]) > 0:
@@ -768,6 +705,7 @@ def join_pool(
     
     # join private network if provided
     node_labels = {
+        **node_labels,
         STORAGE_CLASS_LABEL: is_storage_compatible(),
         NODE_ROLE_LABEL: "worker"
     }  
@@ -832,7 +770,8 @@ def create_pool(
         num_gpus: int=-1,
         node_name: str=None,
         mtu: str=None,
-        apps: list=[]
+        apps: list=[],
+        node_labels: dict={}
     ):
 
     if not check_seed_compatibility():
@@ -847,6 +786,7 @@ def create_pool(
     user_id = load_user_id()
     
     node_labels = {
+        **node_labels,
         STORAGE_CLASS_LABEL: is_storage_compatible(),
         NODE_ROLE_LABEL: "server"
     }

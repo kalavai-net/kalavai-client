@@ -106,6 +106,32 @@ def is_storage_compatible():
         return False
 ################
 
+def parse_key_value_pairs(input_str: str) -> dict:
+    """Parse key=value pairs from a string into a dictionary.
+    
+    Args:
+        input_str: String containing key=value pairs separated by commas
+        
+    Returns:
+        Dictionary with parsed key-value pairs
+        
+    Raises:
+        ValueError: If any pair is not in key=value format
+    """
+    if not input_str.strip():
+        return {}
+    
+    result = {}
+    for pair in input_str.split(','):
+        pair = pair.strip()
+        if not pair:
+            continue
+        if '=' not in pair:
+            raise ValueError(f"Invalid key=value pair: '{pair}'. Expected format: key=value")
+        key, value = pair.split('=', 1)
+        result[key.strip()] = value.strip()
+    return result
+
 def extract_auth_token(headers):
     """
     Extract auth token. Valid headers:

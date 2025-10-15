@@ -6,6 +6,7 @@ import uuid
 import time
 import socket
 from pathlib import Path
+from typing import Annotated
 
 import yaml
 
@@ -62,8 +63,7 @@ from kalavai_client.core import (
     uncordon_nodes,
     TokenType,
     unregister_pool,
-    update_pool,
-    get_deployment_values
+    update_pool
 )
 from kalavai_client.utils import (
     check_gpu_drivers,
@@ -78,7 +78,8 @@ from kalavai_client.utils import (
     load_user_id,
     SERVER_IP_KEY,
     CLUSTER_NAME_KEY,
-    KALAVAI_AUTH
+    KALAVAI_AUTH,
+    parse_key_value_pairs
 )
 
 
@@ -397,7 +398,19 @@ def pool__list(*others, user_only=False):
 
 
 @arguably.command
-def pool__start(*others,  pool_config_file=None, apps: list=None, mtu: str=None, platform="amd64", ip_address: str=None, location: str=None, app_values: str=None, pool_config_values: str=None, non_interactive: bool=False):
+def pool__start(
+    *others, 
+    pool_config_file=None,
+    apps: list=None,
+    mtu: str=None,
+    platform="amd64",
+    ip_address: str=None,
+    location: str=None,
+    app_values: str=None,
+    pool_config_values: str=None,
+    non_interactive: bool=False,
+    node_labels: Annotated[dict, arguably.arg.handler(parse_key_value_pairs)] = {}
+):
 
     """
     Start Kalavai pool and start/resume sharing resources.
@@ -409,6 +422,9 @@ def pool__start(*others,  pool_config_file=None, apps: list=None, mtu: str=None,
     if CLUSTER.is_cluster_init():
         console.log(f"[white] You are already connected to {load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE)}. Enter [yellow]kalavai pool stop[white] to exit and join another one.")
         return
+
+    if node_labels:
+        console.log(f"[blue]Configuration received: {node_labels}")
     
     # User acknowledgement
     if not non_interactive:
@@ -441,7 +457,8 @@ def pool__start(*others,  pool_config_file=None, apps: list=None, mtu: str=None,
         pool_config_file=pool_config_file,
         apps=apps,
         num_gpus=input_gpus(non_interactive=non_interactive),
-        mtu=mtu
+        mtu=mtu,
+        node_labels=node_labels
     )
 
     if "warning" in result:
@@ -499,13 +516,31 @@ def pool__check_token(token, *others, public=False, verbose=False):
     return True
 
 @arguably.command
-def pool__join(token, *others, mtu=None, platform="amd64", node_name=None, non_interactive=False):
+def pool__join(
+    token,
+    *others,
+    mtu=None,
+    platform="amd64",
+    node_name=None,
+    non_interactive=False,
+    node_labels: Annotated[dict, arguably.arg.handler(parse_key_value_pairs)] = {}
+):
     """
     Join Kalavai pool and start/resume sharing resources.
 
     Args:
+        token: Pool join token
         *others: all the other positional arguments go here
+        mtu: Maximum transmission unit
+        platform: Target platform (default: amd64)
+        node_name: Name for this node
+        non_interactive: Run in non-interactive mode
+        node_labels: Node labels as key=value pairs (e.g., "key1=value1,key2=value2")
     """
+    
+    # Process node labels if provided
+    if node_labels:
+        console.log(f"[blue]Configuration received: {node_labels}")
     
     # check that k3s is not running already in the host
     # k3s service running or preinstalled
@@ -554,7 +589,8 @@ def pool__join(token, *others, mtu=None, platform="amd64", node_name=None, non_i
         node_name=node_name,
         num_gpus=num_gpus,
         ip_address=ip_address,
-        mtu=mtu
+        mtu=mtu,
+        node_labels=node_labels
     )
     if "error" in result:
         console.log(f"[red]Error when connecting: {result}")
@@ -1168,12 +1204,6 @@ def job__delete(name, *others, force_namespace: str=None):
         console.log(f"[red]Error when deleting job: {result['error']}")
     else:
         console.log(f"{result}")
-
-
-@arguably.command
-def job__model_requirements(model_id: str, *others):
-    values = get_deployment_values(model_id=model_id)
-    console.log(values)
 
 
 @arguably.command
