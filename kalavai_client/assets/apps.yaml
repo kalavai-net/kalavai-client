@@ -34,7 +34,7 @@ releases:
   - name: certificates
     namespace: kalavai
     chart: jetstacks/cert-manager
-    version: v1.15.1
+    version: "v1.15.1"
     installed: {{deploy_cert_manager|default("False", true)}}
     set:
     - name: crds.enabled
@@ -45,7 +45,7 @@ releases:
     namespace: kalavai
     chart: rocm/gpu-operator-charts
     installed: {{deploy_rocm|default("false", true)}}
-    version: "v1.15.1"
+    version: "1.4.0"
   - name: lago
     namespace: kalavai
     chart: kalavai/lago
