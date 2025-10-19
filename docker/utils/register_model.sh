@@ -2,6 +2,9 @@
 
 cache_dir="/cache"
 job_id="None"
+api_key="DUMMY"
+litellm_kalavai_extras="{}"
+model_info="{}"
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -14,6 +17,9 @@ while [ $# -gt 0 ]; do
     --litellm_model_name=*)
       litellm_model_name="${1#*=}"
       ;;
+    --litellm_kalavai_extras=*)
+      litellm_kalavai_extras="${1#*=}"
+      ;;
     --model_id=*)
       model_id="${1#*=}"
       ;;
@@ -23,11 +29,14 @@ while [ $# -gt 0 ]; do
     --api_base=*)
       api_base="${1#*=}"
       ;;
-    --model_info=*)
-      model_info="${1#*=}"
+    --api_key=*)
+      api_key="${1#*=}"
       ;;
     --job_id=*)
       job_id="${1#*=}"
+      ;;
+    --model_info=*)
+      model_info="${1#*=}"
       ;;
     *)
       printf "***************************\n"
@@ -38,15 +47,39 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-result=$(curl -X POST "$litellm_base_url/model/new" \
-    -H 'Authorization: Bearer '$litellm_key \
-    -H "accept: application/json" \
-    -H "Content-Type: application/json" \
-    -d '{
-          "model_name": "'$litellm_model_name'",
-          "model_info": '"$model_info"',
-          "litellm_params": {"drop_params": false, "model": "'$provider'/'$model_id'", "api_base": "'$api_base'", "api_key": "DUMMY", "job_id": "'$job_id'"}
-        }' 2>&1)
+json_payload=$(cat <<EOF
+{
+  "model_name": "$litellm_model_name",
+  "model_info": $model_info,
+  "litellm_params": {
+    "drop_params": false,
+    "model": "$provider/$model_id",
+    "api_base": "$api_base",
+    "api_key": "$api_key",
+    "job_id": "$job_id",
+    "extras": $litellm_kalavai_extras
+  }
+}
+EOF
+)
+
+echo "JSON payload: "$json_payload
+result=$(curl -s -X POST "$litellm_base_url/model/new" \
+  -H "Authorization: Bearer $litellm_key" \
+  -H "accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d "$json_payload" 2>&1)
+
+# result=$(curl -X POST "$litellm_base_url/model/new" \
+#     -H 'Authorization: Bearer '$litellm_key \
+#     -H "accept: application/json" \
+#     -H "Content-Type: application/json" \
+#     -d '{
+#           "model_name": "'$litellm_model_name'",
+#           "model_info": '$model_info',
+#           "kalavai_extras": '$litellm_kalavai_extras',
+#           "litellm_params": {"drop_params": false, "model": "'$provider'/'$model_id'", "api_base": "'$api_base'", "api_key": "'$api_key'", "job_id": "'$job_id'"}
+#         }' 2>&1)
 
 
 if [[ $? -ne 0 ]]; then
