@@ -5,6 +5,7 @@ job_id="None"
 api_key="DUMMY"
 litellm_kalavai_extras="{}"
 model_info="{}"
+return="no"
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -38,14 +39,29 @@ while [ $# -gt 0 ]; do
     --model_info=*)
       model_info="${1#*=}"
       ;;
+    --return=*)
+      return="yes"
+      ;;
     *)
-      printf "***************************\n"
-      printf "* Error: Invalid argument.*\n"
-      printf "***************************\n"
+      printf "*****************************************\n"
+      printf "* register_model.sh: Invalid argument: $1\n"
+      printf "*****************************************\n"
       exit 1
   esac
   shift
 done
+
+echo "Registering model with LiteLLM: "$litellm_model_name
+
+echo "----------------------------------------"
+echo "LiteLLM Base URL: "$litellm_base_url
+echo "LiteLLM Key: "$litellm_key
+echo "LiteLLM Model Name: "$litellm_model_name
+echo "LiteLLM Kalavai Extras: "$litellm_kalavai_extras
+echo "Model Info: "$model_info
+echo "Job ID: "$job_id
+echo "----------------------------------------"
+
 
 json_payload=$(cat <<EOF
 {
@@ -64,7 +80,7 @@ EOF
 )
 
 echo "JSON payload: "$json_payload
-result=$(curl -s -X POST "$litellm_base_url/model/new" \
+result=$(curl -X POST "$litellm_base_url/model/new" \
   -H "Authorization: Bearer $litellm_key" \
   -H "accept: application/json" \
   -H "Content-Type: application/json" \
@@ -88,5 +104,7 @@ if [[ $? -ne 0 ]]; then
 else
     echo "Model registered successfully!"
     echo $result
-    tail -f /dev/null
+    if [ "$return" = "no" ]; then
+      tail -f /dev/null
+    fi
 fi
