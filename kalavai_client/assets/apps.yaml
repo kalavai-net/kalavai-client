@@ -29,6 +29,8 @@ repositories:
     url: https://langfuse.github.io/langfuse-k8s
   - name: hami-charts
     url: https://project-hami.github.io/HAMi
+  - name: lago
+    url: https://charts.getlago.com
 
 releases:
   - name: certificates
@@ -46,6 +48,40 @@ releases:
     chart: rocm/gpu-operator-charts
     installed: {{deploy_rocm|default("false", true)}}
     version: "1.4.0"
+  # - name: lago
+  #   namespace: kalavai
+  #   chart: lago/lago
+  #   installed: {{deploy_lago|default("false", true)}}
+  #   version: 1.27.1
+  #   set:
+  #   # internal postgresql
+  #   - name: postgresql.enabled
+  #     value: false
+  #   # external sql
+  #   - name: global.databaseUrl #postgres URL postgresql://USER:PASSWORD@HOST:PORT/DB
+  #     value: ""
+  #   # internal redis
+  #   - name: redis.enabled
+  #     value: false
+  #   # external
+  #   - name: global.redisUrl #redis URL redis://…
+  #     value: ""
+  #   # s3
+  #   - name: global.s3.enabled
+  #     value: false
+  #   # minio internal
+  #   - name: minio.enabled
+  #     value: true
+  #   # config
+  #   - name: apiUrl
+  #     value: http://{{cluster_ip}}:32000
+  #   - name: frontUrl
+  #     value: http://{{cluster_ip}}:30080
+    # how do we expose?
+    # - name: external.api.nodePort
+    #   value: 32000
+    # - name: external.front.nodePort
+    #   value: 30080
   - name: lago
     namespace: kalavai
     chart: kalavai/lago

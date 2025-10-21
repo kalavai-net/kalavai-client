@@ -407,8 +407,6 @@ def pool__start(
     platform="amd64",
     ip_address: str=None,
     location: str=None,
-    app_values: str=None,
-    pool_config_values: str=None,
     non_interactive: bool=False,
     node_labels: Annotated[dict, arguably.arg.handler(parse_key_value_pairs)] = {}
 ):
