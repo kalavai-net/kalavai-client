@@ -4,7 +4,7 @@ server:
   location: null
   name: "kalavai_cluster"
   mtu: ""
-  watcher_image_tag: "v2025.10.3"
+  watcher_image_tag: "v2025.10.10"
 
 core:
   # Deploy systems
