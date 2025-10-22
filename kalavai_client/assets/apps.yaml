@@ -209,7 +209,7 @@ releases:
     set:
     - name: namespace
       value: kalavai
-    - name: replicas
+    - name: deployment.replicas
       value: {{watcher_replicas}}
     - name: image_tag
       value: "{{watcher_image_tag}}" #"v2025.07.34"
