@@ -210,7 +210,7 @@ releases:
     - name: namespace
       value: kalavai
     - name: replicas
-      value: 1
+      value: {{watcher_replicas}}
     - name: image_tag
       value: "{{watcher_image_tag}}" #"v2025.07.34"
     - name: deployment.in_cluster

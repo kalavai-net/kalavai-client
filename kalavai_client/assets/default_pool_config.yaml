@@ -31,6 +31,7 @@ core:
   watcher_is_shared_pool: "True"
   watcher_resources_memory: 2
   watcher_resources_cpu: 2
+  watcher_replicas: 2
   # "Prometheus endpoint"
   prometheus_endpoint: "http://prometheus-server.prometheus-system.svc.cluster.local:80"
   # "Prometheus server retention"
