@@ -67,10 +67,12 @@ class DevicesState(rx.State):
         return self.items[start_index:end_index]
 
     def prev_page(self):
+        self.reset_selection()
         if self.page_number > 1:
             self.offset -= self.limit
 
     def next_page(self):
+        self.reset_selection()
         if self.page_number < self.total_pages:
             self.offset += self.limit
 
@@ -79,6 +81,9 @@ class DevicesState(rx.State):
 
     def last_page(self):
         self.offset = (self.total_pages - 1) * self.limit
+
+    def reset_selection(self):
+        self.is_selected = {i: False for i in self.is_selected}
 
     @rx.event(background=True)
     async def load_entries(self):
@@ -119,7 +124,7 @@ class DevicesState(rx.State):
             except Exception as e:
                 return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
             finally:
-                self.is_selected = {i: False for i in self.is_selected}
+                self.reset_selection()
             if "error" in result:
                 return rx.toast.error(str(result["error"]), position="top-center")
             else:

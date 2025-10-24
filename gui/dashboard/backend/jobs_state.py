@@ -63,10 +63,12 @@ class JobsState(rx.State):
         self.current_deploy_step = step
 
     def prev_page(self):
+        self.reset_selection()
         if self.page_number > 1:
             self.offset -= self.limit
 
     def next_page(self):
+        self.reset_selection()
         if self.page_number < self.total_pages:
             self.offset += self.limit
 
@@ -75,6 +77,9 @@ class JobsState(rx.State):
 
     def last_page(self):
         self.offset = (self.total_pages - 1) * self.limit
+    
+    def reset_selection(self):
+        self.is_selected = {i: False for i in self.is_selected}
     
     def reset_values(self):
         self.templates = []
@@ -194,7 +199,7 @@ class JobsState(rx.State):
                 if "error" in result:
                     toast = rx.toast.error(result["error"], position="top-center")
             toast = rx.toast.success("Jobs deleted", position="top-center")
-            self.is_selected = {i: False for i in self.is_selected}
+            self.reset_selection()
             return toast
 
     @rx.event(background=True)
@@ -239,14 +244,14 @@ class JobsState(rx.State):
     async def load_logs(self, index):
         async with self:
             self.logs = None
-        
+        element = index + (self.page_number-1) * self.limit
         try:
             logs = request_to_kalavai_core(
                 method="get",
                 endpoint="fetch_job_logs",
                 params={
-                "job_name": self.items[index].data["name"],
-                "force_namespace": self.items[index].data["owner"]
+                "job_name": self.items[element].data["name"],
+                "force_namespace": self.items[element].data["owner"]
                 }
             )
         except Exception as e:
