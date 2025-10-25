@@ -6,6 +6,7 @@ api_key="DUMMY"
 litellm_kalavai_extras="{}"
 model_info="{}"
 return="no"
+rpm_limit="50000"
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -38,6 +39,9 @@ while [ $# -gt 0 ]; do
       ;;
     --model_info=*)
       model_info="${1#*=}"
+      ;;
+    --rpm_limit=*)
+      rpm_limit="${1#*=}"
       ;;
     --return=*)
       return="yes"
@@ -73,6 +77,7 @@ json_payload=$(cat <<EOF
     "api_base": "$api_base",
     "api_key": "$api_key",
     "job_id": "$job_id",
+    "rpm": "$rpm_limit",
     "extras": $litellm_kalavai_extras
   }
 }

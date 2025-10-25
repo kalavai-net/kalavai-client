@@ -3,6 +3,7 @@
 litellm_kalavai_extras="{}"
 litellm_access_group=""
 model_api_base=""
+rpm_limit="50000"
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -15,6 +16,9 @@ while [ $# -gt 0 ]; do
     --model_api_base=*)
       model_api_base="${1#*=}"
       ;;
+    --rpm_limit=*)
+      rpm_limit="${1#*=}"
+      ;;
     *)
       printf "**************************************\n"
       printf "* start_point.sh: Invalid argument: $1\n"
@@ -26,13 +30,13 @@ done
 
 if [ -z "$litellm_access_group" ];
 then
-    litellm_access_group_str="{}"
+  litellm_access_group_str="{}"
 else
-    litellm_access_group_str="{\"access_groups\": [\"${litellm_access_group}\"]}"
+  litellm_access_group_str="{\"access_groups\": [\"${litellm_access_group}\"]}"
 fi
 if [ -z "$model_api_base" ];
 then
-    model_api_base=$MODEL_API_BASE
+  model_api_base=$MODEL_API_BASE
 fi
 
 echo "Creating new entry on LiteLLM: (host: $model_api_base - (model id: $LITELLM_MODEL_NAME)";
@@ -57,7 +61,8 @@ echo "----------------------------------------"
     --api_base=$model_api_base \
     --litellm_kalavai_extras="$litellm_kalavai_extras" \
     --model_info="$litellm_access_group_str" \
-    --job_id=$DEPLOYMENT_ID
+    --job_id=$DEPLOYMENT_ID \
+    --rpm_limit=$rpm_limit
 
 # Start the Lago event submitter (for billing)
 #{% if lago_url != "" %}--return=1 \{% endif %}
