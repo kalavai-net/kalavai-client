@@ -19,7 +19,7 @@ repositories:
     url: https://charts.longhorn.io
   - name: volcano-sh
     url: https://volcano-sh.github.io/helm-charts
-  - name: prometheus
+  - name: prometheus-community # prometheus
     url: https://prometheus-community.github.io/helm-charts
   - name: opencost-charts
     url: https://opencost.github.io/opencost-helm-chart
@@ -152,11 +152,27 @@ releases:
     namespace: opencost
     chart: opencost-charts/opencost
     installed: {{deploy_opencost|default("false", true)}}
+    set:
+    - name: service.type
+      value: NodePort
+    - name: opencost.nodeSelector.{{kalavai_role_label}}
+      value: server
+    # point at prometheus instance (theres an opencost.prometheus.external too)
+    - name: opencost.prometheus.internal.enabled
+      value: true
+    - name: opencost.prometheus.internal.serviceName
+      value: {{prometheus_service_name}}
+    - name: opencost.prometheus.internal.namespaceName
+      value: {{prometheus_namespace}}
+    - name: opencost.prometheus.internal.port
+      value: {{prometheus_port}}
   - name: prometheus
-    namespace: prometheus-system
-    chart: prometheus/prometheus
+    namespace: {{prometheus_namespace}}
+    chart: prometheus-community/kube-prometheus-stack #prometheus/prometheus
     installed: {{deploy_prometheus|default("false", true)}}
     set:
+    - name: server.nodeSelector.{{kalavai_role_label}}
+      value: server
     - name: prometheus-pushgateway.enabled
       value: false
     - name: alertmanager.enabled
@@ -232,7 +248,7 @@ releases:
     - name: deployment.kalavai_api_endpoint
       value: {{kalavai_api_endpoint}}
     - name: deployment.prometheus_endpoint
-      value: {{prometheus_endpoint}}
+      value: "http://{{prometheus_service_name}}.{{prometheus_namespace}}.svc.cluster.local:{{prometheus_port}}"
     - name: deployment.opencost_endpoint
       value: {{opencost_endpoint}}
     - name: deployment.longhorn_manager_endpoint
@@ -243,7 +259,7 @@ releases:
       value: {{watcher_resources_memory}}
     - name: resources.limits.cpu
       value: {{watcher_resources_cpu}}
-    - name: deployment.nodeSelector.kalavai/role
+    - name: deployment.nodeSelector.{{kalavai_role_label}}
       value: "server"
   - name: hami-vgpu
     namespace: kalavai
@@ -253,6 +269,10 @@ releases:
     set:
     - name: resourceCores
       value: "nvidia.com/gpucores"
+    - name: resourceMem
+      value: "nvidia.com/gpumem"
+    - name: resourceMemPercentage
+      value: "nvidia.com/gpumem-percentage"
     - name: devicePlugin.runtimeClassName
       value: "nvidia"
     - name: scheduler.defaultSchedulerPolicy.nodeSchedulerPolicy

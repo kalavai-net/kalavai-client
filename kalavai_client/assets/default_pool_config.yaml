@@ -4,7 +4,7 @@ server:
   location: null
   name: "kalavai_cluster"
   mtu: ""
-  watcher_image_tag: "v2025.10.10"
+  watcher_image_tag: "v2025.10.21"
 
 core:
   # Deploy systems
@@ -21,6 +21,7 @@ core:
   #- minio
   # "Kalavai API endpoint"
   kalavai_api_endpoint: "https://platform.kalavai.net/_/api"
+  kalavai_role_label: "kalavai/role"
   # "Opencost endpoint"
   opencost_endpoint: "http://opencost.opencost.svc.cluster.local:9003"
   # "Longhorn manager endpoint"
@@ -29,14 +30,15 @@ core:
   helios_harvest_interval: 120
   # "Watcher is shared pool"
   watcher_is_shared_pool: "True"
-  watcher_resources_memory: 2
-  watcher_resources_cpu: 2
-  watcher_replicas: 2
-  # "Prometheus endpoint"
-  prometheus_endpoint: "http://prometheus-server.prometheus-system.svc.cluster.local:80"
+  watcher_resources_memory: 1
+  watcher_resources_cpu: 1
+  watcher_replicas: 1
+  # "Prometheus and opencost"
+  prometheus_service_name: prometheus-kube-prometheus-prometheus
+  prometheus_namespace: prometheus-system
+  prometheus_port: 9090
   # "Prometheus server retention"
   prometheus_server_retention: "30d"
-  # "Prometheus disk size"
   prometheus_disk_size: "8Gi"
   # "Longhorn UI port"
   longhorn_ui_port: 30000
