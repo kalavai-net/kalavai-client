@@ -76,6 +76,7 @@ if __name__ == '__main__':
     # mark model as obsolete:
     #   add deletion date
     #   set to none access group
+    model["model_name"] = "deleted"
     model["model_info"]["access_groups"] = ["none"]
     model["litellm_params"]["extras"]["deleted_at"] = datetime.datetime.now().isoformat()
 
