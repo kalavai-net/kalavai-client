@@ -13,12 +13,12 @@ class JobsView(TableView):
             table_item=Job,
             table_state=JobsState,
             show_columns={
-                "name": ("dollar-sign", "Name of the job, click to access logs"),
+                "name": ("notebook-pen", "Name of the job, click to access logs"),
                 #"owner": ("user", "User that deployed the job"),
                 "workers": ("pickaxe", "Workers status"),
                 "host_nodes": ("computer", "Where the job is currently running"),
                 "endpoint": ("calendar", "Services exposed (if any) by the job"),
-                "status": ("notebook-pen", "<b>Workload status</b><br><br>Running: ready<br>Working: initialising<br>Pending: not enough resources to deploy<br>Error: something went wrong")
+                "status": ("check-check", "<b>Workload status</b><br><br>Running: ready<br>Working: initialising<br>Pending: not enough resources to deploy<br>Error: something went wrong")
             },
             item_id="Name",
             render_mapping={
@@ -67,34 +67,82 @@ class JobsView(TableView):
                         rx.link(item, on_click=JobsState.load_logs(index))
                     ),
                     rx.dialog.content(
+                        rx.hstack(
+                            rx.text(f"Job: {item}", size="4", weight="bold"),
+                            rx.button(rx.icon("refresh-cw"), on_click=JobsState.load_logs(index)),
+                            rx.dialog.close(
+                                rx.flex(rx.button("Close", size="2"), justify="end")
+                            ),
+                            justify="between",
+                            width="100%"
+                        ),
                         rx.match(
-                            JobsState.logs,
+                            JobsState.job_logs,
                             (None, rx.spinner()),
                             rx.vstack(
-                                rx.hstack(
-                                    rx.flex(
-                                        rx.text(f"Logs: {item}", size="4", weight="bold"),
-                                        rx.button(rx.icon("refresh-cw"), on_click=JobsState.load_logs(index)),
-                                        spacing="3"
+                                rx.tabs.root(
+                                    rx.tabs.list(
+                                        rx.tabs.trigger("Logs", value="logs_tab"),
+                                        rx.tabs.trigger("Metadata", value="metadata_tab"),
+                                        rx.tabs.trigger("Status", value="status_tab")
                                     ),
-                                    rx.dialog.close(
-                                        rx.flex(rx.button("Close", size="2"), justify="end")
+                                    rx.tabs.content(
+                                        rx.flex(
+                                            rx.separator(),
+                                            rx.hstack(
+                                                rx.text("Lines to fetch"),
+                                                rx.input(type="number", value=JobsState.log_tail, on_change=JobsState.set_log_tail),           
+                                            ),
+                                            rx.container(
+                                                rx.vstack(
+                                                    rx.scroll_area(
+                                                        rx.code_block(JobsState.job_logs),
+                                                        style={"height": 500},
+                                                        width="100%"
+                                                    ),
+                                                    overflow_x="auto",
+                                                    overflow_y="auto"
+                                                ),
+                                                stack_children_full_width=True
+                                            ),
+                                            direction="column",
+                                            spacing="4"
+                                        ),
+                                        spacing="4",
+                                        value="logs_tab"
                                     ),
-                                    justify="between",
-                                    width="100%"
-                                ),
-                                rx.separator(),
-                                rx.container(
-                                    rx.vstack(
-                                        rx.scroll_area(
-                                            rx.code_block(JobsState.logs),
-                                            scrollbars="vertical",
-                                            style={"height": 500}
-                                        )
+                                    rx.tabs.content(
+                                        rx.separator(),
+                                        rx.container(
+                                            rx.vstack(
+                                                rx.scroll_area(
+                                                    rx.code_block(JobsState.job_metadata),
+                                                    scrollbars="vertical",
+                                                    style={"height": 500}
+                                                )
+                                            ),
+                                            stack_children_full_width=True
+                                        ),
+                                        spacing="4",
+                                        value="metadata_tab"
                                     ),
-                                    stack_children_full_width=True
-                                ),
-                                spacing="4"
+                                    rx.tabs.content(
+                                        rx.separator(),
+                                        rx.container(
+                                            rx.vstack(
+                                                rx.scroll_area(
+                                                    rx.code_block(JobsState.job_status),
+                                                    scrollbars="vertical",
+                                                    style={"height": 500}
+                                                )
+                                            ),
+                                            stack_children_full_width=True
+                                        ),
+                                        spacing="4",
+                                        value="status_tab"
+                                    ),
+                                    default_value="logs_tab"
+                                )
                             )
                         ),
                         rx.separator(),
@@ -113,12 +161,12 @@ class JobsView(TableView):
                 rx.dialog.root(
                     rx.dialog.trigger(
                         rx.button(
-                            rx.icon("circle-plus", size=20, on_click=JobsState.load_templates),
-                            "",
-                            size="3",
+                            rx.icon("circle-plus", size=20, on_click=[JobsState.load_templates, JobsState.load_node_target_labels]),
+                            "New",
+                            size="2",
                             variant="surface",
                             display=["none", "none", "none", "flex"],
-                            on_click=JobsState.load_templates
+                            on_click=[JobsState.load_templates, JobsState.load_node_target_labels]
                         )
                     ),
                     rx.dialog.content(
@@ -150,8 +198,8 @@ class JobsView(TableView):
                     rx.alert_dialog.trigger(
                         rx.button(
                             rx.icon("trash-2", size=20),
-                            "",
-                            size="3",
+                            "Delete",
+                            size="2",
                             variant="surface",
                             display=["none", "none", "none", "flex"]
                         )
@@ -190,7 +238,7 @@ class JobsView(TableView):
                         rx.button(
                             rx.icon("info", size=20),
                             "",
-                            size="3",
+                            size="2",
                             variant="surface",
                             display=["none", "none", "none", "flex"],
                             on_click=JobsState.load_service_logs
@@ -231,7 +279,7 @@ class JobsView(TableView):
                 rx.button(
                     rx.icon("refresh-cw", size=20),
                     "",
-                    size="3",
+                    size="2",
                     variant="surface",
                     display=["none", "none", "none", "flex"],
                     on_click=self.table_state.load_entries(),
@@ -313,11 +361,11 @@ class JobsView(TableView):
                 ),
                 justify="end"
             ),
-            rx.text("2. Target specific nodes (leave blank for auto deploy)", as_="div", size="4", margin_bottom="10px", weight="bold"),
+            rx.text("2. Select specific nodes (leave blank for auto deploy)", as_="div", size="4", margin_bottom="10px", weight="bold"),
             rx.cond(
                 JobsState.selected_labels,
                 rx.flex(
-                    rx.text('Current labels', size="1", margin_bottom="4px"),
+                    rx.text('Current labels to select pool nodes', size="1", margin_bottom="4px"),
                     rx.vstack(
                         rx.foreach(
                             JobsState.selected_labels.items(),
@@ -328,26 +376,30 @@ class JobsView(TableView):
                         ),
                         spacing="2"
                     ),
+                    rx.hstack(
+                        rx.text("Selection operator across labels"),
+                        rx.radio(["AND", "OR"], direction="row", default_value="AND", on_change=JobsState.set_target_label_mode),
+                    ),
                     direction="column"
                 ),
                 rx.text("No labels selected", size="2", color="gray")
             ),
             rx.hstack(
-                rx.input(
-                    placeholder="Key",
-                    value=JobsState.new_label_key,
-                    on_change=JobsState.set_new_label_key,
-                    width="45%"
-                ),
-                rx.input(
-                    placeholder="Value",
-                    value=JobsState.new_label_value,
-                    on_change=JobsState.set_new_label_value,
-                    width="45%"
+                rx.select(
+                    JobsState.node_target_labels,
+                    placeholder="Select target labels",
+                    on_change=JobsState.parse_new_target_label
                 ),
                 rx.button(
                     "Add",
-                    on_click=JobsState.add_label,
+                    on_click=JobsState.add_target_label,
+                    width="10%",
+                    loading=JobsState.is_loading
+                ),
+                rx.button(
+                    "Clear",
+                    on_click=JobsState.clear_target_labels,
+                    color_scheme="gray",
                     width="10%",
                     loading=JobsState.is_loading
                 ),

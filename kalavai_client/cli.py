@@ -406,6 +406,7 @@ def pool__start(
     watcher_image_tag: str=None,
     platform="amd64",
     ip_address: str=None,
+    lb_address: str=None,
     location: str=None,
     non_interactive: bool=False,
     node_labels: Annotated[dict, arguably.arg.handler(parse_key_value_pairs)] = {}
@@ -420,6 +421,10 @@ def pool__start(
 
     if CLUSTER.is_cluster_init():
         console.log(f"[white] You are already connected to {load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE)}. Enter [yellow]kalavai pool stop[white] to exit and join another one.")
+        return
+    
+    if non_interactive and all([value is None for value in [location, lb_address, ip_address]]):
+        console.log("[red]In --non-interactive mode without --location, one of --lb-address or --ip-address must be set")
         return
 
     if node_labels:
@@ -451,6 +456,7 @@ def pool__start(
 
     result = create_pool(
         ip_address=ip_address,
+        lb_ip_address=lb_address,
         location=location,
         target_platform=platform,
         watcher_image_tag=watcher_image_tag,
@@ -523,7 +529,8 @@ def pool__join(
     platform="amd64",
     node_name=None,
     non_interactive=False,
-    node_labels: Annotated[dict, arguably.arg.handler(parse_key_value_pairs)] = {}
+    node_labels: Annotated[dict, arguably.arg.handler(parse_key_value_pairs)] = {},
+    seed: bool=False
 ):
     """
     Join Kalavai pool and start/resume sharing resources.
@@ -536,6 +543,7 @@ def pool__join(
         node_name: Name for this node
         non_interactive: Run in non-interactive mode
         node_labels: Node labels as key=value pairs (e.g., "key1=value1,key2=value2")
+        seed: if the node should join as an extra seed (for HA deployments)
     """
     
     # Process node labels if provided
@@ -590,7 +598,8 @@ def pool__join(
         num_gpus=num_gpus,
         ip_address=ip_address,
         mtu=mtu,
-        node_labels=node_labels
+        node_labels=node_labels,
+        is_seed=seed
     )
     if "error" in result:
         console.log(f"[red]Error when connecting: {result}")
@@ -1320,7 +1329,7 @@ def job__list(*others):
 
 
 @arguably.command
-def job__logs(name, *others, pod_name=None, stream=False, tail=100, force_namespace: str=None):
+def job__logs(name, *others, pod_name=None, tail=100, force_namespace: str=None):
     """
     Get logs for a specific job
     """
@@ -1333,34 +1342,57 @@ def job__logs(name, *others, pod_name=None, stream=False, tail=100, force_namesp
     if force_namespace is not None:
         console.log("[WARNING][yellow]--force-namespace [white]requires an admin key. Request will fail if you are not an admin.")
 
-    all_logs = fetch_job_logs(
+    data = fetch_job_logs(
         job_name=name,
         pod_name=pod_name,
         force_namespace=force_namespace,
         tail=tail)
-    if "error" in all_logs:
-        console.log(f"[red]{all_logs}")
+    if "error" in data:
+        console.log(f"[red]{data}")
         return
-    while True:
-        try:
-            if not stream:
-                for pod, info in all_logs.items():
-                    if pod_name is not None and pod_name != pod:
-                        continue
-                    console.log(f"[yellow]Pod {pod} in {info['pod']['spec']['node_name']}")
-                    console.log(f"[green]{info['logs']}")
-                break
-            else:
-                os.system("clear")
-                for pod, info in all_logs.items():
-                    if pod_name is not None and pod_name != pod:
-                        continue
-                    print(f"Pod {pod} in {info['pod']['spec']['node_name']}")
-                    print(f"{info['logs']}")
-                time.sleep(1)
-        except KeyboardInterrupt:
-            break
+    for pod, info in data.items():
+        if pod_name is not None and pod_name != pod:
+            continue
+        if "pod" not in info or info["pod"] is None:
+            console.log(f"[white]Logs for {pod_name} not ready yet. Try [yellow]kalavai job describe {pod_name}")
+            continue
+        console.log(f"[yellow]Pod {pod} in {info['pod']['spec']['node_name']}")
+        console.log(f"[green]{info['logs']}")
+        console.log("---------------------------")
+        console.log("---------------------------")
+        console.log(f"[yellow]Status {pod} in {info['pod']['spec']['node_name']}")
+        console.log(f"[green]{info['status']}")
 
+@arguably.command
+def job__describe(name, *others, pod_name=None, force_namespace: str=None):
+    """
+    Get logs for a specific job
+    """
+    try:
+        CLUSTER.validate_cluster()
+    except Exception as e:
+        console.log(f"[red]Problems with your pool: {str(e)}")
+        return
+    
+    if force_namespace is not None:
+        console.log("[WARNING][yellow]--force-namespace [white]requires an admin key. Request will fail if you are not an admin.")
+
+    data = fetch_job_logs(
+        job_name=name,
+        pod_name=pod_name,
+        force_namespace=force_namespace)
+    if "error" in data:
+        console.log(f"[red]{data}")
+        return
+    console.log(f"[yellow]Status for {name}:")
+    for pod, info in data.items():
+        if pod_name is not None and pod_name != pod:
+            continue
+        if "pod" not in info or info["pod"] is None:
+            console.log(f"[white]Logs for {pod_name} not ready yet. Try [yellow]kalavai job describe {pod_name}")
+            continue
+        
+        console.log(json.dumps(info['status'], indent=2))
 
 @arguably.command
 def job__manifest(*others, name, force_namespace: str=None):

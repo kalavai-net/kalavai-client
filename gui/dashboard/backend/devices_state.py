@@ -193,7 +193,7 @@ class DevicesState(rx.State):
             labels_result = request_to_kalavai_core(
                 method="get",
                 endpoint="get_node_labels",
-                json={"node_names": [node_name]}
+                params={"nodes": node_name}
             )
         except Exception as e:
             return rx.toast.error(f"Error loading labels: {e}", position="top-center")

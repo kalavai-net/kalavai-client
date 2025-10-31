@@ -1,5 +1,6 @@
 from typing import List
 from collections import defaultdict
+import json
 
 import reflex as rx
 
@@ -26,7 +27,10 @@ class JobsState(rx.State):
 
     current_deploy_step: int = 0
     is_loading: bool = False
-    logs: str = None
+    job_metadata: str = None
+    job_logs: str = None
+    job_status: str = None
+    log_tail: int = 100
     service_logs: str = None
     items: List[Job] = []
     is_selected: dict[int, bool]
@@ -37,6 +41,8 @@ class JobsState(rx.State):
     selected_labels: dict[str, str] = {}
     new_label_key: str
     new_label_value: str
+    node_target_labels: list[str] = []
+    target_label_mode: str = "AND"
 
     total_items: int = 0
     offset: int = 0
@@ -94,6 +100,34 @@ class JobsState(rx.State):
         return [t for t in templates if t not in ["custom"]]
     
     @rx.event(background=True)
+    async def load_job_data(self):
+        await self.load_templates()
+        await self.load_node_target_labels()
+    
+    @rx.event(background=True)
+    async def load_node_target_labels(self):
+        async with self:
+            self.node_target_labels = []
+        
+        try:
+            # load nodes
+            nodes = request_to_kalavai_core(
+                method="get",
+                endpoint="fetch_devices"
+            )
+            node_names = [node["name"] for node in nodes]
+            node_target_labels = request_to_kalavai_core(
+                method="get",
+                endpoint="get_node_labels",
+                params={"nodes": node_names}
+            )
+            label_set = {f"{key}: {value}" for value_pair in node_target_labels["labels"].values() for key, value in value_pair.items()}
+        except Exception as e:
+            return rx.toast.error(f"{e}", position="top-center")
+        async with self:
+            self.node_target_labels = list(label_set)
+
+    @rx.event(background=True)
     async def load_service_logs(self):
         async with self:
             self.service_logs = None
@@ -107,7 +141,7 @@ class JobsState(rx.State):
             return rx.toast.error(f"{e}", position="top-center")
         async with self:
             if "error" in logs:
-                self.logs = logs["error"]
+                self.job_logs = logs["error"]
             else:
                 formatted_logs = []
                 for name, info in logs.items():
@@ -215,6 +249,7 @@ class JobsState(rx.State):
         }
         if self.selected_labels:
             data["target_labels"] = self.selected_labels
+            data["target_labels_ops"] = self.target_label_mode
         
         force_namespace = form_data.pop("force_namespace", None)
         if force_namespace is not None and len(force_namespace.strip()) > 0:
@@ -243,36 +278,54 @@ class JobsState(rx.State):
     @rx.event(background=True)
     async def load_logs(self, index):
         async with self:
-            self.logs = None
+            self.job_logs = None
         element = index + (self.page_number-1) * self.limit
         try:
             logs = request_to_kalavai_core(
                 method="get",
                 endpoint="fetch_job_logs",
                 params={
-                "job_name": self.items[element].data["name"],
-                "force_namespace": self.items[element].data["owner"]
+                    "job_name": self.items[element].data["name"],
+                    "force_namespace": self.items[element].data["owner"],
+                    "tail": self.log_tail
                 }
             )
         except Exception as e:
             return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
         async with self:
             if "error" in logs:
-                self.logs = logs["error"]
+                self.job_logs = logs["error"]
             else:
-                formatted_logs = []
+                self.job_logs = ""
+                self.job_metadata = ""
+                self.job_status = ""
                 for name, info in logs.items():
-                    formatted_logs.append("------")
-                    formatted_logs.append(f"--> Pod: {name} in {info['pod']['spec']['node_name']}")
-                    formatted_logs.append("------")
-                    formatted_logs.extend(info['logs'].split("\n"))
-                    formatted_logs.append("")
-                    #logs = {name: log.split("\n") for name, log in logs.items()}
-                if len(formatted_logs) == 0:
-                    self.logs = "No logs found. Is this your job?"
-                else:
-                    self.logs = "\n".join(formatted_logs)
+                    if "pod" not in info or info["pod"] is None:
+                        self.job_logs = "Logs not ready yet"
+                    else:
+                        self.job_logs += "------"
+                        self.job_logs += f"--> Pod: {name} in {info['pod']['spec']['node_name']}"
+                        self.job_logs += "------"
+                        self.job_logs += info["logs"]
+                        self.job_logs += ""
+                    if "status" in info:
+                        self.job_status += json.dumps(info["status"], indent=2)
+                    if "metadata" in info:
+                        self.job_metadata += json.dumps(info["metadata"], indent=2)
 
+    @rx.event(background=True)
+    async def set_target_label_mode(self, mode):
+        async with self:
+            self.target_label_mode = mode
+    
+    @rx.event(background=True)
+    async def set_log_tail(self, value):
+        async with self:
+            try:
+                self.log_tail = int(value)
+            except:
+                self.log_tail = 100
+    
     @rx.event(background=True)
     async def load_entries(self):
         async with self:
@@ -325,19 +378,7 @@ class JobsState(rx.State):
                 self.is_loading = False
 
     @rx.event(background=True)
-    async def set_new_label_key(self, value: str):
-        """Set the new label key."""
-        async with self:
-            self.new_label_key = value
-    
-    @rx.event(background=True)
-    async def set_new_label_value(self, value: str):
-        """Set the new label key."""
-        async with self:
-            self.new_label_value = value
-
-    @rx.event(background=True)
-    async def add_label(self):
+    async def add_target_label(self):
         """Add a new label to the deployment."""
         async with self:
             self.selected_labels[self.new_label_key] = self.new_label_value
@@ -345,3 +386,21 @@ class JobsState(rx.State):
         async with self:
             self.new_label_key = ""
             self.new_label_value = ""
+    
+    @rx.event(background=True)
+    async def clear_target_labels(self):
+        """Clear all node selector labels"""
+        async with self:
+            self.selected_labels = {}
+    
+    @rx.event(background=True)
+    async def parse_new_target_label(self, encoded_label: str):
+        """Set the new node selector label"""
+        try:
+            key = encoded_label.split(":")[0].strip()
+            value = encoded_label.split(":")[1].strip()
+        except:
+            return rx.toast.error("Invalid label format, ':' expected", position="top-center")
+        async with self:
+            self.new_label_key = key
+            self.new_label_value = value

@@ -65,3 +65,9 @@ To add a new page:
 3. Import the page in your `{your_app}/pages/__init__.py` file and it will automatically be added to the app.
 4. Order the pages in `{your_app}/components/sidebar.py` and `{your_app}/components/navbar.py`.
 
+
+
+## Build docker
+
+docker build -t bundenth/kalavai-gui:latest .
+docker push bundenth/kalavai-gui:latest

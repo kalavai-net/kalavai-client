@@ -18,8 +18,9 @@ def jobs() -> rx.Component:
 
     """
     return rx.vstack(
-        rx.heading("Job deployments", size="5"),
+        rx.heading("Job deployments", size="6"),
+        rx.text("Manage your AI workloads. Deploy models across your pool through ready-made templates."),
         job_view.main_table(),
-        spacing="8",
+        spacing="5",
         width="100%",
     )

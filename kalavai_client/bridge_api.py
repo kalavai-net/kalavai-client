@@ -614,14 +614,14 @@ def node_labels(request: NodeLabelsRequest, api_key: str = Depends(verify_api_ke
     description="Retrieves all labels associated with specified compute nodes in the pool. Labels provide metadata about nodes and can be used for filtering and scheduling decisions.",
     tags=["info"],
     response_description="Node labels")
-def node_labels_get(request: Optional[NodesActionRequest]=NodesActionRequest(), api_key: str = Depends(verify_api_key)):
+def node_labels_get(nodes: Optional[List[str]] = Query(None), api_key: str = Depends(verify_api_key)):
     """
     Get node labels with the following parameters:
     
-    - **node_names**: List of node names to get labels for
+    - **nodes**: List of node names to get labels for
     """
     result = get_node_labels(
-        node_names=request.nodes
+        node_names=nodes
     )
     return result
 

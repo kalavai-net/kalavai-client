@@ -468,7 +468,7 @@ def fetch_pod_logs(label_key, label_value, force_namespace=None, pod_name=None, 
     data = {
         "label": label_key,
         "value": label_value,
-        "tail": tail
+        "tail_lines": tail
     }
     if force_namespace is not None:
         data["force_namespace"] = force_namespace
@@ -476,7 +476,7 @@ def fetch_pod_logs(label_key, label_value, force_namespace=None, pod_name=None, 
         # send tail as parameter (fetch only last _tail_ lines)
         all_logs = request_to_server(
             method="post",
-            endpoint="/v1/get_logs_for_label",
+            endpoint="/v1/get_job_details",
             data=data,
             server_creds=USER_LOCAL_SERVER_FILE,
             user_cookie=USER_COOKIE
@@ -673,7 +673,8 @@ def join_pool(
         ip_address=None,
         target_platform="amd64",
         mtu="",
-        node_labels={}
+        node_labels={},
+        is_seed=False
 ):
     compatibility = check_worker_compatibility()
     if len(compatibility["issues"]) > 0:
@@ -705,13 +706,13 @@ def join_pool(
     node_labels = {
         **node_labels,
         STORAGE_CLASS_LABEL: is_storage_compatible(),
-        NODE_ROLE_LABEL: "worker"
+        NODE_ROLE_LABEL: "worker" if not is_seed else "server"
     }  
     # local agent join
     # Generate docker compose recipe
     generate_compose_config(
         target_platform=target_platform,
-        role="agent",
+        role="agent" if not is_seed else "seed",
         node_ip_address=ip_address,
         pool_ip=f"https://{kalavai_seed_ip}:6443",
         pool_token=kalavai_token,
@@ -758,20 +759,21 @@ def join_pool(
     return cluster_name
 
 def create_pool(
-        cluster_name: str=None,
-        ip_address: str=None,
-        location: str=None,
-        target_platform: str="amd64",
-        watcher_image_tag: str=None,
-        pool_config_file: str=None,
-        description: str="",
-        token_mode: TokenType=TokenType.USER,
-        num_gpus: int=-1,
-        node_name: str=None,
-        mtu: str="",
-        apps: list=[],
-        node_labels: dict={}
-    ):
+    cluster_name: str=None,
+    ip_address: str=None,
+    lb_ip_address: str=None,
+    location: str=None,
+    target_platform: str="amd64",
+    watcher_image_tag: str=None,
+    pool_config_file: str=None,
+    description: str="",
+    token_mode: TokenType=TokenType.USER,
+    num_gpus: int=-1,
+    node_name: str=None,
+    mtu: str="",
+    apps: list=[],
+    node_labels: dict={}
+):
 
     if not check_seed_compatibility():
         return {"error": "Requirements failed"}
@@ -822,6 +824,7 @@ def create_pool(
         role="server",
         vpn_token=location,
         node_ip_address=ip_address,
+        lb_ip_address=lb_ip_address,
         num_gpus=num_gpus,
         node_name=node_name,
         node_labels=node_labels,
@@ -848,7 +851,7 @@ def create_pool(
     watcher_service = f"{ip_address}:{DEFAULT_WATCHER_PORT}"
     values = {
         #CLUSTER_NAME_KEY: cluster_name,
-        CLUSTER_IP_KEY: ip_address,
+        CLUSTER_IP_KEY: ip_address if lb_ip_address is None else lb_ip_address,
         USER_ID_KEY: user_id if user_id is not None else "",
         AUTH_KEY: auth_key,
         READONLY_AUTH_KEY: readonly_auth_key,
@@ -861,7 +864,7 @@ def create_pool(
     }
 
     store_server_info(
-        server_ip=ip_address,
+        server_ip=ip_address if lb_ip_address is None else lb_ip_address,
         auth_key=auth_key,
         readonly_auth_key=readonly_auth_key,
         write_auth_key=write_auth_key,

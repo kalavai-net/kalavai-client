@@ -18,8 +18,9 @@ def gpus() -> rx.Component:
 
     """
     return rx.vstack(
-        rx.heading("GPUs", size="5"),
+        rx.heading("GPUs", size="6"),
+        rx.text("Available GPUs the pool is managing"),
         gpus_view.main_table(),
-        spacing="8",
+        spacing="5",
         width="100%",
     )

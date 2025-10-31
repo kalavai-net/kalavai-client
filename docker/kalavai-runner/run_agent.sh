@@ -7,6 +7,8 @@ node_name=$HOSTNAME
 user_id=""
 random_suffix=""
 mtu=""
+token=""
+tls_san=""
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -45,6 +47,9 @@ while [ $# -gt 0 ]; do
       ;;
     --mtu=*)
       mtu="${1#*=}"
+      ;;
+    --tls_san=*)
+      tls_san="${1#*=}"
       ;;
     *)
       printf "***************************\n"
@@ -115,36 +120,66 @@ if [ ! -z "${mtu}" ]; then
   sleep 10
 fi
 
+# For load balancers, set tls-san address
+if [ ! -z "${tls_san}" ]; then
+  tls_san="--tls-san "$tls_san
+fi
+
+echo "flannel iface: "$iface_server" ($node_ip)"
 if [[ "$command" == "server" ]]; then
-    # server agent
-        # --kube-controller-manager-arg=node-monitor-grace-period=2m \
-        # --kube-controller-manager-arg=node-monitor-period=2m \
-        # --kubelet-arg=node-status-update-frequency=1m \
-    echo "flannel iface: "$iface_server" ($node_ip)"
-    exec /bin/k3s $command \
-        --node-ip $node_ip \
-        --advertise-address $node_ip \
-        --bind-address 0.0.0.0 \
-        --node-external-ip $node_ip \
-        --node-name $node_name \
-        --service-node-port-range $port_range \
-        $iface_server \
-        --node-label gpu=$gpu \
-        $user_id \
-        $extra
+  # server agent
+      # --kube-controller-manager-arg=node-monitor-grace-period=2m \
+      # --kube-controller-manager-arg=node-monitor-period=2m \
+      # --kubelet-arg=node-status-update-frequency=1m \
+  exec /bin/k3s $command \
+    --node-ip $node_ip \
+    --cluster-init \
+    --advertise-address $node_ip \
+    --bind-address 0.0.0.0 \
+    --node-external-ip $node_ip \
+    --node-name $node_name \
+    --service-node-port-range $port_range \
+    $iface_server \
+    --node-label gpu=$gpu \
+    $user_id \
+    $tls_san \
+    $extra
+elif [[ "$command" == "seed" ]]; then
+  # extra control-plane servers
+  if [ -z "$token"]; then
+    printf "[ERROR]: Token must be set for $command nodes"
+    exit 1
+  fi
+  # add tls-san=LOAD_BALANCER_IP when using load balancer
+  exec /bin/k3s server \
+    --node-ip $node_ip \
+    --server $server_ip \
+    --advertise-address $node_ip \
+    --bind-address 0.0.0.0 \
+    --node-external-ip $node_ip \
+    --node-name $node_name \
+    --token $token \
+    $iface_server \
+    --node-label gpu=$gpu \
+    $user_id \
+    $tls_san \
+    $extra
 else
-    # worker agent
-    echo "flannel iface: "$iface_worker" ($node_ip)"
-        #--kubelet-arg=node-status-update-frequency=1m \
-    exec /bin/k3s $command \
-        --node-external-ip $node_ip \
-        --node-ip $node_ip \
-        --bind-address 0.0.0.0 \
-        --server $server_ip \
-        --token $token \
-        --node-name $node_name \
-        $user_id \
-        $iface_worker \
-        --node-label gpu=$gpu \
-        $extra
+  # worker agent
+      #--kubelet-arg=node-status-update-frequency=1m \
+  if [ -z "$token"]; then
+    printf "[ERROR]: Token must be set for $command nodes"
+    exit 1
+  fi
+  exec /bin/k3s $command \
+    --node-external-ip $node_ip \
+    --node-ip $node_ip \
+    --bind-address 0.0.0.0 \
+    --server $server_ip \
+    --token $token \
+    --node-name $node_name \
+    $user_id \
+    $iface_worker \
+    --node-label gpu=$gpu \
+    $extra
 fi

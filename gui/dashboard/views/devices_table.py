@@ -15,12 +15,12 @@ class DevicesView(TableView):
             table_item=Device,
             table_state=DevicesState,
             show_columns={
-                "name": ("computer", "Hostname of the device"),
-                "memory_pressure": ("user", "RAM issues (when nodes run low on memory)"),
+                "name": ("user", "Hostname of the device"),
+                "memory_pressure": ("computer", "RAM issues (when nodes run low on memory)"),
                 "disk_pressure": ("cpu", "Disk memory issues (when nodes run low on free space)"),
                 "pid_pressure": ("microchip", "Process issues (when nodes have too many processes running)"),
                 "unschedulable": ("notebook-pen", "Node available for scheduling jobs"),
-                "ready": ("memory-stick", "Node online (connected)"),
+                "ready": ("check-check", "Node online (connected)"),
             },
             item_id="Name",
             render_mapping={
@@ -208,8 +208,8 @@ class DevicesView(TableView):
                     rx.dialog.trigger(
                         rx.button(
                             rx.icon("circle-plus", size=20),
-                            "",
-                            size="3",
+                            "Connect",
+                            size="2",
                             variant="surface",
                             display=["none", "none", "none", "flex"],
                             on_click=PoolsState.update_token("")
@@ -271,14 +271,17 @@ class DevicesView(TableView):
                                         value="yaml"
                                     ),
                                     rx.tabs.content(
-                                        rx.text("Use the following token to join the pool with the kalavai CLI"),
+                                        rx.text("Run the following commands in your machine to join the pool"),
                                         rx.flex(
-                                            rx.card(rx.text(PoolsState.token)),
-                                            rx.button(rx.icon("copy"), on_click=[rx.set_clipboard(PoolsState.token), rx.toast.success("Copied", position="top-center")])
+                                            rx.card(
+                                                rx.text(f"kalavai pool join {PoolsState.token}", word_break="break-all"),
+                                            ),
+                                            #rx.button(rx.icon("copy"), on_click=[rx.set_clipboard(PoolsState.token), rx.toast.success("Copied", position="top-center")])
                                         ),
+                                        rx.link("Installation instructions", href="https://kalavai-net.github.io/kalavai-client/getting_started/#install-the-client", is_external=True),
                                         value="cli",
                                     ),
-                                    default_value="yaml"
+                                    default_value="cli"
                                 )
                             ),
                             rx.separator(size="4"),
@@ -303,8 +306,8 @@ class DevicesView(TableView):
                     rx.alert_dialog.trigger(
                         rx.button(
                             rx.icon("trash-2", size=20),
-                            "",
-                            size="3",
+                            "Remove",
+                            size="2",
                             variant="surface",
                             display=["none", "none", "none", "flex"]
                         )
@@ -341,7 +344,7 @@ class DevicesView(TableView):
                 rx.button(
                     rx.icon("refresh-cw", size=20),
                     "",
-                    size="3",
+                    size="2",
                     variant="surface",
                     display=["none", "none", "none", "flex"],
                     on_click=self.table_state.load_entries(),

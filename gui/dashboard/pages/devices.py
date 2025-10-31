@@ -18,8 +18,9 @@ def devices() -> rx.Component:
 
     """
     return rx.vstack(
-        rx.heading("Devices", size="5"),
+        rx.heading("Devices", size="6"),
+        rx.text("List all registered devices in the pool"),
         devices_view.main_table(),
-        spacing="8",
+        spacing="5",
         width="100%",
     )

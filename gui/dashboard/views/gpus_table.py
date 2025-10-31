@@ -35,7 +35,7 @@ class GPUsView(TableView):
             rx.button(
                 rx.icon("refresh-cw", size=20),
                 "",
-                size="3",
+                size="2",
                 variant="surface",
                 display=["none", "none", "none", "flex"],
                 on_click=self.table_state.load_entries(),
