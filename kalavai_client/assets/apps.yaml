@@ -6,8 +6,8 @@ repositories:
   - name: rocm
     url: https://rocm.github.io/gpu-operator
   # required by rocm
-  - name: jetstacks
-    url: https://charts.jetstack.io
+  # - name: jetstacks
+  #   url: https://charts.jetstack.io
   ###
   - name: kuberay
     url: https://ray-project.github.io/kuberay-helm/
@@ -33,17 +33,38 @@ repositories:
     url: https://charts.getlago.com
 
 releases:
-  - name: certificates
-    namespace: kalavai
-    chart: jetstacks/cert-manager
-    version: "v1.15.1"
+  # HACK: to avoid racing conditions with traefik not being ready, the CRDs are installed
+  # in the base kalavai-runner image, then here we apply artificial wait to give them time
+  - name: cert-manager
+    namespace: cert-manager
+    chart: oci://quay.io/jetstack/charts/cert-manager
+    version: "v1.19.1"
     installed: {{deploy_cert_manager|default("False", true)}}
     set:
-    - name: crds.enabled
-      value: true
+      - name: crds.enabled
+        value: false  # We'll handle CRDs manually in the kalavai-runner
+    hooks:
+      # --- Step 1: Wait to ensure CRDs and traefik are ready (presync)
+      - events: ["presync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - "-c"
+          - |
+            echo ">>> Waiting for CRDs to establish and traefik to be ready....$(date)"
+            sleep 240
+            echo ">>> PRESYNC completed: $(date)"
+  # - name: cert-manager
+  #   namespace: cert-manager
+  #   chart: oci://quay.io/jetstack/charts/cert-manager
+  #   version: "v1.19.1"
+  #   installed: {{deploy_cert_manager|default("False", true)}}
+  #   set:
+  #   - name: crds.enabled
+  #     value: true
   - name: rocm
     needs: 
-    - kalavai/certificates
+    - cert-manager/cert-manager
     namespace: kalavai
     chart: rocm/gpu-operator-charts
     installed: {{deploy_rocm|default("false", true)}}
