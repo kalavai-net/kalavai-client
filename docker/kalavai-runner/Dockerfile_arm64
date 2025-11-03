@@ -9,6 +9,9 @@ RUN apt update && apt install wireguard -y
 COPY --from=k3s / / --exclude=/bin
 COPY --from=k3s /bin /bin
 
+# Deploy defaults on startup
+COPY deployments/* /var/lib/rancher/k3s/server/manifests/
+
 RUN mkdir -p /workspace
 COPY run_agent.sh /workspace/
 RUN chmod +x /workspace/run_agent.sh

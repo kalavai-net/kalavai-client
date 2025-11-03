@@ -1,7 +1,9 @@
 # Dockerising kalavai
 
-Custom k3d image including nvidia container toolkig
-Custom nvidia plugin
+
+Custom k3d image including nvidia container toolkit
+It also includes certain default deployments we want for all clusters
+
 
 ## Run
 

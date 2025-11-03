@@ -17,8 +17,8 @@ RUN apt-get install wireguard -y
 COPY --from=k3s / / --exclude=/bin
 COPY --from=k3s /bin /bin
 
-# Deploy the nvidia driver plugin on startup
-COPY nvidia-runtimeclass.yaml /var/lib/rancher/k3s/server/manifests/nvidia-runtimeclass.yaml
+# Deploy defaults on startup
+COPY deployments/* /var/lib/rancher/k3s/server/manifests/
 
 RUN mkdir -p /workspace
 COPY run_agent.sh /workspace/
