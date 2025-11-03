@@ -168,7 +168,8 @@ def generate_compose_config(
     node_labels=None,
     pool_ip=None,
     vpn_token=None,
-    pool_token=None
+    pool_token=None,
+    host_root_path=None,
 ):
     if node_labels is not None:
         node_labels = " ".join([f"--node-label {key}={value}" for key, value in node_labels.items()])
@@ -194,7 +195,8 @@ def generate_compose_config(
         "random_suffix": rand_suffix,
         "node_labels": node_labels,
         "flannel_iface": DEFAULT_FLANNEL_IFACE if vpn_token is not None else "",
-        "user_id": load_user_id()
+        "user_id": load_user_id(),
+        "host_root_path": host_root_path
     }
     # generate local config files
     compose_yaml = load_template(

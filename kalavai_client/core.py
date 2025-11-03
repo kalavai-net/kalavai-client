@@ -828,7 +828,8 @@ def create_pool(
         num_gpus=num_gpus,
         node_name=node_name,
         node_labels=node_labels,
-        mtu=mtu
+        mtu=mtu,
+        host_root_path=config_values["server"]["host_root_path"]
     )
 
     # start server

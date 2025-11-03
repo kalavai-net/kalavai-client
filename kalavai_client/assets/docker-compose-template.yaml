@@ -67,7 +67,8 @@ services:
       --mtu={{mtu}}
     {% endif %}
 
-    # volumes:
+    volumes:
+    - /:{{host_root_path}}:rshared
     # - {{k3s_path}}:/var/lib/rancher/k3s # Persist data
     # - {{etc_path}}:/etc/rancher/k3s # Config files
 
