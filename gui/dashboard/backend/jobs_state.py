@@ -38,7 +38,7 @@ class JobsState(rx.State):
     selected_template: str = ""
     template_params: list[dict[str, str]] = []
     template_metadata: TemplateData = None
-    selected_labels: dict[str, str] = {}
+    selected_labels: dict[str, list] = {}
     new_label_key: str
     new_label_value: str
     node_target_labels: list[str] = []
@@ -380,8 +380,13 @@ class JobsState(rx.State):
     @rx.event(background=True)
     async def add_target_label(self):
         """Add a new label to the deployment."""
+        if self.new_label_key == "" and self.new_label_value == "":
+            return rx.toast.info("No label selected", position="top-center")
         async with self:
-            self.selected_labels[self.new_label_key] = self.new_label_value
+            if self.new_label_key in self.selected_labels:
+                self.selected_labels[self.new_label_key].append(self.new_label_value)
+            else:
+                self.selected_labels[self.new_label_key] = [self.new_label_value]
         
         async with self:
             self.new_label_key = ""
