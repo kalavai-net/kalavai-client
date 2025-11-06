@@ -58,7 +58,7 @@ class DashboardState(rx.State):
         async with self:
             # Resource utilisation
             if "error" in resources:
-                pass
+                return rx.toast.error(f"Error: {resources['error']}", position="top-center")
             else:
                 self.total_cpus = resources["total"]["cpu"]
                 self.online_cpus = resources["available"]["cpu"]

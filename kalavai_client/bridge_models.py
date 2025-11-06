@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Dict, Optional
+from typing import List, Dict, Union
 
 from kalavai_client.core import Job, TokenType
 
@@ -45,7 +45,7 @@ class DeployJobRequest(BaseModel):
     template_name: str = Field(description="Name of the job template to use")
     values: dict = Field(description="Job configuration values")
     force_namespace: str = Field(None, description="Optional namespace override")
-    target_labels: dict[str, str] = Field(None, description="Optional target node labels")
+    target_labels: dict[str, Union[str, List]] = Field(None, description="Optional target node labels")
 
 class DeleteJobRequest(BaseModel):
     name: str = Field(description="Name of the job to delete")

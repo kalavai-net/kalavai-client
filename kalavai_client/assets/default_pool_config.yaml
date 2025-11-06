@@ -4,7 +4,7 @@ server:
   location: null
   name: "kalavai_cluster"
   mtu: ""
-  watcher_image_tag: "v2025.10.24"
+  watcher_image_tag: "v2025.11.15"
   host_root_path: "/hostroot"
 
 core:

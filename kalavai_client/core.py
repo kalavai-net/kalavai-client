@@ -207,14 +207,14 @@ def fetch_resources(node_names: list[str]=None):
         data["node_names"] = node_names
     try:
         total = request_to_server(
-            method="get",
+            method="post",
             endpoint="/v1/get_cluster_total_resources",
             data=data,
             server_creds=USER_LOCAL_SERVER_FILE,
             user_cookie=USER_COOKIE
         )
         available = request_to_server(
-            method="get",
+            method="post",
             endpoint="/v1/get_cluster_available_resources",
             data=data,
             server_creds=USER_LOCAL_SERVER_FILE,
@@ -836,6 +836,7 @@ def create_pool(
     CLUSTER.start_seed_node()
     while not CLUSTER.is_agent_running():
         time.sleep(10)
+    
     
     # select IP address (for external discovery)
     if ip_address is None or location is not None:
