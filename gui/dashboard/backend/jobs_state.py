@@ -39,8 +39,6 @@ class JobsState(rx.State):
     template_params: list[dict[str, str]] = []
     template_metadata: TemplateData = None
     selected_labels: dict[str, list] = {}
-    new_label_key: str
-    new_label_value: str
     node_target_labels: list[str] = []
     target_label_mode: str = "AND"
 
@@ -125,7 +123,7 @@ class JobsState(rx.State):
         except Exception as e:
             return rx.toast.error(f"{e}", position="top-center")
         async with self:
-            self.node_target_labels = list(label_set)
+            self.node_target_labels = sorted(list(label_set))
 
     @rx.event(background=True)
     async def load_service_logs(self):
@@ -376,21 +374,6 @@ class JobsState(rx.State):
                             )
                         )
                 self.is_loading = False
-
-    @rx.event(background=True)
-    async def add_target_label(self):
-        """Add a new label to the deployment."""
-        if self.new_label_key == "" and self.new_label_value == "":
-            return rx.toast.info("No label selected", position="top-center")
-        async with self:
-            if self.new_label_key in self.selected_labels:
-                self.selected_labels[self.new_label_key].append(self.new_label_value)
-            else:
-                self.selected_labels[self.new_label_key] = [self.new_label_value]
-        
-        async with self:
-            self.new_label_key = ""
-            self.new_label_value = ""
     
     @rx.event(background=True)
     async def clear_target_labels(self):
@@ -407,5 +390,7 @@ class JobsState(rx.State):
         except:
             return rx.toast.error("Invalid label format, ':' expected", position="top-center")
         async with self:
-            self.new_label_key = key
-            self.new_label_value = value
+            if key in self.selected_labels:
+                self.selected_labels[key].append(value)
+            else:
+                self.selected_labels[key] = [value]

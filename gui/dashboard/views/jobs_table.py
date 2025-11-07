@@ -391,12 +391,6 @@ class JobsView(TableView):
                     on_change=JobsState.parse_new_target_label
                 ),
                 rx.button(
-                    "Add",
-                    on_click=JobsState.add_target_label,
-                    width="10%",
-                    loading=JobsState.is_loading
-                ),
-                rx.button(
                     "Clear",
                     on_click=JobsState.clear_target_labels,
                     color_scheme="gray",
