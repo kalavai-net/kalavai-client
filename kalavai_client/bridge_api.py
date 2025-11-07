@@ -276,8 +276,8 @@ def get_devices(api_key: str = Depends(verify_api_key)):
     description="Get logs for the kalavai API service, including internal logs, debugging messages and status of the service.",
     tags=["info"],
     response_description="Logs")
-def get_service_logs(api_key: str = Depends(verify_api_key)):
-    return fetch_pod_logs(label_key=KALAVAI_SERVICE_LABEL, label_value=KALAVAI_SERVICE_LABEL_VALUE, force_namespace="kalavai")
+def get_service_logs(tail: int=100, api_key: str = Depends(verify_api_key)):
+    return fetch_pod_logs(label_key=KALAVAI_SERVICE_LABEL, label_value=KALAVAI_SERVICE_LABEL_VALUE, force_namespace="kalavai", tail=tail)
 
 @app.post("/send_pool_invites",
     operation_id="send_pool_invites",

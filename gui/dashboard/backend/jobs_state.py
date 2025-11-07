@@ -133,7 +133,8 @@ class JobsState(rx.State):
         try:
             logs = request_to_kalavai_core(
                 method="get",
-                endpoint="fetch_service_logs"
+                endpoint="fetch_service_logs",
+                params={"tail": self.log_tail}
             )
         except Exception as e:
             return rx.toast.error(f"{e}", position="top-center")

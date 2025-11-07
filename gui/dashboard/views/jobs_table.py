@@ -252,6 +252,11 @@ class JobsView(TableView):
                         ),
                         rx.flex(
                             rx.container(
+                                rx.hstack(
+                                    rx.text("Lines to fetch"),
+                                    rx.input(type="number", value=JobsState.log_tail, on_change=JobsState.set_log_tail),           
+                                    rx.button(rx.icon("refresh-cw"), on_click=JobsState.load_service_logs),
+                                ),
                                 rx.vstack(
                                     rx.scroll_area(
                                         rx.code_block(JobsState.service_logs),
