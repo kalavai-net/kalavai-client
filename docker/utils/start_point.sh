@@ -39,13 +39,14 @@ then
   model_api_base=$MODEL_API_BASE
 fi
 
-echo "Creating new entry on LiteLLM: (host: $model_api_base - (model id: $LITELLM_MODEL_NAME)";
+echo ">>> Creating new entry on LiteLLM"
 
 echo "----------------------------------------"
 echo "Raw litellm_access_group: "$litellm_access_group
 echo "LiteLLM Kalavai Extras: "$litellm_kalavai_extras
 echo "LiteLLM Access Group: "$litellm_access_group_str
 echo "Model ID: "$MODEL_ID
+echo "LiteLLM model name: "$LITELLM_MODEL_NAME
 echo "Provider: "$PROVIDER
 echo "Model API Base: "$model_api_base
 echo "Deployment ID: "$DEPLOYMENT_ID

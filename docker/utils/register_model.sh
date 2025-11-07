@@ -55,7 +55,7 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-echo "Registering model with LiteLLM: "$litellm_model_name
+echo ">>> Registering model with LiteLLM"
 
 echo "----------------------------------------"
 echo "LiteLLM Base URL: "$litellm_base_url
