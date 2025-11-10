@@ -297,6 +297,58 @@ def fetch_job_details(jobs: list[Job]):
     }
     """
     job_details = []
+    # fetch all details at once
+    data = [{"label": TEMPLATE_LABEL, "value": job.name} for job in jobs]
+    result = request_to_server(
+        method="post",
+        endpoint="/v1/get_jobs_overview",
+        data=data,
+        server_creds=USER_LOCAL_SERVER_FILE,
+        user_cookie=USER_COOKIE
+    )
+    print(result)
+
+    for namespace, deployments in result.items():
+        """deployments --> "name": {"pods": [], "services": []}"""
+        for job_name, job in deployments:
+            workers_status = defaultdict(int)
+            restart_counts = 0
+            host_nodes = set()
+            # parse pods
+            for _, values in job["pods"].items():
+                if "conditions" in values and values["conditions"] is not None:
+                    restart_counts = sum([c["restart_count"] for c in values["conditions"]])
+                workers_status[values["status"]] += 1
+                # get nodes involved in deployment (needs kubewatcher)
+                if "node_name" in values and values["node_name"] is not None:
+                    host_nodes.add(values["node_name"])
+            workers = "\n".join([f"{k}: {v}" for k, v in workers_status.items()])
+            if restart_counts > 0:
+                workers += f"\n({restart_counts} restart)"
+            # parse services
+            node_ports = [f"{p['node_port']}" for s in result.values() for p in s["ports"]]
+
+            urls = [f"http://{load_server_info(data_key=SERVER_IP_KEY, file=USER_LOCAL_SERVER_FILE)}:{node_port}" for node_port in node_ports]
+            if "Ready" in workers_status and len(workers_status) == 1:
+                status = "running"
+            elif any([st in workers_status for st in ["Failed"]]):
+                status = "error"
+            elif any([st in workers_status for st in ["Pending"]]) or len(workers_status) == 0:
+                status = "pending"
+            elif any([st in workers_status for st in ["Succeeded", "Completed"]]):
+                status = "completed"
+            else:
+                status = "working"
+            job_details.append(
+                Job(owner=namespace,
+                    name=job_name,
+                    workers=workers,
+                    endpoint="\n".join(urls),
+                    status=str(status),
+                    host_nodes=" ".join(host_nodes))
+            )
+    return job_details
+
     for job in jobs:
         namespace = job.owner
         deployment = job.name
