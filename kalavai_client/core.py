@@ -306,28 +306,32 @@ def fetch_job_details(jobs: list[Job]):
         server_creds=USER_LOCAL_SERVER_FILE,
         user_cookie=USER_COOKIE
     )
-    print(result)
 
     for namespace, deployments in result.items():
         """deployments --> "name": {"pods": [], "services": []}"""
-        for job_name, job in deployments:
+        for job_name, job in deployments.items():
             workers_status = defaultdict(int)
             restart_counts = 0
             host_nodes = set()
             # parse pods
-            for _, values in job["pods"].items():
-                if "conditions" in values and values["conditions"] is not None:
-                    restart_counts = sum([c["restart_count"] for c in values["conditions"]])
-                workers_status[values["status"]] += 1
-                # get nodes involved in deployment (needs kubewatcher)
-                if "node_name" in values and values["node_name"] is not None:
-                    host_nodes.add(values["node_name"])
-            workers = "\n".join([f"{k}: {v}" for k, v in workers_status.items()])
-            if restart_counts > 0:
-                workers += f"\n({restart_counts} restart)"
+            for pod in job["pods"]:
+                for _, values in pod.items():
+                    if "conditions" in values and values["conditions"] is not None:
+                        restart_counts = sum([c["restart_count"] for c in values["conditions"]])
+                    workers_status[values["status"]] += 1
+                    # get nodes involved in deployment (needs kubewatcher)
+                    if "node_name" in values and values["node_name"] is not None:
+                        host_nodes.add(values["node_name"])
+                workers = "\n".join([f"{k}: {v}" for k, v in workers_status.items()])
+                if restart_counts > 0:
+                    workers += f"\n({restart_counts} restart)"
             # parse services
-            node_ports = [f"{p['node_port']}" for s in result.values() for p in s["ports"]]
-
+            node_ports = []
+            for service in job["services"]:
+                for values in service.values():
+                    node_ports.extend(
+                        [f"{port['node_port']}" for port in values["ports"]]
+                    )
             urls = [f"http://{load_server_info(data_key=SERVER_IP_KEY, file=USER_LOCAL_SERVER_FILE)}:{node_port}" for node_port in node_ports]
             if "Ready" in workers_status and len(workers_status) == 1:
                 status = "running"
@@ -347,80 +351,6 @@ def fetch_job_details(jobs: list[Job]):
                     status=str(status),
                     host_nodes=" ".join(host_nodes))
             )
-    return job_details
-
-    for job in jobs:
-        namespace = job.owner
-        deployment = job.name
-        try:
-            # get pod statuses
-            data = {
-                "label": TEMPLATE_LABEL,
-                "value": deployment
-            }
-            result = request_to_server(
-                method="post",
-                endpoint="/v1/get_pods_status_for_label",
-                data=data,
-                server_creds=USER_LOCAL_SERVER_FILE,
-                user_cookie=USER_COOKIE
-            )
-            workers_status = defaultdict(int)
-            restart_counts = 0
-            host_nodes = set()
-            for ns, ss in result.items():
-                if ns != namespace: # same job name, different namespace
-                    continue
-                for _, values in ss.items():
-                    if "conditions" in values and values["conditions"] is not None:
-                        restart_counts = sum([c["restart_count"] for c in values["conditions"]])
-                    workers_status[values["status"]] += 1
-                    # get nodes involved in deployment (needs kubewatcher)
-                    if "node_name" in values and values["node_name"] is not None:
-                        host_nodes.add(values["node_name"])
-
-            workers = "\n".join([f"{k}: {v}" for k, v in workers_status.items()])
-            if restart_counts > 0:
-                workers += f"\n({restart_counts} restart)"
-            # get URL details
-            data = {
-                "label": TEMPLATE_LABEL,
-                "value": deployment,
-                "types": ["NodePort"]
-            }
-            result = request_to_server(
-                method="post",
-                endpoint="/v1/get_ports_for_services",
-                data=data,
-                server_creds=USER_LOCAL_SERVER_FILE,
-                user_cookie=USER_COOKIE
-            )
-            #node_ports = [f"{p['node_port']} (mapped to {p['port']})" for s in result.values() for p in s["ports"]]
-            node_ports = [f"{p['node_port']}" for s in result.values() for p in s["ports"]]
-
-            urls = [f"http://{load_server_info(data_key=SERVER_IP_KEY, file=USER_LOCAL_SERVER_FILE)}:{node_port}" for node_port in node_ports]
-            if "Ready" in workers_status and len(workers_status) == 1:
-                status = "running"
-            elif any([st in workers_status for st in ["Failed"]]):
-                status = "error"
-            elif any([st in workers_status for st in ["Pending"]]) or len(workers_status) == 0:
-                status = "pending"
-            elif any([st in workers_status for st in ["Succeeded", "Completed"]]):
-                status = "completed"
-            else:
-                status = "working"
-            job_details.append(
-                Job(owner=namespace,
-                    name=deployment,
-                    workers=workers,
-                    endpoint="\n".join(urls),
-                    status=str(status),
-                    host_nodes=" ".join(host_nodes))
-            )
-
-        except Exception as e:
-            return {"error": str(e)}
-    
     return job_details
 
 def deploy_job(template_name, values_dict, force_namespace=None, target_labels=None):
