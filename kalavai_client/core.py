@@ -259,22 +259,31 @@ def fetch_job_templates(type: str=None):
         return {"error": str(e)}
 
 def fetch_job_names():
-    data = {
-        "group": "batch.volcano.sh",
-        "api_version": "v1alpha1",
-        "plural": "jobs"
-    }
+    data_groups = [
+        {
+            "group": "batch.volcano.sh",
+            "api_version": "v1alpha1",
+            "plural": "jobs"
+        },
+        {
+            "group": "ray.io",
+            "api_version": "v1",
+            "plural": "rayclusters"
+        }
+    ]
     try:
-        jobs = request_to_server(
-            method="post",
-            endpoint="/v1/get_objects_of_type",
-            data=data,
-            server_creds=USER_LOCAL_SERVER_FILE,
-            user_cookie=USER_COOKIE
-        )
         all_jobs = []
-        for ns, ds in jobs.items():
-            all_jobs.extend([Job(owner=ns, name=d["metadata"]["labels"][TEMPLATE_LABEL]) for d in ds["items"]])
+        for data in data_groups:
+            jobs = request_to_server(
+                method="post",
+                endpoint="/v1/get_objects_of_type",
+                data=data,
+                server_creds=USER_LOCAL_SERVER_FILE,
+                user_cookie=USER_COOKIE
+            )
+            for ns, ds in jobs.items():
+                all_jobs.extend([Job(owner=ns, name=d["metadata"]["labels"][TEMPLATE_LABEL]) for d in ds["items"]])
+            
     except Exception as e:
         return {"error": str(e)}
     
