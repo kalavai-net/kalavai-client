@@ -280,7 +280,7 @@ class JobsState(rx.State):
             self.job_logs = None
         element = index + (self.page_number-1) * self.limit
         try:
-            logs = request_to_kalavai_core(
+            data = request_to_kalavai_core(
                 method="get",
                 endpoint="fetch_job_logs",
                 params={
@@ -292,25 +292,36 @@ class JobsState(rx.State):
         except Exception as e:
             return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
         async with self:
-            if "error" in logs:
-                self.job_logs = logs["error"]
+            if "error" in data:
+                self.job_logs = data["error"]
             else:
                 self.job_logs = ""
                 self.job_metadata = ""
                 self.job_status = ""
-                for name, info in logs.items():
-                    if "pod" not in info or info["pod"] is None:
-                        self.job_logs = "Logs not ready yet"
-                    else:
-                        self.job_logs += "------"
-                        self.job_logs += f"--> Pod: {name} in {info['pod']['spec']['node_name']}"
-                        self.job_logs += "------"
-                        self.job_logs += info["logs"]
-                        self.job_logs += ""
-                    if "status" in info:
-                        self.job_status += json.dumps(info["status"], indent=2)
-                    if "metadata" in info:
-                        self.job_metadata += json.dumps(info["metadata"], indent=2)
+                for match_label, logs in data.items():
+                    for name, info in logs.items():
+                        if "describe" not in info:
+                            self.job_logs = "Logs not ready yet"
+                            self.job_metadata = "Info not ready yet"
+                            self.job_status = "Info not ready yet"
+                            continue
+                        pod_spec = info["describe"]
+                        if "logs" not in info or info["logs"] is None:
+                            self.job_logs = "Logs not ready yet"
+                        else:
+                            self.job_logs += "------"
+                            self.job_logs += f"--> Pod: {name} in {pod_spec['spec']['node_name']}"
+                            self.job_logs += "------"
+                            self.job_logs += info["logs"]
+                            self.job_logs += "\n\n"
+                        if "status" in info["describe"]:
+                            self.job_status += f"--> STATUS for: {name} in {pod_spec['spec']['node_name']}"
+                            self.job_status += json.dumps(info["describe"]["status"], indent=2)
+                            self.job_status += "\n\n"
+                        if "metadata" in info["describe"]:
+                            self.job_metadata += f"--> METADATA for: {name} in {pod_spec['spec']['node_name']}"
+                            self.job_metadata += json.dumps(info["describe"]["metadata"], indent=2)
+                            self.job_metadata += "\n\n"
 
     @rx.event(background=True)
     async def set_target_label_mode(self, mode):
@@ -344,27 +355,26 @@ class JobsState(rx.State):
                 self.is_loading = False
                 return rx.toast.error(f"Error when fetching jobs: {all_jobs}", position="top-center")
         else:
-            async with self:
-                # job names
-                self.items = []
-                for job in all_jobs:
-                    self.items.append(
-                        Job(
-                            data=job,
-                            status=""
-                        )
-                    )
-                self.total_items = len(self.items)
-                self.is_loading = False
+            # async with self:
+            #     # job names
+            #     self.items = []
+            #     for job in all_jobs:
+            #         self.items.append(
+            #             Job(
+            #                 data=job,
+            #                 status=""
+            #             )
+            #         )
+            #     self.total_items = len(self.items)
+            #     self.is_loading = False
         
             async with self:
                 # go into details
                 self.items = []
                 try:
                     details = request_to_kalavai_core(
-                        method="post",
-                        endpoint="fetch_job_details",
-                        json={"jobs": all_jobs})
+                        method="get",
+                        endpoint="fetch_job_details")
                 except Exception as e:
                     return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
                 if "error" not in details:

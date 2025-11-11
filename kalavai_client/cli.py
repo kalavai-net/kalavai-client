@@ -1260,40 +1260,7 @@ def job__estimate(
     console.log(f"[green]{result}")
 
 @arguably.command
-def job__status(name, *others):
-
-    try:
-        # get pod statuses
-        data = {
-            "label": TEMPLATE_LABEL,
-            "value": name
-        }
-        result = request_to_server(
-            method="post",
-            endpoint="/v1/get_pods_status_for_label",
-            data=data,
-            server_creds=USER_LOCAL_SERVER_FILE,
-            user_cookie=USER_COOKIE
-        )
-        workers_status = defaultdict(int)
-        workers_conditions = {}
-        for _, ss in result.items():
-            for pod_name, values in ss.items():
-                workers_status[values["status"]] += 1
-                workers_conditions[pod_name] = values["conditions"]
-        workers = "\n".join([f"{k}: {v}" for k, v in workers_status.items()])
-        
-        console.log("Workers conditions")
-        for worker, conditions in workers_conditions.items():
-            console.log(f"[yellow]{worker}")
-            console.log(conditions)
-        console.log(f"[yellow]{workers}\nTotal: {len(workers_status)}")
-    except Exception as e:
-        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
-        return
-
-@arguably.command
-def job__list(*others):
+def job__list(*others, force_namespace: str=None):
     """
     List jobs in the cluster
     """
@@ -1303,16 +1270,16 @@ def job__list(*others):
         console.log(f"[red]Problems with your pool: {str(e)}")
         return
 
-    all_deployments = fetch_job_names()
-    if "error" in all_deployments:
-        console.log(f"[red]Error when connecting to kalavai service: {all_deployments}")
-        return
+    # all_deployments = fetch_job_names()
+    # if "error" in all_deployments:
+    #     console.log(f"[red]Error when connecting to kalavai service: {all_deployments}")
+    #     return
     
-    if len(all_deployments) == 0:
-        console.log("[green]No deployments found.")
-        return
+    # if len(all_deployments) == 0:
+    #     console.log("[green]No deployments found.")
+    #     return
     
-    details = fetch_job_details(jobs=all_deployments)
+    details = fetch_job_details(force_namespace=force_namespace)
 
     if "error" in details:
         console.log(f"[red]{details}")
@@ -1324,7 +1291,6 @@ def job__list(*others):
         generate_table(columns=columns, rows=rows, end_sections=range(len(rows)))
     )
         
-    console.log("Check detailed status with [yellow]kalavai job status <name of deployment>")
     console.log("Get logs with [yellow]kalavai job logs <name of deployment> [white](note it only works when the deployment is complete)")
 
 
@@ -1342,26 +1308,33 @@ def job__logs(name, *others, pod_name=None, tail=100, force_namespace: str=None)
     if force_namespace is not None:
         console.log("[WARNING][yellow]--force-namespace [white]requires an admin key. Request will fail if you are not an admin.")
 
-    data = fetch_job_logs(
+    results = fetch_job_logs(
         job_name=name,
         pod_name=pod_name,
         force_namespace=force_namespace,
         tail=tail)
-    if "error" in data:
-        console.log(f"[red]{data}")
+
+    if "error" in results:
+        console.log(f"[red]{results}")
         return
-    for pod, info in data.items():
-        if pod_name is not None and pod_name != pod:
-            continue
-        if "pod" not in info or info["pod"] is None:
-            console.log(f"[white]Logs for {pod_name} not ready yet. Try [yellow]kalavai job describe {pod_name}")
-            continue
-        console.log(f"[yellow]Pod {pod} in {info['pod']['spec']['node_name']}")
-        console.log(f"[green]{info['logs']}")
-        console.log("---------------------------")
-        console.log("---------------------------")
-        console.log(f"[yellow]Status {pod} in {info['pod']['spec']['node_name']}")
-        console.log(f"[green]{info['status']}")
+    for label_match, data in results.items():
+        for pod, info in data.items():
+            if pod_name is not None and pod_name != pod:
+                continue
+            if "logs" not in info:
+                console.log(f"[white] Logs not ready for {pod}")
+            else:
+                logs = info["logs"]
+                describe = info["describe"]
+                console.log(f"[yellow]Logs for {pod} in {describe['spec']['node_name']}")
+                console.log(f"[green]{logs}")
+            console.log("---------------------------")
+            console.log("---------------------------")
+            if "describe" not in info:
+                console.log(f"[white] Description not ready for {pod}")
+            else:
+                console.log(f"[yellow]Status {pod} in {describe['spec']['node_name']}")
+                console.log(f"[green]{describe}")
 
 @arguably.command
 def job__describe(name, *others, pod_name=None, force_namespace: str=None):

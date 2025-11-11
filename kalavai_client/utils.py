@@ -332,8 +332,8 @@ def leave_vpn(container_name):
 def request_to_server(
         method,
         endpoint,
-        data,
         server_creds,
+        data=None,
         params=None,
         force_url=None,
         force_key=None,

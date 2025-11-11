@@ -327,15 +327,15 @@ def gpus(available: bool = False, api_key: str = Depends(verify_api_key)):
     """
     return fetch_gpus(available=available)
 
-@app.post("/fetch_job_details",
+@app.get("/fetch_job_details",
     operation_id="fetch_job_details",
     summary="Get detailed information about specific job and model deployments",
     description="Given a list of jobs (as {'jobs': [{'name': job_name}]}'), retrieves comprehensive information about specified jobs or models including their status, resource usage, runtime, and configuration. Useful for monitoring and debugging job execution.",
     tags=["info"],
     response_description="Job details")
-def job_details(request: JobDetailsRequest, api_key: str = Depends(verify_api_key)):
+def job_details(force_namespace: str = Query(None), api_key: str = Depends(verify_api_key)):
     """Get job details"""
-    return fetch_job_details(jobs=request.jobs)
+    return fetch_job_details(force_namespace=force_namespace)
 
 @app.get("/fetch_job_logs",
     operation_id="fetch_job_logs",
