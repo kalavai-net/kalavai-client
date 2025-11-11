@@ -3,6 +3,7 @@ import yaml
 import time
 from collections import defaultdict
 import random
+import json
 import uuid
 import socket
 import ipaddress
@@ -305,21 +306,26 @@ def fetch_job_details(force_namespace=None):
 
     for namespace, deployments in result.items():
         """deployments --> "matched_label_value": {"pods": [], "services": []} }"""
+        print("Fetch job details namespace", namespace)
         for job_name, job in deployments.items():
+            print("Job name", job_name)
             workers_status = defaultdict(int)
             restart_counts = 0
             host_nodes = set()
             # parse pods
-            for name, values in job["pods"].items():
-                if "conditions" in values and values["conditions"] is not None:
-                    restart_counts = sum([c["restart_count"] for c in values["conditions"]])
-                workers_status[values["status"]] += 1
-                # get nodes involved in deployment (needs kubewatcher)
-                if "node_name" in values and values["node_name"] is not None:
-                    host_nodes.add(values["node_name"])
-                workers = "\n".join([f"{k}: {v}" for k, v in workers_status.items()])
-                if restart_counts > 0:
-                    workers += f"\n({restart_counts} restart)"
+            if "pods" in job and job["pods"] is not None:
+                for name, values in job["pods"].items():
+                    if "conditions" in values and values["conditions"] is not None:
+                        restart_counts = sum([c["restart_count"] for c in values["conditions"]])
+                    workers_status[values["status"]] += 1
+                    # get nodes involved in deployment (needs kubewatcher)
+                    if "node_name" in values and values["node_name"] is not None:
+                        host_nodes.add(values["node_name"])
+                    workers = "\n".join([f"{k}: {v}" for k, v in workers_status.items()])
+                    if restart_counts > 0:
+                        workers += f"\n({restart_counts} restart)"
+            else:
+                print("Skip pods")
             # parse services
             node_ports = []
             if "services" in job and job["services"] is not None:
@@ -327,9 +333,9 @@ def fetch_job_details(force_namespace=None):
                     node_ports.extend(
                         [f"{port['node_port']}" for port in values["ports"]]
                     )
-                urls = [f"http://{load_server_info(data_key=SERVER_IP_KEY, file=USER_LOCAL_SERVER_FILE)}:{node_port}" for node_port in node_ports]
             else:
-                urls = []
+                print("Skip service")
+            urls = [f"http://{load_server_info(data_key=SERVER_IP_KEY, file=USER_LOCAL_SERVER_FILE)}:{node_port}" for node_port in node_ports]
             if "Ready" in workers_status and len(workers_status) == 1:
                 status = "running"
             elif any([st in workers_status for st in ["Failed"]]):
