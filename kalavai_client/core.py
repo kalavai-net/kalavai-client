@@ -322,11 +322,14 @@ def fetch_job_details(force_namespace=None):
                     workers += f"\n({restart_counts} restart)"
             # parse services
             node_ports = []
-            for name, values in job["services"].items():
-                node_ports.extend(
-                    [f"{port['node_port']}" for port in values["ports"]]
-                )
-            urls = [f"http://{load_server_info(data_key=SERVER_IP_KEY, file=USER_LOCAL_SERVER_FILE)}:{node_port}" for node_port in node_ports]
+            if "services" in job:
+                for name, values in job["services"].items():
+                    node_ports.extend(
+                        [f"{port['node_port']}" for port in values["ports"]]
+                    )
+                urls = [f"http://{load_server_info(data_key=SERVER_IP_KEY, file=USER_LOCAL_SERVER_FILE)}:{node_port}" for node_port in node_ports]
+            else:
+                urls = []
             if "Ready" in workers_status and len(workers_status) == 1:
                 status = "running"
             elif any([st in workers_status for st in ["Failed"]]):

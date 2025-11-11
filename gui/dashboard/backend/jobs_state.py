@@ -340,51 +340,28 @@ class JobsState(rx.State):
     async def load_entries(self):
         async with self:
             self.is_loading = True
-        
-        try:
-            all_jobs = request_to_kalavai_core(
-                method="get",
-                endpoint="fetch_job_names")
-        except Exception as e:
-            return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
-        
-        if "error" in all_jobs:
-            async with self:
-                self.items = []
-                self.total_items = 0
-                self.is_loading = False
-                return rx.toast.error(f"Error when fetching jobs: {all_jobs}", position="top-center")
-        else:
-            # async with self:
-            #     # job names
-            #     self.items = []
-            #     for job in all_jobs:
-            #         self.items.append(
-            #             Job(
-            #                 data=job,
-            #                 status=""
-            #             )
-            #         )
-            #     self.total_items = len(self.items)
-            #     self.is_loading = False
-        
-            async with self:
-                # go into details
-                self.items = []
-                try:
-                    details = request_to_kalavai_core(
-                        method="get",
-                        endpoint="fetch_job_details")
-                except Exception as e:
-                    return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
-                if "error" not in details:
-                    for job_details in details:
-                        self.items.append(
-                            Job(
-                                data=job_details
-                            )
-                        )
-                self.is_loading = False
+            
+            self.items = []
+            try:
+                details = request_to_kalavai_core(
+                    method="get",
+                    endpoint="fetch_job_details")
+            except Exception as e:
+                return rx.toast.error(f"Missing ACCESS_KEY?\n{str(e)}", position="top-center")
+                
+            if "error" in details:
+                return rx.toast.error(f"Error:\n{details}", position="top-center")
+
+        async with self:
+            self.is_loading = False
+            
+            for job_details in details:
+                self.items.append(
+                    Job(
+                        data=job_details
+                    )
+                )
+            
     
     @rx.event(background=True)
     async def clear_target_labels(self):
