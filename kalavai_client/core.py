@@ -322,7 +322,7 @@ def fetch_job_details(force_namespace=None):
                     workers += f"\n({restart_counts} restart)"
             # parse services
             node_ports = []
-            if "services" in job:
+            if "services" in job and job["services"] is not None:
                 for name, values in job["services"].items():
                     node_ports.extend(
                         [f"{port['node_port']}" for port in values["ports"]]
