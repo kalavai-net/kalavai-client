@@ -37,3 +37,9 @@ Join our exclusive [Discord community](https://discord.gg/YN6ThTJKbM) for beta t
 ## Get started for free
 
 Get a free account [here](https://platform.kalavai.net) to access the Kalavai Platform. All accounts come with access to free resources, like CPUs, GPUs and memory.
+
+During the Beta Testing phase, you will be asked to join the Beta Program the first time you login. This will grant you free resources to test the platform.
+
+![Join beta testing](./assets/join_beta.png)
+
+If you need more resources, you can request more in the Clusters page, but note that capacity is limited.
