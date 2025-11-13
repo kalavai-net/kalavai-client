@@ -11,7 +11,12 @@ nav:
     - Self-hosted LLM pool: self_hosted_llm_pool.md
   - Applications: 
     - Job templates: templates.md
-    - Ray: ray.md
+  - Managed platform:
+    - Overview: managed/overview.md
+    - Compute Clusters:
+      - Ray: managed/ray.md
+      - GPUStack: managed/gpustack.md
+    - Model hosting: managed/cogenai.md
   # - Tutorials:
   #   - End 2 end example: end2end.md
   # - More:
