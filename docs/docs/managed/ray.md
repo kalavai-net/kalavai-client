@@ -154,3 +154,36 @@ You should see the output in the console, and can also inspect the job progress 
 ## What next
 
 Ray [official documentation](https://docs.ray.io/en/latest/) and [examples](https://docs.ray.io/en/latest/ray-overview/examples/index.html).
+
+
+## FAQs
+
+**ValueError: Error initializing torch.distributed using env:// rendezvous: environment variable MASTER_ADDR expected, but not set**
+
+When using PyTorch Distributed (torch.distributed) with backend `env://`, `MASTER_ADDR` and `MASTER_PORT` must be set manually. 
+
+You can set both environment variables by passing them with your Ray Job:
+
+```bash
+ray job submit --runtime-env-json='{"env_vars": {"MASTER_ADDR": "127.0.0.1", "MASTER_PORT": "29500"}}' -- <endpoint command>
+```
+
+or if using Python:
+
+```python
+job_id = client.submit_job(
+    entrypoint="<endpoint command>",
+    submission_id="my_training_1",
+    runtime_env={
+      "env_vars": {
+        "MASTER_ADDR": "127.0.0.1", "MASTER_PORT": "29500"
+      }
+    }
+)
+```
+
+PyTorch distributed is used in plain PyTorch DDP, HuggingFace accelerate, DeepSpeed and any code that calls:
+
+```python
+torch.distributed.init_process_group("nccl", init_method="env://")
+```
