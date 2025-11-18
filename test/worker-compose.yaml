@@ -1,6 +1,6 @@
 services:
   kalavai:
-    image: docker.io/bundenth/kalavai-runner:gpu-latest
+    image: docker.io/kalavai/kalavai-runner:gpu-latest
     container_name: runner
     network_mode: host
     privileged: true

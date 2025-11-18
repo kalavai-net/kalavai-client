@@ -20,7 +20,7 @@ services:
 # run worker only if command is set
 {%if command %}
   {{service_name}}:
-    image: docker.io/bundenth/kalavai-runner-{{target_platform}}:latest
+    image: docker.io/kalavai/kalavai-runner-{{target_platform}}:latest
     pull_policy: always
     container_name: {{service_name}}
     platform: linux/{{target_platform}}

@@ -69,5 +69,5 @@ To add a new page:
 
 ## Build docker
 
-docker build -t bundenth/kalavai-gui:latest .
-docker push bundenth/kalavai-gui:latest
+docker build -t kalavai/kalavai-gui:latest .
+docker push kalavai/kalavai-gui:latest
