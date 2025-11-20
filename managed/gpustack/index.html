@@ -1003,13 +1003,13 @@
 <blockquote>
 <p>Beta access only. Register your interest <a href="https://kalavai.net/beta">here</a></p>
 </blockquote>
-<h1 id="gpustack-in-kalavai">GPUStack in Kalavai</h1>
-<p>Create, manage and deploy LLMs across multiple devices with GPUStack in Kalavai.</p>
-<h2 id="what-is-gpustack">What is GPUStack?</h2>
-<p><a href="https://docs.gpustack.ai/latest/overview/">GPUStack</a> is an open-source system for managing GPU scheduling and sharing across workloads. Kalavai offers managed GPUStack clusters that automatically allocate resources to the GPUStack pool.</p>
+<h1 id="gpustack-in-kalavai"><code>GPUStack</code> in Kalavai</h1>
+<p>Create, manage and deploy LLMs across multiple devices with <code>GPUStack</code> in Kalavai.</p>
+<h2 id="what-is-gpustack">What is <code>GPUStack</code>?</h2>
+<p><a href="https://docs.gpustack.ai/latest/overview/"><code>GPUStack</code></a> is an open-source system for managing GPU scheduling and sharing across workloads. Kalavai offers managed <code>GPUStack</code> clusters that automatically allocate resources to the <code>GPUStack</code> pool.</p>
 <p><strong>Platform features</strong>:</p>
 <ul>
-<li>Create GPUStack clusters with mix hardware (NVIDIA, AMD) without dealing with infrastructure</li>
+<li>Create <code>GPUStack</code> clusters with mix hardware (NVIDIA, AMD) without dealing with infrastructure</li>
 <li>Highly configurable (number of GPUs, node capabilities)</li>
 <li>Flexible and affordable access to thousands of data centre-level GPUs</li>
 </ul>
@@ -1017,46 +1017,56 @@
 <p><a href="https://platform.kalavai.net">Log in</a> to your Kalavai account and navigate to the <code>Clusters</code> page. This section allows you to create, manage and connect to your GPU clusters. </p>
 <p><img alt="Clusters page" src="../assets/blank_clusters.png" /></p>
 <p>As long as you are within your resource quota (as indicated under <code>Available Resources</code>) you can create as many clusters as you need --even multiple of the same type. You can create a cluster by selecting any of the supported templates (growing!) under the <code>Create new Cluster</code> section.</p>
-<h2 id="create-a-gpustack-cluster">Create a GPUStack cluster</h2>
-<p>Select <code>GPUStack Cluster</code> on the list of cluster templates to configure your GPUStack cluster.</p>
+<h2 id="create-a-gpustack-cluster">Create a <code>GPUStack</code> cluster</h2>
+<p>Select <code>`GPUStack` Cluster</code> on the list of cluster templates to configure your <code>GPUStack</code> cluster.</p>
 <p><img alt="Create gpustack cluster" src="../assets/create_gpustack.png" /></p>
-<h3 id="configuring-your-gpustack-cluster">Configuring your GPUStack cluster</h3>
-<p>The GPUStack template allows you to configure your cluster instance to your needs. </p>
+<h3 id="configuring-your-gpustack-cluster">Configuring your <code>GPUStack</code> cluster</h3>
+<p>The <code>GPUStack</code> template allows you to configure your cluster instance to your needs. </p>
 <p><img alt="GPUStack template config options" src="../assets/gpustack_config_options.png" /></p>
 <p>Here's a list of key parameters:</p>
 <ul>
 <li><code>admin_password</code> (default: <code>"password"</code>, required): Default password for the <code>admin</code> user (required to login to the UI)</li>
-<li><code>working_memory</code> (default: <code>5</code>, optional): Temporary storage (in GB) to cache model weights.</li>
-<li><code>cuda_workers</code> (default: <code>1</code>, required): Number of remote NVIDIA workers (for tensor and pipeline parallelism).</li>
-<li><code>rocm_workers</code> (default: <code>1</code>, required): Number of remote AMD ROCm workers (for tensor and pipeline parallelism).</li>
+<li><code>working_memory</code> (default: <code>30</code>, optional): Temporary storage (in GB) to cache model weights.</li>
+<li><code>nvidia_gpus</code> (default: <code>1</code>, required): Number of NVIDIA GPUs. Each GPU is a separate worker machine.</li>
+<li><code>amd_gpus</code> (default: <code>1</code>, required): Number of AMD GPUs. Each GPU is a separate worker machine.</li>
 <li><code>token</code> (default: <code>"sometoken"</code>, required): Token used to load the cluster or authenticate access.</li>
 <li><code>hf_token</code> (default: <code>null</code>, required): Huggingface token, required to load model weights.</li>
-<li><code>cpus</code> (default: <code>2</code>, optional): CPUs per single worker (final count = cpus * num_workers).</li>
-<li><code>gpus</code> (default: <code>1</code>, optional): GPUs per single worker (final count = gpus * num_workers).</li>
-<li><code>memory</code> (default: <code>12</code>, optional): RAM memory per single worker (final count = memory * num_workers)</li>
+<li><code>cpus</code> (default: <code>2</code>, optional): CPUs per worker (final count = cpus * workers).</li>
+<li><code>memory</code> (default: <code>8</code>, optional): RAM memory per single worker (final count = memory * workers)</li>
 </ul>
-<p>When you are ready, click on <code>Deploy Cluster</code>. The GPUStack instance may take a few minutes to spin up. Check the status of the pool under <code>Your clusters</code>. Note that the cluster will be ready for access as soon as the head node is ready. Workers may be queued up to join based on the number and types requested.</p>
+<p>When you are ready, click on <code>Deploy Cluster</code>. The <code>GPUStack</code> instance may take a few minutes to spin up. Check the status of the pool under <code>Your clusters</code>. Note that the cluster will be ready for access as soon as the head node is ready. Workers may be queued up to join based on the number and types requested.</p>
 <h4 id="example-hybrid-gpu-cluster">Example: Hybrid GPU cluster</h4>
-<p>GPUStack lets you connect heterogeneous GPU devices to a single instance. For instance, you may connect 4 NVIDIA GPUs and 8 AMD GPUs with the following settings:</p>
+<p><code>GPUStack</code> lets you connect heterogeneous GPU devices to a single instance. For instance, you may connect 4 NVIDIA GPUs and 8 AMD GPUs with the following settings:</p>
 <ul>
-<li><code>cuda_workers</code>: 4</li>
-<li><code>rocm_workers</code>: 8</li>
+<li><code>nvidia_gpus</code>: 4</li>
+<li><code>amd_gpus</code>: 2</li>
 </ul>
-<p>When you deploy models in the GPUStack interface you can target either of the GPUs or do distributed deployments across multiple devices.</p>
+<p>When you deploy models in the <code>GPUStack</code> interface you can target either of the GPUs or do distributed deployments across multiple devices.</p>
 <h3 id="connecting-to-your-cluster">Connecting to your cluster</h3>
-<p>Once the status of the cluster is <code>Ready</code> you are ready to put the instance to work. Each GPUStack cluster exposes a single endpoint for you to connect to the UI interface. </p>
-<p>Click on the UI endpoint of your GPUStack cluster. You will be presented with the login screen. Use the following default credentials:</p>
+<p>Once the status of the cluster is <code>Ready</code> you are ready to put the instance to work. Each <code>GPUStack</code> cluster exposes a single endpoint for you to connect to the UI interface. </p>
+<p>Click on the UI endpoint of your <code>GPUStack</code> cluster. You will be presented with the login screen. Use the following default credentials:</p>
 <ul>
 <li>Username: <code>admin</code></li>
 <li>Password: <code>&lt;password set during cluster config&gt;</code></li>
 </ul>
 <p><img alt="GPUStack login" src="../assets/gpustack_login.png" /></p>
-<p>You can monitor the status of the workers and GPUs under the Resources section of your GPUStack cluster.</p>
-<p><img alt="GPU worker gpus" src="../assets/gpu_workers.png" /></p>
+<p>You can monitor the status of the workers and GPUs under the Resources section of your <code>GPUStack</code> cluster.</p>
+<p><img alt="GPUStack with 2 GPU workers" src="../assets/gpustack_workers.png" /></p>
 <h3 id="deploy-a-model">Deploy a model</h3>
-<p>Follow the official examples from GPUStack to <a href="https://docs.gpustack.ai/latest/using-models/using-large-language-models/">deploy models</a> and more.</p>
+<p>Follow the official examples from <code>GPUStack</code> to <a href="https://docs.gpustack.ai/latest/using-models/using-large-language-models/">deploy models</a> and more.</p>
+<p>One of the most interesting features of <code>GPUStack</code> is it's ability to deploy models that don't fit in a single GPU. In this example, I have a <code>GPUStack</code> with 2 GPUs (RTX A4500 with 20GB vRAM each), and I want to deploy <code>Qwen3 8B</code>, which requires approximately 32GB of vRAM. <strong>Note: you will need at least ~40GB of working memory in the cluster to accommodate for the model weights</strong></p>
+<p>Navigate to Deployments, then Deploy Model, and select Catalog. This is the easiest way to select models and quantizations. Search the catalog for <code>Qwen3 8B</code>, and choose the following options:</p>
+<ul>
+<li>Backend: <code>llama-box</code></li>
+<li>Size: <code>8B</code></li>
+<li>Quantization: <code>Q8_0</code></li>
+</ul>
+<p>Click Save to deploy. The model will take a few minutes to be able to serve inference requests. You can follow the progress in the Deployments page:</p>
+<p><img alt="GPUStack deployment status" src="../assets/gpustack_deployment_status.png" /></p>
+<p>Once it is ready, you can interact with it in the Chat page. You can also check out a code snippet example in the same page by clicking on the View Code button at the top.</p>
+<p><strong>Known issue: there seems to be an issue with using vLLM backend on distributed (multiple GPUs) deployments that  leads to instances hanging after  the weights have been downloaded. Please use llama-box backend instead.</strong></p>
 <h2 id="what-next">What next</h2>
-<p>GPUStack <a href="https://docs.gpustack.ai/latest/overview/">documentation</a></p>
+<p><code>GPUStack</code> <a href="https://docs.gpustack.ai/latest/overview/">documentation</a></p>
 
 
 
