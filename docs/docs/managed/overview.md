@@ -22,8 +22,9 @@ Our platform abstracts the complexity of provisioning and managing GPU clusters,
 
 | Product                       | Description                                                                                                 |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| **Managed Ray Clusters**      | Spin up distributed Ray and GPUStack clusters for training, hyperparameter tuning, reinforcement learning and custom workloads.           |
-| **Model Hosting**   | Simple, scalable, and affordable managed hosting for open-source LLMs — from experimentation to production with CoGenAI. |
+| **Managed GPU Clusters**      | Spin up distributed Ray and GPUStack clusters for training, hyperparameter tuning, reinforcement learning and custom workloads.           |
+| **Async Inference & LLM queue**   | Affordable LLM inference for large scale intelligence projects |
+| **Model fine tuning** | Easily customise LLM to your data |
 
 
 ## Beta Tester Program 🚀

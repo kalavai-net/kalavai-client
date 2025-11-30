@@ -7,26 +7,31 @@ nav:
     - Choosing job resources: choose_job_resources.md
     - Compatibility: compatibility.md
     - CLI: cli.md
-  - Examples:
+  - Examples cases:
     - Self-hosted LLM pool: self_hosted_llm_pool.md
   - Applications: 
     - Job templates: templates.md
   - Managed platform:
     - Overview: managed/overview.md
-    - Compute Clusters:
-      - Ray: managed/ray.md
-      - GPUStack: managed/gpustack.md
-    - Model hosting: managed/cogenai.md
-  # - Tutorials:
-  #   - End 2 end example: end2end.md
-  # - More:
-  #   - FAQs: faqs.md
-  #   - Managed: enterprise.md
+    - Ray Cluster: managed/ray.md
+    - GPUStack: managed/gpustack.md
+  - Use cases:
+    - Fine tune with Axolotl: managed/fine_tuning.md
+    - Multi-GPU model hosting: managed/cogenai.md
+    #- Autoscaling LLMs with requests
+    #- Distributed on-demand python: kubetorch
 
 theme:
-  name: material
+  name: shadcn
+  show_title: true
   navigation_depth: 3
-  logo: assets/icons/logo_no_background.png
+  #icon: assets/icons/logo_no_background.png
+  show_stargazers: false
+  pygments_style: # default styles 
+    light: shadcn-light
+    dark: github-dark
+  topbar_sections: false
+  show_datetime: false
   favicon: assets/icons/browser.png
   features:
     - navigation.sections
@@ -52,8 +57,16 @@ theme:
 
 markdown_extensions:
   - attr_list
+  - fenced_code # https://asiffer.github.io/mkdocs-shadcn/extensions/fenced_code/
+  - codehilite # code highlight https://asiffer.github.io/mkdocs-shadcn/extensions/codehilite/
+  - shadcn.extensions.codexec
+  - admonition # warning/info messages https://asiffer.github.io/mkdocs-shadcn/extensions/admonition/
+  - pymdownx.blocks.caption # figure captions https://asiffer.github.io/mkdocs-shadcn/extensions/pymdownx_blocks_caption/
+  - pymdownx.blocks.details # collapsable block https://asiffer.github.io/mkdocs-shadcn/extensions/pymdownx_blocks_details/
+  - pymdownx.blocks.tab # tabs https://asiffer.github.io/mkdocs-shadcn/extensions/pymdownx_blocks_tab/
 
 plugins:
   - search
-  - tags
+  - excalidraw
+  - mkdocstrings
   
