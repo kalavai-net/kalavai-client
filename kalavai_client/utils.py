@@ -23,6 +23,8 @@ from kalavai_client.env import (
     USER_COMPOSE_FILE,
     USER_COOKIE,
     KALAVAI_USER_ID,
+    FORCE_WATCHER_API_KEY_URL,
+    FORCE_WATCHER_API_URL,
     user_path
 )
 
@@ -210,6 +212,8 @@ def generate_compose_config(
 def is_watcher_alive(server_creds, user_cookie, timeout=30):
     try:
         request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
             method="get",
             endpoint="/v1/health",
             data=None,

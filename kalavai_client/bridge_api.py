@@ -2,6 +2,7 @@
 Core kalavai service.
 Used as a bridge between the kalavai-client app and the reflex frontend
 """
+from argparse import ArgumentParser
 from fastapi import FastAPI, HTTPException, Depends, Query, Body
 from typing import Optional, List
 from fastapi_mcp import FastApiMCP
@@ -651,5 +652,11 @@ def run_api(host="0.0.0.0", port=8001, log_level="critical"):
     )
 
 if __name__ == "__main__":
-    run_api()
+    parser = ArgumentParser()
+    parser.add_argument("--host", default="0.0.0.0")
+    parser.add_argument("--port", default=8000, type=int)
+    parser.add_argument("--log_level", default="debug")
+
+    args = parser.parse_args()
+    run_api(host=args.host, port=args.port, log_level=args.log_level)
     

@@ -241,7 +241,7 @@ releases:
   - name: kalavai-watcher
     namespace: kalavai
     chart: kalavai/kalavai-watcher
-    version: "0.4.2"
+    version: "0.4.3"
     installed: {{deploy_watcher|default("false", true)}}
     set:
     - name: namespace

@@ -74,7 +74,9 @@ from kalavai_client.env import (
     MODEL_DEPLOYMENT_VALUES_MAPPING,
     POOL_CONFIG_TEMPLATE,
     FORBIDEDEN_IPS,
-    DEFAULT_POOL_CONFIG_TEMPLATE
+    DEFAULT_POOL_CONFIG_TEMPLATE,
+    FORCE_WATCHER_API_URL,
+    FORCE_WATCHER_API_KEY_URL
 )
 
 class Job(BaseModel):
@@ -117,6 +119,8 @@ def set_schedulable(schedulable, node_names):
     }
     try:
         res = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
             method="post",
             endpoint="/v1/set_node_schedulable",
             data=data,
@@ -147,6 +151,8 @@ def init_user_workspace(user_id=None, node_name=None, force_namespace=None):
         if node_name is not None:
             data["node_name"] = node_name
         result = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
             method="post",
             endpoint="/v1/create_user_space",
             data=data,
@@ -208,6 +214,8 @@ def fetch_resources(node_names: list[str]=None):
         data["node_names"] = node_names
     try:
         total = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
             method="post",
             endpoint="/v1/get_cluster_total_resources",
             data=data,
@@ -215,6 +223,8 @@ def fetch_resources(node_names: list[str]=None):
             user_cookie=USER_COOKIE
         )
         available = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
             method="post",
             endpoint="/v1/get_cluster_available_resources",
             data=data,
@@ -232,6 +242,8 @@ def fetch_job_defaults(name):
     }
     try:
         metadata = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
             method="get",
             endpoint="/v1/job_defaults",
             params=data,
@@ -248,6 +260,8 @@ def fetch_job_templates(type: str=None):
         data = {"type": type}
     try:
         templates = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
             method="get",
             endpoint="/v1/get_job_templates",
             server_creds=USER_LOCAL_SERVER_FILE,
@@ -276,6 +290,8 @@ def fetch_job_names():
         all_jobs = []
         for data in data_groups:
             jobs = request_to_server(
+                force_url=FORCE_WATCHER_API_URL,
+                force_key=FORCE_WATCHER_API_KEY_URL,
                 method="post",
                 endpoint="/v1/get_objects_of_type",
                 data=data,
@@ -298,6 +314,8 @@ def fetch_job_details(force_namespace=None):
     if force_namespace is not None:
         data["force_namespace"] = force_namespace
     result = request_to_server(
+        force_url=FORCE_WATCHER_API_URL,
+        force_key=FORCE_WATCHER_API_KEY_URL,
         method="post",
         endpoint="/v1/get_jobs_overview",
         data=data,
@@ -370,6 +388,8 @@ def deploy_job(template_name, values_dict, force_namespace=None, target_labels=N
 
     try:
         result = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
             method="post",
             endpoint="/v1/deploy_job",
             data=data,
@@ -393,6 +413,8 @@ def deploy_test_job(template_str, values_dict, default_values, force_namespace=N
 
     try:
         result = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
             method="post",
             endpoint="/v1/deploy_custom_job",
             data=data,
@@ -412,6 +434,8 @@ def delete_job(name, force_namespace=None):
         data["force_namespace"] = force_namespace
     try:
         result = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
             method="post",
             endpoint="/v1/delete_labeled_resources",
             data=data,
@@ -426,6 +450,8 @@ def fetch_devices():
     """Load devices status info for all hosts"""
     try:
         data = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
             method="get",
             endpoint="/v1/get_nodes",
             data={},
@@ -469,6 +495,8 @@ def fetch_pod_logs(label_key, label_value, force_namespace=None, pod_name=None, 
     try:
         # send tail as parameter (fetch only last _tail_ lines)
         all_logs = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
             method="post",
             endpoint="/v1/get_job_details",
             data=data,
@@ -483,6 +511,8 @@ def fetch_pod_logs(label_key, label_value, force_namespace=None, pod_name=None, 
 
 def load_gpu_models():
     data = request_to_server(
+        force_url=FORCE_WATCHER_API_URL,
+        force_key=FORCE_WATCHER_API_KEY_URL,
         method="post",
         endpoint="/v1/get_node_gpus",
         data={},
@@ -549,6 +579,8 @@ def delete_nodes(nodes):
     }
     try:
         result = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
             method="post",
             endpoint="/v1/delete_nodes",
             data=data,
@@ -983,6 +1015,8 @@ def pool_init(config_values=None):
 
     try:
         result = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
             method="post",
             endpoint="/v1/deploy_generic_model",
             data={"config": sidecar_template_yaml},
@@ -1021,8 +1055,6 @@ def unregister_pool():
     return {"success"}
 
 def is_connected():
-    if not os.path.isfile(USER_LOCAL_SERVER_FILE):
-        return False
     return is_watcher_alive(server_creds=USER_LOCAL_SERVER_FILE, user_cookie=USER_COOKIE, timeout=10)
 
 def is_agent_running():
@@ -1068,6 +1100,8 @@ def delete_node(name):
     }
     try:
         result = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
             method="post",
             endpoint="/v1/delete_nodes",
             data=data,
@@ -1139,6 +1173,8 @@ def add_node_labels(node_name: str, labels: dict):
     }
     try:
         result = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
             method="post",
             endpoint="/v1/add_labels_to_node",
             data=data,
@@ -1168,6 +1204,8 @@ def get_node_labels(node_names: list[str]):
     }
     try:
         result = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
             method="post",
             endpoint="/v1/get_node_labels",
             data=data,

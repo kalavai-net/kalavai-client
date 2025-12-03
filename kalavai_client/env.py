@@ -46,6 +46,8 @@ DEFAULT_FLANNEL_IFACE = os.getenv("KALAVAI_FLANNEL_IFACE", "netmaker")
 DEFAULT_WATCHER_PORT = 30001
 KUBE_VERSION = os.getenv("KALAVAI_KUBE_VERSION", "v1.31.1+k3s1")
 FORBIDEDEN_IPS = ["127.0.0.1"]
+FORCE_WATCHER_API_URL = os.getenv("WATCHER_API_URL", None)
+FORCE_WATCHER_API_KEY_URL = os.getenv("WATCHER_API_KEY", None)
 # kalavai templates
 HELM_APPS_FILE = resource_path("kalavai_client/assets/apps.yaml")
 HELM_APPS_VALUES = resource_path("kalavai_client/assets/apps_values.yaml")

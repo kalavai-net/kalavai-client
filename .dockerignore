@@ -1,0 +1,9 @@
+gui/
+env/
+test/
+docker/
+dist/
+docs/
+examples/
+scripts/
+local_deployments/
