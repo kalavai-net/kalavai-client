@@ -93,7 +93,7 @@ jobs:
             
       # 4. Build and push the Docker image
       - name: Build and push Docker image
-        uses: docker/build-and-push-action@v5
+        uses: docker/build-and-push-action@master
         with:
           context: . # Assumes your Dockerfile is in the root directory
           push: true
