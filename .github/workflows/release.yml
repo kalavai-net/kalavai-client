@@ -52,7 +52,10 @@ jobs:
       uses: pypa/gh-action-pypi-publish@release/v1
 
   build-and-push-dockerhub:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    if: startsWith(github.ref, 'refs/tags/')  # only publish to PyPI on tag pushes
+    needs:
+    - publish-to-pypi
 
     # No 'packages: write' needed, but 'contents: read' is still required for checkout
     permissions:
@@ -64,11 +67,11 @@ jobs:
 
       - name: Extract Python Package Version
         id: get_version
-        run: |
-          # Install the TOML parsing library
-          pip install toml
+        # 1. Install the required TOML parser (must be first)
+        run: pip install toml
 
-          # Use Python to parse pyproject.toml reliably
+      - name: Extract Python Package Version
+        run: |
           VERSION=$(python -c "
 import toml
 data = toml.load('pyproject.toml')
