@@ -41,7 +41,7 @@ KALAVAI_PLATFORM_URL = "https://platform.kalavai.net"
 KALAVAI_PLATFORM_ENDPOINT = "https://platform.kalavai.net/_/api"
 DEFAULT_CONTAINER_NAME = "kalavai"
 DEFAULT_VPN_CONTAINER_NAME = "kalavai-vpn"
-CONTAINER_HOST_PATH = user_path("pool/", create_path=True)
+CONTAINER_HOST_PATH = user_path("", create_path=True)
 DEFAULT_FLANNEL_IFACE = os.getenv("KALAVAI_FLANNEL_IFACE", "netmaker")
 DEFAULT_WATCHER_PORT = 30001
 KUBE_VERSION = os.getenv("KALAVAI_KUBE_VERSION", "v1.31.1+k3s1")

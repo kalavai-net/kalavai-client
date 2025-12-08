@@ -7,6 +7,7 @@ import time
 import socket
 from pathlib import Path
 from typing import Annotated
+import re
 
 import yaml
 
@@ -14,12 +15,10 @@ import arguably
 from rich.console import Console
 
 from kalavai_client.cluster import CLUSTER
-from kalavai_client.bridge_api import run_api
+from kalavai_client.api import run_api
 from kalavai_client.env import (
     USER_COOKIE,
     USER_LOCAL_SERVER_FILE,
-    TEMPLATE_LABEL,
-    KALAVAI_PLATFORM_URL,
     CONTAINER_HOST_PATH,
     USER_COMPOSE_FILE,
     USER_HELM_APPS_FILE,
@@ -28,41 +27,21 @@ from kalavai_client.env import (
     USER_TEMPLATES_FOLDER,
     DOCKER_COMPOSE_GUI,
     USER_GUI_COMPOSE_FILE,
-    KALAVAI_SERVICE_LABEL,
-    KALAVAI_SERVICE_LABEL_VALUE,
     user_path,
     resource_path,
 )
 from kalavai_client.core import (
-    deploy_test_job,
-    fetch_resources,
-    fetch_job_names,
-    fetch_job_details,
-    fetch_devices,
-    fetch_job_logs,
-    fetch_pod_logs,
-    fetch_gpus,
     generate_worker_package,
     load_gpu_models,
-    fetch_job_templates,
-    fetch_job_defaults,
-    deploy_job,
-    delete_job,
     check_token,
     attach_to_pool,
     join_pool,
     create_pool,
     get_ip_addresses,
     pause_agent,
-    register_pool,
     resume_agent,
-    get_pool_token,
-    delete_nodes,
-    cordon_nodes,
     stop_pool,
-    uncordon_nodes,
     TokenType,
-    unregister_pool,
     update_pool
 )
 from kalavai_client.utils import (
@@ -74,12 +53,15 @@ from kalavai_client.utils import (
     request_to_server,
     safe_remove,
     load_server_info,
-    get_public_seeds,
     load_user_id,
-    SERVER_IP_KEY,
+    parse_key_value_pairs,
+    request_to_api,
+    store_server_info,
+    has_api_details,
     CLUSTER_NAME_KEY,
     KALAVAI_AUTH,
-    parse_key_value_pairs
+    KALAVAI_API_URL_KEY,
+    KALAVAI_API_KEY_KEY
 )
 
 
@@ -206,6 +188,13 @@ def input_gpus(non_interactive=False):
         console.log(f"[red]WARNING: error when fetching NVIDIA GPU info. GPUs will not be used on this local machine")
     return num_gpus
 
+def show_connection_suggestion():
+    console.log("[red]Not connected to a local or remote pool")
+    console.log("Suggestions:")
+    console.log("- Create a pool: [yellow]kalavai pool start")
+    console.log("- Join a pool: [yellow]kalavai pool join")
+    console.log("- Connect to a remote pool: [yellow]kalavai pool connect")
+
 ##################
 ## CLI COMMANDS ##
 ##################
@@ -213,16 +202,14 @@ def input_gpus(non_interactive=False):
 @arguably.command
 def gui__start(
     *others,
-    log_level="critical",
-    backend_only=False,
     version="latest"
 ):
     """Run GUI (docker) and kalavai core backend (api)"""
-    ports_needed = 1 if backend_only else 3
-    # find 3 available ports
+    ports_needed = 2
+    # find 2 available ports
     ip = socket.gethostbyname (socket.gethostname())
     ports = []
-    for port in range(49152,65535):
+    for port in range(49153,65535):
         try:
             serv = socket.socket(socket.AF_INET,socket.SOCK_STREAM) # create a new socket
             serv.bind((ip, port)) # bind socket with address
@@ -239,37 +226,38 @@ def gui__start(
         console.log(f"[red]Cannot initialise GUI: Could not find {ports_needed} free ports in your machine")    
         return
     console.log(f"Using ports: {ports}")
+    kalavai_api_url = load_server_info(data_key=KALAVAI_API_URL_KEY, file=USER_LOCAL_SERVER_FILE)
+    if kalavai_api_url is None:
+        show_connection_suggestion()
+        return
 
-    user_key = load_user_id()
+    user_key = load_server_info(data_key=KALAVAI_API_KEY_KEY, file=USER_LOCAL_SERVER_FILE)
     if user_key is not None:
         console.log(f"[green]Using user key: {user_key}")
-    if not backend_only:
-        values = {
-            "gui_frontend_port": ports[1],
-            "gui_backend_port": ports[2],
-            "bridge_port": ports[0],
-            "path": user_path("", create_path=True),
-            "protected_access": user_key,
-            "gui_version": version
-        }
-        compose_yaml = load_template(
-            template_path=DOCKER_COMPOSE_GUI,
-            values=values)
-        with open(USER_GUI_COMPOSE_FILE, "w") as f:
-            f.write(compose_yaml)
-        
-        run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} up -d")
+    
+    values = {
+        "gui_frontend_port": ports[0],
+        "gui_backend_port": ports[1],
+        "kalavai_api_url": kalavai_api_url,
+        "path": user_path("", create_path=True),
+        "protected_access": user_key,
+        "gui_version": version
+    }
+    compose_yaml = load_template(
+        template_path=DOCKER_COMPOSE_GUI,
+        values=values)
+    with open(USER_GUI_COMPOSE_FILE, "w") as f:
+        f.write(compose_yaml)
+    
+    run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} up -d")
 
-        console.log(f"[green]Loading GUI, may take a few minutes. It will be available at http://localhost:{ports[1]}")
-    print(
-        "Deploying bridge API"
-    )
-    run_api(port=ports[0], log_level=log_level)
+    console.log(f"[green]Loading GUI, may take a few minutes. It will be available at http://localhost:{ports[0]}")
+    console.log("Run [yellow]kalavai gui stop[white] to stop running the GUI")
 
-    if not backend_only:
-        run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} down")
-        console.log("[green]Kalavai GUI has been stopped")
-
+@arguably.command
+def gui__stop():
+    run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} down")
+    
 @arguably.command
 def auth(user_key, *others):
     """
@@ -288,64 +276,6 @@ def logout(*others):
     """
     KALAVAI_AUTH.clear_auth()
     console.log(f"[green]User key removed")
-
-@arguably.command
-def pool__publish(*others, description=None, is_private=True):
-    """
-    [AUTH] Publish pool to Kalavai platform, where other users may be able to join
-    """
-    # Check for:
-    # - cluster is up and running
-    # - cluster is connected to vpn (has net token)
-    # - user is authenticated
-    if not CLUSTER.is_seed_node():
-        console.log(f"You can only create workers from a seed node")
-        return
-    
-    choices = select_token_type()
-    if choices["admin"]:
-        mode = TokenType.ADMIN
-    elif choices["user"]:
-        mode = TokenType.USER
-    else:
-        mode = TokenType.WORKER
-    
-    if description is None:
-        console.log("[yellow] [Markdown] In a few words (max 500 chars), describe your goals with this cluster. Remember, this is what other users will see to decide whether to share their resources with you, [blue]so inspire them!")
-        description = input(f"(You can edit this later at {KALAVAI_PLATFORM_URL}\n")
-    cluster_name = load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE)
-
-    result = register_pool(
-        cluster_name=cluster_name,
-        token_mode=mode,
-        description=description,
-        is_private=is_private        
-    )
-
-    if "error" in result:
-        console.log(f"[red]Error when publishing cluster: {result['error']}")
-    else:
-        console.log(f"[green]Your cluster is now registered with {KALAVAI_PLATFORM_URL}")
-
-@arguably.command
-def pool__unpublish(cluster_name=None, *others):
-    """
-    [AUTH] Unpublish pool to Kalavai platform. Cluster and all its workers will still work
-    """
-    # Check for:
-    # - cluster is up and running
-    # - user is authenticated
-    if not CLUSTER.is_seed_node():
-        console.log(f"You can only create workers from a seed node")
-        return
-    
-    result = unregister_pool()
-    if "error" in result:
-        console.log(f"[red]{result['error']}")
-    elif "warning" in result:
-        console.log(f"[yellow]{result['warning']}")
-    else:
-        console.log(f"[green]Your cluster has been removed from {KALAVAI_PLATFORM_URL}")
 
 @arguably.command
 def pool__package_worker(output_file, *others, platform="amd64", num_gpus=0, ip_address="0.0.0.0", node_name=None, storage_compatible=True):
@@ -371,31 +301,51 @@ def pool__package_worker(output_file, *others, platform="amd64", num_gpus=0, ip_
         console.log(f"[green]Worker package created: {output_file}")
         with open(output_file, "w") as f:
             f.write(compose)
-    
 
 @arguably.command
-def pool__list(*others, user_only=False):
+def pool__connect(url: str, key: str, *others):
     """
-    [AUTH] List public pools in to Kalavai platform.
-    """
-    try:
-        seeds = get_public_seeds(
-            user_only=user_only,
-            user_cookie=USER_COOKIE)
-    except Exception as e:
-        console.log(f"[red]Error when loading pools. {str(e)}")
-        return
-    
-    for seed in seeds:
-        console.log("[yellow]************************************")
-        for key, value in seed.items():
-            if key == "join_key":
-                continue
-            console.log(f"[yellow]{key}: [green]{value}")
-        print(f"Join key: {seed['join_key']}")
-        console.log("[yellow]************************************")
-    console.log("[white]Use [yellow]kalavai pool join <join key> [white]to join a public pool")
+    Connect local instance to a remote kalavai pool.
 
+    This does not join the physical machine to the pool, just connects to 
+    the pool API.
+    """
+    url_with_port_regex = re.compile(
+        r'^https?:\/\/'         # Start with 'http://' or 'https://'
+        r'(([a-zA-Z0-9.-]+)|(localhost))' # **CAPTURE GROUP 1: The address/domain/localhost**
+        r':\d{1,5}$'            # Colon and port
+    )
+
+    match = url_with_port_regex.match(url)
+    if not match:
+        console.log("[red]Unexpected url format, expected http://<address>:<port>")
+        return
+    ip_address = match.group(1)
+    
+    # - check if user connected already --> reject if so
+    if has_api_details():
+        option = user_confirm(
+            question="You seem to be connected to an instance already. Are you sure you want to join a new one? You will lose access to the current pool and this cannot be reversed",
+            options=["no", "yes"]
+        )
+        if option == 0:
+            console.log("[green]Nothing happened.")
+            return
+        else:
+            console.log("[yellow]Overwriting old config...")
+    
+    # store new details for remote API
+    store_server_info(
+        file=USER_LOCAL_SERVER_FILE,
+        kalavai_api_url=url,
+        kalavai_api_key=key,
+        server_ip=ip_address,
+        auth_key=None,
+        watcher_service=None,
+        node_name=None,
+        cluster_name=None
+    )
+    console.log(f"[green]Local instance connected to {url}")
 
 @arguably.command
 def pool__start(
@@ -480,10 +430,13 @@ def pool__token(*others, admin=False, user=False, worker=False):
     """
     Generate a join token for others to connect to your pool
     """
-    try:
-        CLUSTER.validate_cluster()
-    except Exception as e:
-        console.log(f"[red]Problems with your pool: {str(e)}")
+    # try:
+    #     CLUSTER.validate_cluster()
+    # except Exception as e:
+    #     console.log(f"[red]Problems with your pool: {str(e)}")
+    #     return
+    if not has_api_details():
+        show_connection_suggestion()
         return
     
     if not admin and not user and not worker:
@@ -497,7 +450,12 @@ def pool__token(*others, admin=False, user=False, worker=False):
     else:
         mode = TokenType.WORKER
 
-    join_token = get_pool_token(mode=mode)
+    #join_token = get_pool_token(mode=mode)
+    join_token = request_to_api(
+        method="GET",
+        endpoint="/get_pool_token",
+        params={"mode": mode.value}
+    )
 
     if "error" in join_token:
         console.log(f"[red]{join_token}")
@@ -614,8 +572,9 @@ def pool__stop(*others, skip_node_deletion=False):
     Args:
         *others: all the other positional arguments go here
     """
+    console.log("[white] Stopping kalavai GUI...")
+    gui__stop()
     console.log("[white] Stopping kalavai app...")
-
     result = stop_pool(skip_node_deletion=skip_node_deletion)
     if "error" in result:
         console.log(f"[red]{result['error']}")
@@ -632,6 +591,9 @@ def pool__pause(*others):
         *others: all the other positional arguments go here
     """
     # k3s stop locally
+    if not CLUSTER.is_cluster_init():
+        console.log("[red] Kalavai pool not running locally. Cannot pause, please run [yellow]kalavai pool start[red] to start a pool or [yellow]kalavai pool join[red] to join one first")
+        return
     console.log("[white] Pausing kalavai app...")
     success = pause_agent()
     if "error" in success:
@@ -648,9 +610,8 @@ def pool__resume(*others):
     Args:
         *others: all the other positional arguments go here
     """
-    # k3s stop locally
     if not CLUSTER.is_cluster_init():
-        console.log("[red] Kalavai app was not started before, please run [yellow]kalavai pool start[red] to start a pool or [yellow]kalavai pool join[red] to join one first")
+        console.log("[red] Kalavai pool not running locally. Cannot resume, please run [yellow]kalavai pool start[red] to start a pool or [yellow]kalavai pool join[red] to join one first")
         return
     console.log("[white] Restarting sharing (may take a few minutes)...")
     success = resume_agent()
@@ -658,21 +619,22 @@ def pool__resume(*others):
         console.log(f"[red] Error when restarting. {success['error']}")
     else:
         console.log("[white] Kalava sharing resumed")
-        
-
 
 @arguably.command
 def pool__gpus(*others, available=False):
     """
     Display GPU information from all connected nodes
     """
-    try:
-        CLUSTER.validate_cluster()
-    except Exception as e:
-        console.log(f"[red]Problems with your pool: {str(e)}")
-        return
 
-    gpus = fetch_gpus(available=available)
+    if not has_api_details():
+        show_connection_suggestion()
+        return
+    
+    gpus = request_to_api(
+        method="GET",
+        endpoint="/fetch_gpus",
+        params={"available": available}
+    )
     if "error" in gpus:
         console.log(f"[red]Error when fetching gpus: {gpus}")
         return
@@ -681,11 +643,11 @@ def pool__gpus(*others, available=False):
     rows = []
     for gpu in gpus:
         rows.append([
-            gpu.node,
-            str(gpu.ready),
-            gpu.model,
-            str(gpu.available),
-            str(gpu.total)
+            gpu["node"],
+            str(gpu["ready"]),
+            gpu["model"],
+            str(gpu["available"]),
+            str(gpu["total"])
         ])
     console.print(
         generate_table(columns=columns, rows=rows,end_sections=[n for n in range(len(rows))])
@@ -696,13 +658,15 @@ def pool__resources(*others):
     """
     Display information about resources on the pool
     """
-    try:
-        CLUSTER.validate_cluster()
-    except Exception as e:
-        console.log(f"[red]Problems with your pool: {str(e)}")
+    if not has_api_details():
+        show_connection_suggestion()
         return
+    
+    data = request_to_api(
+        method="GET",
+        endpoint="/fetch_resources"
+    )
 
-    data = fetch_resources()
     if "error" in data:
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
         return
@@ -743,19 +707,20 @@ def pool__update(*others):
         console.log(f"[green]{result}")
 
 @arguably.command
-def pool__logs(*others):
+def pool__logs(*others, tail: int=100):
     """
     Get the logs for the Kalavai API
     """
-    logs = []
+    if not has_api_details():
+        show_connection_suggestion()
+        return
+    
+    logs = request_to_api(
+        method="GET",
+        endpoint="/fetch_service_logs",
+        params={"tail": tail}
+    )
 
-    logs.append("Getting Kalavai API logs...")
-
-    logs = fetch_pod_logs(
-        label_key=KALAVAI_SERVICE_LABEL,
-        label_value=KALAVAI_SERVICE_LABEL_VALUE,
-        force_namespace="kalavai"
-    )  
     for name, log in logs.items():
         console.log(f"[yellow]LOGS for service: {name}")
         for key, value in log.items():
@@ -787,6 +752,8 @@ def pool__status(*others, log_file=None):
     logs.append(f"Worker running: {CLUSTER.is_agent_running()}")
 
     logs.append(f"Pool credentials present: {CLUSTER.validate_cluster()}")
+
+    logs.append(f"Is connected to Kalavai API (local/external): {has_api_details()}")
     
     if log_file is not None:
         with open(log_file, "w") as f:
@@ -954,24 +921,26 @@ def node__list(*others):
     """
     Display information about nodes connected
     """
-    try:
-        CLUSTER.validate_cluster()
-    except Exception as e:
-        console.log(f"[red]Problems with your pool: {str(e)}")
+    if not has_api_details():
+        show_connection_suggestion()
         return
+    
+    devices = request_to_api(
+        method="GET",
+        endpoint="/fetch_devices"
+    )
 
     try:
-        devices = fetch_devices()
         rows = []
         columns = ["Node name", "Memory Pressure", "Disk pressure", "PID pressure", "Ready", "Unschedulable"]
         for device in devices:
             rows.append([
-                device.name,
-                str(device.memory_pressure),
-                str(device.disk_pressure),
-                str(device.pid_pressure),
-                str(device.ready),
-                str(device.unschedulable)
+                device["name"],
+                str(device["memory_pressure"]),
+                str(device["disk_pressure"]),
+                str(device["pid_pressure"]),
+                str(device["ready"]),
+                str(device["unschedulable"])
             ])
         
         console.log("Nodes with 'unschedulable=True' will not receive workload")
@@ -986,17 +955,21 @@ def node__list(*others):
 
 
 @arguably.command
-def node__delete(name, *others):
+def node__delete(node_name, *others):
     """
     Delete a node from the cluster
     """
-    try:
-        CLUSTER.validate_cluster()
-    except Exception as e:
-        console.log(f"[red]Problems with your pool: {str(e)}")
+    if not has_api_details():
+        show_connection_suggestion()
         return
     
-    result = delete_nodes(nodes=[name])
+    result = request_to_api(
+        method="POST",
+        endpoint="/delete_nodes",
+        json={"nodes": [node_name]}
+    )
+    
+    #result = delete_nodes(nodes=[name])
     
     if "error" in result:
         console.log(f"[red]{result}")
@@ -1008,12 +981,15 @@ def node__cordon(node_name, *others):
     """
     Cordon a particular node so no more work will be scheduled on it
     """
-    try:
-        CLUSTER.validate_cluster()
-    except Exception as e:
-        console.log(f"[red]Problems with your pool: {str(e)}")
+    if not has_api_details():
+        show_connection_suggestion()
         return
-    result = cordon_nodes(nodes=[node_name])
+    
+    result = request_to_api(
+        method="POST",
+        endpoint="/cordon_nodes",
+        params={"nodes": [node_name]}
+    )
     if "error" in result:
         console.log(f"[red]{result['error']}")
     else:
@@ -1024,12 +1000,15 @@ def node__uncordon(node_name, *others):
     """
     Uncordon a particular node to allow more work to be scheduled on it
     """
-    try:
-        CLUSTER.validate_cluster()
-    except Exception as e:
-        console.log(f"[red]Problems with your pool: {str(e)}")
+    if not has_api_details():
+        show_connection_suggestion()
         return
-    result = uncordon_nodes(nodes=[node_name])
+    
+    result = request_to_api(
+        method="POST",
+        endpoint="/uncordon_nodes",
+        params={"nodes": [node_name]}
+    )
     if "error" in result:
         console.log(f"[red]{result['error']}")
     else:
@@ -1040,13 +1019,14 @@ def job__templates(*others):
     """
     Job templates integrated with kalavai. Use env var LOCAL_TEMPLATES_DIR to test local templates
     """
-    try:
-        CLUSTER.validate_cluster()
-    except Exception as e:
-        console.log(f"[red]Problems with your pool: {str(e)}")
+    if not has_api_details():
+        show_connection_suggestion()
         return
     
-    templates = fetch_job_templates()
+    templates = request_to_api(
+        method="GET",
+        endpoint="/fetch_job_templates"
+    )
     if "error" in templates:
         console.log(f"[red]Error when fetching templates: {str(e)}")
         return
@@ -1063,10 +1043,8 @@ def job__run(template_name, *others, values: str=None, force_namespace: str=None
     Args:
         *others: all the other positional arguments go here
     """
-    try:
-        CLUSTER.validate_cluster()
-    except Exception as e:
-        console.log(f"[red]Problems with your pool: {str(e)}")
+    if not has_api_details():
+        show_connection_suggestion()
         return
     
     if force_namespace is not None:
@@ -1081,53 +1059,38 @@ def job__run(template_name, *others, values: str=None, force_namespace: str=None
         with open(values, "r") as f:
             raw_values = yaml.load(f, Loader=yaml.SafeLoader)
             values_dict = {variable["name"]: variable['value'] for variable in raw_values}
-    
-    # Inject hardware information if not present in the template
-    def generate_gpu_annotation(input_message, values, value_key, annotation_key):
-        if value_key not in values:
-            selection = select_gpus(message=input_message)
-        else:
-            selection = values[value_key]
-        if selection is not None:
-            values[value_key] = f"{annotation_key}: {selection}"
-        else:
-            values[value_key] = ""
-    GPU_TYPES_KEY = "use_gputype"
-    GPU_NOTYPES_KEY = "nouse_gputype"
-    console.log("Checking current GPU stock...")
-    generate_gpu_annotation(
-        input_message="SELECT Target GPUs for the job (loading models)",
-        values=values_dict,
-        value_key=GPU_TYPES_KEY,
-        annotation_key="nvidia.com/use-gputype"
-    )
-    generate_gpu_annotation(
-        input_message="AVOID Target GPUs for the job (loading models)",
-        values=values_dict,
-        value_key=GPU_NOTYPES_KEY,
-        annotation_key="nvidia.com/nouse-gputype"
+
+    data = {
+        "template_name": template_name,
+        "values": values_dict
+    }
+    if force_namespace is not None:
+        data["force_namespace"] = force_namespace
+    results = request_to_api(
+        method="POST",
+        endpoint="/deploy_job",
+        json=data
     )
 
-    result = deploy_job(
-        template_name=template_name,
-        values_dict=values_dict,
-        force_namespace=force_namespace
-    )
-
-    if "error" in result:
-        console.log(f"[red]Error when deploying job: {str(result['error'])}")
+    if "error" in results:
+        console.log(f"[red]Error when deploying job: {str(results['error'])}")
     else:
-        console.log(f"[green]{template_name} job deployed")
+        try:
+            for job in results:
+                success = len(job["result"]["successful"]) if "successful" in job["result"] else 0
+                fail = len(job["result"]["failed"]) if "failed" in job["result"] else 0
+                console.log(f"[green]Job ID {job['job_id']} deployed ({success} OK, {fail} failed)")
+        except Exception as e:
+            console.log(f"[red]Error: {str(e)}")
+            console.log(results)
 
 @arguably.command
 def job__test(local_template_dir, *others, values, force_namespace: str=None):
     """
     Helper to test local templates, useful for development
     """
-    try:
-        CLUSTER.validate_cluster()
-    except Exception as e:
-        console.log(f"[red]Problems with your pool: {str(e)}")
+    if not has_api_details():
+        show_connection_suggestion()
         return
     
     if not os.path.isfile(os.path.join(local_template_dir, "template.yaml")):
@@ -1151,33 +1114,54 @@ def job__test(local_template_dir, *others, values, force_namespace: str=None):
         raw_values = yaml.load(f, Loader=yaml.SafeLoader)
         values_dict = {variable["name"]: variable['value'] for variable in raw_values}
 
-    result = deploy_test_job(
-        template_str=template_str,
-        values_dict=values_dict,
-        default_values=defaults,
-        force_namespace=force_namespace)
+    data = {
+        "template_str": template_str,
+        "values": values_dict,
+        "default_values": defaults,
+        "target_labels": {}
+    }
+    if force_namespace is not None:
+        data["force_namespace"] = force_namespace
     
-    if "error" in result:
-        console.log(f"[red]Error: {result['error']}")
+    results = request_to_api(
+        method="POST",
+        endpoint="/deploy_custom_job",
+        json=data
+    )
+    
+    if "error" in results:
+        console.log(f"[red]Error when deploying job: {str(results['error'])}")
     else:
-        console.log("[green]Successfully deployed:")
-        console.log(result)
+        try:
+            for job in results:
+                success = len(job["result"]["successful"]) if "successful" in job["result"] else 0
+                fail = len(job["result"]["failed"]) if "failed" in job["result"] else 0
+                console.log(f"[green]Job ID {job['job_id']} deployed ({success} OK, {fail} failed)")
+        except Exception as e:
+            console.log(f"[red]{results}")
+            console.log(f"[red]Error: {str(e)}")
+            
 
 @arguably.command
 def job__defaults(template_name, *others):
     """
     Fetch default values.yaml for a template job
     """
-    try:
-        CLUSTER.validate_cluster()
-    except Exception as e:
-        console.log(f"[red]Problems with your pool: {str(e)}")
+    if not has_api_details():
+        show_connection_suggestion()
         return
     
-    # deploy template with kube-watcher
-    data = fetch_job_defaults(name=template_name)
-    metadata = data["metadata"]
-    defaults = data["defaults"]
+    defaults = request_to_api(
+        method="GET",
+        endpoint="/fetch_job_defaults",
+        params={"name": template_name}
+    )
+    metadata = request_to_api(
+        method="GET",
+        endpoint="/fetch_job_metadata",
+        params={"name": template_name}
+    )
+
     if "error" in defaults:
         console.log(f"[red]Error when fetching job defaults: {defaults}")
     print(
@@ -1198,121 +1182,85 @@ def job__delete(name, *others, force_namespace: str=None):
     """
     Delete job in the cluster
     """
-    try:
-        CLUSTER.validate_cluster()
-    except Exception as e:
-        console.log(f"[red]Problems with your pool: {str(e)}")
+    if not has_api_details():
+        show_connection_suggestion()
         return
     
     if force_namespace is not None:
         console.log("[WARNING][yellow]--force-namespace [white]requires an admin key. Request will fail if you are not an admin.")
     
-    # deploy template with kube-watcher
-    result = delete_job(name=name, force_namespace=force_namespace)
-    if "error" in result:
-        console.log(f"[red]Error when deleting job: {result['error']}")
+    data = {
+        "name": name
+    }
+    if force_namespace is not None:
+        data["force_namespace"] = force_namespace
+    results = request_to_api(
+        method="POST",
+        endpoint="/delete_job",
+        json=data
+    )
+    if "error" in results:
+        console.log(f"[red]Error when deleting job: {results['error']}")
     else:
-        console.log(f"{result}")
+        console.log(f"{results}")
 
-
-@arguably.command
-def job__estimate(
-    *others, 
-    model_size: float,
-    precision: str = "fp16",
-    context_window: int = 2048,
-    batch_size: int = 1,
-    num_layers: int = 32, # total layers, or num_key_value_heads, whatever is minimum (impacts KV cache)
-    hidden_dim: int = 4096,
-    overhead_factor: float = 0.15
-):
-    # Bytes per parameter based on precision
-    precision_bytes = {
-        "fp32": 4,
-        "fp16": 2,
-        "fp8": 1,
-        "int8": 1,
-        "int4": 0.5
-    }
-
-    if precision not in precision_bytes:
-        raise ValueError(f"Unsupported precision: {precision}. Choose from {list(precision_bytes.keys())}")
-
-    # Model parameters
-    total_params = model_size * 1e9
-    model_weights_vram = total_params * precision_bytes[precision] / 1e9  # GB
-
-    # KV Cache memory
-    # Approximation: KV cache = batch × layers × hidden_dim × 2 (K/V) × context × bytes
-    kv_cache_vram = (
-        batch_size * num_layers * hidden_dim * 2 * context_window * precision_bytes[precision]
-    ) / 1e9  # GB
-
-    # Total VRAM including overhead
-    total_vram = model_weights_vram + kv_cache_vram
-    total_vram *= (1 + overhead_factor)
-
-    result = {
-        "model_weights_vram_gb": round(model_weights_vram, 2),
-        "kv_cache_vram_gb": round(kv_cache_vram, 2),
-        "estimated_total_vram_gb": round(total_vram, 2)
-    }
-    console.log(f"[green]{result}")
 
 @arguably.command
 def job__list(*others, force_namespace: str=None):
     """
     List jobs in the cluster
     """
-    try:
-        CLUSTER.validate_cluster()
-    except Exception as e:
-        console.log(f"[red]Problems with your pool: {str(e)}")
+    if not has_api_details():
+        show_connection_suggestion()
         return
-
-    # all_deployments = fetch_job_names()
-    # if "error" in all_deployments:
-    #     console.log(f"[red]Error when connecting to kalavai service: {all_deployments}")
-    #     return
-    
-    # if len(all_deployments) == 0:
-    #     console.log("[green]No deployments found.")
-    #     return
-    
-    details = fetch_job_details(force_namespace=force_namespace)
+    data = {}
+    if force_namespace is not None:
+        data["force_namespace"] = force_namespace
+    details = request_to_api(
+        method="GET",
+        endpoint="/fetch_job_details",
+        params=data
+    )
 
     if "error" in details:
         console.log(f"[red]{details}")
         return
-    columns = ["Owner", "Deployment", "Workers", "Endpoint"]
-    rows = [[job.owner, job.name, job.workers, job.endpoint] for job in details]
-    
-    console.print(
-        generate_table(columns=columns, rows=rows, end_sections=range(len(rows)))
-    )
+    try:
+        columns = ["Owner", "Deployment", "Workers", "Endpoint"]
+        rows = [[job["owner"], job["name"], job["workers"], job["endpoint"]] for job in details]
         
-    console.log("Get logs with [yellow]kalavai job logs <name of deployment> [white](note it only works when the deployment is complete)")
-
+        console.print(
+            generate_table(columns=columns, rows=rows, end_sections=range(len(rows)))
+        )
+            
+        console.log("Get logs with [yellow]kalavai job logs <name of deployment> [white](note it only works when the deployment is complete)")
+    except Exception as e:
+        console.log(f"[red]Error: {details}")
+        console.log("[red]Error when querying backend")
 
 @arguably.command
 def job__logs(name, *others, pod_name=None, tail=100, force_namespace: str=None):
     """
     Get logs for a specific job
     """
-    try:
-        CLUSTER.validate_cluster()
-    except Exception as e:
-        console.log(f"[red]Problems with your pool: {str(e)}")
+    if not has_api_details():
+        show_connection_suggestion()
         return
     
     if force_namespace is not None:
         console.log("[WARNING][yellow]--force-namespace [white]requires an admin key. Request will fail if you are not an admin.")
 
-    results = fetch_job_logs(
-        job_name=name,
-        pod_name=pod_name,
-        force_namespace=force_namespace,
-        tail=tail)
+    data = {
+        "job_name": name,
+        "pod_name": pod_name,
+        "tail": tail,
+    }
+    if force_namespace is not None:
+        data["force_namespace"] = force_namespace
+    results = request_to_api(
+        method="GET",
+        endpoint="/fetch_job_logs",
+        params=data)
 
     if "error" in results:
         console.log(f"[red]{results}")
@@ -1335,234 +1283,6 @@ def job__logs(name, *others, pod_name=None, tail=100, force_namespace: str=None)
             else:
                 console.log(f"[yellow]Status {pod} in {describe['spec']['node_name']}")
                 console.log(f"[green]{describe}")
-
-@arguably.command
-def job__describe(name, *others, pod_name=None, force_namespace: str=None):
-    """
-    Get logs for a specific job
-    """
-    try:
-        CLUSTER.validate_cluster()
-    except Exception as e:
-        console.log(f"[red]Problems with your pool: {str(e)}")
-        return
-    
-    if force_namespace is not None:
-        console.log("[WARNING][yellow]--force-namespace [white]requires an admin key. Request will fail if you are not an admin.")
-
-    data = fetch_job_logs(
-        job_name=name,
-        pod_name=pod_name,
-        force_namespace=force_namespace)
-    if "error" in data:
-        console.log(f"[red]{data}")
-        return
-    console.log(f"[yellow]Status for {name}:")
-    for pod, info in data.items():
-        if pod_name is not None and pod_name != pod:
-            continue
-        if "pod" not in info or info["pod"] is None:
-            console.log(f"[white]Logs for {pod_name} not ready yet. Try [yellow]kalavai job describe {pod_name}")
-            continue
-        
-        console.log(json.dumps(info['status'], indent=2))
-
-@arguably.command
-def job__manifest(*others, name, force_namespace: str=None):
-    """
-    Get job manifest description
-    """
-    try:
-        CLUSTER.validate_cluster()
-    except Exception as e:
-        console.log(f"[red]Problems with your pool: {str(e)}")
-        return
-    
-    if force_namespace is not None:
-        console.log("[WARNING][yellow]--force-namespace [white]requires an admin key. Request will fail if you are not an admin.")
-    
-    data = {
-        "label": TEMPLATE_LABEL,
-        "value": name,
-    }
-    if force_namespace is not None:
-        data["force_namespace"] = force_namespace
-    try:
-        result = request_to_server(
-            method="post",
-            endpoint="/v1/describe_pods_for_label",
-            data=data,
-            server_creds=USER_LOCAL_SERVER_FILE,
-            user_cookie=USER_COOKIE
-        )
-        for pod, manifest in result.items():
-            manifest = json.dumps(manifest, indent=3)
-            console.log(f"[yellow]Pod {pod}")
-            console.log(f"{manifest}")
-    except Exception as e:
-        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
-        return 
-
-
-@arguably.command
-def ray__create(name, template_path, *others, force_namespace: str=None):
-    """
-    Create a cluster using KubeRay operator
-    """
-
-    try:
-        CLUSTER.validate_cluster()
-    except Exception as e:
-        console.log(f"[red]Problems with your pool: {str(e)}")
-        return
-    
-    with open(template_path, "r") as f:
-        template_yaml = f.read()
-        
-    data = {
-        "name": name,
-        "manifest": template_yaml
-    }
-    if force_namespace is not None:
-        data["force_namespace"] = force_namespace
-    try:
-        result = request_to_server(
-            method="post",
-            endpoint="/v1/deploy_ray",
-            data=data,
-            server_creds=USER_LOCAL_SERVER_FILE,
-            user_cookie=USER_COOKIE
-        )
-        if len(result['failed']) > 0:
-            console.log(f"[red]Error when deploying ray manifest\n\n{result['failed']}")
-            return
-        if len(result['successful']) > 0:
-            console.log(f"[green]Ray cluster {name} successfully deployed!")
-    except Exception as e:
-        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
-        return
-
-
-@arguably.command
-def ray__list(*status):
-    """
-    List all available ray clusters
-    """
-    try:
-        CLUSTER.validate_cluster()
-    except Exception as e:
-        console.log(f"[red]Problems with your pool: {str(e)}")
-        return
-
-    data = {
-        "group": "ray.io",
-        "api_version": "v1",
-        "plural": "rayclusters"
-    }
-    try:
-        result = request_to_server(
-            method="post",
-            endpoint="/v1/get_objects_of_type",
-            data=data,
-            server_creds=USER_LOCAL_SERVER_FILE,
-            user_cookie=USER_COOKIE
-        )
-        clusters = {ns: ds["items"] for ns, ds in result.items()}
-        #clusters = result['items']
-
-    except Exception as e:
-        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
-        return
-
-    if len(clusters) == 0:
-        console.log("No clusters available")
-        return
-    
-    # pretty print
-    columns = ["Owner", "Name", "Status", "CPUs", "GPUs", "Memory", "Endpoints"]
-    rows = []
-    server_ip = load_server_info(data_key=SERVER_IP_KEY, file=USER_LOCAL_SERVER_FILE)
-    for namespace, clusters in clusters.items():
-        for cluster in clusters:
-            cluster_name = cluster['metadata']['name']
-            cpus = cluster["status"]["desiredCPU"]
-            gpus = cluster["status"]["desiredGPU"]
-            memory = cluster["status"]["desiredMemory"]
-            min_workers = cluster["status"]["minWorkerReplicas"] if "minWorkerReplicas" in cluster["status"] else 0
-            max_workers = cluster["status"]["maxWorkerReplicas"] if "maxWorkerReplicas" in cluster["status"] else 0
-            ready_workers = cluster["status"]["readyWorkerReplicas"] if "readyWorkerReplicas" in cluster["status"] else 0
-            head_status = cluster["status"]["state"] if "state" in cluster["status"] else "creating"
-            status = f"Head {head_status}\nWorkers: {ready_workers} ready ({min_workers}/{max_workers})"
-            endpoints = [f"{k}: http://{server_ip}:{v}" for k, v in cluster['status']["endpoints"].items()]
-            rows.append(
-                (namespace, cluster_name, status, cpus, gpus, memory, "\n".join(endpoints))
-            )
-    table = generate_table(columns=columns, rows=rows)
-    console.log(table)
-
-@arguably.command
-def ray__delete(*others, name, force_namespace=None):
-    """
-    Delete a ray cluster
-    """
-    try:
-        CLUSTER.validate_cluster()
-    except Exception as e:
-        console.log(f"[red]Problems with your pool: {str(e)}")
-        return
-
-    # deploy template with kube-watcher
-    data = {
-        "label": RAY_LABEL, # this ensures that both raycluster and services are deleted
-        "value": name
-    }
-    if force_namespace is not None:
-        data["force_namespace"] = force_namespace
-    try:
-        result = request_to_server(
-            method="post",
-            endpoint="/v1/delete_labeled_resources",
-            data=data,
-            server_creds=USER_LOCAL_SERVER_FILE,
-            user_cookie=USER_COOKIE
-        )
-        console.log(f"{result}")
-    except Exception as e:
-        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
-
-@arguably.command
-def ray__manifest(*others, name, force_namespace=None):
-    """
-    Get ray cluster manifest description
-    """
-    try:
-        CLUSTER.validate_cluster()
-    except Exception as e:
-        console.log(f"[red]Problems with your pool: {str(e)}")
-        return
-    
-    data = {
-        "label": "ray.io/cluster",
-        "value": name
-    }
-    if force_namespace is not None:
-        data["force_namespace"] = force_namespace
-    try:
-        result = request_to_server(
-            method="post",
-            endpoint="/v1/describe_pods_for_label",
-            data=data,
-            server_creds=USER_LOCAL_SERVER_FILE,
-            user_cookie=USER_COOKIE
-        )
-        for pod, manifest in result.items():
-            manifest = json.dumps(manifest, indent=3)
-            console.log(f"[yellow]Pod {pod}")
-            console.log(f"{manifest}")
-    except Exception as e:
-        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
-        return
-
 
 def app():
     user_path("", create_path=True)

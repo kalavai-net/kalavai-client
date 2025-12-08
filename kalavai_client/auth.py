@@ -4,6 +4,8 @@ import json
 from typing import Optional, Any
 
 _USER_KEY = "id"
+_API_URL = "api_url"
+_API_KEY = "api_key"
 
 
 class KalavaiAuth():

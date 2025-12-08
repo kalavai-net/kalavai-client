@@ -1,11 +1,35 @@
 from pydantic import BaseModel, Field
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Optional
+from enum import Enum
 
-from kalavai_client.core import Job, TokenType
 
+class Job(BaseModel):
+    owner: Optional[str] = "default"
+    name: Optional[str] = None
+    workers: Optional[str] = None
+    endpoint: Optional[str] = None
+    status: Optional[str] = None
+    host_nodes: Optional[str] = None
 
-class InvitesRequest(BaseModel):
-    invitees: list[str] = Field(description="List of user identifiers to invite to the pool")
+class DeviceStatus(BaseModel):
+    name: str
+    memory_pressure: bool
+    disk_pressure: bool
+    pid_pressure: bool
+    ready: bool
+    unschedulable: bool
+
+class GPU(BaseModel):
+    node: str
+    available: int
+    total: int
+    ready: bool
+    model: str
+
+class TokenType(str, Enum):
+    ADMIN = "admin"
+    USER = "user"
+    WORKER = "worker"
 
 class CreatePoolRequest(BaseModel):
     cluster_name: str = Field(description="Name of the cluster to create")
@@ -13,8 +37,6 @@ class CreatePoolRequest(BaseModel):
     num_gpus: int = Field(None, description="Number of GPUs to allocate")
     node_name: str = Field(None, description="Name of the node")
     location: str = Field(None, description="Geographic location of the pool")
-    token_mode: TokenType = Field(TokenType.USER, description="Token type for authentication")
-    description: str = Field("", description="Description of the pool")
 
 class WorkerConfigRequest(BaseModel):
     node_name: str = Field(None, description="Name for the worker node")
@@ -44,12 +66,19 @@ class StopPoolRequest(BaseModel):
 class DeployJobRequest(BaseModel):
     template_name: str = Field(description="Name of the job template to use")
     values: dict = Field(description="Job configuration values")
-    force_namespace: str = Field(None, description="Optional namespace override")
-    target_labels: dict[str, Union[str, List]] = Field(None, description="Optional target node labels")
+    force_namespace: Optional[str] = Field(None, description="Optional namespace override")
+    target_labels: Optional[dict[str, Union[str, List]]] = Field(None, description="Optional target node labels")
+
+class CustomDeployJobRequest(BaseModel):
+    template_str: str = Field(description="YAML str containing the custom template job to use")
+    values: dict = Field(description="Job configuration values")
+    default_values: str = Field(description="YAML str containing the default values for the template job to use")
+    force_namespace: Optional[str] = Field(None, description="Optional namespace override")
+    target_labels: Optional[dict[str, Union[str, List]]] = Field(None, description="Optional target node labels")
 
 class DeleteJobRequest(BaseModel):
     name: str = Field(description="Name of the job to delete")
-    force_namespace: str = Field(None, description="Optional namespace override")
+    force_namespace: Optional[str] = Field(None, description="Optional namespace override")
 
 class NodeLabelsRequest(BaseModel):
     node_name: str = Field(description="Name of the node to add labels to")

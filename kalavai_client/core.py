@@ -8,9 +8,6 @@ import uuid
 import socket
 import ipaddress
 import netifaces as ni
-from typing import Optional
-from pydantic import BaseModel
-from enum import Enum
 import re
 
 from kalavai_client.cluster import CLUSTER
@@ -19,19 +16,15 @@ from kalavai_client.utils import (
     check_gpu_drivers,
     generate_join_token,
     load_user_id,
-    register_cluster,
     request_to_server,
     load_server_info,
     decode_dict,
-    send_pool_invite,
-    unregister_cluster,
     generate_compose_config,
     store_server_info,
     is_watcher_alive,
     run_cmd,
     leave_vpn,
     safe_remove,
-    get_public_seeds,
     load_template,
     is_storage_compatible,
     get_max_gpus,
@@ -50,7 +43,6 @@ from kalavai_client.utils import (
     WATCHER_SERVICE_KEY,
     WATCHER_IMAGE_TAG_KEY,
     USER_NODE_LABEL_KEY,
-    ALLOW_UNREGISTERED_USER_KEY,
     KALAVAI_AUTH
 )
 from kalavai_client.env import (
@@ -78,34 +70,12 @@ from kalavai_client.env import (
     FORCE_WATCHER_API_URL,
     FORCE_WATCHER_API_KEY_URL
 )
-
-class Job(BaseModel):
-    owner: Optional[str] = "default"
-    name: Optional[str] = None
-    workers: Optional[str] = None
-    endpoint: Optional[str] = None
-    status: Optional[str] = None
-    host_nodes: Optional[str] = None
-
-class DeviceStatus(BaseModel):
-    name: str
-    memory_pressure: bool
-    disk_pressure: bool
-    pid_pressure: bool
-    ready: bool
-    unschedulable: bool
-
-class GPU(BaseModel):
-    node: str
-    available: int
-    total: int
-    ready: bool
-    model: str
-
-class TokenType(Enum):
-    ADMIN = 0
-    USER = 1
-    WORKER = 2
+from kalavai_client.api_models import (
+    GPU,
+    Job,
+    TokenType,
+    DeviceStatus
+)
 
 
 def set_schedulable(schedulable, node_names):
@@ -324,10 +294,9 @@ def fetch_job_details(force_namespace=None):
 
     for namespace, deployments in result.items():
         """deployments --> "matched_label_value": {"pods": [], "services": []} }"""
-        print("Fetch job details namespace", namespace)
         for job_name, job in deployments.items():
-            print("Job name", job_name)
             workers_status = defaultdict(int)
+            workers = ""
             restart_counts = 0
             host_nodes = set()
             # parse pods
@@ -400,13 +369,14 @@ def deploy_job(template_name, values_dict, force_namespace=None, target_labels=N
     except Exception as e:
         return {"error": str(e)}  
     
-def deploy_test_job(template_str, values_dict, default_values, force_namespace=None):
+def deploy_test_job(template_str, values_dict, default_values, target_labels=None, force_namespace=None):
     
     # submit custom deployment
     data = {
         "template": template_str,
         "template_values": values_dict,
-        "default_values": default_values
+        "default_values": default_values,
+        "target_labels": target_labels
     }
     if force_namespace is not None:
         data["force_namespace"] = force_namespace
@@ -725,6 +695,7 @@ def join_pool(
         auth_key = data[AUTH_KEY]
         watcher_service = data[WATCHER_SERVICE_KEY]
         public_location = data[PUBLIC_LOCATION_KEY]
+        kalavai_api_port = 49152
     except Exception as e:
         return {"error": f"Invalid token. {str(e)}"} 
     
@@ -746,7 +717,11 @@ def join_pool(
         vpn_token=public_location,
         mtu=mtu,
         node_name=node_name,
-        node_labels=node_labels)
+        node_labels=node_labels,
+        watcher_api_url=watcher_service,
+        watcher_api_key=auth_key,
+        kalavai_api_key=auth_key,
+        kalavai_api_port=kalavai_api_port)
     
     store_server_info(
         server_ip=kalavai_seed_ip,
@@ -756,7 +731,9 @@ def join_pool(
         node_name=node_name,
         cluster_name=cluster_name,
         public_location=public_location,
-        user_api_key=None)
+        user_api_key=None,
+        kalavai_api_url=f"http://localhost:{kalavai_api_port}",
+        kalavai_api_key=auth_key)
     
     try:
         CLUSTER.start_worker_node()
@@ -792,8 +769,6 @@ def create_pool(
     target_platform: str="amd64",
     watcher_image_tag: str=None,
     pool_config_file: str=None,
-    description: str="",
-    token_mode: TokenType=TokenType.USER,
     num_gpus: int=-1,
     node_name: str=None,
     mtu: str="",
@@ -843,6 +818,12 @@ def create_pool(
         return {"error": f"Error when loading pool config. Missing format? {str(e)}"}
 
     # Generate docker compose recipe
+    auth_key = user_id if user_id is not None else str(uuid.uuid4())
+    write_auth_key = str(uuid.uuid4())
+    readonly_auth_key = str(uuid.uuid4())
+    watcher_service = f"{ip_address}:{DEFAULT_WATCHER_PORT}"
+    kalavai_api_port = 49152
+
     if ip_address is None:
         ip_address = "0.0.0.0"
     generate_compose_config(
@@ -855,7 +836,11 @@ def create_pool(
         node_name=node_name,
         node_labels=node_labels,
         mtu=mtu,
-        host_root_path=config_values["server"]["host_root_path"]
+        host_root_path=config_values["server"]["host_root_path"],
+        watcher_api_key=auth_key,
+        watcher_api_url=watcher_service,
+        kalavai_api_port=kalavai_api_port,
+        kalavai_api_key=auth_key
     )
 
     # start server
@@ -873,10 +858,6 @@ def create_pool(
             time.sleep(10)
 
     # populate local cred files
-    auth_key = user_id if user_id is not None else str(uuid.uuid4())
-    write_auth_key = str(uuid.uuid4())
-    readonly_auth_key = str(uuid.uuid4())
-    watcher_service = f"{ip_address}:{DEFAULT_WATCHER_PORT}"
     values = {
         #CLUSTER_NAME_KEY: cluster_name,
         CLUSTER_IP_KEY: ip_address if lb_ip_address is None else lb_ip_address,
@@ -887,8 +868,7 @@ def create_pool(
         WATCHER_PORT_KEY: DEFAULT_WATCHER_PORT,
         WATCHER_SERVICE_KEY: watcher_service,
         USER_NODE_LABEL_KEY: USER_NODE_LABEL,
-        WATCHER_IMAGE_TAG_KEY: watcher_image_tag,
-        ALLOW_UNREGISTERED_USER_KEY: True # Change this if only registered users are allowed
+        WATCHER_IMAGE_TAG_KEY: watcher_image_tag
     }
 
     store_server_info(
@@ -901,7 +881,9 @@ def create_pool(
         node_name=node_name,
         cluster_name=cluster_name,
         public_location=location,
-        user_api_key=None)
+        user_api_key=None,
+        kalavai_api_url=f"http://localhost:{kalavai_api_port}",
+        kalavai_api_key=auth_key)
     
     # Generate helmfile recipe
     helm_yaml = load_template(
@@ -938,12 +920,6 @@ def create_pool(
     #     # init user namespace
     #     init_user_workspace(
     #         user_id=user_id)
-    # register cluster (if user is logged in)
-    result = register_pool(
-        cluster_name=cluster_name,
-        description=description,
-        is_private=True,
-        token_mode=token_mode)
 
     if "error" in result:
         return {"warning": result["error"]}
@@ -970,15 +946,19 @@ def update_pool(debug=True):
 
 
 def get_pool_token(mode: TokenType):
+    print("--------", USER_LOCAL_SERVER_FILE)
 
     try:
         match mode:
             case TokenType.ADMIN:
                 auth_key = load_server_info(data_key=AUTH_KEY, file=USER_LOCAL_SERVER_FILE)
+                print("admin", auth_key)
             case TokenType.USER:
                 auth_key = load_server_info(data_key=WRITE_AUTH_KEY, file=USER_LOCAL_SERVER_FILE)
+                print("user", auth_key)
             case _:
                 auth_key = load_server_info(data_key=READONLY_AUTH_KEY, file=USER_LOCAL_SERVER_FILE)
+                print("other", auth_key)
         if auth_key is None:
             return {"error": "Cannot generate selected token mode. Are you the seed node?"}
 
@@ -1026,33 +1006,6 @@ def pool_init(config_values=None):
         return result
     except Exception as e:
         return {"error": f"[red]Error when connecting to kalavai service: {str(e)}"}
-    
-def register_pool(cluster_name, description, is_private=True, token_mode=TokenType.USER):
-    token = get_pool_token(mode=token_mode)["token"]
-    valid = check_token(token=token, public=not is_private)
-    if "error" in valid:
-        return {"error": valid}
-    try:
-        result = register_cluster(
-            name=cluster_name,
-            token=token,
-            description=description,
-            user_cookie=USER_COOKIE,
-            is_private=is_private)
-
-        return {"success": result}
-    except Exception as e:
-        return {"warning": str(e)}
-    
-def unregister_pool():
-    cluster_name = load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE)
-    try:
-        unregister_cluster(
-            name=cluster_name,
-            user_cookie=USER_COOKIE)
-    except Exception as e:
-        return {"warning": str(e)}
-    return {"success"}
 
 def is_connected():
     return is_watcher_alive(server_creds=USER_LOCAL_SERVER_FILE, user_cookie=USER_COOKIE, timeout=10)
@@ -1122,9 +1075,6 @@ def stop_pool(skip_node_deletion=False):
         logs.append(
             delete_node(load_server_info(data_key=NODE_NAME_KEY, file=USER_LOCAL_SERVER_FILE))
         )
-    # unpublish event (only if seed node)
-    if CLUSTER.is_seed_node():
-        unregister_pool()
     
     # disconnect from VPN first, then remove agent, then remove local files
     try:
@@ -1143,18 +1093,6 @@ def stop_pool(skip_node_deletion=False):
     cleanup_local()
 
     return {"logs": logs}
-
-def list_available_pools(user_only=False):
-    pools = get_public_seeds(user_only=user_only, user_cookie=USER_COOKIE)
-    return pools
-
-def send_invites(invitees):
-    result = send_pool_invite(
-        cluster_name=load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE),
-        invitee_addresses=invitees,
-        user_cookie=USER_COOKIE
-    )
-    return result
 
 def add_node_labels(node_name: str, labels: dict):
     """

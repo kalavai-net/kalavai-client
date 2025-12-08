@@ -2,8 +2,10 @@
 Core kalavai service.
 Used as a bridge between the kalavai-client app and the reflex frontend
 """
+import os
 from argparse import ArgumentParser
-from fastapi import FastAPI, HTTPException, Depends, Query, Body
+from fastapi import FastAPI, HTTPException, Depends, Query, Security
+from fastapi.security.api_key import APIKeyHeader
 from typing import Optional, List
 from fastapi_mcp import FastApiMCP
 from starlette.requests import Request
@@ -14,14 +16,14 @@ from kalavai_client.env import (
     KALAVAI_SERVICE_LABEL,
     KALAVAI_SERVICE_LABEL_VALUE
 )
-from kalavai_client.bridge_models import (
+from kalavai_client.api_models import (
     CreatePoolRequest,
-    InvitesRequest,
     JoinPoolRequest,
     StopPoolRequest,
     DeployJobRequest,
     DeleteJobRequest,
     JobDetailsRequest,
+    CustomDeployJobRequest,
     NodesActionRequest,
     NodeLabelsRequest,
     WorkerConfigRequest
@@ -30,7 +32,6 @@ from kalavai_client.core import (
     create_pool,
     join_pool,
     attach_to_pool,
-    send_invites,
     stop_pool,
     fetch_devices,
     fetch_resources,
@@ -42,12 +43,12 @@ from kalavai_client.core import (
     fetch_job_defaults,
     fetch_pod_logs,
     deploy_job,
+    deploy_test_job,
     delete_job,
     authenticate_user,
     load_user_session,
     user_logout,
     is_connected,
-    list_available_pools,
     is_agent_running,
     is_server,
     pause_agent,
@@ -62,10 +63,6 @@ from kalavai_client.core import (
     generate_worker_package,
     TokenType
 )
-from kalavai_client.utils import (
-    load_user_id,
-    extract_auth_token
-)
 
 app = FastAPI(
     title="Kalavai Bridge API",
@@ -74,22 +71,45 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
 )
+API_KEY_NAME = "X-API-Key"
+api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+MASTER_API_KEY = os.getenv("MASTER_API_KEY", None)
+
 
 ################################
 ## API Key Validation methods ##
 ################################
-async def verify_api_key(request: Request):
+async def verify_api_key(api_key_header: str = Security(api_key_header)):
     """
-    Verify the API key from the request headers.
-    The API key must match the user ID.
+    Verify the API key against the master key.
+    
+    Args:
+        api_key_header: The API key from the request header
+        
+    Returns:
+        The API key if valid
+        
+    Raises:
+        HTTPException: If the API key is invalid or missing
     """
-    user_id = load_user_id()
-    if user_id is None:
-        return None
-    api_key = extract_auth_token(headers=request.headers)
-    if api_key != user_id:
-        raise HTTPException(status_code=401, detail="Request requires API Key")
-    return api_key
+    if MASTER_API_KEY is None:
+        return api_key_header
+    
+    if not api_key_header:
+        raise HTTPException(
+            status_code=401,
+            detail="API Key is missing",
+            headers={"WWW-Authenticate": "ApiKey"},
+        )
+    
+    if api_key_header != MASTER_API_KEY:
+        raise HTTPException(
+            status_code=403,
+            detail="Invalid API Key",
+            headers={"WWW-Authenticate": "ApiKey"},
+        )
+    
+    return api_key_header 
 
 @app.post("/create_pool", 
     operation_id="create_pool",
@@ -106,8 +126,6 @@ def pool_create(request: CreatePoolRequest, api_key: str = Depends(verify_api_ke
     - **num_gpus**: Number of GPUs to allocate
     - **node_name**: Name of the node
     - **location**: Location of the pool
-    - **description**: Pool description
-    - **token_mode**: Token type for authentication
     """
     result = create_pool(
         cluster_name=request.cluster_name,
@@ -115,8 +133,6 @@ def pool_create(request: CreatePoolRequest, api_key: str = Depends(verify_api_ke
         num_gpus=request.num_gpus,
         node_name=request.node_name,
         location=request.location,
-        description=request.description,
-        token_mode=request.token_mode
     )
     return result
 
@@ -238,7 +254,7 @@ def device_uncordon(request: NodesActionRequest, api_key: str = Depends(verify_a
     description="Generates a secure token that can be used to join or attach to the current Kalavai pool. Different token types provide different levels of access - join tokens allow nodes to contribute resources, while attach tokens allow management access.",
     tags=["auth"],
     response_description="Pool token")
-def get_token(mode: int, api_key: str = Depends(verify_api_key)):
+def get_token(mode: TokenType, api_key: str = Depends(verify_api_key)):
     """
     Get pool token with the following parameters:
     
@@ -279,20 +295,6 @@ def get_devices(api_key: str = Depends(verify_api_key)):
     response_description="Logs")
 def get_service_logs(tail: int=100, api_key: str = Depends(verify_api_key)):
     return fetch_pod_logs(label_key=KALAVAI_SERVICE_LABEL, label_value=KALAVAI_SERVICE_LABEL_VALUE, force_namespace="kalavai", tail=tail)
-
-@app.post("/send_pool_invites",
-    operation_id="send_pool_invites",
-    summary="Send invitations to join the pool",
-    description="Sends invitations to potential users or nodes to join the current Kalavai pool. Invitees will receive tokens that allow them to connect to the pool and contribute their resources.",
-    tags=["avoid"],
-    response_description="Result of sending invites")
-def send_pool_invites(request: InvitesRequest, api_key: str = Depends(verify_api_key)):
-    """
-    Send pool invites with the following parameters:
-    
-    - **invitees**: List of invitee identifiers
-    """
-    return send_invites(invitees=request.invitees)
 
 @app.get("/fetch_resources",
     operation_id="fetch_resources",
@@ -427,7 +429,7 @@ def job_values_rules(name: str, api_key: str = Depends(verify_api_key)):
 @app.post("/deploy_job",
     operation_id="deploy_job",
     summary="Deploy a new job to the pool",
-    description="Deploys a new job to the Kalavai pool using a specified template and configuration. The job will be scheduled on appropriate nodes based on resource availability and any specified target labels.",
+    description="Deploys a new job to the Kalavai pool using one of the available templates and configuration. The job will be scheduled on appropriate nodes based on resource availability and any specified target labels.",
     tags=["job_management"],
     response_description="Result of job deployment")
 def job_deploy(request: DeployJobRequest, api_key: str = Depends(verify_api_key)):
@@ -443,6 +445,25 @@ def job_deploy(request: DeployJobRequest, api_key: str = Depends(verify_api_key)
         template_name=request.template_name,
         values_dict=request.values,
         force_namespace=request.force_namespace,
+        target_labels=request.target_labels
+    )
+    return result
+
+@app.post("/deploy_custom_job",
+    operation_id="deploy_bustom_job",
+    summary="Deploy a new custom job to the pool",
+    description="Deploys a new job to the Kalavai pool using a specified template and configuration. The job will be scheduled on appropriate nodes based on resource availability and any specified target labels.",
+    tags=["job_management"],
+    response_description="Result of job deployment")
+def custom_job_deploy(request: CustomDeployJobRequest, api_key: str = Depends(verify_api_key)):
+    """
+    Deploy a custom job with the following parameters:
+    """
+    result = deploy_test_job(
+        template_str=request.template_str,
+        values_dict=request.values,
+        force_namespace=request.force_namespace,
+        default_values=request.default_values,
         target_labels=request.target_labels
     )
     return result
@@ -573,21 +594,6 @@ def ip_addresses(subnet: str = None, api_key: str = Depends(verify_api_key)):
     - **subnet**: Optional subnet to filter by
     """
     result = get_ip_addresses(subnet=subnet)
-    return result
-
-@app.get("/list_available_pools",
-    operation_id="list_available_pools",
-    summary="List all available Kalavai pools",
-    description="Retrieves a list of all Kalavai pools that are currently available for connection. Can filter to show only pools owned by the current user or all public pools.",
-    tags=["agent_management"],
-    response_description="List of available pools")
-def pool_connected(user_only: bool = False, api_key: str = Depends(verify_api_key)):
-    """
-    List available pools with the following parameters:
-    
-    - **user_only**: Whether to show only user's pools
-    """
-    result = list_available_pools(user_only=user_only)
     return result
 
 @app.post("/add_node_labels",

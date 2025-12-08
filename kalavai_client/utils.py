@@ -12,6 +12,7 @@ from jinja2 import Template
 from rich.table import Table
 import yaml
 
+import kalavai_client
 from kalavai_client.auth import KalavaiAuth
 from kalavai_client.env import (
     SERVER_IP_KEY,
@@ -19,14 +20,16 @@ from kalavai_client.env import (
     DEFAULT_CONTAINER_NAME,
     DEFAULT_FLANNEL_IFACE,
     DEFAULT_VPN_CONTAINER_NAME,
-    CONTAINER_HOST_PATH,
     USER_COMPOSE_FILE,
     USER_COOKIE,
     KALAVAI_USER_ID,
     FORCE_WATCHER_API_KEY_URL,
     FORCE_WATCHER_API_URL,
+    USER_LOCAL_SERVER_FILE,
     user_path
 )
+from kalavai_client.api_models import TokenType
+
 
 GITHUB_ORG = "kalavai-net"
 GITHUB_REPO = "kalavai-client"
@@ -40,13 +43,17 @@ CLUSTER_NAME_KEY = "cluster_name"
 AUTH_KEY = "watcher_admin_key"
 USER_ID_KEY = "kalavai_user_id"
 WRITE_AUTH_KEY = "watcher_write_key"
-ALLOW_UNREGISTERED_USER_KEY = "watcher_allow_unregistered_user"
 NODE_ROLE_LABEL = "kalavai/role"
 USER_API_KEY = "user_api_key"
 READONLY_AUTH_KEY = "watcher_readonly_key"
 WATCHER_SERVICE_KEY = "watcher_service"
 WATCHER_PORT_KEY = "watcher_port"
 WATCHER_IMAGE_TAG_KEY = "watcher_image_tag"
+KALAVAI_API_URL_KEY = "kalavai_api_url"
+KALAVAI_API_KEY_KEY = "kalavai_api_key"
+ADMIN_TOKEN_KEY = "admin_token"
+USER_TOKEN_KEY = "user_token"
+WORKER_TOKEN_KEY = "worker_token"
 ENDPOINT_PORTS_KEY = "endpoint_ports"
 TEMPLATE_ID_FIELD = "id_field"
 TEMPLATE_ID_KEY = "deployment_id"
@@ -172,10 +179,15 @@ def generate_compose_config(
     vpn_token=None,
     pool_token=None,
     host_root_path=None,
+    watcher_api_url=None,
+    watcher_api_key=None,
+    kalavai_api_port=49152,
+    kalavai_api_key=None
 ):
     if node_labels is not None:
         node_labels = " ".join([f"--node-label {key}={value}" for key, value in node_labels.items()])
     rand_suffix = uuid.uuid4().hex[:8]
+
     compose_values = {
         "target_platform": target_platform,
         "user_path": user_path(""),
@@ -192,13 +204,17 @@ def generate_compose_config(
         "command": role,
         "storage_enabled": "True",
         "num_gpus": num_gpus,
-        "k3s_path": f"{CONTAINER_HOST_PATH}/{rand_suffix}/k3s",
-        "etc_path": f"{CONTAINER_HOST_PATH}/{rand_suffix}/etc",
+        "user_local_path": os.path.expanduser("~"),
         "random_suffix": rand_suffix,
         "node_labels": node_labels,
         "flannel_iface": DEFAULT_FLANNEL_IFACE if vpn_token is not None else "",
         "user_id": load_user_id(),
-        "host_root_path": host_root_path
+        "host_root_path": host_root_path,
+        "watcher_api_url": watcher_api_url,
+        "watcher_api_key": watcher_api_key,
+        "kalavai_api_port": kalavai_api_port,
+        "kalavai_api_key": kalavai_api_key,
+        "kalavai_api_image_version": kalavai_client.__version__
     }
     # generate local config files
     compose_yaml = load_template(
@@ -230,7 +246,8 @@ def load_server_info(data_key, file):
     try:
         with open(file, "r") as f:
             return json.load(f)[data_key]
-    except:
+    except Exception as e:
+        print(f"Error when loading server info: {str(e)}")
         return None
 
 def load_user_session():
@@ -246,57 +263,6 @@ def load_user_id():
     else:
         user_id = KALAVAI_USER_ID
     return user_id
-
-def get_public_seeds(user_only, user_cookie):
-    return []
-    # if not auth_obj.is_logged_in():
-    #     raise ValueError("Cannot access vpns, user is not authenticated")
-    # user = auth_obj.load_user_session() if user_only else None
-    # seeds = auth_obj.call_function(
-    #     "get_available_seeds",
-    #     user
-    # )
-    # return seeds
-
-def register_cluster(name, token, description, user_cookie, is_private=True):
-    return None
-    # if not auth_obj.is_logged_in():
-    #     raise ValueError("Cannot register cluster, user is not authenticated")
-    # user = auth_obj.load_user_session()
-    # seed = auth_obj.call_function(
-    #     "register_seed",
-    #     name,
-    #     user,
-    #     description,
-    #     token,
-    #     is_private
-    # )
-    # return seed
-
-def unregister_cluster(name, user_cookie):
-    return None
-    # if not auth_obj.is_logged_in():
-    #     raise ValueError("Cannot unregister cluster, user is not authenticated")
-    # user = auth_obj.load_user_session()
-    # seed = auth_obj.call_function(
-    #     "unregister_seed",
-    #     name,
-    #     user,
-    # )
-    # return seed
-
-def send_pool_invite(cluster_name, invitee_addresses, user_cookie):
-    return None
-    # if not auth_obj.is_logged_in():
-    #     raise ValueError("Cannot notify join cluster, user is not authenticated")
-    # user = auth_obj.load_user_session()
-    # result = auth_obj.call_function(
-    #     "send_pool_invite",
-    #     user,
-    #     cluster_name,
-    #     invitee_addresses
-    # )
-    # return result
 
 def validate_poolconfig(poolconfig_file):
     if not Path(poolconfig_file).is_file():
@@ -332,17 +298,62 @@ def leave_vpn(container_name):
         return left_vpns
     except:
         return None
+    
+def has_api_details():
+    """
+    Check that the local machine has credentials that point to a
+    remote or local kalavai API.
+
+    Required when using the CLI
+    """
+    return all([cred is not None for cred in [
+        load_server_info(data_key=KALAVAI_API_URL_KEY, file=USER_LOCAL_SERVER_FILE),
+        load_server_info(data_key=KALAVAI_API_KEY_KEY, file=USER_LOCAL_SERVER_FILE)
+    ]])
+
+    
+def request_to_api(
+    method,
+    endpoint,
+    timeout=60,
+    **kwargs
+):
+    """
+    Calls to the Kalavai backend API
+    
+    Could be local or remote, reference in the server_creds file
+    """
+    api_url = load_server_info(data_key=KALAVAI_API_URL_KEY, file=USER_LOCAL_SERVER_FILE)
+    api_key = load_server_info(data_key=KALAVAI_API_KEY_KEY, file=USER_LOCAL_SERVER_FILE)
+
+    headers = {
+        "X-API-KEY": api_key
+    }
+
+    response = requests.request(
+        method=method,
+        url=f"{api_url}{endpoint}",
+        headers=headers,
+        timeout=timeout,
+        **kwargs
+    )
+    try:
+        result = response.json()
+        return result
+    except Exception as e:
+        raise ValueError(f"Error with HTTP request: {response.text}\n{str(e)}")
+
 
 def request_to_server(
-        method,
-        endpoint,
-        server_creds,
-        data=None,
-        params=None,
-        force_url=None,
-        force_key=None,
-        user_cookie=None,
-        timeout=60
+    method,
+    endpoint,
+    server_creds,
+    data=None,
+    params=None,
+    force_url=None,
+    force_key=None,
+    user_cookie=None,
+    timeout=60
 ):
     if force_url is None:
         service_url = load_server_info(data_key=WATCHER_SERVICE_KEY, file=server_creds)
@@ -387,7 +398,20 @@ def generate_table(columns, rows, end_sections=None):
 
     return table
 
-def store_server_info(server_ip, auth_key, watcher_service, file, node_name, cluster_name, readonly_auth_key=None, write_auth_key=None, public_location=None, user_api_key=None):
+def store_server_info(
+    server_ip,
+    auth_key,
+    watcher_service,
+    file,
+    node_name,
+    cluster_name,
+    readonly_auth_key=None,
+    write_auth_key=None,
+    public_location=None,
+    user_api_key=None,
+    kalavai_api_url="localhost:49152",
+    kalavai_api_key=None
+):
     with open(file, "w") as f:
         json.dump({
             SERVER_IP_KEY: server_ip,
@@ -398,7 +422,9 @@ def store_server_info(server_ip, auth_key, watcher_service, file, node_name, clu
             NODE_NAME_KEY: node_name,
             CLUSTER_NAME_KEY: cluster_name,
             PUBLIC_LOCATION_KEY: public_location,
-            USER_API_KEY: user_api_key
+            USER_API_KEY: user_api_key,
+            KALAVAI_API_URL_KEY: kalavai_api_url,
+            KALAVAI_API_KEY_KEY: kalavai_api_key
         }, f)
     return True
 
