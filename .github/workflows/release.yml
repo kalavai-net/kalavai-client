@@ -18,13 +18,14 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.12"
-    # --- FIX: Explicitly install the 'toml' package first ---
-    - name: Install required dependency for version extraction
-      run: pip3 install toml
+    # # --- FIX: Explicitly install the 'toml' package first ---
+    # - name: Install required dependency for version extraction
+    #   run: pip3 install toml
     # --- The order here ensures 'toml' is available for the next step ---
     - name: Get package version
       id: get_version
       run: |
+        pip3 install toml
         # This step now succeeds because 'toml' is installed
         PACKAGE_VERSION=$(python -c "import toml; print(toml.load('pyproject.toml')['project']['version'])")
         echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
