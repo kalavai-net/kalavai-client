@@ -1,4 +1,23 @@
 services:
+{% if watcher_api_key and watcher_api_url and kalavai_api_port %}
+  api:
+    image: kalavai/kalavai-client:{{kalavai_api_image_version}}
+    command: >
+      --host 0.0.0.0
+      --port {{kalavai_api_port}}
+      --log_level debug
+    container_name: api-container
+    platform: linux/{{target_platform}}
+    privileged: true
+    network_mode: host
+    environment:
+      - WATCHER_API_URL={{watcher_api_url}}
+      - WATCHER_API_KEY={{watcher_api_key}}
+      - MASTER_API_KEY={{kalavai_api_key}}
+    restart: unless-stopped
+    volumes:
+    - {{user_local_path}}:/root/ # required to read .server config
+{% endif %}
 {% if vpn %}
   {{vpn_name}}:
     image: gravitl/netclient:v0.90.0

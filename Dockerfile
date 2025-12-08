@@ -8,3 +8,4 @@ COPY . /app/
 
 RUN pip install . --no-cache-dir
 
+ENTRYPOINT ["python", "kalavai_client/api.py"]

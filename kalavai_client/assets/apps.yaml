@@ -33,6 +33,28 @@ repositories:
     url: https://charts.getlago.com
 
 releases:
+  - name: flux
+    namespace: flux-system
+    chart: oci://ghcr.io/fluxcd-community/charts/flux2
+    version: 2.16.2 # latest version broken (2.17.1), needs --no-hooks
+    installed: {{deploy_flux|default("false", true)}}
+    set:
+    - name: helmController.create
+      value: true
+    - name: helmController.nodeSelector.kalavai/role
+      value: server
+    - name: sourceController.create
+      value: true
+    - name: sourceController.nodeSelector.kalavai/role
+      value: server
+    - name: imageAutomationController.create
+      value: false
+    - name: imageReflectionController.create
+      value: false
+    - name: kustomizeController.create
+      value: false
+    - name: notificationController.create
+      value: false
   # HACK: to avoid racing conditions with traefik not being ready, the CRDs are installed
   # in the base kalavai-runner image, then here we apply artificial wait to give them time
   - name: cert-manager
@@ -241,7 +263,7 @@ releases:
   - name: kalavai-watcher
     namespace: kalavai
     chart: kalavai/kalavai-watcher
-    version: "0.4.3"
+    version: "0.4.16"
     installed: {{deploy_watcher|default("false", true)}}
     set:
     - name: namespace
@@ -264,8 +286,6 @@ releases:
       value: "{{watcher_readonly_key}}"
     - name: deployment.is_shared_pool
       value: {{watcher_is_shared_pool}}
-    - name: deployment.allow_unregistered_user
-      value: "{{watcher_allow_unregistered_user}}"
     - name: deployment.kalavai_api_endpoint
       value: {{kalavai_api_endpoint}}
     - name: deployment.prometheus_endpoint

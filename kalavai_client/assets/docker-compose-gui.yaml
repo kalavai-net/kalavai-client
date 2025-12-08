@@ -5,11 +5,9 @@ services:
     platform: linux/amd64
     extra_hosts:
     - "host.docker.internal:host-gateway"
-    networks:
-    - kalavai-net
+    network_mode: host
     environment:
-    - KALAVAI_BRIDGE_URL=http://host.docker.internal
-    - KALAVAI_BRIDGE_PORT={{bridge_port}}
+    - KALAVAI_API_URL={{kalavai_api_url}}
     {% if protected_access %}
     - ACCESS_KEY={{protected_access}}
     {% endif %}
@@ -24,7 +22,3 @@ services:
     volumes:
       - "{{path}}:/root/.cache/kalavai"
     restart: always
-
-networks:
-  kalavai-net:
-    driver: bridge

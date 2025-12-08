@@ -4,13 +4,14 @@ server:
   location: null
   name: "kalavai_cluster"
   mtu: ""
-  watcher_image_tag: "v2025.12.1"
+  watcher_image_tag: "v2025.12.10"
   host_root_path: "/hostroot"
 
 core:
   # Deploy systems
   deploy:
   - volcano
+  - flux
   #- cert_manager
   #- rocm
   - watcher
@@ -31,7 +32,7 @@ core:
   helios_harvest_interval: 120
   # "Watcher is shared pool"
   watcher_is_shared_pool: "True"
-  watcher_resources_memory: 0.5
+  watcher_resources_memory: 512Mi
   watcher_resources_cpu: 0.5
   watcher_replicas: 1
   # "Prometheus and opencost"
