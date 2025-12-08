@@ -217,6 +217,25 @@ Anything missing here? Give us a shout in the [discussion board](https://github.
 
 <details>
 
+### Add Secrets to GitHub
+
+You must store your Docker Hub username and the token you just created as secrets in your GitHub repository:
+
+1. Go to your GitHub repository.
+
+2. Navigate to Settings > Security > Secrets and variables > Actions.
+
+3. Click New repository secret.
+
+4. Create the following two secrets:
+```
+Name: DOCKER_HUB_USERNAME
+Value: Your Docker Hub username or organization name.
+
+Name: DOCKER_HUB_TOKEN
+Value: The Personal Access Token you copied from Docker Hub.
+```
+
 <summary>Expand</summary>
 
 Python version >= 3.10.
