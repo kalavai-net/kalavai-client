@@ -17,21 +17,23 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: "3.10"
+        python-version: "3.12"
+    # --- FIX: Explicitly install the 'toml' package first ---
+    - name: Install required dependency for version extraction
+      run: pip3 install toml
+    # --- The order here ensures 'toml' is available for the next step ---
+    - name: Get package version
+      id: get_version
+      run: |
+        # This step now succeeds because 'toml' is installed
+        PACKAGE_VERSION=$(python -c "import toml; print(toml.load('pyproject.toml')['project']['version'])")
+        echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
+      shell: bash
     - name: Install pypa/build
       run: >-
         pip3 install .[dev]
     - name: Build a binary wheel and a source tarball
       run: python3 -m build
-    # --- New Step to get Package Version ---
-    # We need the version from the code to tag the Docker image.
-    - name: Get package version
-      id: get_version
-      run: |
-        # This assumes your version is in your pyproject.toml
-        PACKAGE_VERSION=$(python -c "import toml; print(toml.load('pyproject.toml')['project']['version'])")
-        echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
-      shell: bash
     - name: Store the distribution packages
       uses: actions/upload-artifact@v4
       with:
