@@ -40,7 +40,6 @@ jobs:
       with:
         name: python-package-distributions
         path: dist/
----
 
   build-and-push-docker:
     name: Build and Push Docker Image 🐳 to Docker Hub
@@ -102,7 +101,6 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           secrets: |
             ${{ steps.secrets.outputs.DOCKER_SECRETS }}
----
 
 #   publish-to-pypi:
 #     name: >-
@@ -125,8 +123,6 @@ jobs:
 #         path: dist/
 #     - name: Publish distribution 📦 to PyPI
 #       uses: pypa/gh-action-pypi-publish@release/v1
-
-# ---
 
 #   publish-to-testpypi:
 #     name: Publish Python 🐍 distribution 📦 to TestPyPI
