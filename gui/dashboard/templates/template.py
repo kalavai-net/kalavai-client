@@ -11,6 +11,7 @@ from .. import styles
 from ..components.navbar import navbar
 from ..components.sidebar import sidebar
 from ..backend.main_state import MainState
+from ..page_registry import register_page
 
 ACCESS_KEY = os.getenv("ACCESS_KEY", None)
 
@@ -126,6 +127,13 @@ def template(
                 ),
                 render_login()
             )
+
+        # Register the page in our custom registry
+        register_page(
+            route=route or "/",
+            title=title,
+            description=description,
+        )
 
         @rx.page(
             route=route,

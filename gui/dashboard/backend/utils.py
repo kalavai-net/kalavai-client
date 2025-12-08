@@ -2,14 +2,13 @@ import os
 import requests
 
 
-KALAVAI_BRIDGE_URL = os.getenv("KALAVAI_BRIDGE_URL", "http://0.0.0.0")
-KALAVAI_BRIDGE_PORT = os.getenv("KALAVAI_BRIDGE_PORT", "8001")
+KALAVAI_API_URL = os.getenv("KALAVAI_API_URL", "http://0.0.0.0:49152")
 ACCESS_KEY = os.getenv("ACCESS_KEY", None)
 
 
 def request_to_kalavai_core(method, endpoint, base_url=None, **kwargs):
     if base_url is None:
-        base_url = f"{KALAVAI_BRIDGE_URL}:{KALAVAI_BRIDGE_PORT}"
+        base_url = KALAVAI_API_URL
     headers = None
     if ACCESS_KEY is not None:
         headers = {

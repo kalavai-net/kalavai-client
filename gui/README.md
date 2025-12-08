@@ -71,3 +71,4 @@ To add a new page:
 
 docker build -t kalavai/kalavai-gui:latest .
 docker push kalavai/kalavai-gui:latest
+

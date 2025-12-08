@@ -115,7 +115,7 @@ def navbar_footer() -> rx.Component:
 
 def menu_button() -> rx.Component:
     # Get all the decorated pages and add them to the menu.
-    from reflex.page import get_decorated_pages
+    from ..page_registry import get_pages
 
     # The ordered page routes.
     ordered_page_routes = [
@@ -128,8 +128,8 @@ def menu_button() -> rx.Component:
         "/settings",
     ]
 
-    # Get the decorated pages.
-    pages = get_decorated_pages()
+    # Get the decorated pages from our custom registry.
+    pages = get_pages()
 
     # Include all pages even if they are not in the ordered_page_routes.
     ordered_pages = sorted(
