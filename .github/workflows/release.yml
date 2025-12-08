@@ -65,12 +65,14 @@ jobs:
       - name: Extract Python Package Version
         id: get_version
         run: |
+          # Install the TOML parsing library
+          pip install toml
+
           # Use Python to parse pyproject.toml reliably
           VERSION=$(python -c "
 import toml
 data = toml.load('pyproject.toml')
-# Assuming version is defined under [tool.poetry] or [project]
-# Adjust the path below (e.g., ['tool']['poetry']['version'] or ['project']['version'])
+# Assuming version is defined under [tool.poetry]
 version = data['tool']['poetry']['version']
 print(version)
 " 2>/dev/null)
@@ -116,49 +118,6 @@ print(version)
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-  
-  # github-release:
-  #   name: >-
-  #     Sign the Python 🐍 distribution 📦 with Sigstore
-  #     and upload them to GitHub Release
-  #   needs:
-  #   - publish-to-pypi
-  #   runs-on: ubuntu-24.04
-
-  #   permissions:
-  #     contents: write  # IMPORTANT: mandatory for making GitHub Releases
-  #     id-token: write  # IMPORTANT: mandatory for sigstore
-
-  #   steps:
-  #   - name: Download all the dists
-  #     uses: actions/download-artifact@v4
-  #     with:
-  #       name: python-package-distributions
-  #       path: dist/
-  #   - name: Sign the dists with Sigstore
-  #     uses: sigstore/gh-action-sigstore-python@v3.0.0
-  #     with:
-  #       inputs: >-
-  #         ./dist/*.tar.gz
-  #         ./dist/*.whl
-  #   - name: Create GitHub Release
-  #     env:
-  #       GITHUB_TOKEN: ${{ github.token }}
-  #     run: >-
-  #       gh release create
-  #       "$GITHUB_REF_NAME"
-  #       --repo "$GITHUB_REPOSITORY"
-  #       --notes ""
-  #   - name: Upload artifact signatures to GitHub Release
-  #     env:
-  #       GITHUB_TOKEN: ${{ github.token }}
-  #     # Upload to GitHub Release using the `gh` CLI.
-  #     # `dist/` contains the built packages, and the
-  #     # sigstore-produced signatures and certificates.
-  #     run: >-
-  #       gh release upload
-  #       "$GITHUB_REF_NAME" dist/**
-  #       --repo "$GITHUB_REPOSITORY"
 
   publish-to-testpypi:
     name: Publish Python 🐍 distribution 📦 to TestPyPI
