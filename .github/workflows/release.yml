@@ -2,8 +2,9 @@
 name: Publish Python 🐍 distribution 📦 to PyPI and TestPyPI
 
 on: # yamllint disable-line rule:truthy
-  release:
-    types: [created]
+  push:
+  # release:
+  #   types: [created]
 
 jobs:
   # build:
