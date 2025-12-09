@@ -50,8 +50,7 @@ jobs:
         with:
           # list of Docker images to use as base name for tags
           images: |
-            name/app
-            ghcr.io/username/app
+            ${{ secrets.DOCKER_HUB_USERNAME }}/kalavai-client
           # generate Docker tags based on the following events/attributes
           tags: |
             type=schedule
@@ -74,7 +73,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/kalavai-client:${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.meta.outputs.tags }}
           #labels: ${{ steps.meta.outputs.labels }}
           #tags: ${{ secrets.DOCKER_HUB_USERNAME }}/kalavai-client:latest
 
