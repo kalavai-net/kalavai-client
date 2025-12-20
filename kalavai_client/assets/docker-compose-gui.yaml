@@ -3,8 +3,8 @@ services:
     container_name: kalavai_gui
     image: kalavai/kalavai-gui:{{gui_version}}
     platform: linux/amd64
-    extra_hosts:
-    - "host.docker.internal:host-gateway"
+    # extra_hosts:
+    # - "host.docker.internal:host-gateway"
     network_mode: host
     environment:
     - KALAVAI_API_URL={{kalavai_api_url}}
@@ -16,9 +16,9 @@ services:
       run
       --backend-port {{gui_backend_port}}
       --frontend-port {{gui_frontend_port}}
-    ports:
-    - "{{gui_backend_port}}:{{gui_backend_port}}"
-    - "{{gui_frontend_port}}:{{gui_frontend_port}}"
+    # ports:
+    # - "{{gui_backend_port}}:{{gui_backend_port}}"
+    # - "{{gui_frontend_port}}:{{gui_frontend_port}}"
     volumes:
       - "{{path}}:/root/.cache/kalavai"
     restart: always

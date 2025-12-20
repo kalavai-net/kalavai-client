@@ -4,7 +4,7 @@ server:
   location: null
   name: "kalavai_cluster"
   mtu: ""
-  watcher_image_tag: "v2025.12.10"
+  watcher_image_tag: "v2025.12.15"
   host_root_path: "/hostroot"
 
 core:
@@ -19,10 +19,11 @@ core:
   #- lago
   #- opencost
   #- prometheus
-  #- kuberay
+  - kuberay
   #- minio
-  # "Kalavai API endpoint"
-  kalavai_api_endpoint: "https://platform.kalavai.net/_/api"
+  # "Kalavai API"
+  kalavai_api_version: null
+  # "Global"
   kalavai_role_label: "kalavai/role"
   # "Opencost endpoint"
   opencost_endpoint: "http://opencost.opencost.svc.cluster.local:9003"

@@ -62,4 +62,11 @@ value: 100000
 preemptionPolicy: Never
 globalDefault: false
 description: "This is high priority for testing workloads, cannot preempt others"
-
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: kalavai
+spec:
+  interval: 1h
+  url: https://kalavai-net.github.io/helm-charts/

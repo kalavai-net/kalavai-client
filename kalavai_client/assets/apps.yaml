@@ -175,22 +175,6 @@ releases:
       value: "public"
     - name: buckets[0].purge
       value: false
-  - name: helios
-    namespace: kalavai
-    chart: kalavai/kalavai-helios
-    version: "0.1.11"
-    installed: {{deploy_helios|default("false", true)}}
-    set:
-    - name: deployment.watcher_endpoint
-      value: "http://{{watcher_service}}"
-    - name: deployment.watcher_auth_key
-      value: "{{watcher_readonly_key}}"
-    - name: deployment.kalavai_api_endpoint
-      value: {{kalavai_api_endpoint}}
-    - name: deployment.user_node_label
-      value: "{{user_node_label}}"
-    - name: deployment.sleep_interval
-      value: "{{helios_harvest_interval}}"
   - name: opencost
     namespace: opencost
     chart: opencost-charts/opencost
@@ -213,6 +197,7 @@ releases:
     namespace: {{prometheus_namespace}}
     chart: prometheus-community/kube-prometheus-stack #prometheus/prometheus
     installed: {{deploy_prometheus|default("false", true)}}
+    version: "80.5.0"
     set:
     - name: server.nodeSelector.{{kalavai_role_label}}
       value: server
@@ -263,7 +248,7 @@ releases:
   - name: kalavai-watcher
     namespace: kalavai
     chart: kalavai/kalavai-watcher
-    version: "0.4.16"
+    version: "0.4.18"
     installed: {{deploy_watcher|default("false", true)}}
     set:
     - name: namespace
@@ -286,8 +271,6 @@ releases:
       value: "{{watcher_readonly_key}}"
     - name: deployment.is_shared_pool
       value: {{watcher_is_shared_pool}}
-    - name: deployment.kalavai_api_endpoint
-      value: {{kalavai_api_endpoint}}
     - name: deployment.prometheus_endpoint
       value: "http://{{prometheus_service_name}}.{{prometheus_namespace}}.svc.cluster.local:{{prometheus_port}}"
     - name: deployment.opencost_endpoint
