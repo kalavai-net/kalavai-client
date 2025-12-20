@@ -3,7 +3,6 @@ import reflex as rx
 from ..views.generic_table import TableView
 from ..backend.jobs_state import JobsState, Job
 from ..backend.dashboard_state import DashboardState
-from ..backend.main_state import MainState
 from ..components.status_badge import job_badge
 from ..components.resource_quota import draw_resource_quota
 
@@ -35,7 +34,7 @@ class JobsView(TableView):
 
     def _decorate_url(self, item, index):
         return rx.flex(
-            rx.link(item, on_click=JobsState.open_endpoint(index))
+            rx.link(item, on_click=self.table_state.open_endpoint(index))
         )
     
     def show_parameter(self, item: rx.Var, required=True):
@@ -63,15 +62,15 @@ class JobsView(TableView):
     def _decorate_name(self, item, index):
         return rx.hstack(
             rx.center(
-                rx.checkbox("", checked=JobsState.is_selected[index], on_change=lambda checked: JobsState.set_selected_row(index, checked)),
+                rx.checkbox("", checked=self.table_state.is_selected[index], on_change=lambda checked: self.table_state.set_selected_row(index, checked)),
                 rx.dialog.root(
                     rx.dialog.trigger(
-                        rx.link(item, on_click=JobsState.load_logs(index))
+                        rx.link(item, on_click=self.table_state.load_logs(index))
                     ),
                     rx.dialog.content(
                         rx.hstack(
                             rx.text(f"Job: {item}", size="4", weight="bold"),
-                            rx.button(rx.icon("refresh-cw"), on_click=JobsState.load_logs(index)),
+                            rx.button(rx.icon("refresh-cw"), on_click=self.table_state.load_logs(index)),
                             rx.dialog.close(
                                 rx.flex(rx.button("Close", size="2"), justify="end")
                             ),
@@ -79,7 +78,7 @@ class JobsView(TableView):
                             width="100%"
                         ),
                         rx.match(
-                            JobsState.job_logs,
+                            self.table_state.job_logs,
                             (None, rx.spinner()),
                             rx.vstack(
                                 rx.tabs.root(
@@ -93,12 +92,12 @@ class JobsView(TableView):
                                             rx.separator(),
                                             rx.hstack(
                                                 rx.text("Lines to fetch"),
-                                                rx.input(type="number", value=JobsState.log_tail, on_change=JobsState.set_log_tail),           
+                                                rx.input(type="number", value=self.table_state.log_tail, on_change=self.table_state.set_log_tail),           
                                             ),
                                             rx.container(
                                                 rx.vstack(
                                                     rx.scroll_area(
-                                                        rx.code_block(JobsState.job_logs),
+                                                        rx.code_block(self.table_state.job_logs),
                                                         style={"height": 500},
                                                         width="100%"
                                                     ),
@@ -118,7 +117,7 @@ class JobsView(TableView):
                                         rx.container(
                                             rx.vstack(
                                                 rx.scroll_area(
-                                                    rx.code_block(JobsState.job_metadata),
+                                                    rx.code_block(self.table_state.job_metadata),
                                                     scrollbars="vertical",
                                                     style={"height": 500}
                                                 )
@@ -133,7 +132,7 @@ class JobsView(TableView):
                                         rx.container(
                                             rx.vstack(
                                                 rx.scroll_area(
-                                                    rx.code_block(JobsState.job_status),
+                                                    rx.code_block(self.table_state.job_status),
                                                     scrollbars="vertical",
                                                     style={"height": 500}
                                                 )
@@ -162,19 +161,19 @@ class JobsView(TableView):
             rx.dialog.root(
                 rx.dialog.trigger(
                     rx.button(
-                        rx.icon("circle-plus", size=20, on_click=[JobsState.load_templates, JobsState.load_node_target_labels]),
+                        rx.icon("circle-plus", size=20, on_click=[self.table_state.load_templates, self.table_state.load_node_target_labels]),
                         "New",
                         size="2",
                         variant="surface",
                         display=["none", "none", "none", "flex"],
-                        on_click=[JobsState.load_templates, JobsState.load_node_target_labels]
+                        on_click=[self.table_state.load_templates, self.table_state.load_node_target_labels]
                     )
                 ),
                 rx.dialog.content(
                     rx.dialog.title("Deploy your job"),
                     rx.flex(
                         rx.match(
-                            JobsState.current_deploy_step,
+                            self.table_state.current_deploy_step,
                             (0, self.select_template()),
                             (1, self.select_targets()),
                             (2, self.select_parameters())
@@ -185,7 +184,7 @@ class JobsView(TableView):
                                     "Cancel",
                                     variant="soft",
                                     color_scheme="gray",
-                                    on_click=JobsState.set_deploy_step(0)
+                                    on_click=self.table_state.set_deploy_step(0)
                                 ),
                                 justify="start"
                             )
@@ -242,7 +241,7 @@ class JobsView(TableView):
                         size="2",
                         variant="surface",
                         display=["none", "none", "none", "flex"],
-                        on_click=JobsState.load_service_logs
+                        on_click=self.table_state.load_service_logs
                     )
                 ),
                 rx.alert_dialog.content(
@@ -255,12 +254,12 @@ class JobsView(TableView):
                         rx.container(
                             rx.hstack(
                                 rx.text("Lines to fetch"),
-                                rx.input(type="number", value=JobsState.log_tail, on_change=JobsState.set_log_tail),           
-                                rx.button(rx.icon("refresh-cw"), on_click=JobsState.load_service_logs),
+                                rx.input(type="number", value=self.table_state.log_tail, on_change=self.table_state.set_log_tail),           
+                                rx.button(rx.icon("refresh-cw"), on_click=self.table_state.load_service_logs),
                             ),
                             rx.vstack(
                                 rx.scroll_area(
-                                    rx.code_block(JobsState.service_logs),
+                                    rx.code_block(self.table_state.service_logs),
                                     scrollbars="vertical",
                                     style={"height": 500}
                                 )
@@ -304,7 +303,7 @@ class JobsView(TableView):
             rx.hstack(
                 rx.button(
                     "Next",
-                    on_click=JobsState.set_deploy_step(1),
+                    on_click=self.table_state.set_deploy_step(1),
                     disabled=self.table_state.selected_template == "",
                     variant="surface",
                 ),
@@ -313,30 +312,30 @@ class JobsView(TableView):
             rx.text("1. Select the template you want to deploy", as_="div", size="4", margin_bottom="10px", weight="bold"),
             rx.text("Model template", as_="div", size="2", margin_bottom="4px", weight="bold"),
             rx.select(
-                JobsState.templates,
+                self.table_state.templates,
                 placeholder="Select model engine",
-                on_change=JobsState.load_template_parameters
+                on_change=self.table_state.load_template_parameters
             ),
             rx.cond(
-                JobsState.template_metadata,
+                self.table_state.template_metadata,
                 rx.flex(
                     rx.card(
                         rx.link(
                             rx.flex(
-                                rx.image(src=JobsState.template_metadata.icon_url, width="100px", height="100px"),
+                                rx.image(src=self.table_state.template_metadata.icon_url, width="100px", height="100px"),
                                 rx.box(
                                     rx.vstack(
-                                        rx.heading(JobsState.template_metadata.name),
+                                        rx.heading(self.table_state.template_metadata.name),
                                         rx.text(
-                                            JobsState.template_metadata.description
+                                            self.table_state.template_metadata.description
                                         ),
-                                        rx.text(f"Extra info: {JobsState.template_metadata.info}"),
+                                        rx.text(f"Extra info: {self.table_state.template_metadata.info}"),
                                     ),
                                     spacing="3"
                                 ),
                                 spacing="2",
                             ),
-                            href=JobsState.template_metadata.docs_url,
+                            href=self.table_state.template_metadata.docs_url,
                             is_external=True
                         ),
                         as_child=True,
@@ -356,24 +355,24 @@ class JobsView(TableView):
             rx.hstack(
                 rx.button(
                     "Previous",
-                    on_click=JobsState.set_deploy_step(0),
+                    on_click=self.table_state.set_deploy_step(0),
                     variant="surface"
                 ),
                 rx.button(
                     "Next",
-                    on_click=[JobsState.set_deploy_step(2), DashboardState.load_data],
+                    on_click=[self.table_state.set_deploy_step(2), DashboardState.load_data],
                     variant="surface"
                 ),
                 justify="end"
             ),
             rx.text("2. Select specific nodes (leave blank for auto deploy)", as_="div", size="4", margin_bottom="10px", weight="bold"),
             rx.cond(
-                JobsState.selected_labels,
+                self.table_state.selected_labels,
                 rx.flex(
                     rx.text('Current labels to select pool nodes', size="1", margin_bottom="4px"),
                     rx.vstack(
                         rx.foreach(
-                            JobsState.selected_labels.items(),
+                            self.table_state.selected_labels.items(),
                             lambda x: rx.hstack(
                                 rx.text(f"{x[0]}: {x[1]}", size="2", color="gray"),
                                 spacing="2"
@@ -383,7 +382,7 @@ class JobsView(TableView):
                     ),
                     rx.hstack(
                         rx.text("Selection operator across labels"),
-                        rx.radio(["AND", "OR"], direction="row", default_value="AND", on_change=JobsState.set_target_label_mode),
+                        rx.radio(["AND", "OR"], direction="row", default_value="AND", on_change=self.table_state.set_target_label_mode),
                     ),
                     direction="column"
                 ),
@@ -391,16 +390,16 @@ class JobsView(TableView):
             ),
             rx.hstack(
                 rx.select(
-                    JobsState.node_target_labels,
+                    self.table_state.node_target_labels,
                     placeholder="Select target labels",
-                    on_change=JobsState.parse_new_target_label
+                    on_change=self.table_state.parse_new_target_label
                 ),
                 rx.button(
                     "Clear",
-                    on_click=JobsState.clear_target_labels,
+                    on_click=self.table_state.clear_target_labels,
                     color_scheme="gray",
                     width="10%",
-                    loading=JobsState.is_loading
+                    loading=self.table_state.is_loading
                 ),
             ),
             #rx.input(placeholder="Force namespace (admin only)", name="force_namespace"),
@@ -414,7 +413,7 @@ class JobsView(TableView):
             rx.hstack(
                 rx.button(
                     "Previous",
-                    on_click=JobsState.set_deploy_step(1),
+                    on_click=self.table_state.set_deploy_step(1),
                     variant="surface"
                 ),
                 justify="end"
@@ -423,7 +422,7 @@ class JobsView(TableView):
             # rx.accordion.root(
             #     rx.accordion.item(
             #         header="What do these values mean",
-            #         content=rx.markdown(JobsState.template_metadata.values_rules)
+            #         content=rx.markdown(self.table_state.template_metadata.values_rules)
             #     ),
             #     collapsible=True,
             #     color_scheme="gray",
@@ -433,7 +432,7 @@ class JobsView(TableView):
                 rx.flex(
                     rx.flex(
                         rx.foreach(
-                            JobsState.template_params,
+                            self.table_state.template_params,
                             lambda item: self.show_parameter(item, required=True),
                         ),
                         spacing="1",
@@ -445,7 +444,7 @@ class JobsView(TableView):
                         rx.accordion.item(
                             header="Advanced parameters",
                             content=rx.foreach(
-                                JobsState.template_params,
+                                self.table_state.template_params,
                                 lambda item: self.show_parameter(item, required=False),
                             )
                         ),
@@ -474,7 +473,7 @@ class JobsView(TableView):
                 direction="column",
                 spacing="4",
                 margin_botton="10px",
-                on_submit=JobsState.deploy_job
+                on_submit=self.table_state.deploy_job
             ),
             direction="column",
             spacing="2",
