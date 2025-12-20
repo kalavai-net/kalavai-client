@@ -1,14 +1,11 @@
-import os
 import yaml
 import time
 from collections import defaultdict
-import random
-import json
 import uuid
 import socket
 import ipaddress
 import netifaces as ni
-import re
+from urllib.parse import urlparse
 
 from kalavai_client.cluster import CLUSTER
 from kalavai_client.utils import (
@@ -43,6 +40,7 @@ from kalavai_client.utils import (
     WATCHER_SERVICE_KEY,
     WATCHER_IMAGE_TAG_KEY,
     USER_NODE_LABEL_KEY,
+    KALAVAI_API_URL_KEY,
     KALAVAI_AUTH
 )
 from kalavai_client.env import (
@@ -63,7 +61,6 @@ from kalavai_client.env import (
     USER_NODE_LABEL,
     DEFAULT_WATCHER_PORT,
     HELM_APPS_FILE,
-    MODEL_DEPLOYMENT_VALUES_MAPPING,
     POOL_CONFIG_TEMPLATE,
     FORBIDEDEN_IPS,
     DEFAULT_POOL_CONFIG_TEMPLATE,
@@ -206,6 +203,38 @@ def fetch_resources(node_names: list[str]=None):
         
     return {"total": total, "available": available}
 
+def get_user_spaces():
+
+    try:
+        data = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
+            method="get",
+            endpoint="/v1/get_available_user_spaces",
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        return data
+    except Exception as e:
+        return {"error": str(e)}
+    
+def get_space_quota(space_name):
+
+    try:
+        data = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
+            method="get",
+            endpoint="/v1/get_space_quota",
+            params={"user_id": space_name},
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        return data
+    except Exception as e:
+        return {"error": str(e)}
+    
+
 def fetch_job_defaults(name):
     data = {
         "template_name": name
@@ -322,7 +351,8 @@ def fetch_job_details(force_namespace=None):
                     )
             else:
                 print("Skip service")
-            urls = [f"http://{load_server_info(data_key=SERVER_IP_KEY, file=USER_LOCAL_SERVER_FILE)}:{node_port}" for node_port in node_ports]
+            endpoint_address = urlparse(load_server_info(data_key=KALAVAI_API_URL_KEY, file=USER_LOCAL_SERVER_FILE)).hostname
+            urls = [f"http://{endpoint_address}:{node_port}" for node_port in node_ports]
             if "Ready" in workers_status and len(workers_status) == 1:
                 status = "running"
             elif any([st in workers_status for st in ["Failed"]]):
@@ -668,6 +698,7 @@ def join_pool(
         node_name=None,
         ip_address=None,
         target_platform="amd64",
+        kalavai_api_version=None,
         mtu="",
         node_labels={},
         is_seed=False
@@ -721,7 +752,8 @@ def join_pool(
         watcher_api_url=watcher_service,
         watcher_api_key=auth_key,
         kalavai_api_key=auth_key,
-        kalavai_api_port=kalavai_api_port)
+        kalavai_api_port=kalavai_api_port,
+        kalavai_api_version=kalavai_api_version)
     
     store_server_info(
         server_ip=kalavai_seed_ip,
@@ -769,6 +801,7 @@ def create_pool(
     target_platform: str="amd64",
     watcher_image_tag: str=None,
     pool_config_file: str=None,
+    kalavai_api_version: str=None,
     num_gpus: int=-1,
     node_name: str=None,
     mtu: str="",
@@ -808,6 +841,7 @@ def create_pool(
         target_platform = config_values["server"]["platform"] if target_platform is None else target_platform
         mtu = config_values["server"]["mtu"] if mtu == "" or mtu is None else mtu
         app_values = config_values["core"]
+        kalavai_api_version = app_values["kalavai_api_version"] if kalavai_api_version is None else kalavai_api_version
         post_config_values = config_values["pool"]
         deploy_apps = {
             f"deploy_{app}": True for app in config_values["core"]["deploy"]
@@ -840,7 +874,8 @@ def create_pool(
         watcher_api_key=auth_key,
         watcher_api_url=watcher_service,
         kalavai_api_port=kalavai_api_port,
-        kalavai_api_key=auth_key
+        kalavai_api_key=auth_key,
+        kalavai_api_version=kalavai_api_version
     )
 
     # start server

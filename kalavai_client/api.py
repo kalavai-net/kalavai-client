@@ -61,6 +61,8 @@ from kalavai_client.core import (
     add_node_labels,
     get_node_labels,
     generate_worker_package,
+    get_user_spaces,
+    get_space_quota,
     TokenType
 )
 
@@ -74,6 +76,7 @@ app = FastAPI(
 API_KEY_NAME = "X-API-Key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 MASTER_API_KEY = os.getenv("MASTER_API_KEY", None)
+FORCED_USER_SPACE_NAME = os.getenv("FORCED_USER_SPACE_NAME", None)
 
 
 ################################
@@ -631,6 +634,40 @@ def node_labels_get(nodes: Optional[List[str]] = Query(None), api_key: str = Dep
         node_names=nodes
     )
     return result
+
+@app.get("/get_available_user_spaces",
+    operation_id="get_available_user_spaces",
+    summary="Get available user spaces in the pool",
+    description="Get available user spaces in the pool.",
+    tags=["info"],
+    response_description="Available user spaces")
+def get_available_user_spaces(api_key: str = Depends(verify_api_key)):
+    """
+    Get node labels with the following parameters:
+    
+    - **nodes**: List of node names to get labels for
+    """
+    if FORCED_USER_SPACE_NAME is not None:
+        return [FORCED_USER_SPACE_NAME]
+    else:
+        return get_user_spaces()
+
+@app.get("/get_user_space_quota",
+    operation_id="get_user_space_quota",
+    summary="Get resource quota for the user space",
+    description="Get resource quota for the user space, including GPU, CPU and memory allowance.",
+    tags=["info"],
+    response_description="Available resource quota")
+def get_user_space_quota(space_name: str=None, api_key: str = Depends(verify_api_key)):
+    """
+    Get resource quota for the user space with the following parameters:
+    
+    - **user_id**: name of the user space to get resource quota for
+    """
+    if FORCED_USER_SPACE_NAME is not None:
+        return get_space_quota(space_name=FORCED_USER_SPACE_NAME)
+    else:
+        return get_space_quota(space_name=space_name)
 
 ### BUILD MCP WRAPPER ###
 mcp = FastApiMCP(

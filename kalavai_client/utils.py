@@ -182,7 +182,8 @@ def generate_compose_config(
     watcher_api_url=None,
     watcher_api_key=None,
     kalavai_api_port=49152,
-    kalavai_api_key=None
+    kalavai_api_key=None,
+    kalavai_api_version=None
 ):
     if node_labels is not None:
         node_labels = " ".join([f"--node-label {key}={value}" for key, value in node_labels.items()])
@@ -214,7 +215,7 @@ def generate_compose_config(
         "watcher_api_key": watcher_api_key,
         "kalavai_api_port": kalavai_api_port,
         "kalavai_api_key": kalavai_api_key,
-        "kalavai_api_image_version": kalavai_client.__version__
+        "kalavai_api_image_version": kalavai_api_version if kalavai_api_version is not None else kalavai_client.__version__ 
     }
     # generate local config files
     compose_yaml = load_template(

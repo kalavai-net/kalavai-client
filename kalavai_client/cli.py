@@ -42,7 +42,8 @@ from kalavai_client.core import (
     resume_agent,
     stop_pool,
     TokenType,
-    update_pool
+    update_pool,
+    get_user_spaces
 )
 from kalavai_client.utils import (
     check_gpu_drivers,
@@ -200,6 +201,14 @@ def show_connection_suggestion():
 ##################
 
 @arguably.command
+def pool__spaces(*others):
+    """List available user spaces in the pool"""
+    spaces = get_user_spaces()
+    console.log("Available user spaces")
+    for space in spaces:
+        console.log(f"-> {space}")
+
+@arguably.command
 def gui__start(
     *others,
     version="latest"
@@ -256,7 +265,10 @@ def gui__start(
 
 @arguably.command
 def gui__stop():
-    run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} down")
+    try:
+        run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} down")
+    except Exception as e:
+        console.log(f"Error when stopping GUI: {str(e)}. IGNORE if GUI was not running before")
     
 @arguably.command
 def auth(user_key, *others):
@@ -359,6 +371,7 @@ def pool__start(
     lb_address: str=None,
     location: str=None,
     non_interactive: bool=False,
+    kalavai_api_version: str=None,
     node_labels: Annotated[dict, arguably.arg.handler(parse_key_value_pairs)] = {}
 ):
 
@@ -414,7 +427,8 @@ def pool__start(
         apps=apps,
         num_gpus=input_gpus(non_interactive=non_interactive),
         mtu=mtu,
-        node_labels=node_labels
+        node_labels=node_labels,
+        kalavai_api_version=kalavai_api_version
     )
 
     if "warning" in result:
@@ -488,7 +502,8 @@ def pool__join(
     node_name=None,
     non_interactive=False,
     node_labels: Annotated[dict, arguably.arg.handler(parse_key_value_pairs)] = {},
-    seed: bool=False
+    seed: bool=False,
+    kalavai_api_version: str=None
 ):
     """
     Join Kalavai pool and start/resume sharing resources.
@@ -557,7 +572,8 @@ def pool__join(
         ip_address=ip_address,
         mtu=mtu,
         node_labels=node_labels,
-        is_seed=seed
+        is_seed=seed,
+        kalavai_api_version=kalavai_api_version
     )
     if "error" in result:
         console.log(f"[red]Error when connecting: {result}")
