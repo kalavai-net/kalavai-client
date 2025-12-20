@@ -5,6 +5,7 @@ import json
 import reflex as rx
 
 from ..backend.utils import request_to_kalavai_core
+from ..backend.main_state import MainState
 
 
 class Job(rx.Base):
@@ -241,21 +242,20 @@ class JobsState(rx.State):
         for key, value in form_data.items():
             if value.isdigit():
                 form_data[key] = int(value)
-            
+        
+        async with self:
+            state = await self.get_state(MainState)
         data = {
             "template_name": self.selected_template,
-            "values": form_data
+            "values": form_data,
+            "force_namespace": state.selected_user_space
         }
         if self.selected_labels:
             data["target_labels"] = self.selected_labels
             data["target_labels_ops"] = self.target_label_mode
-        
-        force_namespace = form_data.pop("force_namespace", None)
-        if force_namespace is not None and len(force_namespace.strip()) > 0:
-            data["force_namespace"] = force_namespace
 
         async with self:
-            print("job deployed:", form_data)
+            print("job deployed:", data)
         
         try:
             result = request_to_kalavai_core(
@@ -342,17 +342,20 @@ class JobsState(rx.State):
             self.is_loading = True
             self.total_items = 0
             self.items = []
+            state = await self.get_state(MainState)
 
         try:
+            
             details = request_to_kalavai_core(
                 method="get",
-                endpoint="fetch_job_details")
+                endpoint="fetch_job_details",
+                params={"force_namespace": state.selected_user_space})
         except Exception as e:
             return rx.toast.error(f"Missing ACCESS_KEY?\n{str(e)}", position="top-center")
             
         if "error" in details:
             return rx.toast.error(f"Error:\n{details}", position="top-center")
-
+    
         async with self:
             
             for job_details in details:

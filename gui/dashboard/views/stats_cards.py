@@ -2,6 +2,7 @@ import reflex as rx
 from reflex.components.radix.themes.base import LiteralAccentColor
 
 from ..backend.dashboard_state import DashboardState
+from ..backend.main_state import MainState
 from ..backend.pools_state import PoolsState
 from .. import styles
 
@@ -62,30 +63,30 @@ def stats_card(
                 align="center",
                 width="100%",
             ),
-            rx.hstack(
-                rx.hstack(
-                    rx.icon(
-                        tag=arrow_icon,
-                        size=24,
-                        color=rx.color(arrow_color, 9),
-                    ),
-                    rx.text(
-                        f"{percentage_change}%",
-                        size="3",
-                        color=rx.color(arrow_color, 9),
-                        weight="medium",
-                    ),
-                    spacing="2",
-                    align="center",
-                ),
-                rx.text(
-                    f"{change} from last month",
-                    size="2",
-                    color=rx.color("gray", 10),
-                ),
-                align="center",
-                width="100%",
-            ),
+            # rx.hstack(
+            #     rx.hstack(
+            #         rx.icon(
+            #             tag=arrow_icon,
+            #             size=24,
+            #             color=rx.color(arrow_color, 9),
+            #         ),
+            #         rx.text(
+            #             f"{percentage_change}%",
+            #             size="3",
+            #             color=rx.color(arrow_color, 9),
+            #             weight="medium",
+            #         ),
+            #         spacing="2",
+            #         align="center",
+            #     ),
+            #     rx.text(
+            #         f"{change} from last month",
+            #         size="2",
+            #         color=rx.color("gray", 10),
+            #     ),
+            #     align="center",
+            #     width="100%",
+            # ),
             spacing="3",
         ),
         size="3",
@@ -216,7 +217,16 @@ def stats_cards() -> rx.Component:
             icon_color="green",
             #extra_char="$",
         ),
-        local_status(),
+        stats_card(
+            stat_name="GPUs",
+            page_link="/gpus",
+            value=MainState.used_gpu_quota,
+            max_value=MainState.max_gpu_quota,
+            icon="gpu",
+            icon_color="red",
+            #extra_char="$",
+        ),
+        #local_status(),
         gap="1rem",
         grid_template_columns=[
             "1fr",

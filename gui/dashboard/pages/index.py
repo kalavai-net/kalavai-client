@@ -6,6 +6,7 @@ import reflex as rx
 from ..templates import template
 from ..backend.main_state import MainState
 from ..backend.pools_state import PoolsState
+from ..components.resource_quota import draw_resource_quota
 from ..views.pools_table import PoolsView
 
 pools_view = PoolsView()
@@ -31,6 +32,7 @@ def render_pool_manager() -> rx.Component:
             MainState.is_connected,
             rx.vstack(
                 rx.text(f"Welcome back", size="8", weight="bold"),
+                #draw_resource_quota(),
                 rx.text("Here are a few links to get you going."),
                 rx.grid(
                     intro_card(

@@ -3,7 +3,9 @@ import reflex as rx
 from ..views.generic_table import TableView
 from ..backend.jobs_state import JobsState, Job
 from ..backend.dashboard_state import DashboardState
+from ..backend.main_state import MainState
 from ..components.status_badge import job_badge
+from ..components.resource_quota import draw_resource_quota
 
 
 class JobsView(TableView):
@@ -156,146 +158,144 @@ class JobsView(TableView):
         )
     
     def generate_table_actions(self) -> rx.Component:
-        return rx.flex(
-            rx.hstack(
-                rx.dialog.root(
-                    rx.dialog.trigger(
-                        rx.button(
-                            rx.icon("circle-plus", size=20, on_click=[JobsState.load_templates, JobsState.load_node_target_labels]),
-                            "New",
-                            size="2",
-                            variant="surface",
-                            display=["none", "none", "none", "flex"],
-                            on_click=[JobsState.load_templates, JobsState.load_node_target_labels]
-                        )
-                    ),
-                    rx.dialog.content(
-                        rx.dialog.title("Deploy your job"),
-                        rx.flex(
-                            rx.match(
-                                JobsState.current_deploy_step,
-                                (0, self.select_template()),
-                                (1, self.select_targets()),
-                                (2, self.select_parameters())
-                            ),
-                            rx.dialog.close(
-                                rx.flex(
-                                    rx.button(
-                                        "Cancel",
-                                        variant="soft",
-                                        color_scheme="gray",
-                                        on_click=JobsState.set_deploy_step(0)
-                                    ),
-                                    justify="start"
-                                )
-                            ),
-                            spacing="4",
-                            direction="column"
-                        )
+        return rx.hstack(
+            rx.dialog.root(
+                rx.dialog.trigger(
+                    rx.button(
+                        rx.icon("circle-plus", size=20, on_click=[JobsState.load_templates, JobsState.load_node_target_labels]),
+                        "New",
+                        size="2",
+                        variant="surface",
+                        display=["none", "none", "none", "flex"],
+                        on_click=[JobsState.load_templates, JobsState.load_node_target_labels]
                     )
                 ),
-                rx.alert_dialog.root(
-                    rx.alert_dialog.trigger(
-                        rx.button(
-                            rx.icon("trash-2", size=20),
-                            "Delete",
-                            size="2",
-                            variant="surface",
-                            display=["none", "none", "none", "flex"]
-                        )
-                    ),
-                    rx.alert_dialog.content(
-                        rx.alert_dialog.title("Delete jobs"),
-                        rx.alert_dialog.description(
-                            "Are you sure you want to delete the selected jobs? This cannot be undone.",
-                            size="2",
+                rx.dialog.content(
+                    rx.dialog.title("Deploy your job"),
+                    rx.flex(
+                        rx.match(
+                            JobsState.current_deploy_step,
+                            (0, self.select_template()),
+                            (1, self.select_targets()),
+                            (2, self.select_parameters())
                         ),
-                        rx.flex(
-                            rx.alert_dialog.cancel(
+                        rx.dialog.close(
+                            rx.flex(
                                 rx.button(
                                     "Cancel",
                                     variant="soft",
                                     color_scheme="gray",
+                                    on_click=JobsState.set_deploy_step(0)
                                 ),
-                            ),
-                            rx.alert_dialog.action(
-                                rx.button(
-                                    "Delete",
-                                    color_scheme="red",
-                                    variant="solid",
-                                    on_click=self.table_state.remove_entries()
-                                ),
-                            ),
-                            spacing="3",
-                            margin_top="16px",
-                            justify="end",
+                                justify="start"
+                            )
                         ),
-                        style={"max_width": 450},
-                    ),
+                        spacing="4",
+                        direction="column"
+                    )
+                )
+            ),
+            rx.alert_dialog.root(
+                rx.alert_dialog.trigger(
+                    rx.button(
+                        rx.icon("trash-2", size=20),
+                        "Delete",
+                        size="2",
+                        variant="surface",
+                        display=["none", "none", "none", "flex"]
+                    )
                 ),
-                rx.alert_dialog.root(
-                    rx.alert_dialog.trigger(
-                        rx.button(
-                            rx.icon("info", size=20),
-                            "",
-                            size="2",
-                            variant="surface",
-                            display=["none", "none", "none", "flex"],
-                            on_click=JobsState.load_service_logs
-                        )
+                rx.alert_dialog.content(
+                    rx.alert_dialog.title("Delete jobs"),
+                    rx.alert_dialog.description(
+                        "Are you sure you want to delete the selected jobs? This cannot be undone.",
+                        size="2",
                     ),
-                    rx.alert_dialog.content(
-                        rx.alert_dialog.title("Kalavai API service logs"),
-                        rx.alert_dialog.description(
-                            "Kalavai API service status.",
-                            size="2",
-                        ),
-                        rx.flex(
-                            rx.container(
-                                rx.hstack(
-                                    rx.text("Lines to fetch"),
-                                    rx.input(type="number", value=JobsState.log_tail, on_change=JobsState.set_log_tail),           
-                                    rx.button(rx.icon("refresh-cw"), on_click=JobsState.load_service_logs),
-                                ),
-                                rx.vstack(
-                                    rx.scroll_area(
-                                        rx.code_block(JobsState.service_logs),
-                                        scrollbars="vertical",
-                                        style={"height": 500}
-                                    )
-                                ),
-                                stack_children_full_width=True
+                    rx.flex(
+                        rx.alert_dialog.cancel(
+                            rx.button(
+                                "Cancel",
+                                variant="soft",
+                                color_scheme="gray",
                             ),
-                            rx.alert_dialog.cancel(
-                                rx.button(
-                                    "OK",
-                                    variant="soft",
-                                    color_scheme="gray",
-                                ),
-                            ),
-                            spacing="3",
-                            margin_top="16px",
-                            justify="end",
-                            direction="column"
                         ),
-                        style={"max_width": 1000},
+                        rx.alert_dialog.action(
+                            rx.button(
+                                "Delete",
+                                color_scheme="red",
+                                variant="solid",
+                                on_click=self.table_state.remove_entries()
+                            ),
+                        ),
+                        spacing="3",
+                        margin_top="16px",
+                        justify="end",
                     ),
+                    style={"max_width": 450},
                 ),
-                rx.button(
-                    rx.icon("refresh-cw", size=20),
-                    "",
-                    size="2",
-                    variant="surface",
-                    display=["none", "none", "none", "flex"],
-                    on_click=self.table_state.load_entries(),
-                    loading=self.table_state.is_loading
+            ),
+            rx.alert_dialog.root(
+                rx.alert_dialog.trigger(
+                    rx.button(
+                        rx.icon("info", size=20),
+                        "",
+                        size="2",
+                        variant="surface",
+                        display=["none", "none", "none", "flex"],
+                        on_click=JobsState.load_service_logs
+                    )
                 ),
-                spacing="3",
-                justify="end",
-                wrap="wrap",
-                width="100%",
-                padding_bottom="1em",
-            ),            
+                rx.alert_dialog.content(
+                    rx.alert_dialog.title("Kalavai API service logs"),
+                    rx.alert_dialog.description(
+                        "Kalavai API service status.",
+                        size="2",
+                    ),
+                    rx.flex(
+                        rx.container(
+                            rx.hstack(
+                                rx.text("Lines to fetch"),
+                                rx.input(type="number", value=JobsState.log_tail, on_change=JobsState.set_log_tail),           
+                                rx.button(rx.icon("refresh-cw"), on_click=JobsState.load_service_logs),
+                            ),
+                            rx.vstack(
+                                rx.scroll_area(
+                                    rx.code_block(JobsState.service_logs),
+                                    scrollbars="vertical",
+                                    style={"height": 500}
+                                )
+                            ),
+                            stack_children_full_width=True
+                        ),
+                        rx.alert_dialog.cancel(
+                            rx.button(
+                                "OK",
+                                variant="soft",
+                                color_scheme="gray",
+                            ),
+                        ),
+                        spacing="3",
+                        margin_top="16px",
+                        justify="end",
+                        direction="column"
+                    ),
+                    style={"max_width": 1000},
+                ),
+            ),
+            rx.button(
+                rx.icon("refresh-cw", size=20),
+                "",
+                size="2",
+                variant="surface",
+                display=["none", "none", "none", "flex"],
+                on_click=self.table_state.load_entries(),
+                loading=self.table_state.is_loading
+            ),
+            spacing="3",
+            justify="end",
+            wrap="wrap",
+            width="100%",
+            padding_bottom="1em",
         )
     
     ## DEPLOYMENT STEP SCREENS #
@@ -453,46 +453,7 @@ class JobsView(TableView):
                         color_scheme="gray",
                         variant="outline"
                     ),
-                    rx.text("Available resources", as_="div", size="2", margin_bottom="4px", weight="bold"),
-                    rx.tabs.root(
-                        rx.tabs.list(
-                            rx.tabs.trigger("Workers", value="workers"),
-                            rx.tabs.trigger("CPU", value="cpu"),
-                            rx.tabs.trigger("RAM", value="ram"),
-                            rx.tabs.trigger("GPU", value="gpu"),
-                        ),
-                        rx.tabs.content(
-                            rx.text(f"Workers: {DashboardState.online_devices}/{DashboardState.total_devices}"),
-                            value="workers",
-                        ),
-                        rx.tabs.content(
-                            rx.text(f"CPUs: {DashboardState.online_cpus}/{DashboardState.total_cpus}"),
-                            value="cpu",
-                        ),
-                        rx.tabs.content(
-                            rx.text(f"RAM: {DashboardState.online_ram:.2f}/{DashboardState.total_ram:.2f} GB"),
-                            value="ram",
-                        ),
-                        rx.tabs.content(
-                            rx.text(f"GPUs: {DashboardState.online_gpus}/{DashboardState.total_gpus}"),
-                            value="gpu",
-                        ),
-                        default_value="workers",
-                    ),
-                    # rx.accordion.root(
-                    #     rx.accordion.item(
-                    #         header="Available resources",
-                    #         content=[
-                    #             rx.text(f"Devices: {DashboardState.online_devices}/{DashboardState.total_devices}"),
-                    #             rx.text(f"CPUs: {DashboardState.online_cpus:.1f}/{DashboardState.total_cpus:.1f}"),
-                    #             rx.text(f"RAM: {DashboardState.online_ram:.2f}/{DashboardState.total_ram:.2f} GB"),
-                    #             rx.text(f"GPUs: {DashboardState.online_gpus}/{DashboardState.total_gpus}"),
-                    #         ],
-                    #         on_click=DashboardState.load_data,
-                    #         collapsible=True,
-                    #         color_scheme="gray"
-                    #     )
-                    # ),
+                    draw_resource_quota(),
                     rx.dialog.close(
                         rx.hstack(
                             rx.tooltip(

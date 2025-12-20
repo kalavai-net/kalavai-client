@@ -1,5 +1,6 @@
 import os
 import requests
+import re
 
 
 KALAVAI_API_URL = os.getenv("KALAVAI_API_URL", "http://0.0.0.0:49152")
@@ -22,3 +23,9 @@ def request_to_kalavai_core(method, endpoint, base_url=None, **kwargs):
     )
     result.raise_for_status()
     return result.json()
+
+def extract_number(data_string):
+    try:
+        return int(re.search(r'\d+', data_string).group())
+    except:
+        return None

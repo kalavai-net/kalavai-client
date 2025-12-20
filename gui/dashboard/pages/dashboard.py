@@ -5,6 +5,7 @@ import reflex as rx
 from .. import styles
 from ..components.card import card
 from ..components.notification import notification
+from ..components.resource_quota import draw_resource_quota
 from ..templates import template
 from ..views.resources_view import (
     cpu_resources,
@@ -25,7 +26,12 @@ def dashboard() -> rx.Component:
 
     """
     return rx.vstack(
-        rx.heading(f"Welcome!", size="7"),
+        #rx.heading(f"Welcome!", size="7"),
+        rx.hstack(
+            rx.heading(f"Welcome!", size="7"),
+            draw_resource_quota(),
+            justify="between", width="100%"
+        ),
         # rx.flex(
         #     rx.input(
         #         rx.input.slot(rx.icon("search"), padding_left="0"),
@@ -49,7 +55,7 @@ def dashboard() -> rx.Component:
         #     width="100%",
         # ),
         rx.hstack(
-            rx.text("Pool monitoring", size="5", font_weight="bold"),
+            rx.text("Pool usage", size="5", font_weight="bold"),
             rx.cond(
                 DashboardState.is_loading,
                 rx.spinner(),
@@ -58,7 +64,7 @@ def dashboard() -> rx.Component:
         ),
         stats_cards(),
         rx.hstack(
-            rx.text("Resource utilisation", size="5", font_weight="bold"),
+            rx.text("Resources", size="5", font_weight="bold"),
             rx.cond(
                 DashboardState.is_loading,
                 rx.spinner(),
@@ -70,32 +76,32 @@ def dashboard() -> rx.Component:
                 card(
                     rx.hstack(
                         rx.icon("cpu", size=20),
-                        rx.text("CPUs online", size="4", weight="medium"),
+                        rx.text("CPUs", size="4", weight="medium"),
                         align="center",
                         spacing="2",
                         margin_bottom="1.5em",
                     ),
-                    rx.hstack(cpu_resources())
+                    cpu_resources()
                 ),
                 card(
                     rx.hstack(
-                        rx.icon("microchip", size=20),
-                        rx.text("GPUs online", size="4", weight="medium"),
+                        rx.icon("gpu", size=20),
+                        rx.text("GPUs", size="4", weight="medium"),
                         align="center",
                         spacing="2",
                         margin_bottom="1.5em",
                     ),
-                    rx.hstack(gpu_resources())
+                    gpu_resources()
                 ),
                 card(
                     rx.hstack(
                         rx.icon("memory-stick", size=20),
-                        rx.text("Available RAM (GB)", size="4", weight="medium"),
+                        rx.text("RAM (GB)", size="4", weight="medium"),
                         align="center",
                         spacing="2",
                         margin_bottom="1.5em",
                     ),
-                    rx.hstack(memory_resources())
+                    memory_resources()
                 )
             ),
             width="100%",

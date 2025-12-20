@@ -91,7 +91,14 @@ class DashboardState(rx.State):
                 domain={'x': [0, 1], 'y': [0, 1]},
                 gauge={
                     'axis': {'range': [0, total]}, 
-                    'threshold' : {'line': {'color': "red", 'width': 4}, 'thickness': 0.75, 'value': used}
+                    'bar': {
+                        'color': "green", 
+                        'thickness': 1  # This ensures the green fills the width of the track
+                    },
+                    #'threshold' : {'line': {'color': "red", 'width': 4}, 'thickness': 0.75, 'value': used},
+                    'steps': [
+                        {'range': [0, total], 'color': "red"}
+                    ],
                 },
                 #title={'text': f"{online}/{total} online"}
             )
