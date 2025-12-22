@@ -27,7 +27,7 @@ Create, manage and deploy LLMs across multiple devices with `GPUStack` in Kalava
 
 [Log in](https://platform.kalavai.net) to your Kalavai account and navigate to the ```Clusters``` page. This section allows you to create, manage and connect to your GPU clusters. 
 
-![Clusters page](./assets/blank_clusters.png)
+![Clusters page](assets/images/blank_clusters.png)
 
 As long as you are within your resource quota (as indicated under ```Available Resources```) you can create as many clusters as you need --even multiple of the same type. You can create a cluster by selecting any of the supported templates (growing!) under the ```Create new Cluster``` section.
 
@@ -35,13 +35,13 @@ As long as you are within your resource quota (as indicated under ```Available R
 
 Select ````GPUStack` Cluster``` on the list of cluster templates to configure your `GPUStack` cluster.
 
-![Create gpustack cluster](./assets/create_gpustack.png)
+![Create gpustack cluster](assets/images/create_gpustack.png)
 
 ### Configuring your `GPUStack` cluster
 
 The `GPUStack` template allows you to configure your cluster instance to your needs. 
 
-![`GPUStack` template config options](./assets/gpustack_config_options.png)
+![`GPUStack` template config options](assets/images/gpustack_config_options.png)
 
 Here's a list of key parameters:
 
@@ -79,11 +79,11 @@ Click on the UI endpoint of your `GPUStack` cluster. You will be presented with 
 - Password: `<password set during cluster config>`
 
 
-![`GPUStack` login](./assets/gpustack_login.png)
+![`GPUStack` login](assets/images/gpustack_login.png)
 
 You can monitor the status of the workers and GPUs under the Resources section of your `GPUStack` cluster.
 
-![`GPUStack` with 2 GPU workers](./assets/gpustack_workers.png)
+![`GPUStack` with 2 GPU workers](assets/images/gpustack_workers.png)
 
 ### Deploy a model
 
@@ -99,7 +99,7 @@ Navigate to Deployments, then Deploy Model, and select Catalog. This is the easi
 
 Click Save to deploy. The model will take a few minutes to be able to serve inference requests. You can follow the progress in the Deployments page:
 
-![`GPUStack` deployment status](./assets/gpustack_deployment_status.png)
+![`GPUStack` deployment status](assets/images/gpustack_deployment_status.png)
 
 Once it is ready, you can interact with it in the Chat page. You can also check out a code snippet example in the same page by clicking on the View Code button at the top.
 

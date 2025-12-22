@@ -115,11 +115,11 @@ Or use the REST API: https://docs.ray.io/en/latest/cluster/running-applications/
 Once the job is running, you can access the Ray dashboard in the browser to check the progress of the fine tunning process. Note that it may take a few minutes to create the runtime environment, particularly if you have heavy dependencies. 
 
 
-![Axolotl training progress](./assets/axolotl_ray_progress.png)
+![Axolotl training progress](assets/images/axolotl_ray_progress.png)
 
 Once the job completes, the model weights are uploaded to your HuggingFace account:
 
-![Huggingface model card for the fine tuned model](./assets/axolotl_hf_model_card.png)
+![Huggingface model card for the fine tuned model](assets/images/axolotl_hf_model_card.png)
 
 
 ## Stop a job

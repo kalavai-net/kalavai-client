@@ -8,6 +8,12 @@ tags:
 
 The full functionality set of Kalavai LLM Pools can be accessed via the command line. This is ideal when working with Virtual Machines in the cloud or in automating workflows where GUI access is not possible or not required.
 
+## Requirements
+
+Make sure you have the kalavai-client installed in your machine before continuing.
+
+## Overview
+
 ```bash
 $ kalavai --help
 

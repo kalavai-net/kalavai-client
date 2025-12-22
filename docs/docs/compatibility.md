@@ -11,7 +11,7 @@ If your system is not currently supported, [open an issue](https://github.com/ka
 
 ### OS compatibility
 
-Currently **seed nodes** are supported exclusively on linux machines (x86_64 platform). However Kalavai supports mix-pools, i.e. having Windows and MacOS computers as workers.
+Currently **seed nodes** are supported exclusively on linux machines (x86_64 platform). However Kalavai supports mixed pools, i.e. having Windows and MacOS computers as workers.
 
 Since **worker nodes** run inside docker, any machine that can run docker **should** be compatible with Kalavai. Here are instructions for [linux](https://docs.docker.com/engine/install/), [Windows](https://docs.docker.com/desktop/setup/install/windows-install/) and [MacOS](https://docs.docker.com/desktop/setup/install/mac-install/).
 
@@ -21,9 +21,9 @@ The kalavai client, which controls and access pools, can be installed on any mac
 ### Hardware compatibility:
 
 - `amd64` or `x86_64` CPU architecture for seed and worker nodes.
-- `arm64` CPU architecture for worker nodes.
-- NVIDIA GPU
-- Mac M series, AMD and Intel GPUs are currently not supported ([interested in helping us test it?](https://kalavai-net.github.io/kalavai-client/compatibility/#help-testing-amd-gpus))
+- `arm64` CPU architecture for worker nodes. Note: not all workloads support arm64 workers.
+- NVIDIA GPU or AMD GPUs
+- Mac M series and Intel GPUs are currently not supported ([interested in helping us test it?](https://kalavai-net.github.io/kalavai-client/compatibility/#help-testing-amd-gpus))
 
 
 ## Help testing new systems
@@ -46,6 +46,3 @@ kalavai pool resources > resources.log
 5. If the system ends up being supported, you'll be invited to create a PR to add support to the compatibility matrix.
 
 
-## Help testing AMD GPUs
-
-If you are interested in testing AMD support within Kalavai and own an AMD GPU card, please [contact us](mailto:info@kalavai.net) or [create an issue](https://github.com/kalavai-net/kalavai-client/issues)!

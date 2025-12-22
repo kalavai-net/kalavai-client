@@ -4,22 +4,20 @@ nav:
     - Welcome to Kalavai: index.md
     - Concepts: concepts.md
     - Getting started: getting_started.md
-    - Choosing job resources: choose_job_resources.md
     - Compatibility: compatibility.md
+  - Interface:
+    - Connect to remote pool: remote_pool.md
     - CLI: cli.md
-  - Examples cases:
-    - Self-hosted LLM pool: self_hosted_llm_pool.md
-  - Applications: 
-    - Job templates: templates.md
+    - Browser GUI: gui.md 
+  - Use cases:
+    - Multi-GPU LLM: use_cases/multi_gpu_inference.md
+    - Fine tune: use_cases/fine_tuning.md
+    #- Autoscaling deployments:
+    - BYO Model Gateway: use_cases/self_hosted_llm_pool.md
+    - Easy LLMs with GPUstack: use_cases/gpustack.md 
+    - Production GPU fleets: use_cases/ray.md
   - Managed platform:
     - Overview: managed/overview.md
-    - Ray Cluster: managed/ray.md
-    - GPUStack: managed/gpustack.md
-  - Use cases:
-    - Fine tune with Axolotl: managed/fine_tuning.md
-    - Multi-GPU model hosting: managed/cogenai.md
-    #- Autoscaling LLMs with requests
-    #- Distributed on-demand python: kubetorch
 
 theme:
   name: shadcn

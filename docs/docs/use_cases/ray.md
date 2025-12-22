@@ -25,7 +25,7 @@ Create, manage and deploy Ray workloads in Kalavai without touching infrastructu
 
 [Log in](https://platform.kalavai.net) to your Kalavai account and navigate to the ```Clusters``` page. This section allows you to create, manage and connect to your GPU clusters. 
 
-![Clusters page](./assets/blank_clusters.png)
+![Clusters page](assets/images/blank_clusters.png)
 
 As long as you are within your resource quota (as indicated under ```Available Resources```) you can create as many clusters as you need --even multiple of the same type. You can create a cluster by selecting any of the supported templates (growing!) under the ```Create new Cluster``` section.
 
@@ -33,13 +33,13 @@ As long as you are within your resource quota (as indicated under ```Available R
 
 Select ```Ray Cluster``` on the list of cluster templates to configure your Ray cluster.
 
-![Create ray cluster](./assets/create_ray.png)
+![Create ray cluster](assets/images/create_ray.png)
 
 ### Configuring your Ray cluster
 
 The Ray template allows you to configure your cluster instance to your needs. 
 
-![Ray template config options](./assets/ray_config_options.png)
+![Ray template config options](assets/images/ray_config_options.png)
 
 Here's a list of key parameters:
 
@@ -58,7 +58,7 @@ Here's a list of key parameters:
 
 When you are ready, click on `Deploy Cluster`. The Ray instance may take a few minutes to spin up. Check the status of the pool under `Your clusters`.
 
-![ray_waiting](./assets/ray_waiting.png)
+![ray_waiting](assets/images/ray_waiting.png)
 
 
 #### Example: Autoscalable cluster
@@ -148,7 +148,7 @@ ray job submit --working-dir ./raytest --address <dashboard endpoint> -- python 
 
 You should see the output in the console, and can also inspect the job progress by visiting the dashboard endpoint in your browser, under `Jobs`
 
-![Job progress](./assets/job_progress.png)
+![Job progress](assets/images/job_progress.png)
 
 
 ## What next

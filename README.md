@@ -7,31 +7,22 @@
 
 </div>
 
-<!-- ⭐⭐⭐ **Kalavai platform is open source, and free to use in both commercial and non-commercial purposes. If you find it useful, consider supporting us by [giving a star to our GitHub project](https://github.com/kalavai-net/kalavai-client), joining our [discord channel](https://discord.gg/YN6ThTJKbM) and follow our [Substack](https://kalavainet.substack.com/).** -->
-
-### ⭐⭐⭐ Kalavai is now opening a managed service to create and manage AI workloads on a fleet of GPUs. We are inviting Beta Testers for early access. If you are interested [Apply here](https://kalavai.net/beta)
+### ⭐⭐⭐ **Kalavai platform is open source, and free to use in both commercial and non-commercial purposes. If you find it useful, consider supporting us by [giving a star to our GitHub project](https://github.com/kalavai-net/kalavai-client), joining our [discord channel](https://discord.gg/YN6ThTJKbM) and follow our [Substack](https://kalavainet.substack.com/).**
 
 
-# Kalavai: a platform to self-host AI on easy mode
 
-> AI in the cloud is not aligned with you, it's aligned with the company that owns it. Make sure you own your AI
+# Kalavai aggregates compute from spare GPU capacity
 
-### Taming the adoption of self-hosted GenAI
+> Kalavai is an **open source** platform that unlocks **computing** from spare capacity. It aggregates resources from multiple sources to increase your computing budget and run large AI workloads.  
 
-Kalavai is an **open source** tool that turns **any devices** into a self-hosted AI platform. It aggregates resources from multiple machines, including cloud, on prem and personal computers, and is **compatible with most model engines** to make model deployment and orchestration simple and reliable.
+## Core features
 
+Kalavai's goal is to make using AI workloads in real applications accessible and affordable to all.
 
-## What can Kalavai do?
-
-Kalavai's goal is to make using self-hosted AI (GenAI models and agents) in real applications accessible and affordable to all.
-
-### Core features
-
-- Manage **multiple devices resources as one**, wherever they come from (hybrid cloud, on prem, personal devices)
-- **Deploy open source models seamlessly across devices**, with zero-cost migration
-- Beyond LLMs: not just for large language models, but text-to-speech, speech-to-text, image generation, video understanding, coding generation and embedding models.
-- Production-ready: **models are automatically exposed** through a single OpenAI-like API and a ChatGPT-like UI playground, with off-the-shelf monitoring and evaluation framework.
-- Compatible with [most popular model engines](#support-for-llm-engines)
+- Increase GPU utilisation from your devices (fractional GPU).
+- Multi-node, multi-GPU and multi-architecture support (AMD and NVIDIA). 
+- **Aggregate** computing resources from **multiple sources**: home desktops, work computers, multi cloud VMs, raspberry pi's, Mac, etc.
+- **Ready-made templates to deploy common AI building blocks**: model inference (vLLM, llama.cpp, SGLang), GPU clusters (Ray, GPUStack), automation workflows (n8n and Flowise), evaluation and monitoring tools (Langfuse), production dev tools (LiteLLM, OpenWebUI) and more.
 - [Easy to expand](https://github.com/kalavai-net/kube-watcher/tree/main/templates) to custom workloads
 
 
@@ -48,19 +39,26 @@ Kalavai's goal is to make using self-hosted AI (GenAI models and agents) in real
 
 ### Latest updates
 
-- 11 June 2025: Native support for Mac and Raspberry pi devices (ARM).
-- 20 February 2025: New shiny GUI interface to control LLM pools and deploy models
-- 31 January 2025: `kalavai-client` is now a [PyPI package](https://pypi.org/project/kalavai-client/), easier to install than ever!
+- November: Kalavai is now opening a managed service to create and manage AI workloads on a fleet of GPUs. We are inviting Beta Testers for early access. If you are interested [Apply here](https://kalavai.net/beta)
+- September: Kalavai now supports Ray clusters for massively distributed ML.
+- August 2025: Added support for AMD GPUs (experimental)
+- July 2025: Added support for GPUStack clusters for managed LLM deployments (experimental).
+- June 2025: Native support for Mac and Raspberry pi devices (ARM).
+- May 2025: Added support for diffusion pipelines (experimental)
+- April 2025: Added support for workflow automation engines n8n and Flowise (experimental)
+- March 2025: Added support for AI Gateway LiteLLM
+
 <details>
 <summary>More news</summary>
 
+- 20 February 2025: New shiny GUI interface to control LLM pools and deploy models- 31 January 2025: `kalavai-client` is now a [PyPI package](https://pypi.org/project/kalavai-client/), easier to install than ever!
 - 27 January 2025: Support for accessing pools from remote computers
-- 9 January 2025: Added support for [Aphrodite Engine](https://github.com/aphrodite-engine/aphrodite-engine) models
-- 8 January 2025: Release of [a free, public, shared pool](/docs/docs/public_llm_pool.md) for community LLM deployment
+- 9 January 2025: Added support for [SGLang](https://github.com/aphrodite-engine/aphrodite-engine) models
+- 9 January 2025: Added support for [vLLM](https://github.com/aphrodite-engine/aphrodite-engine) models
+- 9 January 2025: Added support for [llama.cpp](https://github.com/aphrodite-engine/aphrodite-engine) models
 - 24 December 2024: Release of [public BOINC pool](/docs/docs/boinc.md) to donate computing to scientific projects
 - 23 December 2024: Release of [public petals swarm](/docs/docs/petals.md)
 - 24 November 2024: Common pools with private user spaces
-- 30 October 2024: Release of our [public pool platform](https://platform.kalavai.net)
 
 </details>
 
@@ -71,20 +69,15 @@ We currently support out of the box the following AI engines:
 - [vLLM](https://docs.vllm.ai/en/latest/): most popular GPU-based model inference.
 - [llama.cpp](https://github.com/ggerganov/llama.cpp): CPU-based GGUF model inference.
 - [SGLang](https://github.com/sgl-project/sglang): Super fast GPU-based model inference.
-- [n8n](https://n8n.io/): no-code workload automation framework.
-- [Flowise](https://flowiseai.com/): no-code agentic AI workload framework.
+- [n8n](https://n8n.io/) (experimental): no-code workload automation framework.
+- [Flowise](https://flowiseai.com/) (experimental): no-code agentic AI workload framework.
 - [Speaches](https://speaches.ai/): audio (speech-to-text and text-to-speech) model inference.
-- [Langfuse](https://langfuse.com/): open source evaluation and monitoring GenAI framework.
+- [Langfuse](https://langfuse.com/) (experimental): open source evaluation and monitoring GenAI framework.
 - [OpenWebUI](https://docs.openwebui.com/): ChatGPT-like UI playground to interface with any models.
+- [diffusers](https://huggingface.co/docs/diffusers/en/index) (experimental)
+- [RayServe](https://docs.ray.io/en/latest/serve/index.html) inference.
+- [GPUstack](https://docs.gpustack.ai/0.4/overview/) (experimental)
 
-Coming soon:
-
-- [diffusers](https://huggingface.co/docs/diffusers/en/index)
-- [Aphrodite Engine](https://github.com/aphrodite-engine/aphrodite-engine)
-- [Petals](https://github.com/bigscience-workshop/petals)
-- [exo](https://github.com/exo-explore/exo)
-- [GPUstack](https://docs.gpustack.ai/0.4/overview/)
-- [RayServe](https://docs.ray.io/en/latest/serve/index.html)
 
 Not what you were looking for? [Tell us](https://github.com/kalavai-net/kalavai-client/issues) what engines you'd like to see.
 
@@ -102,7 +95,7 @@ Not what you were looking for? [Tell us](https://github.com/kalavai-net/kalavai-
 
 ## Getting started
 
-The `kalavai-client` is the main tool to interact with the Kalavai platform, to create and manage both local and public pools and also to interact with them (e.g. deploy models). Let's go over its installation. 
+The `kalavai-client` is the main tool to interact with the Kalavai platform, to create and manage both local and public pools and also to interact with them (e.g. deploy models).
 
 
 <details>
@@ -115,9 +108,13 @@ For seed nodes:
 
 For workers sharing resources with the pool:
 
-- A laptop, desktop or Virtual Machine (MacOS, Linux or Windows; ARM or x86)
+- A laptop, desktop or Virtual Machine. Full support: Linux and Windows; x86 architecture. Limited support: Mac and ARM architecture.
 - If self-hosting, workers should be on the same network as the seed node. Looking for over-the-internet connectivity? Check out our [managed seeds](https://platform.kalavai.net)
 - Docker engine installed (for [linux](https://docs.docker.com/engine/install/ubuntu/), [Windows and MacOS](https://docs.docker.com/desktop/)) with [privilege access](https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities).
+
+### Compatibility matrix
+
+If your system is not currently supported, [open an issue](https://github.com/kalavai-net/kalavai-client/issues) and request it. We are expanding this list constantly.
 
 
 </details>
@@ -134,74 +131,40 @@ pip install kalavai-client
 
 ## Create a a local, private AI pool
 
-You can create and manage your pools with the new kalavai GUI, which can be started with:
+You can create and manage your pools with the [kalavai GUI](./docs/docs/gui.md) or the [Command Line Interface (CLI)](./docs/docs/cli.md). For a quick start, get a pool going with:
+
+```bash
+kalavai pool start
+```
+
+And then start the GUI:
 
 ```bash
 kalavai gui start
 ```
 
-This will expose the GUI and the backend services in localhost. By default, the GUI is accessible via [http://localhost:49153](http://localhost:49153). In the UI users can create and join AI pools, monitor devices, deploy LLMs and more.
+This will expose the GUI and the backend services in localhost. By default, the GUI is accessible via [http://localhost:49153](http://localhost:49153).
 
 ![Kalavai logo](docs/docs/assets/images/ui_dashboard_multiple.png)
 
-Check out our [getting started guide](https://kalavai-net.github.io/kalavai-client/getting_started/) for next steps on how to add more workers to your pool, or use our [managed seeds service](https://kalavai-net.github.io/kalavai-client/getting_started/#1b-managed-pools-create-a-seed) for over-the-internet AI pools.
+Check out our [getting started guide](https://kalavai-net.github.io/kalavai-client/getting_started/) for next steps on how to add more workers to your pool, or use our [managed seeds service](./docs/docs/managed/overview.md) for over-the-internet AI pools.
 
 
 ## Enough already, let's run stuff!
 
-For an end to end tour on building your own OpenAI-like service, check our [self-hosted](https://kalavai-net.github.io/kalavai-client/self_hosted_llm_pool/) guide.
+Check out our use cases documentation for inspiration on what you can do with Kalavai:
 
-Check our [examples](examples/) to put your new AI pool to good use!
-
-
-## Compatibility matrix
-
-If your system is not currently supported, [open an issue](https://github.com/kalavai-net/kalavai-client/issues) and request it. We are expanding this list constantly.
-
-<details>
-
-**<summary>Hardware and OS compatibility </summary>**
-
-### OS compatibility
-
-Currently **seed nodes** are supported exclusively on linux machines (x86_64 platform). However Kalavai supports mix-pools, i.e. having Windows and MacOS computers as workers.
-
-Since **worker nodes** run inside docker, any machine that can run docker **should** be compatible with Kalavai. Here are instructions for [linux](https://docs.docker.com/engine/install/), [Windows](https://docs.docker.com/desktop/setup/install/windows-install/) and [MacOS](https://docs.docker.com/desktop/setup/install/mac-install/).
-
-The kalavai client, which controls and access pools, can be installed on any machine that has python 3.10+.
-
-
-### Hardware compatibility:
-
-- `amd64` or `x86_64` CPU architecture for seed and worker nodes.
-- `arm64` CPU architecture for worker nodes.
-- NVIDIA GPU
-- Mac M series, AMD and Intel GPUs are currently not supported ([interested in helping us test it?](https://kalavai-net.github.io/kalavai-client/compatibility/#help-testing-amd-gpus))
-
-</details>
-
-## Roadmap
-
-- [x] Kalavai client on Linux
-- [x] [TEMPLATE] Distributed LLM deployment
-- [x] Kalavai client on Windows (worker only)
-- [x] Kalavai client on Windows WSL2 (seed and worker)
-- [x] Self-hosted LLM pools
-- [x] Collaborative LLM deployment
-- [x] Ray cluster support
-- [x] Kalavai client on Mac (worker only)
-- [x] Kalavai pools UI
-- [ ] Support for AMD GPUs
-- [ ] Support for Mac M GPUs
-- [x] Docker install path
-
-
-Anything missing here? Give us a shout in the [discussion board](https://github.com/kalavai-net/kalavai-client/discussions)
-
+- [Multi-GPU LLM](./docs/docs/use_cases/multi_gpu_inference.md)
+- [Fine tune](./docs/docs/use_cases/fine_tuning.md)
+- [Autoscaling deployments](./docs/docs/use_cases/)
+- [BYO Model Gateway](./docs/docs/use_cases/self_hosted_llm_pool.md)
+- [Easy LLMs with GPUstack](./docs/docs/use_cases/gpustack.md)
+- [Production GPU fleets](./docs/docs/use_cases/ray.md)
 
 ## Contribute
 
-- PR welcome!
+Anything missing here? Give us a shout in the [discussion board](https://github.com/kalavai-net/kalavai-client/discussions). We welcome discussions, feature requests, issues and PRs!
+
 - [Join the community](https://github.com/kalavai-net/kalavai-client/) and share ideas!
 - Report [bugs, issues and new features](https://github.com/kalavai-net/kalavai-client/issues).
 - Help improve our [compatibility matrix](#compatibility-matrix) by testing on different operative systems.
