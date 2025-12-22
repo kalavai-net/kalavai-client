@@ -6,9 +6,9 @@ nav:
     - Getting started: getting_started.md
     - Compatibility: compatibility.md
   - Interface:
-    - Connect to remote pool: remote_pool.md
     - CLI: cli.md
-    - Browser GUI: gui.md 
+    - Browser GUI: gui.md
+    - Connect to remote pool: remote_pool.md 
   - Use cases:
     - Multi-GPU LLM: use_cases/multi_gpu_inference.md
     - Fine tune: use_cases/fine_tuning.md

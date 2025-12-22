@@ -16,6 +16,7 @@ From release **v0.5.0, you can now install `kalavai` client in non-worker comput
 ### Requirements to run the client
 
 For seed nodes:
+
 - A 64 bits x86 based Linux machine (laptop, desktop or VM)
 - [Docker engine installed](https://docs.docker.com/engine/install/ubuntu/) with [privilege access](https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities).
 - Python 3.10+
@@ -31,7 +32,8 @@ For workers sharing resources with the pool:
 
 Once a machine is part of a pool, the following ports must be enabled and open to accept and process workloads:
 
-Seed nodes:
+**Seed nodes**:
+
 - 2379-2380 TCP inbound/outbound 
 - 6443 TCP inbound
 - 8472 UDP inbound/outbound
@@ -39,7 +41,8 @@ Seed nodes:
 - 51820-51821 UDP inbound/outbound
 
 
-Worker nodes:
+**Worker nodes**:
+
 - 6443 TCP outbound
 - 8472 UDP inbound/outbound
 - 10250 TCP inbound/outbound
@@ -58,7 +61,7 @@ pip install kalavai-client
 
 ## Create a local, private AI pool
 
-> Kalavai is **free to use, no caps, for both commercial and non-commercial purposes**. All you need to get started is one or more computers that can see each other (i.e. within the same network), and you are good to go. For over-the-internet pools, see our [managed pools](#1b-managed-pools-create-a-seed).
+> Kalavai is **free to use, no caps, for both commercial and non-commercial purposes**. All you need to get started is one or more computers that can see each other (i.e. within the same network), and you are good to go. For over-the-internet pools, visit our [managed platform](https://platform.kalavai.net).
 
 To create your own AI pool, you will need at least one machine (the seed) and (optionally) one or more workers. See our [concepts](./concepts.md) page for an overview of AI pool architecture. Note that **seed machines should always be available for the platform to remain operational**.
 

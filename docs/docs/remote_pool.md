@@ -8,8 +8,20 @@ tags:
 You can connect to a remote pool too. First, get the connection credentials from the seed node:
 
 ```bash
-kalavai pool connection
+kalavai pool credentials
 ```
+
+This command shows how to connect a remote machine to the local pool.
+
+```
+Kalavai API URL: http://<ip address>:49152
+Kalavai API Key: be416a3e-5aa3-47e3-8398-0f993518f3dc
+
+Run the following command from a remote machine to connect to this pool:
+
+kalavai pool connect http://<ip address>:49152 be416a3e-5aa3-47e3-8398-0f993518f3dc
+```
+
 
 Then, in the remote machine, use those credentials to connect:
 

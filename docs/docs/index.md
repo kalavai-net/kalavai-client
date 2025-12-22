@@ -1,6 +1,6 @@
 # Welcome to Kalavai
 
-> Kalavai is an **open source** platform that unlocks **computing** from spare capacity.  
+Kalavai is an **open source** platform that unlocks **computing** from spare capacity.  
 
 ## Core features
 

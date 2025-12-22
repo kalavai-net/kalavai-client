@@ -5,7 +5,6 @@ tags:
   - pool
 ---
 
-> Work in progress
 
 # Core components
 
