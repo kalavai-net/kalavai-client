@@ -315,6 +315,24 @@ def pool__package_worker(output_file, *others, platform="amd64", num_gpus=0, ip_
             f.write(compose)
 
 @arguably.command
+def pool__credentials(*others):
+    """
+    Show credentials details for a remote machine to connect to local pool
+    """
+    if not has_api_details():
+        show_connection_suggestion()
+        return
+    
+    url = load_server_info(data_key=KALAVAI_API_URL_KEY, file=USER_LOCAL_SERVER_FILE)
+    key = load_server_info(data_key=KALAVAI_API_KEY_KEY, file=USER_LOCAL_SERVER_FILE)
+
+    console.log(f"[green]Kalavai API URL: {url}")
+    console.log(f"[green]Kalavai API Key: {key}")
+    console.log("\n")
+    console.log(f"Run the following from a remote machine to connect to this pool")
+    console.log(f"[yellow]kalavai pool connect {url} {key}")
+
+@arguably.command
 def pool__connect(url: str, key: str, *others):
     """
     Connect local instance to a remote kalavai pool.

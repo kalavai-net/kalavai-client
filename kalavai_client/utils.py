@@ -248,7 +248,7 @@ def load_server_info(data_key, file):
         with open(file, "r") as f:
             return json.load(f)[data_key]
     except Exception as e:
-        print(f"Error when loading server info: {str(e)}")
+        print(f"Warning: error when loading server info: {str(e)}")
         return None
 
 def load_user_session():
