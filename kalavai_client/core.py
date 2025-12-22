@@ -41,6 +41,7 @@ from kalavai_client.utils import (
     WATCHER_IMAGE_TAG_KEY,
     USER_NODE_LABEL_KEY,
     KALAVAI_API_URL_KEY,
+    KALAVAI_API_KEY_KEY,
     KALAVAI_AUTH
 )
 from kalavai_client.env import (
@@ -979,21 +980,22 @@ def update_pool(debug=True):
     except Exception as e:
         return {"error": f"[red]Error when updating pool: {str(e)}"}
 
+def get_pool_credentials():
+    return {
+        KALAVAI_API_URL_KEY: load_server_info(data_key=KALAVAI_API_URL_KEY, file=USER_LOCAL_SERVER_FILE),
+        KALAVAI_API_KEY_KEY: load_server_info(data_key=KALAVAI_API_KEY_KEY, file=USER_LOCAL_SERVER_FILE)
+    }
 
 def get_pool_token(mode: TokenType):
-    print("--------", USER_LOCAL_SERVER_FILE)
 
     try:
         match mode:
             case TokenType.ADMIN:
                 auth_key = load_server_info(data_key=AUTH_KEY, file=USER_LOCAL_SERVER_FILE)
-                print("admin", auth_key)
             case TokenType.USER:
                 auth_key = load_server_info(data_key=WRITE_AUTH_KEY, file=USER_LOCAL_SERVER_FILE)
-                print("user", auth_key)
             case _:
                 auth_key = load_server_info(data_key=READONLY_AUTH_KEY, file=USER_LOCAL_SERVER_FILE)
-                print("other", auth_key)
         if auth_key is None:
             return {"error": "Cannot generate selected token mode. Are you the seed node?"}
 

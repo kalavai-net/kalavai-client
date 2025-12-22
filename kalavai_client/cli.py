@@ -323,8 +323,13 @@ def pool__credentials(*others):
         show_connection_suggestion()
         return
     
-    url = load_server_info(data_key=KALAVAI_API_URL_KEY, file=USER_LOCAL_SERVER_FILE)
-    key = load_server_info(data_key=KALAVAI_API_KEY_KEY, file=USER_LOCAL_SERVER_FILE)
+    data = request_to_api(
+        method="GET",
+        endpoint="/get_pool_credentials"
+    )
+    url = data[KALAVAI_API_URL_KEY]
+    key = data[KALAVAI_API_KEY_KEY]
+    
 
     console.log(f"[green]Kalavai API URL: {url}")
     console.log(f"[green]Kalavai API Key: {key}")

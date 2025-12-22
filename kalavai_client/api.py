@@ -63,6 +63,7 @@ from kalavai_client.core import (
     generate_worker_package,
     get_user_spaces,
     get_space_quota,
+    get_pool_credentials,
     TokenType
 )
 
@@ -254,7 +255,7 @@ def device_uncordon(request: NodesActionRequest, api_key: str = Depends(verify_a
 @app.get("/get_pool_token",
     operation_id="get_pool_token",
     summary="Generate a token for pool access",
-    description="Generates a secure token that can be used to join or attach to the current Kalavai pool. Different token types provide different levels of access - join tokens allow nodes to contribute resources, while attach tokens allow management access.",
+    description="Generates a secure token that can be used to join to the current Kalavai pool. Different token types provide different levels of access - join tokens allow nodes to contribute resources, while attach tokens allow management access.",
     tags=["auth"],
     response_description="Pool token")
 def get_token(mode: TokenType, api_key: str = Depends(verify_api_key)):
@@ -264,6 +265,18 @@ def get_token(mode: TokenType, api_key: str = Depends(verify_api_key)):
     - **mode**: Token type mode
     """
     return get_pool_token(mode=TokenType(mode))
+
+@app.get("/get_pool_credentials",
+    operation_id="get_pool_credentials",
+    summary="Generate credentials for remote pool access",
+    description="Generates credentials that can be used to connect to the current Kalavai pool.",
+    tags=["auth"],
+    response_description="Pool credentials")
+def get_credentials(api_key: str = Depends(verify_api_key)):
+    """
+    Get pool credentials for remote connectivity
+    """
+    return get_pool_credentials()
 
 @app.post("/generate_worker_config",
     operation_id="generate_worker_config",
