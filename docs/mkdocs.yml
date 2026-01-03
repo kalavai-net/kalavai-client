@@ -1,21 +1,25 @@
 site_name: Kalavai Documentation
+site_url: https://kalavai-net.github.io/kalavai-client
+use_directory_urls: true
 nav:
-  - Getting started:
-    - Welcome to Kalavai: index.md
-    - Concepts: concepts.md
-    - Getting started: getting_started.md
-    - Compatibility: compatibility.md
-  - Interface:
-    - CLI: cli.md
-    - Browser GUI: gui.md
-    - Connect to remote pool: remote_pool.md 
+  - Geting started:
+    - Quick intro:
+      - Overview: index.md
+      - Quick Start: getting_started.md
+      - Compatibility: compatibility.md
+    - Interface:
+      - CLI: cli.md
+      - Browser GUI: gui.md
+      - Connect to remote pool: remote_pool.md 
   - Use cases:
-    - Multi-GPU LLM: use_cases/multi_gpu_inference.md
-    - Fine tune: use_cases/fine_tuning.md
-    #- Autoscaling deployments:
-    - BYO Model Gateway: use_cases/self_hosted_llm_pool.md
-    - Easy LLMs with GPUstack: use_cases/gpustack.md 
-    - Production GPU fleets: use_cases/ray.md
+    - GPU clusters:
+      - Easy LLMs with GPUstack: use_cases/gpustack.md 
+      - Production GPU fleets: use_cases/ray.md
+    - Tuning:
+      - Fine tune: use_cases/fine_tuning.md
+    - Inference:
+      - Multi-GPU LLM: use_cases/multi_gpu_inference.md
+      - BYO Model Gateway: use_cases/self_hosted_llm_pool.md
   - Managed platform:
     - Overview: managed/overview.md
 
@@ -28,7 +32,7 @@ theme:
   pygments_style: # default styles 
     light: shadcn-light
     dark: github-dark
-  topbar_sections: false
+  topbar_sections: true
   show_datetime: false
   favicon: assets/icons/browser.png
   features:
