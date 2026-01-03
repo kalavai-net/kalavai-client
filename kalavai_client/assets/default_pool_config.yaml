@@ -71,6 +71,10 @@ core:
   minio_rootUser: "admin"
   # "MinIO root password"
   minio_rootPassword: "password"
+  # GPU
+  gpu_deviceSplitCount: 4
+  gpu_nodeSchedulerPolicy : binpack
+  gpu_gpuSchedulerPolicy : binpack
 
 pool:
   # Name of the storage class to use for the pool

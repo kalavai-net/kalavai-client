@@ -411,7 +411,8 @@ def store_server_info(
     public_location=None,
     user_api_key=None,
     kalavai_api_url="localhost:49152",
-    kalavai_api_key=None
+    kalavai_api_key=None,
+    cluster_token=None,
 ):
     with open(file, "w") as f:
         json.dump({
@@ -422,6 +423,7 @@ def store_server_info(
             WATCHER_SERVICE_KEY: watcher_service,
             NODE_NAME_KEY: node_name,
             CLUSTER_NAME_KEY: cluster_name,
+            CLUSTER_TOKEN_KEY: cluster_token,
             PUBLIC_LOCATION_KEY: public_location,
             USER_API_KEY: user_api_key,
             KALAVAI_API_URL_KEY: kalavai_api_url,

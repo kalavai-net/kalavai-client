@@ -300,9 +300,9 @@ releases:
     - name: devicePlugin.runtimeClassName
       value: "nvidia"
     - name: scheduler.defaultSchedulerPolicy.nodeSchedulerPolicy
-      value: "binpack"
+      value: "{{gpu_nodeSchedulerPolicy}}"
     - name: scheduler.defaultSchedulerPolicy.gpuSchedulerPolicy
-      value: "binpack"
+      value: "{{gpu_gpuSchedulerPolicy}}"
     - name: scheduler.defaultCores
       value: "100"
     - name: scheduler.kubeScheduler.imageTag
@@ -310,6 +310,6 @@ releases:
     - name: devicePlugin.deviceMemoryScaling
       value: "1"
     - name: devicePlugin.deviceSplitCount
-      value: "1"
+      value: "{{gpu_deviceSplitCount}}"
     
 

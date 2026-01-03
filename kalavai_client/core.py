@@ -370,7 +370,7 @@ def fetch_job_details(force_namespace=None):
                     workers=workers,
                     endpoint="\n".join(urls),
                     status=str(status),
-                    host_nodes=" ".join(host_nodes))
+                    host_nodes="\n".join(host_nodes))
             )
     return job_details
 
@@ -904,7 +904,7 @@ def create_pool(
         WATCHER_PORT_KEY: DEFAULT_WATCHER_PORT,
         WATCHER_SERVICE_KEY: watcher_service,
         USER_NODE_LABEL_KEY: USER_NODE_LABEL,
-        WATCHER_IMAGE_TAG_KEY: watcher_image_tag
+        WATCHER_IMAGE_TAG_KEY: watcher_image_tag,
     }
 
     store_server_info(
@@ -919,7 +919,8 @@ def create_pool(
         public_location=location,
         user_api_key=None,
         kalavai_api_url=f"http://localhost:{kalavai_api_port}",
-        kalavai_api_key=auth_key)
+        kalavai_api_key=auth_key,
+        cluster_token=CLUSTER.get_cluster_token())
     
     # Generate helmfile recipe
     helm_yaml = load_template(
@@ -1002,7 +1003,7 @@ def get_pool_token(mode: TokenType):
         watcher_service = load_server_info(data_key=WATCHER_SERVICE_KEY, file=USER_LOCAL_SERVER_FILE)
         public_location = load_server_info(data_key=PUBLIC_LOCATION_KEY, file=USER_LOCAL_SERVER_FILE)
 
-        cluster_token = CLUSTER.get_cluster_token()
+        cluster_token = load_server_info(data_key=CLUSTER_TOKEN_KEY, file=USER_LOCAL_SERVER_FILE) #CLUSTER.get_cluster_token()
 
         ip_address = load_server_info(SERVER_IP_KEY, file=USER_LOCAL_SERVER_FILE)
         cluster_name = load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE)

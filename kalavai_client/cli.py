@@ -203,8 +203,14 @@ def show_connection_suggestion():
 @arguably.command
 def pool__spaces(*others):
     """List available user spaces in the pool"""
-    spaces = get_user_spaces()
+    spaces = request_to_api(
+        method="GET",
+        endpoint="/get_available_user_spaces"
+    )
     console.log("Available user spaces")
+
+    if "error" in spaces:
+        console.log(f"[red]Error: {spaces}")
     for space in spaces:
         console.log(f"-> {space}")
 
@@ -327,15 +333,17 @@ def pool__credentials(*others):
         method="GET",
         endpoint="/get_pool_credentials"
     )
-    url = data[KALAVAI_API_URL_KEY]
-    key = data[KALAVAI_API_KEY_KEY]
-    
+    try:
+        url = data[KALAVAI_API_URL_KEY]
+        key = data[KALAVAI_API_KEY_KEY]
 
-    console.log(f"[green]Kalavai API URL: {url}")
-    console.log(f"[green]Kalavai API Key: {key}")
-    console.log("\n")
-    console.log(f"Run the following from a remote machine to connect to this pool")
-    console.log(f"[yellow]kalavai pool connect {url} {key}")
+        console.log(f"[green]Kalavai API URL: {url}")
+        console.log(f"[green]Kalavai API Key: {key}")
+        console.log("\n")
+        console.log(f"Run the following from a remote machine to connect to this pool")
+        console.log(f"[yellow]kalavai pool connect {url} {key}")
+    except Exception as e:
+        console.log(f"[red]Error: {e}")
 
 @arguably.command
 def pool__connect(url: str, key: str, *others):
@@ -506,6 +514,7 @@ def pool__check_token(token, *others, public=False, verbose=False):
     """
     Utility to check the validity of a join token
     """
+    
     result = check_token(token=token, public=public)
     if "error" in result:
         console.log(f"[red]Error in token: {result}")
@@ -680,17 +689,20 @@ def pool__gpus(*others, available=False):
     
     columns = ["Node", "Ready", "GPU(s)", "Available", "Total"]
     rows = []
-    for gpu in gpus:
-        rows.append([
-            gpu["node"],
-            str(gpu["ready"]),
-            gpu["model"],
-            str(gpu["available"]),
-            str(gpu["total"])
-        ])
-    console.print(
-        generate_table(columns=columns, rows=rows,end_sections=[n for n in range(len(rows))])
-    )
+    try:
+        for gpu in gpus:
+            rows.append([
+                gpu["node"],
+                str(gpu["ready"]),
+                gpu["model"],
+                str(gpu["available"]),
+                str(gpu["total"])
+            ])
+        console.print(
+            generate_table(columns=columns, rows=rows,end_sections=[n for n in range(len(rows))])
+        )
+    except Exception as e:
+        console.log(f"[red]Error: {str(e)}")
 
 @arguably.command
 def pool__resources(*others):
@@ -707,7 +719,7 @@ def pool__resources(*others):
     )
 
     if "error" in data:
-        console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
+        console.log(f"[red]Error when connecting to kalavai service: {data}")
         return
     
     columns = []
@@ -1067,7 +1079,7 @@ def job__templates(*others):
         endpoint="/fetch_job_templates"
     )
     if "error" in templates:
-        console.log(f"[red]Error when fetching templates: {str(e)}")
+        console.log(f"[red]Error when fetching templates: {templates}")
         return
     
     console.log("Templates available in the pool")
