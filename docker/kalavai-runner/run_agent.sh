@@ -167,7 +167,7 @@ elif [[ "$command" == "seed" ]]; then
 else
   # worker agent
       #--kubelet-arg=node-status-update-frequency=1m \
-  if [ -z "$token"]; then
+  if [ -z "$token" ]; then
     printf "[ERROR]: Token must be set for $command nodes"
     exit 1
   fi
