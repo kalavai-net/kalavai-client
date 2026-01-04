@@ -18,9 +18,36 @@ class GPUsState(rx.State):
 
     items: List[GPU] = []
 
+    sort_value: str = ""
+    sort_reverse: bool = False
+
     total_items: int = 0
     offset: int = 0
     limit: int = 12  # Number of rows per page
+
+    @rx.var(cache=True)
+    def filtered_sorted_items(self) -> List[GPU]:
+        items = self.items
+
+        # Sort items based on selected column
+        if self.sort_value:
+            # Determine if the column should be sorted as numeric
+            numeric_columns = ["available", "total"]
+            
+            if self.sort_value in numeric_columns:
+                items = sorted(
+                    items,
+                    key=lambda item: float(item.data.get(self.sort_value, 0)),
+                    reverse=self.sort_reverse,
+                )
+            else:
+                items = sorted(
+                    items,
+                    key=lambda item: str(item.data.get(self.sort_value, "")).lower(),
+                    reverse=self.sort_reverse,
+                )
+
+        return items
 
     @rx.var(cache=True)
     def page_number(self) -> int:
@@ -36,7 +63,7 @@ class GPUsState(rx.State):
     def get_current_page(self) -> list[GPU]:
         start_index = self.offset
         end_index = start_index + self.limit
-        return self.items[start_index:end_index]
+        return self.filtered_sorted_items[start_index:end_index]
 
     def prev_page(self):
         if self.page_number > 1:
@@ -51,6 +78,16 @@ class GPUsState(rx.State):
 
     def last_page(self):
         self.offset = (self.total_pages - 1) * self.limit
+
+    def set_sort_column(self, column: str):
+        """Set the column to sort by. Toggle reverse if same column is clicked."""
+        if self.sort_value == column:
+            self.sort_reverse = not self.sort_reverse
+        else:
+            self.sort_value = column
+            self.sort_reverse = False
+        # Reset to first page when sorting changes
+        self.offset = 0
 
     @rx.event(background=True)
     async def load_entries(self):
@@ -68,9 +105,20 @@ class GPUsState(rx.State):
             self.is_loading = False
             if "error" in devices:
                 self.items = []
+                self.total_items = 0
                 return rx.toast.error(f"Error when fetching gpus: {devices}", position="top-center")
             else:
-                self.items = [GPU(data=row) for row in devices]
-                
-            self.total_items = len(self.items)
+                self.items = []
+                for gpu in devices:
+                    gpu_data = {
+                        "node": gpu["node"],
+                        "model": gpu["model"],
+                        "used": 100 - int(float(gpu["available"]) / float(gpu["total"]) * 100),
+                        "total": gpu["total"],
+                        "ready": gpu["ready"]
+                    }
+                    self.items.append(GPU(data=gpu_data))
+            
+            # Update total_items based on sorted items (same as items length, but using filtered_sorted_items for consistency)
+            self.total_items = len(self.filtered_sorted_items)
             

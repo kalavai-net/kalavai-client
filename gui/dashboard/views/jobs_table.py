@@ -25,8 +25,8 @@ class JobsView(TableView):
             render_mapping={
                 "name": lambda idx, x: rx.table.cell(self._decorate_name(x, idx)),
                 #"owner": lambda idx, x: rx.table.cell(x),
-                "workers": lambda idx, x: rx.table.cell(x),
-                "host_nodes": lambda idx, x: rx.table.cell(x),
+                "workers": lambda idx, x: rx.table.cell(rx.text(x, white_space="pre-line", size="2")),
+                "host_nodes": lambda idx, x: rx.table.cell(rx.text(x, white_space="pre-line", size="2")),
                 "endpoint": lambda idx, x: rx.table.cell(self._decorate_url(x, idx)),
                 "status": lambda idx, x: rx.table.cell(job_badge(x))
             }
@@ -34,7 +34,7 @@ class JobsView(TableView):
 
     def _decorate_url(self, item, index):
         return rx.flex(
-            rx.link(item, on_click=self.table_state.open_endpoint(index))
+            rx.link(item, on_click=self.table_state.open_endpoint(index), size="2")
         )
     
     def show_parameter(self, item: rx.Var, required=True):
@@ -65,7 +65,7 @@ class JobsView(TableView):
                 rx.checkbox("", checked=self.table_state.is_selected[index], on_change=lambda checked: self.table_state.set_selected_row(index, checked)),
                 rx.dialog.root(
                     rx.dialog.trigger(
-                        rx.link(item, on_click=self.table_state.load_logs(index))
+                        rx.link(item, on_click=self.table_state.load_logs(index), size="2")
                     ),
                     rx.dialog.content(
                         rx.hstack(

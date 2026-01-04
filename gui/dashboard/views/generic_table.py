@@ -11,23 +11,68 @@ class TableView:
         self.item_id = item_id
         self.render_mapping = render_mapping
     
-    def _header_cell(self, text: str, icon: str, hover: str) -> rx.Component:
-
-        return rx.table.column_header_cell(
-            rx.hover_card.root(
+    def _header_cell(self, text: str, icon: str, hover: str, column: str = None) -> rx.Component:
+        """Create a header cell with optional sorting functionality."""
+        # Check if sorting is available (state has sort_value and set_sort_column)
+        has_sorting = hasattr(self.table_state, 'sort_value') and hasattr(self.table_state, 'set_sort_column')
+        
+        if has_sorting and column:
+            # Create sortable header with indicators
+            is_sorted = self.table_state.sort_value == column
+            sort_icon = rx.cond(
+                is_sorted,
+                rx.cond(
+                    self.table_state.sort_reverse,
+                    rx.icon("arrow-down-z-a", size=16),
+                    rx.icon("arrow-down-a-z", size=16),
+                ),
+                rx.icon("arrow-up-down", size=16, opacity=0.4),
+            )
+            
+            header_content = rx.hover_card.root(
                 rx.hover_card.trigger(
                     rx.hstack(
                         rx.icon(icon, size=18),
                         rx.text(text),
+                        sort_icon,
                         align="center",
                         spacing="2",
+                        cursor="pointer",
                     ),
                 ),
                 rx.hover_card.content(
                     rx.markdown(hover)
                 )
             )
-        )
+            
+            # Create a closure to capture the column value
+            def create_sort_handler(col):
+                return lambda: self.table_state.set_sort_column(col)
+            
+            return rx.table.column_header_cell(
+                rx.box(
+                    header_content,
+                    on_click=create_sort_handler(column),
+                    style={"cursor": "pointer", "user-select": "none"},
+                )
+            )
+        else:
+            # Non-sortable header (original behavior)
+            return rx.table.column_header_cell(
+                rx.hover_card.root(
+                    rx.hover_card.trigger(
+                        rx.hstack(
+                            rx.icon(icon, size=18),
+                            rx.text(text),
+                            align="center",
+                            spacing="2",
+                        ),
+                    ),
+                    rx.hover_card.content(
+                        rx.markdown(hover)
+                    )
+                )
+            )
     
     def render_item(self, item, index) -> list[rx.Component]:
         elements = []
@@ -59,7 +104,7 @@ class TableView:
     def generate_main_table(self) -> rx.Component:
         return rx.table.root(
             rx.table.header(
-                rx.table.row(*[self._header_cell(text=c,icon=i,hover=h) for c, (i, h) in self.show_columns.items()]),
+                rx.table.row(*[self._header_cell(text=c, icon=i, hover=h, column=c) for c, (i, h) in self.show_columns.items()]),
             ),
             rx.table.body(
                 rx.foreach(

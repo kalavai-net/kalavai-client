@@ -3,7 +3,8 @@ import reflex as rx
 from ..views.generic_table import TableView
 from ..backend.gpus_state import GPUsState, GPU
 from ..components.status_badge import (
-    device_status_badge
+    device_status_badge,
+    render_progress
 )
 
 class GPUsView(TableView):
@@ -15,7 +16,7 @@ class GPUsView(TableView):
             show_columns={
                 "node": ("computer", "Where the GPU is located"),
                 "model": ("microchip", "Model ID for the GPU"),
-                "available": ("check", "Number of available models"),
+                "used": ("check", "Used GPU capacity (0-100%)"),
                 "total": ("circle", "Total model"),
                 "ready": ("check-check", "GPU available (connected and not used)")
                 
@@ -24,7 +25,7 @@ class GPUsView(TableView):
             render_mapping={
                 "node": lambda idx, x: rx.table.cell(x),
                 "model": lambda idx, x: rx.table.cell(x),
-                "available": lambda idx, x: rx.table.cell(x),
+                "used": lambda idx, x: rx.table.cell(render_progress(x)),
                 "total": lambda idx, x: rx.table.cell(x),
                 "ready": lambda idx, x: rx.table.cell(device_status_badge(x))
             }

@@ -64,3 +64,34 @@ def device_status_badge(status: bool):
         (True, _device_badge(False)),
         (False, _device_badge(True)),
     )
+
+def render_progress(value: int) -> rx.Component:
+        """Render the available percentage as a progress bar."""
+        # The value parameter is already item.data["available"] from the render_mapping
+        # Clamp value between 0 and 100 using reactive operations
+        
+        return rx.flex(
+            rx.progress(
+                value=value,
+                height="20px",
+                #color_scheme=color_scheme,
+                width="100%",
+            ),
+            rx.hstack(
+                rx.text(
+                    value,
+                    size="2",
+                    weight="medium",
+                ),
+                rx.text(
+                    "%",
+                    size="2",
+                    weight="medium",
+                ),
+                spacing="0",
+                margin_left="8px",
+                min_width="40px",
+            ),
+            align="center",
+            width="100%",
+        )
