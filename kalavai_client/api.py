@@ -40,7 +40,7 @@ from kalavai_client.core import (
     fetch_job_details,
     fetch_job_logs,
     fetch_job_templates,
-    fetch_job_defaults,
+    fetch_template_data,
     fetch_pod_logs,
     deploy_job,
     deploy_test_job,
@@ -393,54 +393,45 @@ def job_logs(
 def job_templates(api_key: str = Depends(verify_api_key)):
     return fetch_job_templates()
 
-@app.get("/fetch_model_templates",
-    operation_id="fetch_model_templates",
-    summary="Get available model engines templates",
-    description="Retrieves a list of all available model engine templates that can be used to deploy models. Templates provide predefined configurations for model engine frameworks.",
-    tags=["info"],
-    response_description="List of model engine templates")
-def model_templates(api_key: str = Depends(verify_api_key)):
-    return fetch_job_templates(type="model")
-
-@app.get("/fetch_job_defaults",
-    operation_id="fetch_job_defaults",
+@app.get("/fetch_template_values",
+    operation_id="fetch_template_values",
     summary="Get default values for a job or model engine template deployment",
     description="Retrieves the default values for a specific job or model engine template deployment. This helps users understand what parameters are required and what their default values are before deploying a job.",
     tags=["info"],
     response_description="Job and model engine default values")
-def job_defaults(name: str, api_key: str = Depends(verify_api_key)):
-    result = fetch_job_defaults(name=name)
-    return result["defaults"]
+def template_defaults(name: str, api_key: str = Depends(verify_api_key)):
+    result = fetch_template_data(name=name)
+    return result["values"]
 
-@app.get("/fetch_job_metadata",
-    operation_id="fetch_job_metadata",
+@app.get("/fetch_template_all",
+    operation_id="fetch_template_all",
+    summary="Get all info (values, metadata and schema) for a job or model engine template deployment",
+    description="Retrieves all data (metadata, values and schema) for a specific job or model engine template deployment. Helps users understand how to use a template.",
+    tags=["info"],
+    response_description="Job and model engine template data")
+def template_all(name: str, api_key: str = Depends(verify_api_key)):
+    result = fetch_template_data(name=name)
+    return result
+
+@app.get("/fetch_template_metadata",
+    operation_id="fetch_template_metadata",
     summary="Get metadata with information about a given job or model engine template deployment",
     description="Retrieves the metadata associated with a specific job or model engine template deployment. This helps users understand what the template can be used for.",
     tags=["info"],
     response_description="Job and model engine metadata values")
-def job_metadata(name: str, api_key: str = Depends(verify_api_key)):
-    result = fetch_job_defaults(name=name)
+def template_metadata(name: str, api_key: str = Depends(verify_api_key)):
+    result = fetch_template_data(name=name)
     return result["metadata"]
 
-@app.get("/fetch_job_rules",
-    operation_id="fetch_job_rules",
-    summary="Get the rules associated with the use of a given job or model engine template",
-    description="Retrieves the rules associated with a specific job or model engine template deployment. This helps users and AI agents determine if a given model engine template is adequate for the task.",
+@app.get("/fetch_template_schema",
+    operation_id="fetch_template_schema",
+    summary="Get the schema associated with the use of a given template",
+    description="Retrieves the schema associated with a specific template deployment.",
     tags=["info"],
-    response_description="Job and model engine rules")
+    response_description="Template schema")
 def job_rules(name: str, api_key: str = Depends(verify_api_key)):
-    result = job_metadata(name=name)
-    return result["template_rules"]
-
-@app.get("/fetch_job_values_rules",
-    operation_id="fetch_job_values_rules",
-    summary="Get information on how to provide values to the parameters of a specific job or model engine template",
-    description="Retrieves information necessary to fill up the values required to deploy a specific job or model engine template. This helps users and AI agents generate the values dictionary for a job or model engine template deployment.",
-    tags=["info"],
-    response_description="Job and model engine info for values")
-def job_values_rules(name: str, api_key: str = Depends(verify_api_key)):
-    result = job_metadata(name=name)
-    return result["values_rules"]
+    result = fetch_template_data(name=name)
+    return result["schema"]
 
 @app.post("/deploy_job",
     operation_id="deploy_job",
@@ -458,10 +449,13 @@ def job_deploy(request: DeployJobRequest, api_key: str = Depends(verify_api_key)
     - **target_labels**: Optional target node labels
     """
     result = deploy_job(
+        job_name=request.name,
+        template_repo=request.template_repo,
         template_name=request.template_name,
         values_dict=request.values,
         force_namespace=request.force_namespace,
-        target_labels=request.target_labels
+        target_labels=request.target_labels,
+        target_labels_ops=request.target_labels_ops
     )
     return result
 

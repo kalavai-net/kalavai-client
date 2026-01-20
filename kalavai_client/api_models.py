@@ -1,9 +1,12 @@
 from pydantic import BaseModel, Field
-from typing import List, Dict, Union, Optional
+from typing import List, Dict, Union, Optional, Literal
 from enum import Enum
 
 
 class Job(BaseModel):
+    job_id: Optional[str] = None
+    spec: Optional[dict] = {}
+    conditions: Optional[dict] = {}
     owner: Optional[str] = "default"
     name: Optional[str] = None
     workers: Optional[str] = None
@@ -64,21 +67,24 @@ class StopPoolRequest(BaseModel):
     skip_node_deletion: bool = Field(False, description="Whether to skip node deletion when stopping the pool")
 
 class DeployJobRequest(BaseModel):
-    template_name: str = Field(description="Name of the job template to use")
+    name: str = Field(description="Name of the job")
+    template_name: str = Field(description="Job template to use")
+    template_repo: Optional[str] = Field("kalavai-templates", description="Repository to find the job template")
     values: dict = Field(description="Job configuration values")
-    force_namespace: Optional[str] = Field(None, description="Optional namespace override")
-    target_labels: Optional[dict[str, Union[str, List]]] = Field(None, description="Optional target node labels")
+    force_namespace: Optional[Union[str, None]] = Field(None, description="Optional namespace override")
+    target_labels: Optional[Union[dict[str, Union[str, List]], None]] = Field(None, description="Optional target node labels")
+    target_labels_ops: Optional[Literal["OR", "AND"]] = Field("AND", description="Optional target node labels operator")
 
 class CustomDeployJobRequest(BaseModel):
     template_str: str = Field(description="YAML str containing the custom template job to use")
     values: dict = Field(description="Job configuration values")
     default_values: str = Field(description="YAML str containing the default values for the template job to use")
-    force_namespace: Optional[str] = Field(None, description="Optional namespace override")
-    target_labels: Optional[dict[str, Union[str, List]]] = Field(None, description="Optional target node labels")
+    force_namespace: Optional[Union[str, None]] = Field(None, description="Optional namespace override")
+    target_labels: Optional[Union[dict[str, Union[str, List]], None]] = Field(None, description="Optional target node labels")
 
 class DeleteJobRequest(BaseModel):
     name: str = Field(description="Name of the job to delete")
-    force_namespace: Optional[str] = Field(None, description="Optional namespace override")
+    force_namespace: Optional[Union[str, None]] = Field(None, description="Optional namespace override")
 
 class NodeLabelsRequest(BaseModel):
     node_name: str = Field(description="Name of the node to add labels to")

@@ -3,6 +3,9 @@ import platform
 import time
 from pathlib import Path
 from abc import ABC, abstractmethod
+import glob
+import tarfile
+import json
 
 from kalavai_client.utils import (
     run_cmd,
@@ -111,7 +114,41 @@ class dockerCluster(Cluster):
             template_str="docker exec {{container_name}} ifconfig {{iface_name}} | grep 'inet ' | awk '{gsub(/^addr:/, \"\", $2); print $2}'",
             values_dict={"container_name": self.container_name, "iface_name": self.default_flannel_iface})
         return run_cmd(command).decode().strip()
+
+    def get_job_templates(self):
+        pass
+
+    def get_template_schema(self, template_name):
+        # TODO: move it to kalavai-client API
+        #   install helm in kalavai-client dockerfile
+        #   run helm pull directly
+        # map both helm and kube config folders
+        run_cmd(f"docker run --rm -v {os.path.expanduser('~')}:/root -v $(pwd):/apps -w /apps alpine/helm pull {template_name}", hide_output=False)
         
+        # 2. Find the downloaded file
+        chart_file = template_name.split('/')[-1]
+        tgz_files = glob.glob(f"{chart_file}-*.tgz")
+        
+        if not tgz_files:
+            return {"error": "Chart file not found after pull"}
+
+        latest_tgz = tgz_files[0]
+
+        # 3. Extract only the values.schema.json
+        schema_data = None
+        try:
+            with tarfile.open(latest_tgz, "r:gz") as tar:
+                for member in tar.getmembers():
+                    if member.name.endswith("values.schema.json"):
+                        f = tar.extractfile(member)
+                        schema_data = json.load(f)
+                        break
+        finally:
+            # Clean up the downloaded tgz file
+            if os.path.exists(latest_tgz):
+                os.remove(latest_tgz)
+
+        return schema_data if schema_data else {"error": "No values.schema.json found in chart"}
 
     def update_dependencies(self, dependencies_file=None, debug=False, retries=3):
         if dependencies_file is not None:

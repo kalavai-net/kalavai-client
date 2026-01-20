@@ -289,6 +289,8 @@ def run_cmd(command, hide_output=False):
         return return_value
     except OSError as error:
         return error # for exit code
+    except subprocess.CalledProcessError as e:
+        raise Exception(f"Error when running: {command}")
 
 def leave_vpn(container_name):
     try:

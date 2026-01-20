@@ -15,6 +15,10 @@ repositories:
     url: https://helm.ngc.nvidia.com/nvidia
   - name: kalavai
     url: https://kalavai-net.github.io/helm-charts/
+  - name: kalavai-templates
+    url: https://kalavai-net.github.io/kalavai-templates/
+  - name: kalavai-job-operator
+    url: https://kalavai-net.github.io/kalavai-job-operator/ 
   - name: longhorn
     url: https://charts.longhorn.io
   - name: volcano-sh
@@ -33,11 +37,19 @@ repositories:
     url: https://charts.getlago.com
 
 releases:
+  - name: job-operator
+    namespace: kalavai
+    chart: kalavai-job-operator/kalavai-job-operator
+    version: 0.0.8
+    installed: true
+    needs:
+    - flux-system/flux
+    - volcano-system/volcano-sh
   - name: flux
     namespace: flux-system
     chart: oci://ghcr.io/fluxcd-community/charts/flux2
     version: 2.16.2 # latest version broken (2.17.1), needs --no-hooks
-    installed: {{deploy_flux|default("false", true)}}
+    installed: true
     set:
     - name: helmController.create
       value: true
@@ -212,19 +224,19 @@ releases:
     - name: prometheus-node-exporter.hostRootFsMount.enabled
       value: false
   - name: volcano-sh
-    namespace: kalavai
+    namespace: volcano-system
     chart: volcano-sh/volcano
-    installed: {{deploy_volcano|default("false", true)}}
+    installed: true
     version: "1.13.0"
   - name: kuberay
     namespace: kuberay
     chart: kuberay/kuberay-operator
-    installed: {{deploy_kuberay|default("false", true)}}
+    installed: true
     version: "1.5.0"
   - name: kuberay-apiserver
     namespace: kuberay
     chart: kuberay/kuberay-apiserver
-    installed: {{deploy_kuberay|default("false", true)}}
+    installed: true
   - name: longhorn
     namespace: kalavai
     chart: longhorn/longhorn
@@ -248,8 +260,8 @@ releases:
   - name: kalavai-watcher
     namespace: kalavai
     chart: kalavai/kalavai-watcher
-    version: "0.4.18"
-    installed: {{deploy_watcher|default("false", true)}}
+    version: "0.4.19"
+    installed: true
     set:
     - name: namespace
       value: kalavai
@@ -288,7 +300,7 @@ releases:
   - name: hami-vgpu
     namespace: kalavai
     chart: hami-charts/hami
-    installed: {{deploy_hami|default("false", true)}}
+    installed: true
     version: "2.6.1"
     set:
     - name: resourceCores

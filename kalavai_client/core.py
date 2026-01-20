@@ -6,6 +6,10 @@ import socket
 import ipaddress
 import netifaces as ni
 from urllib.parse import urlparse
+import os
+import glob
+import tarfile
+import json
 
 from kalavai_client.cluster import CLUSTER
 from kalavai_client.utils import (
@@ -66,7 +70,8 @@ from kalavai_client.env import (
     FORBIDEDEN_IPS,
     DEFAULT_POOL_CONFIG_TEMPLATE,
     FORCE_WATCHER_API_URL,
-    FORCE_WATCHER_API_KEY_URL
+    FORCE_WATCHER_API_KEY_URL,
+    KALAVAI_TEMPLATES_REPO
 )
 from kalavai_client.api_models import (
     GPU,
@@ -236,42 +241,101 @@ def get_space_quota(space_name):
         return {"error": str(e)}
     
 
-def fetch_job_defaults(name):
-    data = {
-        "template_name": name
+def fetch_template_data(name):
+    # data = {
+    #     "template_name": name
+    # }
+    # try:
+    #     metadata = request_to_server(
+    #         force_url=FORCE_WATCHER_API_URL,
+    #         force_key=FORCE_WATCHER_API_KEY_URL,
+    #         method="get",
+    #         endpoint="/v1/job_defaults",
+    #         params=data,
+    #         server_creds=USER_LOCAL_SERVER_FILE,
+    #         user_cookie=USER_COOKIE
+    #     )
+    #     return metadata
+    # except Exception as e:
+    #     return {"error": str(e)}
+    return {
+        "values": fetch_template_values(name),
+        "metadata": fetch_template_metadata(name),
+        "schema": fetch_template_schema(name)
     }
+
+def fetch_template_values(template_name):
     try:
-        metadata = request_to_server(
-            force_url=FORCE_WATCHER_API_URL,
-            force_key=FORCE_WATCHER_API_KEY_URL,
-            method="get",
-            endpoint="/v1/job_defaults",
-            params=data,
-            server_creds=USER_LOCAL_SERVER_FILE,
-            user_cookie=USER_COOKIE
-        )
-        return metadata
+        str_data = run_cmd(f"helm show values {template_name}")
+
+        return yaml.safe_load(str_data)
     except Exception as e:
-        return {"error": str(e)}
+        return {"error": f"Error when fetching default values for {template_name}. Does it exist?"}
+
+def fetch_template_schema(template_name):
+    try:
+        run_cmd(f"helm pull {template_name}", hide_output=True)
+    except Exception as e:
+        return {"error": f"Error when fetching schema for {template_name}. Does it exist?"}
+
+    # 2. Find the downloaded file
+    chart_file = template_name.split('/')[-1]
+    tgz_files = glob.glob(f"{chart_file}-*.tgz")
     
-def fetch_job_templates(type: str=None):
-    data = None
-    if type is not None:
-        data = {"type": type}
+    if not tgz_files:
+        return {"error": f"Chart file for {template_name} not found. Does it exist?"}
+
+    latest_tgz = tgz_files[0]
+
+    # 3. Extract only the values.schema.json
+    schema_data = None
     try:
-        templates = request_to_server(
-            force_url=FORCE_WATCHER_API_URL,
-            force_key=FORCE_WATCHER_API_KEY_URL,
-            method="get",
-            endpoint="/v1/get_job_templates",
-            server_creds=USER_LOCAL_SERVER_FILE,
-            data=None,
-            params=data,
-            user_cookie=USER_COOKIE
-        )
-        return templates
+        with tarfile.open(latest_tgz, "r:gz") as tar:
+            for member in tar.getmembers():
+                if member.name.endswith("values.schema.json"):
+                    f = tar.extractfile(member)
+                    schema_data = json.load(f)
+                    break
+    finally:
+        # Clean up the downloaded tgz file
+        if os.path.exists(latest_tgz):
+            os.remove(latest_tgz)
+
+    return schema_data if schema_data else {"error": f"No values.schema.json found in {template_name} chart"}
+
+def fetch_template_metadata(template_name):
+    try:
+        str_data = run_cmd(f"helm show chart {template_name}")
+
+        return yaml.safe_load(str_data)
     except Exception as e:
-        return {"error": str(e)}
+        return {"error": f"Error when fetching metadata for {template_name}. Does it exist?"}
+    
+def fetch_job_templates(repo: str=KALAVAI_TEMPLATES_REPO):
+    # data = None
+    # if type is not None:
+    #     data = {"type": type}
+    # try:
+    #     templates = request_to_server(
+    #         force_url=FORCE_WATCHER_API_URL,
+    #         force_key=FORCE_WATCHER_API_KEY_URL,
+    #         method="get",
+    #         endpoint="/v1/get_job_templates",
+    #         server_creds=USER_LOCAL_SERVER_FILE,
+    #         data=None,
+    #         params=data,
+    #         user_cookie=USER_COOKIE
+    #     )
+    #     return templates
+    # except Exception as e:
+    #     return {"error": str(e)}
+    try:
+        run_cmd("helm repo update", hide_output=True)
+        str_data = run_cmd(f"helm search repo {repo} --output json", hide_output=False)
+        data = json.loads(str_data)
+        return data
+    except Exception as e:
+        return {"error": f"Error when fetching default values for {repo}. Does it exist?\n\n{str(e)}"}
 
 def fetch_job_names():
     data_groups = [
@@ -321,26 +385,26 @@ def fetch_job_details(force_namespace=None):
         data=data,
         server_creds=USER_LOCAL_SERVER_FILE,
         user_cookie=USER_COOKIE)
-
+    
     for namespace, deployments in result.items():
-        """deployments --> "matched_label_value": {"pods": [], "services": []} }"""
-        for job_name, job in deployments.items():
+        """deployments --> "job_id": {"pods": {}, "services": {}, "job": {}} }"""
+        for job_id, job in deployments.items():
             workers_status = defaultdict(int)
             workers = ""
             restart_counts = 0
             host_nodes = set()
+            job_name = job.get("metadata", {}).get("name", job_id)
             # parse pods
             if "pods" in job and job["pods"] is not None:
                 for name, values in job["pods"].items():
-                    if "conditions" in values and values["conditions"] is not None:
-                        restart_counts = sum([c["restart_count"] for c in values["conditions"]])
-                    workers_status[values["status"]] += 1
+                    restart_counts = values["restarts"]
+                    workers_status[values["phase"]] += 1
                     # get nodes involved in deployment (needs kubewatcher)
-                    if "node_name" in values and values["node_name"] is not None:
-                        host_nodes.add(values["node_name"])
-                    workers = "\n".join([f"{k}: {v}" for k, v in workers_status.items()])
-                    if restart_counts > 0:
-                        workers += f"\n({restart_counts} restart)"
+                    if "nodeName" in values and values["nodeName"] is not None:
+                        host_nodes.add(values["nodeName"])
+                workers = "\n".join([f"{k}: {v}" for k, v in workers_status.items()])
+                if restart_counts > 0:
+                    workers += f"\n({restart_counts} restart)"
             else:
                 print("Skip pods")
             # parse services
@@ -348,7 +412,7 @@ def fetch_job_details(force_namespace=None):
             if "services" in job and job["services"] is not None:
                 for name, values in job["services"].items():
                     node_ports.extend(
-                        [f"{port['node_port']}" for port in values["ports"]]
+                        [f"{port['nodePort']}" for port in values["ports"]]
                     )
             else:
                 print("Skip service")
@@ -365,7 +429,11 @@ def fetch_job_details(force_namespace=None):
             else:
                 status = "working"
             job_details.append(
-                Job(owner=namespace,
+                Job(
+                    job_id=job_id,
+                    spec=job.get("spec", {}),
+                    conditions=job.get("status", {}),
+                    owner=namespace,
                     name=job_name,
                     workers=workers,
                     endpoint="\n".join(urls),
@@ -374,24 +442,81 @@ def fetch_job_details(force_namespace=None):
             )
     return job_details
 
-def deploy_job(template_name, values_dict, force_namespace=None, target_labels=None):
+    # for namespace, deployments in result.items():
+    #     """deployments --> "matched_label_value": {"pods": {}, "services": {}, "job": {}} }"""
+    #     for job_name, job in deployments.items():
+    #         workers_status = defaultdict(int)
+    #         workers = ""
+    #         restart_counts = 0
+    #         host_nodes = set()
+    #         # parse pods
+    #         if "pods" in job and job["pods"] is not None:
+    #             for name, values in job["pods"].items():
+    #                 if "conditions" in values and values["conditions"] is not None:
+    #                     restart_counts = sum([c["restart_count"] for c in values["conditions"]])
+    #                 workers_status[values["status"]] += 1
+    #                 # get nodes involved in deployment (needs kubewatcher)
+    #                 if "node_name" in values and values["node_name"] is not None:
+    #                     host_nodes.add(values["node_name"])
+    #                 workers = "\n".join([f"{k}: {v}" for k, v in workers_status.items()])
+    #                 if restart_counts > 0:
+    #                     workers += f"\n({restart_counts} restart)"
+    #         else:
+    #             print("Skip pods")
+    #         # parse services
+    #         node_ports = []
+    #         if "services" in job and job["services"] is not None:
+    #             for name, values in job["services"].items():
+    #                 node_ports.extend(
+    #                     [f"{port['node_port']}" for port in values["ports"]]
+    #                 )
+    #         else:
+    #             print("Skip service")
+    #         endpoint_address = urlparse(load_server_info(data_key=KALAVAI_API_URL_KEY, file=USER_LOCAL_SERVER_FILE)).hostname
+    #         urls = [f"http://{endpoint_address}:{node_port}" for node_port in node_ports]
+    #         if "Ready" in workers_status and len(workers_status) == 1:
+    #             status = "running"
+    #         elif any([st in workers_status for st in ["Failed"]]):
+    #             status = "error"
+    #         elif any([st in workers_status for st in ["Pending"]]) or len(workers_status) == 0:
+    #             status = "pending"
+    #         elif any([st in workers_status for st in ["Succeeded", "Completed"]]):
+    #             status = "completed"
+    #         else:
+    #             status = "working"
+    #         job_details.append(
+    #             Job(owner=namespace,
+    #                 name=job_name,
+    #                 workers=workers,
+    #                 endpoint="\n".join(urls),
+    #                 status=str(status),
+    #                 host_nodes="\n".join(host_nodes))
+    #         )
+    # return job_details
 
+def deploy_job(job_name, template_name, template_repo, values_dict, force_namespace=None, target_labels=None, target_labels_ops="AND"):
+    """Deploy a KalavaiJob template"""
     # deploy template with kube-watcher
-    data = {
-        "template": template_name,
-        "template_values": values_dict
-    }
-    if force_namespace is not None:
-        data["force_namespace"] = force_namespace
-    if target_labels is not None:
-        data["target_labels"] = target_labels
+    if "/" in template_name:
+        index = template_name.find("/")
+        template_repo = template_name[:index]
+        template_name = template_name[index+1:]
 
+    data = {
+        "name": job_name,
+        "template_repo": template_repo,
+        "force_namespace": force_namespace,
+        "template_chart": template_name,
+        "template_values": values_dict,
+        "target_labels": target_labels,
+        "target_labels_ops": target_labels_ops
+    }
     try:
         result = request_to_server(
             force_url=FORCE_WATCHER_API_URL,
             force_key=FORCE_WATCHER_API_KEY_URL,
             method="post",
-            endpoint="/v1/deploy_job",
+            endpoint="/v1/deploy_template",
             data=data,
             server_creds=USER_LOCAL_SERVER_FILE,
             user_cookie=USER_COOKIE
@@ -399,6 +524,29 @@ def deploy_job(template_name, values_dict, force_namespace=None, target_labels=N
         return result
     except Exception as e:
         return {"error": str(e)}  
+
+    # data = {
+    #     "template": template_name,
+    #     "template_values": values_dict
+    # }
+    # if force_namespace is not None:
+    #     data["force_namespace"] = force_namespace
+    # if target_labels is not None:
+    #     data["target_labels"] = target_labels
+
+    # try:
+    #     result = request_to_server(
+    #         force_url=FORCE_WATCHER_API_URL,
+    #         force_key=FORCE_WATCHER_API_KEY_URL,
+    #         method="post",
+    #         endpoint="/v1/deploy_job",
+    #         data=data,
+    #         server_creds=USER_LOCAL_SERVER_FILE,
+    #         user_cookie=USER_COOKIE
+    #     )
+    #     return result
+    # except Exception as e:
+    #     return {"error": str(e)}  
     
 def deploy_test_job(template_str, values_dict, default_values, target_labels=None, force_namespace=None):
     
@@ -428,17 +576,15 @@ def deploy_test_job(template_str, values_dict, default_values, target_labels=Non
     
 def delete_job(name, force_namespace=None):
     data = {
-        "label": TEMPLATE_LABEL, # this ensures that both lws template and services are deleted
-        "value": name
+        "name": name,
+        "force_namespace": force_namespace
     }
-    if force_namespace is not None:
-        data["force_namespace"] = force_namespace
     try:
         result = request_to_server(
             force_url=FORCE_WATCHER_API_URL,
             force_key=FORCE_WATCHER_API_KEY_URL,
-            method="post",
-            endpoint="/v1/delete_labeled_resources",
+            method="delete",
+            endpoint="/v1/delete_template",
             data=data,
             server_creds=USER_LOCAL_SERVER_FILE,
             user_cookie=USER_COOKIE
@@ -446,6 +592,25 @@ def delete_job(name, force_namespace=None):
         return result
     except Exception as e:
         return {"error": str(e)}
+    # data = {
+    #     "label": TEMPLATE_LABEL, # this ensures that both lws template and services are deleted
+    #     "value": name
+    # }
+    # if force_namespace is not None:
+    #     data["force_namespace"] = force_namespace
+    # try:
+    #     result = request_to_server(
+    #         force_url=FORCE_WATCHER_API_URL,
+    #         force_key=FORCE_WATCHER_API_KEY_URL,
+    #         method="post",
+    #         endpoint="/v1/delete_labeled_resources",
+    #         data=data,
+    #         server_creds=USER_LOCAL_SERVER_FILE,
+    #         user_cookie=USER_COOKIE
+    #     )
+    #     return result
+    # except Exception as e:
+    #     return {"error": str(e)}
 
 def fetch_devices():
     """Load devices status info for all hosts"""

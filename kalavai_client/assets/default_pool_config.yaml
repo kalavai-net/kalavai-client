@@ -4,22 +4,17 @@ server:
   location: null
   name: "kalavai_cluster"
   mtu: ""
-  watcher_image_tag: "v2025.12.16"
+  watcher_image_tag: "latest" #"v2026.1.2"
   host_root_path: "/hostroot"
 
 core:
   # Deploy systems
-  deploy:
-  - volcano
-  - flux
+  deploy: []
   #- cert_manager
   #- rocm
-  - watcher
-  - hami
   #- lago
   #- opencost
   #- prometheus
-  - kuberay
   #- minio
   # "Kalavai API"
   kalavai_api_version: null
@@ -72,7 +67,7 @@ core:
   # "MinIO root password"
   minio_rootPassword: "password"
   # GPU
-  gpu_deviceSplitCount: 4
+  gpu_deviceSplitCount: 10
   gpu_nodeSchedulerPolicy : binpack
   gpu_gpuSchedulerPolicy : binpack
 

@@ -15,7 +15,6 @@ import arguably
 from rich.console import Console
 
 from kalavai_client.cluster import CLUSTER
-from kalavai_client.api import run_api
 from kalavai_client.env import (
     USER_COOKIE,
     USER_LOCAL_SERVER_FILE,
@@ -43,7 +42,7 @@ from kalavai_client.core import (
     stop_pool,
     TokenType,
     update_pool,
-    get_user_spaces
+    get_user_spaces,
 )
 from kalavai_client.utils import (
     check_gpu_drivers,
@@ -1083,11 +1082,12 @@ def job__templates(*others):
         return
     
     console.log("Templates available in the pool")
-    console.log(templates)
+    for template in templates:
+        console.log(json.dumps(template, indent=2))
 
 
 @arguably.command
-def job__run(template_name, *others, values: str=None, force_namespace: str=None):
+def job__run(job_name, template, *others, repo="kalavai-templates", values: str=None, force_namespace: str=None):
     """
     Deploy and run a template job.
 
@@ -1108,15 +1108,15 @@ def job__run(template_name, *others, values: str=None, force_namespace: str=None
             console.log(f"[red]Values file {values} was not found")
 
         with open(values, "r") as f:
-            raw_values = yaml.load(f, Loader=yaml.SafeLoader)
-            values_dict = {variable["name"]: variable['value'] for variable in raw_values}
+            values_dict = yaml.safe_load(f)
 
     data = {
-        "template_name": template_name,
-        "values": values_dict
+        "name": job_name,
+        "template_name": template,
+        "template_repo": repo,
+        "values": values_dict,
+        "force_namespace": force_namespace
     }
-    if force_namespace is not None:
-        data["force_namespace"] = force_namespace
     results = request_to_api(
         method="POST",
         endpoint="/deploy_job",
@@ -1127,10 +1127,13 @@ def job__run(template_name, *others, values: str=None, force_namespace: str=None
         console.log(f"[red]Error when deploying job: {str(results['error'])}")
     else:
         try:
-            for job in results:
-                success = len(job["result"]["successful"]) if "successful" in job["result"] else 0
-                fail = len(job["result"]["failed"]) if "failed" in job["result"] else 0
-                console.log(f"[green]Job ID {job['job_id']} deployed ({success} OK, {fail} failed)")
+            success = len(results["successful"]) if "successful" in results else 0
+            fail = len(results["failed"]) if "failed" in results else 0
+            if success == 0 or fail > 0:
+                console.log(f"[red]Unexpected results")
+                console.log(f"[red]{results}")
+            else:
+                console.log(f"[green]Job '{job_name}' deployed ({success} OK, {fail} failed)")
         except Exception as e:
             console.log(f"[red]Error: {str(e)}")
             console.log(results)
@@ -1194,6 +1197,32 @@ def job__test(local_template_dir, *others, values, force_namespace: str=None):
             
 
 @arguably.command
+def job__info(template_name, *others):
+    """
+    Fetch all metadata for a specific template
+    """
+    if not has_api_details():
+        show_connection_suggestion()
+        return
+    
+    data = request_to_api(
+        method="GET",
+        endpoint="/fetch_template_all",
+        params={"name": template_name}
+    )
+
+    if "error" in data:
+        console.log(f"[red]Error when fetching template defaults: {data}")
+        return
+    
+    for field in ["values", "metadata", "schema"]:
+        if field in data:
+            console.log("[blue]******************")
+            console.log(f"[blue]**** {field} ****")
+            console.log("[blue]******************")
+            console.log(data[field])
+
+@arguably.command
 def job__defaults(template_name, *others):
     """
     Fetch default values.yaml for a template job
@@ -1202,31 +1231,18 @@ def job__defaults(template_name, *others):
         show_connection_suggestion()
         return
     
-    defaults = request_to_api(
+    data = request_to_api(
         method="GET",
-        endpoint="/fetch_job_defaults",
-        params={"name": template_name}
-    )
-    metadata = request_to_api(
-        method="GET",
-        endpoint="/fetch_job_metadata",
+        endpoint="/fetch_template_values",
         params={"name": template_name}
     )
 
-    if "error" in defaults:
-        console.log(f"[red]Error when fetching job defaults: {defaults}")
-    print(
-        json.dumps(defaults, indent=3)
-    )
-    print(
-        "*****************",
-        "Metadata",
-        "*****************"
-    )
-    print(
-        json.dumps(metadata, indent=3)
-    )
-
+    if "error" in data:
+        console.log(f"[red]Error when fetching template defaults: {data}")
+        return
+    
+    console.log(f"[blue]Default values for template {template_name}")
+    console.log(f"[green]{json.dumps(data, indent=3)}")
 
 @arguably.command
 def job__delete(name, *others, force_namespace: str=None):
@@ -1241,19 +1257,19 @@ def job__delete(name, *others, force_namespace: str=None):
         console.log("[WARNING][yellow]--force-namespace [white]requires an admin key. Request will fail if you are not an admin.")
     
     data = {
-        "name": name
+        "name": name,
+        "force_namespace": force_namespace
     }
-    if force_namespace is not None:
-        data["force_namespace"] = force_namespace
     results = request_to_api(
         method="POST",
         endpoint="/delete_job",
         json=data
     )
+
     if "error" in results:
         console.log(f"[red]Error when deleting job: {results['error']}")
     else:
-        console.log(f"{results}")
+        console.log(f"[green]Successfully deleted {name}")
 
 
 @arguably.command
@@ -1264,6 +1280,7 @@ def job__list(*others, force_namespace: str=None):
     if not has_api_details():
         show_connection_suggestion()
         return
+    
     data = {}
     if force_namespace is not None:
         data["force_namespace"] = force_namespace
@@ -1286,7 +1303,8 @@ def job__list(*others, force_namespace: str=None):
             
         console.log("Get logs with [yellow]kalavai job logs <name of deployment> [white](note it only works when the deployment is complete)")
     except Exception as e:
-        console.log(f"[red]Error: {details}")
+        console.log(f"[red]Error: {str(e)}")
+        console.log(f"[red]Response: {details}")
         console.log("[red]Error when querying backend")
 
 @arguably.command
