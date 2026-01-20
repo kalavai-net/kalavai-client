@@ -11,19 +11,19 @@
 
 
 
-# Kalavai aggregates compute from spare GPU capacity
+# Kalavai aggregates and coordinates spare GPU capacity
 
-> Kalavai is an **open source** platform that unlocks **computing** from spare capacity. It aggregates resources from multiple sources to increase your computing budget and run large AI workloads.  
+Kalavai is an **open source** platform that unlocks **computing from spare capacity**. It aggregates resources from multiple sources to increase your computing budget and run large AI workloads.  
 
 ## Core features
 
-Kalavai's goal is to make using AI workloads in real applications accessible and affordable to all.
+Kalavai helps teams use GPU resources more efficiently. It acts as a **control plane for all your GPUs**, wherever they are: local, on prem and multi-cloud. 
 
 - Increase GPU utilisation from your devices (fractional GPU).
 - Multi-node, multi-GPU and multi-architecture support (AMD and NVIDIA). 
-- **Aggregate** computing resources from **multiple sources**: home desktops, work computers, multi cloud VMs, raspberry pi's, Mac, etc.
+- **Aggregate** computing resources from **multiple sources**: home desktops, on premise servers<0>, multi cloud VMs, raspberry pi's, etc. Including our [own GPU fleets](https://platform.kalavai.net).
 - **Ready-made templates to deploy common AI building blocks**: model inference (vLLM, llama.cpp, SGLang), GPU clusters (Ray, GPUStack), automation workflows (n8n and Flowise), evaluation and monitoring tools (Langfuse), production dev tools (LiteLLM, OpenWebUI) and more.
-- [Easy to expand](https://github.com/kalavai-net/kube-watcher/tree/main/templates) to custom workloads
+- [Easy to expand](https://github.com/kalavai-net/kalavai-templates) to custom workloads
 
 
 <details>
@@ -67,6 +67,11 @@ Kalavai's goal is to make using AI workloads in real applications accessible and
 We currently support out of the box the following AI engines:
 
 - [vLLM](https://docs.vllm.ai/en/latest/): most popular GPU-based model inference.
+- [Ray Clusters](https://docs.ray.io/en/latest/serve/index.html) inference.
+- [GPUstack](https://docs.gpustack.ai/0.4/overview/) (experimental)
+
+Coming soon:
+
 - [llama.cpp](https://github.com/ggerganov/llama.cpp): CPU-based GGUF model inference.
 - [SGLang](https://github.com/sgl-project/sglang): Super fast GPU-based model inference.
 - [n8n](https://n8n.io/) (experimental): no-code workload automation framework.
@@ -77,6 +82,7 @@ We currently support out of the box the following AI engines:
 - [diffusers](https://huggingface.co/docs/diffusers/en/index) (experimental)
 - [RayServe](https://docs.ray.io/en/latest/serve/index.html) inference.
 - [GPUstack](https://docs.gpustack.ai/0.4/overview/) (experimental)
+
 
 
 Not what you were looking for? [Tell us](https://github.com/kalavai-net/kalavai-client/issues) what engines you'd like to see.
@@ -95,7 +101,10 @@ Not what you were looking for? [Tell us](https://github.com/kalavai-net/kalavai-
 
 ## Getting started
 
-The `kalavai-client` is the main tool to interact with the Kalavai platform, to create and manage both local and public pools and also to interact with them (e.g. deploy models).
+The `kalavai-client` is the main tool to interact with the Kalavai platform, to create and manage GPU pools and also to interact with them (e.g. deploy models). A pool consists of:
+
+- A seed node(s): one (or more for high availability deployments) machine that acts as central control plane 
+- One or many worker nodes: any machine connected to the seed node that can carry out workloads (generally with access to a GPU)
 
 
 <details>
@@ -129,9 +138,9 @@ pip install kalavai-client
 ```
 
 
-## Create a a local, private AI pool
+## Create a a local private pool
 
-You can create and manage your pools with the [kalavai GUI](./docs/docs/gui.md) or the [Command Line Interface (CLI)](./docs/docs/cli.md). For a quick start, get a pool going with:
+For a quick start, get a pool going with:
 
 ```bash
 kalavai pool start
@@ -147,7 +156,7 @@ This will expose the GUI and the backend services in localhost. By default, the 
 
 ![Kalavai logo](docs/docs/assets/images/ui_dashboard_multiple.png)
 
-Check out our [getting started guide](https://kalavai-net.github.io/kalavai-client/getting_started/) for next steps on how to add more workers to your pool, or use our [managed seeds service](./docs/docs/managed/overview.md) for over-the-internet AI pools.
+Check out our [getting started guide](./docs/docs/getting_started.md) for next steps on how to add more workers to your pool, or use our [managed platform](./docs/docs/managed/overview.md) for over-the-internet AI pools.
 
 
 ## Enough already, let's run stuff!
@@ -156,7 +165,6 @@ Check out our use cases documentation for inspiration on what you can do with Ka
 
 - [Multi-GPU LLM](./docs/docs/use_cases/multi_gpu_inference.md)
 - [Fine tune](./docs/docs/use_cases/fine_tuning.md)
-- [Autoscaling deployments](./docs/docs/use_cases/)
 - [BYO Model Gateway](./docs/docs/use_cases/self_hosted_llm_pool.md)
 - [Easy LLMs with GPUstack](./docs/docs/use_cases/gpustack.md)
 - [Production GPU fleets](./docs/docs/use_cases/ray.md)

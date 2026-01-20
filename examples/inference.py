@@ -1,9 +1,9 @@
 from openai import OpenAI
 
 
-API_URL = "https://api.cogenai.kalavai.net/v1" #"https://api.cogenai.kalavai.net/v1"  # Replace with your OpenAI-compatible API URL
+API_URL = "http://51.159.173.70:31567/v1" #"https://api.cogenai.kalavai.net/v1" #"https://api.cogenai.kalavai.net/v1"  # Replace with your OpenAI-compatible API URL
 API_KEY = ""  # Replace with your actual API key
-MODEL = "mistralai/Mistral-Nemo-Instruct-2407" #"Hastagaras/Jamet-8B-L3-MK.V-Blackroot" #mistralai/Mistral-Nemo-Instruct-2407"  # Replace with your model name
+MODEL = "Qwen/Qwen3-4B" #"Hastagaras/Jamet-8B-L3-MK.V-Blackroot" #mistralai/Mistral-Nemo-Instruct-2407"  # Replace with your model name
 
 
 # point this to your vLLM API server

@@ -13,7 +13,7 @@ Kalavai leverages spare data center capacity to deliver flexible, cost-effective
 
 ## What is the Kalavai Platform
 
-Kalavai Platform is a managed computing platform that simplifies access to GPU compute and LLM hosting. It builds on our [open-source orchestration library](https://github.com/kalavai-net/kalavai-client), integrating directly with tools you already use — like Ray and GPUStack — to provide on-demand distributed compute for AI workloads.
+Kalavai Platform is a managed computing platform that simplifies access to GPU compute and LLM hosting. It builds on our [open-source orchestration library](https://github.com/kalavai-net/kalavai-client), integrating directly with tools you already use — like `Ray` and `GPUStack` — to provide on-demand distributed compute for AI workloads.
 
 
 ### Efficient cost and low infrastructure overhead
@@ -22,14 +22,14 @@ Our platform abstracts the complexity of provisioning and managing GPU clusters,
 
 | Product                       | Description                                                                                                 |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| **Managed GPU Clusters**      | Spin up distributed Ray and GPUStack clusters for training, hyperparameter tuning, reinforcement learning and custom workloads.           |
+| **Managed GPU Clusters**      | Spin up distributed `Ray` and `GPUStack` clusters for training, hyperparameter tuning, reinforcement learning and custom workloads.           |
 | **Async Inference & LLM queue**   | Affordable LLM inference for large scale intelligence projects |
 | **Model fine tuning** | Easily customise LLM to your data |
 
 
 ## Beta Tester Program 🚀
 
-We’re currently in Beta, and inviting developers and research teams to get early access to Kalavai. We're seeking developers who have hands-on experience with one or more of the following frameworks to participate in our beta testing program: Ray, Unsloth, Axolotl or GPUStack.
+We’re currently in Beta, and inviting developers and research teams to get early access to Kalavai. We're seeking developers who have hands-on experience with one or more of the following frameworks to participate in our beta testing program: `Ray`, `Unsloth`, `Axolotl` or `GPUStack`.
 
 👉 [Join the Beta Tester Program](https://kalavai.net/beta) to get started.
 
