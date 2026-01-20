@@ -14,12 +14,12 @@ class JobsView(TableView):
             table_item=Job,
             table_state=JobsState,
             show_columns={
-                "name": ("notebook-pen", "Name of the job, click to access logs"),
+                "name": ("book-open-text", "Name of the job, click to access logs"),
                 #"owner": ("user", "User that deployed the job"),
                 "workers": ("pickaxe", "Workers status"),
                 "host_nodes": ("computer", "Where the job is currently running"),
                 "endpoint": ("calendar", "Services exposed (if any) by the job"),
-                "status": ("check-check", "<b>Workload status</b><br><br>Running: ready<br>Working: initialising<br>Pending: not enough resources to deploy<br>Error: something went wrong")
+                "status": ("check-check", "<b>Workload status</b><br><br>Running: ready<br>Working: initialising<br>Pending: not enough resources to deploy<br>Error: something went wrong"),
             },
             item_id="Name",
             render_mapping={
@@ -28,7 +28,7 @@ class JobsView(TableView):
                 "workers": lambda idx, x: rx.table.cell(rx.text(x, white_space="pre-line", size="2")),
                 "host_nodes": lambda idx, x: rx.table.cell(rx.text(x, white_space="pre-line", size="2")),
                 "endpoint": lambda idx, x: rx.table.cell(self._decorate_url(x, idx)),
-                "status": lambda idx, x: rx.table.cell(job_badge(x))
+                "status": lambda idx, x: rx.table.cell(job_badge(x)),
             }
         )
 
@@ -42,8 +42,15 @@ class JobsView(TableView):
             return rx.tooltip(
                     rx.hstack(
                         rx.text(item["name"]),
-                        rx.input(default_value=item["default"], width="60%", name=item["name"]),
-                        justify="between"
+                        rx.match(
+                            item["type"],
+                            ("enum", rx.select(items=item["options"].to(list), default_value=item["default"], width="60%", name=item["name"])),
+                            ("integer", rx.input(default_value=item["default"], type="number", width="60%", name=item["name"] )),
+                            # default
+                            rx.input(default_value=item["default"], width="60%", name=item["name"]),
+                            
+                        ),
+                        justify="between",
                     ),
                     content=f'{item["description"]}'
             )
@@ -83,9 +90,39 @@ class JobsView(TableView):
                             rx.vstack(
                                 rx.tabs.root(
                                     rx.tabs.list(
-                                        rx.tabs.trigger("Logs", value="logs_tab"),
-                                        rx.tabs.trigger("Metadata", value="metadata_tab"),
-                                        rx.tabs.trigger("Status", value="status_tab")
+                                        rx.tabs.trigger("Job", value="job_tab"),
+                                        rx.tabs.trigger("Status", value="status_tab"),
+                                        rx.tabs.trigger("Logs", value="logs_tab")
+                                    ),
+                                    rx.tabs.content(
+                                        rx.separator(),
+                                        rx.container(
+                                            rx.vstack(
+                                                rx.scroll_area(
+                                                    rx.code_block(self.table_state.job_metadata),
+                                                    scrollbars="vertical",
+                                                    style={"height": 500}
+                                                )
+                                            ),
+                                            stack_children_full_width=True
+                                        ),
+                                        spacing="4",
+                                        value="job_tab"
+                                    ),
+                                    rx.tabs.content(
+                                        rx.separator(),
+                                        rx.container(
+                                            rx.vstack(
+                                                rx.scroll_area(
+                                                    rx.code_block(self.table_state.job_status),
+                                                    #scrollbars="vertical",
+                                                    style={"height": 500},
+                                                ),
+                                            ),
+                                            stack_children_full_width=True
+                                        ),
+                                        spacing="4",
+                                        value="status_tab"
                                     ),
                                     rx.tabs.content(
                                         rx.flex(
@@ -112,43 +149,48 @@ class JobsView(TableView):
                                         spacing="4",
                                         value="logs_tab"
                                     ),
-                                    rx.tabs.content(
-                                        rx.separator(),
-                                        rx.container(
-                                            rx.vstack(
-                                                rx.scroll_area(
-                                                    rx.code_block(self.table_state.job_metadata),
-                                                    scrollbars="vertical",
-                                                    style={"height": 500}
-                                                )
-                                            ),
-                                            stack_children_full_width=True
-                                        ),
-                                        spacing="4",
-                                        value="metadata_tab"
-                                    ),
-                                    rx.tabs.content(
-                                        rx.separator(),
-                                        rx.container(
-                                            rx.vstack(
-                                                rx.scroll_area(
-                                                    rx.code_block(self.table_state.job_status),
-                                                    scrollbars="vertical",
-                                                    style={"height": 500}
-                                                )
-                                            ),
-                                            stack_children_full_width=True
-                                        ),
-                                        spacing="4",
-                                        value="status_tab"
-                                    ),
-                                    default_value="logs_tab"
+                                    default_value="job_tab"
                                 )
                             )
                         ),
                         rx.separator(),
                         max_width="90%",
                         width="90%",
+                    )
+                ),
+                rx.dialog.root(
+                    rx.dialog.trigger(
+                        rx.button(
+                            rx.icon("notebook-pen", size=18),
+                            size="1",
+                            variant="ghost",
+                            display=["none", "none", "none", "flex"],
+                            on_click=[self.table_state.load_current_job_details(index)]
+                        )
+                    ),
+                    rx.dialog.content(
+                        rx.dialog.title("Edit deployment"),
+                        rx.flex(
+                            #self.select_template(new_deployment=False),
+                            rx.markdown(f"**Template: {self.table_state.selected_template}**"),
+                            rx.separator(),
+                            self.select_targets(new_deployment=False),
+                            rx.separator(),
+                            self.select_parameters(new_deployment=False),
+                            rx.dialog.close(
+                                rx.flex(
+                                    rx.button(
+                                        "Cancel",
+                                        variant="soft",
+                                        color_scheme="gray",
+                                        on_click=self.table_state.set_deploy_step(0)
+                                    ),
+                                    justify="start"
+                                )
+                            ),
+                            spacing="4",
+                            direction="column"
+                        )
                     )
                 ),
                 spacing="2"
@@ -161,7 +203,7 @@ class JobsView(TableView):
             rx.dialog.root(
                 rx.dialog.trigger(
                     rx.button(
-                        rx.icon("circle-plus", size=20, on_click=[self.table_state.load_templates, self.table_state.load_node_target_labels]),
+                        rx.icon("circle-plus", size=20),
                         "New",
                         size="2",
                         variant="surface",
@@ -298,21 +340,27 @@ class JobsView(TableView):
         )
     
     ## DEPLOYMENT STEP SCREENS #
-    def select_template(self):
+    def select_template(self, new_deployment=True):
+        def display_nav(show):
+            if show:
+                return rx.hstack(
+                    rx.button(
+                        "Next",
+                        on_click=self.table_state.set_deploy_step(1),
+                        disabled=self.table_state.selected_template == "",
+                        variant="surface",
+                    ),
+                    justify="end"
+                )
+            else:
+                return rx.hstack()
         return rx.flex(
-            rx.hstack(
-                rx.button(
-                    "Next",
-                    on_click=self.table_state.set_deploy_step(1),
-                    disabled=self.table_state.selected_template == "",
-                    variant="surface",
-                ),
-                justify="end"
-            ),
-            rx.text("1. Select the template you want to deploy", as_="div", size="4", margin_bottom="10px", weight="bold"),
+            display_nav(new_deployment),
+            rx.text("Select the template you want to deploy", as_="div", size="4", margin_bottom="10px", weight="bold"),
             rx.text("Model template", as_="div", size="2", margin_bottom="4px", weight="bold"),
             rx.select(
-                self.table_state.templates,
+                self.table_state.template_names,
+                default_value=self.table_state.selected_template,
                 placeholder="Select model engine",
                 on_change=self.table_state.load_template_parameters
             ),
@@ -329,7 +377,7 @@ class JobsView(TableView):
                                         rx.text(
                                             self.table_state.template_metadata.description
                                         ),
-                                        rx.text(f"Extra info: {self.table_state.template_metadata.info}"),
+                                        rx.text(f"Version: {self.table_state.template_metadata.version}"),
                                     ),
                                     spacing="3"
                                 ),
@@ -350,26 +398,31 @@ class JobsView(TableView):
             margin_botton="10px",
         )
     
-    def select_targets(self):
+    def select_targets(self, new_deployment=True):
+        def display_nav(show):
+            if show:
+                return rx.hstack(
+                    rx.button(
+                        "Previous",
+                        on_click=self.table_state.set_deploy_step(0),
+                        variant="surface"
+                    ),
+                    rx.button(
+                        "Next",
+                        on_click=[self.table_state.set_deploy_step(2), DashboardState.load_data],
+                        variant="surface"
+                    ),
+                    justify="end"
+                )
+            else:
+                return rx.hstack()
         return rx.flex(
-            rx.hstack(
-                rx.button(
-                    "Previous",
-                    on_click=self.table_state.set_deploy_step(0),
-                    variant="surface"
-                ),
-                rx.button(
-                    "Next",
-                    on_click=[self.table_state.set_deploy_step(2), DashboardState.load_data],
-                    variant="surface"
-                ),
-                justify="end"
-            ),
-            rx.text("2. Select specific nodes (leave blank for auto deploy)", as_="div", size="4", margin_bottom="10px", weight="bold"),
+            display_nav(new_deployment),
+            rx.text("Select deployment targets (leave blank for auto deploy)", as_="div", size="4", margin_bottom="10px", weight="bold"),
             rx.cond(
                 self.table_state.selected_labels,
                 rx.flex(
-                    rx.text('Current labels to select pool nodes', size="1", margin_bottom="4px"),
+                    rx.text('Current selected labels', size="1", margin_bottom="4px"),
                     rx.vstack(
                         rx.foreach(
                             self.table_state.selected_labels.items(),
@@ -408,34 +461,36 @@ class JobsView(TableView):
             margin_botton="10px",
         )
     
-    def select_parameters(self):
+    def select_parameters(self, new_deployment=True):
+        def display_nav(show):
+            if show:
+                return rx.hstack(
+                    rx.button(
+                        "Previous",
+                        on_click=self.table_state.set_deploy_step(1),
+                        variant="surface"
+                    ),
+                    justify="end"
+                )
+            else:
+                return rx.hstack()
         return rx.flex(
-            rx.hstack(
-                rx.button(
-                    "Previous",
-                    on_click=self.table_state.set_deploy_step(1),
-                    variant="surface"
-                ),
-                justify="end"
-            ),
-            rx.text("3. Populate template values", as_="div", size="4", margin_bottom="10px", weight="bold"),
-            # rx.accordion.root(
-            #     rx.accordion.item(
-            #         header="What do these values mean",
-            #         content=rx.markdown(self.table_state.template_metadata.values_rules)
-            #     ),
-            #     collapsible=True,
-            #     color_scheme="gray",
-            #     variant="outline"
-            # ),
+            display_nav(new_deployment),
+            rx.text("Populate template values", as_="div", size="4", margin_bottom="10px", weight="bold"),
             rx.form(
                 rx.flex(
                     rx.flex(
+                        rx.hstack(
+                            rx.text("Name of the job"),
+                            rx.input(on_change=self.table_state.set_job_name, default_value=self.table_state.template_name) if new_deployment else rx.markdown(f"**{self.table_state.template_name}**"),
+                            justify="between"
+                        ),
+                        rx.markdown("**Parameters**"),
                         rx.foreach(
                             self.table_state.template_params,
-                            lambda item: self.show_parameter(item, required=True),
+                            lambda item: self.show_parameter(item[1], required=True),
                         ),
-                        spacing="1",
+                        spacing="2",
                         justify="between",
                         direction="column"
                     ),
@@ -443,21 +498,26 @@ class JobsView(TableView):
                     rx.accordion.root(
                         rx.accordion.item(
                             header="Advanced parameters",
-                            content=rx.foreach(
-                                self.table_state.template_params,
-                                lambda item: self.show_parameter(item, required=False),
+                            content=rx.flex(
+                                rx.foreach(
+                                    self.table_state.template_params,
+                                    lambda item: self.show_parameter(item[1], required=False),
+                                ),
+                                spacing="2",
+                                justify="between",
+                                direction="column"
                             )
                         ),
                         collapsible=True,
                         color_scheme="gray",
                         variant="outline"
                     ),
-                    draw_resource_quota(),
+                    draw_resource_quota() if new_deployment else None,
                     rx.dialog.close(
                         rx.hstack(
                             rx.tooltip(
                                 rx.button(
-                                    "Deploy",
+                                    "Deploy" if new_deployment else "Re-deploy",
                                     type="submit",
                                     on_click=rx.toast("Deployment submitted", position="top-center")
                                 ),
@@ -473,7 +533,7 @@ class JobsView(TableView):
                 direction="column",
                 spacing="4",
                 margin_botton="10px",
-                on_submit=self.table_state.deploy_job
+                on_submit=self.table_state.deploy_job if new_deployment else self.table_state.redeploy_job # different path for re-deployment
             ),
             direction="column",
             spacing="2",

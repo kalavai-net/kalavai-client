@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 from collections import defaultdict
 import json
 
@@ -18,9 +18,7 @@ class TemplateData(rx.Base):
     description: str
     icon_url: str
     docs_url: str
-    info: str
-    values_rules: str
-    template_rules: str
+    version: str
 
 
 class JobsState(rx.State):
@@ -28,17 +26,19 @@ class JobsState(rx.State):
 
     current_deploy_step: int = 0
     is_loading: bool = False
-    job_metadata: str = None
-    job_logs: str = None
-    job_status: str = None
+    job_metadata: Union[str, None] = None
+    job_logs: Union[str, None] = None
+    job_status: Union[str, None] = None
     log_tail: int = 100
-    service_logs: str = None
+    service_logs: Union[str, None] = None
     items: List[Job] = []
     is_selected: dict[int, bool]
-    templates: list[str] = []
+    templates: list[dict] = []
+    template_names: list[str]
     selected_template: str = ""
-    template_params: list[dict[str, str]] = []
-    template_metadata: TemplateData = None
+    template_name: Union[str, None] = None
+    template_params: dict[str, dict] = {}
+    template_metadata: Union[TemplateData, None] = None
     selected_labels: dict[str, list] = {}
     node_target_labels: list[str] = []
     target_label_mode: str = "AND"
@@ -47,6 +47,41 @@ class JobsState(rx.State):
     offset: int = 0
     limit: int = 10  # Number of rows per page
 
+    def _parse_template_parameter(self, name, schema, value, required):
+        """Parse a job template parameter and schema to a reflex parameter"""
+        param = {
+            "default": value,
+            "type": schema["type"],
+            "name": name,
+            "required": required,
+            "description": schema["description"] if "description" in schema else ""
+        }
+        # If it's an enum, set the possible options
+        if "enum" in schema:
+            param["options"] = schema["enum"]
+            param["type"] = "enum"
+        
+        return param
+    
+    def _parse_parameter_values(self, form_data):
+        """Parse form types to match known template parameter schema"""
+        for key, value in form_data.items():
+            if len(value.strip()) == 0:
+                form_data[key] = None
+                continue
+            if key in self.template_params:
+                if self.template_params[key]["type"] == "integer":
+                    form_data[key] = int(value)
+                if self.template_params[key]["type"] == "boolean":
+                    form_data[key] = bool(value)
+        return form_data
+    
+    def _expand_parameter_values(self, data):
+        """Expand given parameters with default parameters"""
+        for key, values in self.template_params.items():
+            if key not in data:
+                data[key] = values["default"]
+        return data
 
     @rx.var(cache=True)
     def page_number(self) -> int:
@@ -88,15 +123,22 @@ class JobsState(rx.State):
     
     def reset_values(self):
         self.templates = []
-        self.template_params = []
+        self.template_names = []
+        self.template_params = {}
         self.template_metadata = None
         self.selected_template = ""
+        self.template_name = None
         self.set_deploy_step(0)
         self.selected_labels = {}
         self.is_selected = {}
     
     def filter_templates(self, templates):
-        return [t for t in templates if t not in ["custom"]]
+        return templates
+    
+    @rx.event(background=True)
+    async def set_job_name(self, name):
+        async with self:
+            self.template_name = name
     
     @rx.event(background=True)
     async def load_job_data(self):
@@ -141,7 +183,7 @@ class JobsState(rx.State):
             return rx.toast.error(f"{e}", position="top-center")
         async with self:
             if "error" in logs:
-                self.job_logs = logs["error"]
+                self.service_logs = logs["error"]
             else:
                 formatted_logs = []
                 for name, info in logs.items():
@@ -174,41 +216,48 @@ class JobsState(rx.State):
         else:
             async with self:
                 self.templates = self.filter_templates(templates)
-            
+                self.template_names = [template["name"] for template in self.templates]
+
+    async def fetch_template_details(self):
+        try:
+            data = request_to_kalavai_core(
+                method="get",
+                endpoint="fetch_template_all",
+                params={"name": self.selected_template}
+            )
+        except Exception as e:
+            return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
+        async with self:
+            # set default parameters
+            self.template_params = {}
+            for name, value in data["values"].items():
+                schema = data["schema"]["properties"][name]
+                if "type" not in schema or schema["type"] == "object":
+                    continue
+                param = self._parse_template_parameter(
+                    name=name, 
+                    schema=schema,
+                    value=value,
+                    required=name in data["schema"]["required"])
+                
+                self.template_params[name] = param
+            # set template metadata
+            self.template_metadata = TemplateData(
+                name=data["metadata"]["name"] if "name" in data["metadata"] else "N/A",
+                description=data["metadata"]["description"] if "description" in data["metadata"] else "N/A",
+                icon_url=data["metadata"]["icon"] if "icon" in data["metadata"] else "N/A",
+                docs_url= "".join(data["metadata"]["sources"]) if "sources" in data["metadata"] else "N/A",
+                version=data["metadata"]["version"] if "version" in data["metadata"] else "N/A",
+            )
+
     @rx.event(background=True)
     async def load_template_parameters(self, template):
         async with self:
             self.selected_template = template
-            self.template_params = []
+            self.template_params = {}
             self.template_metadata = None
         
-        try:
-            data = request_to_kalavai_core(
-                method="get",
-                endpoint="fetch_job_defaults",
-                params={"name": self.selected_template}
-            )
-            params = data
-            data = request_to_kalavai_core(
-                method="get",
-                endpoint="fetch_job_metadata",
-                params={"name": self.selected_template}
-            )
-            metadata = data
-        except Exception as e:
-            return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
-        async with self:
-            self.template_params = [p for p in params if p["editable"]]
-            if metadata:
-                self.template_metadata = TemplateData(
-                    name=metadata["name"] if "name" in metadata else "N/A",
-                    description=metadata["description"] if "description" in metadata else "N/A",
-                    icon_url=metadata["icon"] if "icon" in metadata else "N/A",
-                    docs_url=metadata["docs"] if "docs" in metadata else "N/A",
-                    info=metadata["info"] if "info" in metadata else "N/A",
-                    template_rules=metadata["template_rules"] if "info" in metadata else "N/A",
-                    values_rules=metadata["values_rules"] if "info" in metadata else "N/A"
-                )
+        await self.fetch_template_details()
 
     @rx.event(background=True)
     async def set_selected_row(self, index, state):
@@ -235,23 +284,38 @@ class JobsState(rx.State):
             toast = rx.toast.success("Jobs deleted", position="top-center")
             self.reset_selection()
             return toast
+        
+    @rx.event(background=True)
+    async def redeploy_job(self, form_data: dict):
+        """Redeploy a job with new values"""
+        # TODO: use self.template_name and form data to redeploy
+        # Use watcher API to edit KalavaiJob
+        form_data = self._expand_parameter_values(
+            self._parse_parameter_values(form_data)
+        )
+        print(form_data)
 
     @rx.event(background=True)
     async def deploy_job(self, form_data: dict):
-        # TODO: parse form values
-        for key, value in form_data.items():
-            if value.isdigit():
-                form_data[key] = int(value)
-        
+        # parse type (from all string)
+        # and expand to include all default values
+        form_data = self._expand_parameter_values(
+            self._parse_parameter_values(form_data)
+        )
+
+        if self.template_name is None or len(self.template_name.strip()) == 0:
+            return rx.toast.error(f"Job name not defined. Try again", position="top-center")
+
         async with self:
             state = await self.get_state(MainState)
         data = {
+            "name": self.template_name,
             "template_name": self.selected_template,
             "values": form_data,
             "force_namespace": state.selected_user_space
         }
         if self.selected_labels:
-            data["target_labels"] = self.selected_labels
+            data["target_labels"] = {key: value for key, value in self.selected_labels.items()}
             data["target_labels_ops"] = self.target_label_mode
 
         async with self:
@@ -267,18 +331,56 @@ class JobsState(rx.State):
             return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
         if "error" in result:
             return rx.toast.error(str(result["error"]), position="top-center")
-        else:
-            return rx.toast.success("Job deployed", position="top-center")
+        if "failed" in result and len(result["failed"]) > 0:
+            return rx.toast.error(str(result["failed"]), position="top-center")
+        return rx.toast.success("Job deployed", position="top-center")
 
     @rx.event
     async def open_endpoint(self, index):
         return rx.redirect(self.items[index].data["endpoint"], is_external=True)
+    
+    @rx.event
+    async def load_current_job_details(self, index):
+        element = index + (self.page_number-1) * self.limit
+        async with self:
+            data = self.items[element].data
+            job_id = data["job_id"]
+            self.selected_template = f"{data['spec']['template']['repo']}/{data['spec']['template']['chart']}"
+            if "nodeSelectors" in data["spec"]:
+                self.selected_labels = data["spec"]["nodeSelectors"]
+        
+            await self.fetch_template_details()
+        
+        # parse template defaults and use job params instead
+        job_data = self._expand_parameter_values(
+            data["spec"]["template"]["values"]
+        )
+        for key, value in self.template_params.items():
+            if key in job_data:
+                self.template_params[key]["default"] = job_data[key]
+
+        # set job name
+        async with self:
+            self.template_name = data["name"]
+
     
     @rx.event(background=True)
     async def load_logs(self, index):
         async with self:
             self.job_logs = None
         element = index + (self.page_number-1) * self.limit
+        async with self:
+            data = self.items[element].data
+            if "spec" in data:
+                self.job_metadata = json.dumps(data["spec"], indent=3)
+            else:
+                self.job_metadata = "Job spec pending..."
+            if "conditions" in data and "releases" in data["conditions"]:
+                self.job_status = json.dumps(data["conditions"]["releases"], indent=3)
+            else:
+                self.job_status = "Status conditions pending..."
+            self.job_logs = ""
+        
         try:
             data = request_to_kalavai_core(
                 method="get",
@@ -296,14 +398,10 @@ class JobsState(rx.State):
                 self.job_logs = data["error"]
             else:
                 self.job_logs = ""
-                self.job_metadata = ""
-                self.job_status = ""
                 for match_label, logs in data.items():
                     for name, info in logs.items():
                         if "describe" not in info:
                             self.job_logs = "Logs not ready yet"
-                            self.job_metadata = "Info not ready yet"
-                            self.job_status = "Info not ready yet"
                             continue
                         pod_spec = info["describe"]
                         if "logs" not in info or info["logs"] is None:
@@ -314,14 +412,6 @@ class JobsState(rx.State):
                             self.job_logs += "------"
                             self.job_logs += info["logs"]
                             self.job_logs += "\n\n"
-                        if "status" in info["describe"]:
-                            self.job_status += f"--> STATUS for: {name} in {pod_spec['spec']['node_name']}"
-                            self.job_status += json.dumps(info["describe"]["status"], indent=2)
-                            self.job_status += "\n\n"
-                        if "metadata" in info["describe"]:
-                            self.job_metadata += f"--> METADATA for: {name} in {pod_spec['spec']['node_name']}"
-                            self.job_metadata += json.dumps(info["describe"]["metadata"], indent=2)
-                            self.job_metadata += "\n\n"
 
     @rx.event(background=True)
     async def set_target_label_mode(self, mode):
@@ -357,6 +447,7 @@ class JobsState(rx.State):
             return rx.toast.error(f"Error:\n{details}", position="top-center")
     
         async with self:
+            
             
             for job_details in details:
                 self.items.append(

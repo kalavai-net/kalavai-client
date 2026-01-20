@@ -156,7 +156,8 @@ class ResourcesState(rx.State):
                 for device in devices:
                     temp_data[device["name"]] = {
                         "issues": ",".join([f"{label}: {device[label]}" for label in ["memory_pressure", "disk_pressure", "pid_pressure"]  if device[label]]),
-                        "disabled": device["unschedulable"]
+                        "disabled": device["unschedulable"],
+                        "ready": device["ready"]
                     }
                 
             self.total_items = len(self.items)
@@ -184,12 +185,16 @@ class ResourcesState(rx.State):
                         "node": gpu["node"],
                         "model": gpu["model"],
                         "used": 100 - int(float(gpu["available"]) / float(gpu["total"]) * 100) if gpu["total"] > 0 else 0,
-                        "total": gpu["total"],
-                        "ready": gpu["ready"]
+                        "total": gpu["total"]
                     }
                     item = {**temp_data[gpu["node"]], **gpu_data}
+                    del temp_data[gpu["node"]]
                     self.items.append(Resource(data=item))
-            
+                # add non-gpu devices left
+                for name, device in temp_data.items():
+                    gpu_data = {"node": name, "model": "-", "used": 0, "total": 0}
+                    item = {**device, **gpu_data}
+                    self.items.append(Resource(data=item))
             # Update total_items based on sorted items (same as items length, but using filtered_sorted_items for consistency)
             self.total_items = len(self.filtered_sorted_items)
     
