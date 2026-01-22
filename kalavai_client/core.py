@@ -252,7 +252,7 @@ def set_space_quota(user_id: str, quota: dict):
             force_key=FORCE_WATCHER_API_KEY_URL,
             method="post",
             endpoint="/v1/set_space_quota",
-            json=quota_request,
+            data=quota_request,
             server_creds=USER_LOCAL_SERVER_FILE,
             user_cookie=USER_COOKIE
         )
