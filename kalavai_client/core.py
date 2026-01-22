@@ -1018,10 +1018,11 @@ def create_pool(
         ip_address = None
         while ip_address is None or len(ip_address) == 0:
             ip_address = CLUSTER.get_vpn_ip()
+            print("[INFO]: waiting for VPN IP...")
             time.sleep(10)
 
     primary_address = ip_address if lb_ip_address is None else lb_ip_address
-    watcher_service = f"{primary_address}:{DEFAULT_WATCHER_PORT}"
+    watcher_service = f"{ip_address}:{DEFAULT_WATCHER_PORT}"
     kalavai_api_port = 49152
 
     generate_compose_config(
@@ -1045,6 +1046,7 @@ def create_pool(
     # start server
     CLUSTER.start_seed_node()
     while not CLUSTER.is_agent_running():
+        print("[INFO]: waiting for seed to be ready...")
         time.sleep(10)
 
     # populate local cred files
