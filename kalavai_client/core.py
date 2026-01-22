@@ -1011,11 +1011,19 @@ def create_pool(
     auth_key = user_id if user_id is not None else str(uuid.uuid4())
     write_auth_key = str(uuid.uuid4())
     readonly_auth_key = str(uuid.uuid4())
-    watcher_service = f"{ip_address}:{DEFAULT_WATCHER_PORT}"
+
+   # select IP address (for external discovery)
+    if ip_address is None or location is not None:
+        # load VPN ip
+        ip_address = None
+        while ip_address is None or len(ip_address) == 0:
+            ip_address = CLUSTER.get_vpn_ip()
+            time.sleep(10)
+
+    primary_address = ip_address if lb_ip_address is None else lb_ip_address
+    watcher_service = f"{primary_address}:{DEFAULT_WATCHER_PORT}"
     kalavai_api_port = 49152
 
-    if ip_address is None:
-        ip_address = "0.0.0.0"
     generate_compose_config(
         target_platform=target_platform,
         role="server",
@@ -1038,20 +1046,11 @@ def create_pool(
     CLUSTER.start_seed_node()
     while not CLUSTER.is_agent_running():
         time.sleep(10)
-    
-    
-    # select IP address (for external discovery)
-    if ip_address is None or location is not None:
-        # load VPN ip
-        ip_address = None
-        while ip_address is None or len(ip_address) == 0:
-            ip_address = CLUSTER.get_vpn_ip()
-            time.sleep(10)
 
     # populate local cred files
     values = {
         #CLUSTER_NAME_KEY: cluster_name,
-        CLUSTER_IP_KEY: ip_address if lb_ip_address is None else lb_ip_address,
+        CLUSTER_IP_KEY: primary_address,
         USER_ID_KEY: user_id if user_id is not None else "",
         AUTH_KEY: auth_key,
         READONLY_AUTH_KEY: readonly_auth_key,
@@ -1063,7 +1062,7 @@ def create_pool(
     }
 
     store_server_info(
-        server_ip=ip_address if lb_ip_address is None else lb_ip_address,
+        server_ip=primary_address,
         auth_key=auth_key,
         readonly_auth_key=readonly_auth_key,
         write_auth_key=write_auth_key,
@@ -1108,10 +1107,6 @@ def create_pool(
         user_id=user_id,
         node_name=node_name,
         force_namespace="default")
-    # if only_registered_users:
-    #     # init user namespace
-    #     init_user_workspace(
-    #         user_id=user_id)
 
     if "error" in result:
         return {"warning": result["error"]}
