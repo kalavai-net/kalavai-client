@@ -1012,16 +1012,8 @@ def create_pool(
     write_auth_key = str(uuid.uuid4())
     readonly_auth_key = str(uuid.uuid4())
 
-   # select IP address (for external discovery)
-    if ip_address is None or location is not None:
-        # load VPN ip
-        ip_address = None
-        while ip_address is None or len(ip_address) == 0:
-            ip_address = CLUSTER.get_vpn_ip()
-            print("[INFO]: waiting for VPN IP...")
-            time.sleep(10)
-
-    primary_address = ip_address if lb_ip_address is None else lb_ip_address
+    if ip_address is None:
+        ip_address = "0.0.0.0"
     watcher_service = f"{ip_address}:{DEFAULT_WATCHER_PORT}"
     kalavai_api_port = 49152
 
@@ -1049,6 +1041,17 @@ def create_pool(
         print("[INFO]: waiting for seed to be ready...")
         time.sleep(10)
 
+    # select IP address (for external discovery) if usng VPN
+    if location is not None and lb_ip_address is None:
+        # load VPN ip
+        ip_address = None
+        while ip_address is None or len(ip_address) == 0:
+            ip_address = CLUSTER.get_vpn_ip()
+            print("[INFO]: waiting for VPN IP...")
+            time.sleep(10)
+    
+    primary_address = ip_address if lb_ip_address is None else lb_ip_address
+
     # populate local cred files
     values = {
         #CLUSTER_NAME_KEY: cluster_name,
@@ -1074,7 +1077,7 @@ def create_pool(
         cluster_name=cluster_name,
         public_location=location,
         user_api_key=None,
-        kalavai_api_url=f"http://localhost:{kalavai_api_port}",
+        kalavai_api_url=f"http://{ip_address}:{kalavai_api_port}",
         kalavai_api_key=auth_key,
         cluster_token=CLUSTER.get_cluster_token())
     

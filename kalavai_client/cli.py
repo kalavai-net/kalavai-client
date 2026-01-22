@@ -416,9 +416,10 @@ def pool__start(
         console.log(f"[white] You are already connected to {load_server_info(data_key=CLUSTER_NAME_KEY, file=USER_LOCAL_SERVER_FILE)}. Enter [yellow]kalavai pool stop[white] to exit and join another one.")
         return
     
-    if non_interactive and all([value is None for value in [location, lb_address, ip_address]]):
-        console.log("[red]In --non-interactive mode without --location, one of --lb-address or --ip-address must be set")
-        return
+    if non_interactive and ip_address is None:
+        import public_ip
+        ip_address = public_ip.get()
+        console.log(f"[blue]Warning: 'non-interactive' mode without a set 'ip-address' requires a public IP on the node ({ip_address} was discovered). If the machine is not accessible via the internet, the process will stall.")
 
     if node_labels:
         console.log(f"[blue]Configuration received: {node_labels}")

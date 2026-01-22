@@ -1,6 +1,6 @@
 [project]
 name            = "kalavai-client"
-version         = "0.8.6"
+version         = "0.8.7"
 authors = [
   {name = "Carlos Fernandez Musoles", email = "carlos@kalavai.net"}
 ]
@@ -27,7 +27,8 @@ dependencies = [
     "pydantic==2.10.6",
     "fastapi==0.115.8",
     "uvicorn==0.34.0",
-    "fastapi-mcp==0.3.0"
+    "fastapi-mcp==0.3.0",
+    "public-ip==0.12"
 ]
 
 [project.optional-dependencies]
