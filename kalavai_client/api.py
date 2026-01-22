@@ -23,6 +23,7 @@ from kalavai_client.api_models import (
     DeployJobRequest,
     DeleteJobRequest,
     JobDetailsRequest,
+    UserQuotaRequest,
     CustomDeployJobRequest,
     NodesActionRequest,
     NodeLabelsRequest,
@@ -63,6 +64,7 @@ from kalavai_client.core import (
     generate_worker_package,
     get_user_spaces,
     get_space_quota,
+    set_space_quota,
     get_pool_credentials,
     TokenType
 )
@@ -675,6 +677,23 @@ def get_user_space_quota(space_name: str=None, api_key: str = Depends(verify_api
         return get_space_quota(space_name=FORCED_USER_SPACE_NAME)
     else:
         return get_space_quota(space_name=space_name)
+
+@app.post("/set_user_space_quota",
+    operation_id="set_user_space_quota",
+    summary="Set resource quota for the user space",
+    description="Set resource quota for the user space, including GPU, CPU and memory allowance.",
+    tags=["info"],
+    response_description="Set result")
+def set_user_space_quota(request: UserQuotaRequest, api_key: str = Depends(verify_api_key)):
+    """
+    Set resource quota for the user space with the following parameters:
+    
+    - **user_id**: name of the user space to set resource quota
+    """
+    return set_space_quota(
+        user_id=request.user_id,
+        quota=request.quota
+    )
 
 # Endpoint to check health
 @app.get("/health", 

@@ -240,6 +240,25 @@ def get_space_quota(space_name):
     except Exception as e:
         return {"error": str(e)}
     
+def set_space_quota(user_id: str, quota: dict):
+
+    quota_request = {
+        "user_id": user_id,
+        "quota": quota
+    }
+    try:
+        data = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
+            method="post",
+            endpoint="/v1/set_space_quota",
+            params=quota_request,
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        return data
+    except Exception as e:
+        return {"error": str(e)}
 
 def fetch_template_data(name):
     # data = {

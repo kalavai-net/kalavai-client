@@ -146,7 +146,7 @@ if [[ "$command" == "server" ]]; then
     $extra
 elif [[ "$command" == "seed" ]]; then
   # extra control-plane servers
-  if [ -z "$token"]; then
+  if [ -z "$token" ]; then
     printf "[ERROR]: Token must be set for $command nodes"
     exit 1
   fi

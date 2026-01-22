@@ -89,3 +89,7 @@ class DeleteJobRequest(BaseModel):
 class NodeLabelsRequest(BaseModel):
     node_name: str = Field(description="Name of the node to add labels to")
     labels: Dict[str, str] = Field(description="Dictionary of labels to add to the node")
+
+class UserQuotaRequest(BaseModel):
+    user_id: str = Field(description="User id for which to set the resource quota (namespace)")
+    quota: dict = Field(description="Dictionary including the quota to be set for the user")
