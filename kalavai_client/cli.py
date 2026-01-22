@@ -463,11 +463,13 @@ def pool__start(
 
     if "warning" in result:
         console.log(f"[yellow]Warning: {result['warning']}")
-
     if "error" in result:
         console.log(f"[red]{result}")
+    else:
+        console.log("[green]Pool is ready to use and running in the background. Access it via:")
+        console.log("[green]- GUI: [yellow]kalavai gui start")
+        console.log("[green]- CLI: [yellow]kalavai --help")
 
-    return None
 
 @arguably.command
 def pool__token(*others, admin=False, user=False, worker=False):

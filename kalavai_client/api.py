@@ -676,6 +676,17 @@ def get_user_space_quota(space_name: str=None, api_key: str = Depends(verify_api
     else:
         return get_space_quota(space_name=space_name)
 
+# Endpoint to check health
+@app.get("/health", 
+    operation_id="health",
+    summary="Check the health of the Kalavai API",
+    tags=["info"],
+    description="Checks the health of the kalavai API",
+    response_description="OK")
+async def health():
+    return HTTPException(status_code=200, detail="OK")
+
+
 ### BUILD MCP WRAPPER ###
 mcp = FastApiMCP(
     app,
