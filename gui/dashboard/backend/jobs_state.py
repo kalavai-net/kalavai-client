@@ -1,6 +1,7 @@
 from typing import List, Union
 from collections import defaultdict
 import json
+import asyncio
 
 import reflex as rx
 
@@ -131,9 +132,41 @@ class JobsState(rx.State):
         self.set_deploy_step(0)
         self.selected_labels = {}
         self.is_selected = {}
+        self.is_loading = False
     
     def filter_templates(self, templates):
         return templates
+    
+    async def deploy(self, data: dict, is_redeployment: bool = False):
+        form_data = self._expand_parameter_values(
+            self._parse_parameter_values(data)
+        )
+
+        if self.template_name is None or len(self.template_name.strip()) == 0:
+            return {"error": f"Job name not defined. Try again"}
+
+        async with self:
+            state = await self.get_state(MainState)
+        data = {
+            "name": self.template_name,
+            "template_name": self.selected_template,
+            "values": form_data,
+            "force_namespace": state.selected_user_space,
+            "is_update": is_redeployment
+        }
+        if self.selected_labels:
+            data["target_labels"] = {key: value for key, value in self.selected_labels.items()}
+            data["target_labels_ops"] = self.target_label_mode
+        
+        try:
+            result = request_to_kalavai_core(
+                method="post",
+                endpoint="deploy_job",
+                json=data
+            )
+            return result
+        except Exception as e:
+            return {"error": f"Missing ACCESS_KEY?\n{e}"}
     
     @rx.event(background=True)
     async def set_job_name(self, name):
@@ -203,6 +236,8 @@ class JobsState(rx.State):
     async def load_templates(self):
         async with self:
             self.reset_values()
+            self.is_loading = True
+        await asyncio.sleep(0.1)
 
         try:
             templates = request_to_kalavai_core(
@@ -210,15 +245,20 @@ class JobsState(rx.State):
                 endpoint="fetch_job_templates"
             )
         except Exception as e:
+            async with self:
+                self.is_loading = False
             return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
         if "error" in templates:
-            print("Error when fetching templates:", templates)
+            async with self:
+                self.is_loading = False
+            return rx.toast.error(f"Error when fetching templates: {templates}", position="top-center")
         else:
             async with self:
                 self.templates = self.filter_templates(templates)
                 self.template_names = [template["name"] for template in self.templates]
+                self.is_loading = False
 
-    async def fetch_template_details(self):
+    def fetch_template_details(self):
         try:
             data = request_to_kalavai_core(
                 method="get",
@@ -227,28 +267,28 @@ class JobsState(rx.State):
             )
         except Exception as e:
             return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
-        async with self:
-            # set default parameters
-            self.template_params = {}
-            for name, value in data["values"].items():
-                schema = data["schema"]["properties"][name]
-                if "type" not in schema or schema["type"] == "object":
-                    continue
-                param = self._parse_template_parameter(
-                    name=name, 
-                    schema=schema,
-                    value=value,
-                    required=name in data["schema"]["required"])
-                
-                self.template_params[name] = param
-            # set template metadata
-            self.template_metadata = TemplateData(
-                name=data["metadata"]["name"] if "name" in data["metadata"] else "N/A",
-                description=data["metadata"]["description"] if "description" in data["metadata"] else "N/A",
-                icon_url=data["metadata"]["icon"] if "icon" in data["metadata"] else "N/A",
-                docs_url= "".join(data["metadata"]["sources"]) if "sources" in data["metadata"] else "N/A",
-                version=data["metadata"]["version"] if "version" in data["metadata"] else "N/A",
-            )
+        
+        # set default parameters
+        self.template_params = {}
+        for name, value in data["values"].items():
+            schema = data["schema"]["properties"][name]
+            if "type" not in schema or schema["type"] == "object":
+                continue
+            param = self._parse_template_parameter(
+                name=name, 
+                schema=schema,
+                value=value,
+                required=name in data["schema"]["required"])
+            
+            self.template_params[name] = param
+        # set template metadata
+        self.template_metadata = TemplateData(
+            name=data["metadata"]["name"] if "name" in data["metadata"] else "N/A",
+            description=data["metadata"]["description"] if "description" in data["metadata"] else "N/A",
+            icon_url=data["metadata"]["icon"] if "icon" in data["metadata"] else "N/A",
+            docs_url= "".join(data["metadata"]["sources"]) if "sources" in data["metadata"] else "N/A",
+            version=data["metadata"]["version"] if "version" in data["metadata"] else "N/A",
+        )
 
     @rx.event(background=True)
     async def load_template_parameters(self, template):
@@ -256,8 +296,14 @@ class JobsState(rx.State):
             self.selected_template = template
             self.template_params = {}
             self.template_metadata = None
+            self.is_loading = True
         
-        await self.fetch_template_details()
+        await asyncio.sleep(0.1)
+        async with self:
+            self.fetch_template_details()
+
+        async with self:
+            self.is_loading = False
 
     @rx.event(background=True)
     async def set_selected_row(self, index, state):
@@ -288,52 +334,24 @@ class JobsState(rx.State):
     @rx.event(background=True)
     async def redeploy_job(self, form_data: dict):
         """Redeploy a job with new values"""
-        # TODO: use self.template_name and form data to redeploy
-        # Use watcher API to edit KalavaiJob
-        form_data = self._expand_parameter_values(
-            self._parse_parameter_values(form_data)
-        )
-        print(form_data)
+        # self.template_name and form data to redeploy
+        result = self.deploy(data=form_data, is_redeployment=True)
+
+        if "error" in result:
+            return rx.toast.error(result["error"], position="top-center")
+        if "failed" in result and len(result["failed"]) > 0:
+            return rx.toast.error(f"Failed to deploy: {result['failed']}", position="top-center")
+        return rx.toast.sucess("Redeployment updated")
 
     @rx.event(background=True)
     async def deploy_job(self, form_data: dict):
-        # parse type (from all string)
-        # and expand to include all default values
-        form_data = self._expand_parameter_values(
-            self._parse_parameter_values(form_data)
-        )
+        result = self.deploy(data=form_data, is_redeployment=False)
 
-        if self.template_name is None or len(self.template_name.strip()) == 0:
-            return rx.toast.error(f"Job name not defined. Try again", position="top-center")
-
-        async with self:
-            state = await self.get_state(MainState)
-        data = {
-            "name": self.template_name,
-            "template_name": self.selected_template,
-            "values": form_data,
-            "force_namespace": state.selected_user_space
-        }
-        if self.selected_labels:
-            data["target_labels"] = {key: value for key, value in self.selected_labels.items()}
-            data["target_labels_ops"] = self.target_label_mode
-
-        async with self:
-            print("job deployed:", data)
-        
-        try:
-            result = request_to_kalavai_core(
-                method="post",
-                endpoint="deploy_job",
-                json=data
-            )
-        except Exception as e:
-            return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
         if "error" in result:
-            return rx.toast.error(str(result["error"]), position="top-center")
+            return rx.toast.error(result["error"], position="top-center")
         if "failed" in result and len(result["failed"]) > 0:
-            return rx.toast.error(str(result["failed"]), position="top-center")
-        return rx.toast.success("Job deployed", position="top-center")
+            return rx.toast.error(f"Failed to deploy: {result['failed']}", position="top-center")
+        return rx.toast.sucess("Redeployment updated")
 
     @rx.event
     async def open_endpoint(self, index):
@@ -349,7 +367,7 @@ class JobsState(rx.State):
             if "nodeSelectors" in data["spec"]:
                 self.selected_labels = data["spec"]["nodeSelectors"]
         
-            await self.fetch_template_details()
+            self.fetch_template_details()
         
         # parse template defaults and use job params instead
         job_data = self._expand_parameter_values(

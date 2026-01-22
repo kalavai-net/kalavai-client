@@ -264,6 +264,12 @@ def fetch_template_data(name):
         "schema": fetch_template_schema(name)
     }
 
+def update_local_repositories():
+    try:
+        return run_cmd(f"helmfile repos --file {USER_HELM_APPS_FILE}", hide_output=True)
+    except Exception as e:
+        return {"error": f"Error when updating local repos: {str(e)}"}
+
 def fetch_template_values(template_name):
     try:
         str_data = run_cmd(f"helm show values {template_name}")
@@ -274,6 +280,7 @@ def fetch_template_values(template_name):
 
 def fetch_template_schema(template_name):
     try:
+        run_cmd(f"helmfile repos --file {USER_HELM_APPS_FILE}", hide_output=True)
         run_cmd(f"helm pull {template_name}", hide_output=True)
     except Exception as e:
         return {"error": f"Error when fetching schema for {template_name}. Does it exist?"}
@@ -312,25 +319,8 @@ def fetch_template_metadata(template_name):
         return {"error": f"Error when fetching metadata for {template_name}. Does it exist?"}
     
 def fetch_job_templates(repo: str=KALAVAI_TEMPLATES_REPO):
-    # data = None
-    # if type is not None:
-    #     data = {"type": type}
-    # try:
-    #     templates = request_to_server(
-    #         force_url=FORCE_WATCHER_API_URL,
-    #         force_key=FORCE_WATCHER_API_KEY_URL,
-    #         method="get",
-    #         endpoint="/v1/get_job_templates",
-    #         server_creds=USER_LOCAL_SERVER_FILE,
-    #         data=None,
-    #         params=data,
-    #         user_cookie=USER_COOKIE
-    #     )
-    #     return templates
-    # except Exception as e:
-    #     return {"error": str(e)}
     try:
-        run_cmd("helm repo update", hide_output=True)
+        run_cmd(f"helmfile repos --file {USER_HELM_APPS_FILE}", hide_output=True)
         str_data = run_cmd(f"helm search repo {repo} --output json", hide_output=False)
         data = json.loads(str_data)
         return data

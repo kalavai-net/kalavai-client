@@ -4,13 +4,12 @@ server:
   location: null
   name: "kalavai_cluster"
   mtu: ""
-  watcher_image_tag: "latest" #"v2026.1.2"
+  watcher_image_tag: "v2026.1.1"
   host_root_path: "/hostroot"
 
 core:
   # Deploy systems
   deploy: []
-  #- cert_manager
   #- rocm
   #- lago
   #- opencost

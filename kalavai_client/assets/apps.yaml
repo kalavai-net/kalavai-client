@@ -2,45 +2,45 @@ helmDefaults:
   timeout: 1200
 
 repositories:
+  {% if deploy_rocm %}
   # amd gpu operator: https://github.com/ROCm/gpu-operator
   - name: rocm
     url: https://rocm.github.io/gpu-operator
-  # required by rocm
-  # - name: jetstacks
-  #   url: https://charts.jetstack.io
-  ###
+  {% endif %}
   - name: kuberay
     url: https://ray-project.github.io/kuberay-helm/
-  - name: nvidia
-    url: https://helm.ngc.nvidia.com/nvidia
   - name: kalavai
     url: https://kalavai-net.github.io/helm-charts/
   - name: kalavai-templates
     url: https://kalavai-net.github.io/kalavai-templates/
   - name: kalavai-job-operator
     url: https://kalavai-net.github.io/kalavai-job-operator/ 
+  {% if deploy_longhorn %}
   - name: longhorn
     url: https://charts.longhorn.io
+  {% endif %}
   - name: volcano-sh
     url: https://volcano-sh.github.io/helm-charts
+  {% if deploy_prometheus %}
   - name: prometheus-community # prometheus
     url: https://prometheus-community.github.io/helm-charts
+  {% endif %}
+  {% if deploy_opencost %}
   - name: opencost-charts
     url: https://opencost.github.io/opencost-helm-chart
+  {% endif %}
+  {% if deploy_minio %}
   - name: minio
     url: https://charts.min.io/
-  - name: langfuse
-    url: https://langfuse.github.io/langfuse-k8s
+  {% endif %}
   - name: hami-charts
     url: https://project-hami.github.io/HAMi
-  - name: lago
-    url: https://charts.getlago.com
 
 releases:
   - name: job-operator
     namespace: kalavai
     chart: kalavai-job-operator/kalavai-job-operator
-    version: 0.0.8
+    version: 0.0.9
     installed: true
     needs:
     - flux-system/flux
@@ -73,7 +73,7 @@ releases:
     namespace: cert-manager
     chart: oci://quay.io/jetstack/charts/cert-manager
     version: "v1.19.1"
-    installed: {{deploy_cert_manager|default("False", true)}}
+    installed: {{deploy_rocm|default("False", true)}}
     set:
       - name: crds.enabled
         value: false  # We'll handle CRDs manually in the kalavai-runner
@@ -88,14 +88,6 @@ releases:
             echo ">>> Waiting for CRDs to establish and traefik to be ready....$(date)"
             sleep 240
             echo ">>> PRESYNC completed: $(date)"
-  # - name: cert-manager
-  #   namespace: cert-manager
-  #   chart: oci://quay.io/jetstack/charts/cert-manager
-  #   version: "v1.19.1"
-  #   installed: {{deploy_cert_manager|default("False", true)}}
-  #   set:
-  #   - name: crds.enabled
-  #     value: true
   - name: rocm
     needs: 
     - cert-manager/cert-manager
@@ -103,40 +95,6 @@ releases:
     chart: rocm/gpu-operator-charts
     installed: {{deploy_rocm|default("false", true)}}
     version: "1.4.0"
-  # - name: lago
-  #   namespace: kalavai
-  #   chart: lago/lago
-  #   installed: {{deploy_lago|default("false", true)}}
-  #   version: 1.27.1
-  #   set:
-  #   # internal postgresql
-  #   - name: postgresql.enabled
-  #     value: false
-  #   # external sql
-  #   - name: global.databaseUrl #postgres URL postgresql://USER:PASSWORD@HOST:PORT/DB
-  #     value: ""
-  #   # internal redis
-  #   - name: redis.enabled
-  #     value: false
-  #   # external
-  #   - name: global.redisUrl #redis URL redis://…
-  #     value: ""
-  #   # s3
-  #   - name: global.s3.enabled
-  #     value: false
-  #   # minio internal
-  #   - name: minio.enabled
-  #     value: true
-  #   # config
-  #   - name: apiUrl
-  #     value: http://{{cluster_ip}}:32000
-  #   - name: frontUrl
-  #     value: http://{{cluster_ip}}:30080
-    # how do we expose?
-    # - name: external.api.nodePort
-    #   value: 32000
-    # - name: external.front.nodePort
-    #   value: 30080
   - name: lago
     namespace: kalavai
     chart: kalavai/lago
@@ -260,7 +218,7 @@ releases:
   - name: kalavai-watcher
     namespace: kalavai
     chart: kalavai/kalavai-watcher
-    version: "0.4.19"
+    version: "0.4.20"
     installed: true
     set:
     - name: namespace

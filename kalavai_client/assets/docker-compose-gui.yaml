@@ -1,7 +1,7 @@
 services:
   kalavai_gui:
     container_name: kalavai_gui
-    image: kalavai/kalavai-gui:{{gui_version}}
+    image: ghcr.io/kalavai-net/kalavai-gui:{{gui_version}}
     platform: linux/amd64
     # extra_hosts:
     # - "host.docker.internal:host-gateway"

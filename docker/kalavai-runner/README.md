@@ -34,5 +34,5 @@ Build and push for arm64 (mac, raspberry pi)
 
 ```bash
 docker buildx create --use --name arm64_builder
-docker buildx build --push -t kalavai/kalavai-runner-arm64:latest --platform=linux/arm64 -f Dockerfile_arm64 .
+docker buildx build --push -t ghcr.io/kalavai-net/kalavai-runner-arm64:latest --platform=linux/arm64 -f Dockerfile_arm64 .
 ```

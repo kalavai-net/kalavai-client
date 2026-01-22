@@ -358,6 +358,11 @@ class JobsView(TableView):
             display_nav(new_deployment),
             rx.text("Select the template you want to deploy", as_="div", size="4", margin_bottom="10px", weight="bold"),
             rx.text("Model template", as_="div", size="2", margin_bottom="4px", weight="bold"),
+            rx.cond(
+                self.table_state.is_loading,
+                rx.spinner(),
+                None
+            ),
             rx.select(
                 self.table_state.template_names,
                 default_value=self.table_state.selected_template,
