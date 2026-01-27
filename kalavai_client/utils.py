@@ -226,22 +226,6 @@ def generate_compose_config(
             f.write(compose_yaml)
     return compose_yaml
 
-def is_watcher_alive(server_creds, user_cookie, timeout=30):
-    try:
-        request_to_server(
-            force_url=FORCE_WATCHER_API_URL,
-            force_key=FORCE_WATCHER_API_KEY_URL,
-            method="get",
-            endpoint="/v1/health",
-            data=None,
-            server_creds=server_creds,
-            user_cookie=user_cookie,
-            timeout=timeout
-        )
-    except Exception as e:
-        return False
-    return True
-
 
 def load_server_info(data_key, file):
     try:

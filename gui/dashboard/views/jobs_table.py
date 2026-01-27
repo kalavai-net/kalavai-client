@@ -34,7 +34,16 @@ class JobsView(TableView):
 
     def _decorate_url(self, item, index):
         return rx.flex(
-            rx.link(item, on_click=self.table_state.open_endpoint(index), size="2")
+            rx.foreach(
+                item,
+                lambda x: rx.hstack(
+                    rx.link(x[0], href=x[1], white_space="pre-line", size="2", is_external=True),
+                    spacing="2"
+                )
+            ),
+            spacing="1",
+            direction="column"
+            #rx.link(item, on_click=self.table_state.open_endpoint(index), white_space="pre-line", size="2")
         )
     
     def show_parameter(self, item: rx.Var, required=True):
@@ -165,7 +174,7 @@ class JobsView(TableView):
                             size="1",
                             variant="ghost",
                             display=["none", "none", "none", "flex"],
-                            on_click=[self.table_state.load_current_job_details(index)]
+                            on_click=self.table_state.load_current_job_details(index)
                         )
                     ),
                     rx.dialog.content(
@@ -173,6 +182,11 @@ class JobsView(TableView):
                         rx.flex(
                             #self.select_template(new_deployment=False),
                             rx.markdown(f"**Template: {self.table_state.selected_template}**"),
+                            rx.cond(
+                                self.table_state.is_loading,
+                                rx.spinner(),
+                                None
+                            ),
                             rx.separator(),
                             self.select_targets(new_deployment=False),
                             rx.separator(),

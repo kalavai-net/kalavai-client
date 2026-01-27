@@ -375,6 +375,14 @@ def pool__connect(url: str, key: str, *others):
             return
         else:
             console.log("[yellow]Overwriting old config...")
+
+    # test connection
+    import requests
+    response = requests.get(f"{url}/health")
+    
+    if response.status_code != 200:
+        console.log(f"[red]Connection error. Cannot find external API at {url}")
+        return
     
     # store new details for remote API
     store_server_info(
@@ -387,7 +395,9 @@ def pool__connect(url: str, key: str, *others):
         node_name=None,
         cluster_name=None
     )
+    
     console.log(f"[green]Local instance connected to {url}")
+    
 
 @arguably.command
 def pool__start(
@@ -1239,8 +1249,7 @@ def job__defaults(template_name, *others):
         endpoint="/fetch_template_values",
         params={"name": template_name}
     )
-
-    if "error" in data:
+    if data is None or "error" in data:
         console.log(f"[red]Error when fetching template defaults: {data}")
         return
     
@@ -1296,22 +1305,23 @@ def job__list(*others, force_namespace: str=None):
     if "error" in details:
         console.log(f"[red]{details}")
         return
+    
     try:
-        columns = ["Owner", "Deployment", "Workers", "Endpoint"]
-        rows = [[job["owner"], job["name"], job["workers"], job["endpoint"]] for job in details]
+        columns = ["ID", "Name", "Workers", "Endpoint"]
+        rows = [[job["job_id"], job["name"], job["workers"], "\n".join([f"{k} -> {v['address']}:{v['port']}" for k, v in job["endpoint"].items()])] for job in details]
         
         console.print(
             generate_table(columns=columns, rows=rows, end_sections=range(len(rows)))
         )
             
-        console.log("Get logs with [yellow]kalavai job logs <name of deployment> [white](note it only works when the deployment is complete)")
+        console.log("Get logs with [yellow]kalavai job logs <job id> [white](note it only works when the deployment is complete)")
     except Exception as e:
         console.log(f"[red]Error: {str(e)}")
         console.log(f"[red]Response: {details}")
         console.log("[red]Error when querying backend")
 
 @arguably.command
-def job__logs(name, *others, pod_name=None, tail=100, force_namespace: str=None):
+def job__logs(job_id, *others, pod_name=None, tail=100, force_namespace: str=None):
     """
     Get logs for a specific job
     """
@@ -1323,7 +1333,7 @@ def job__logs(name, *others, pod_name=None, tail=100, force_namespace: str=None)
         console.log("[WARNING][yellow]--force-namespace [white]requires an admin key. Request will fail if you are not an admin.")
 
     data = {
-        "job_name": name,
+        "job_name": job_id,
         "pod_name": pod_name,
         "tail": tail,
     }

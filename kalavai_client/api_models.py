@@ -10,7 +10,7 @@ class Job(BaseModel):
     owner: Optional[str] = "default"
     name: Optional[str] = None
     workers: Optional[str] = None
-    endpoint: Optional[str] = None
+    endpoint: Optional[dict[str, dict]] = None
     status: Optional[str] = None
     host_nodes: Optional[str] = None
 

@@ -3,7 +3,10 @@ Core kalavai service.
 Used as a bridge between the kalavai-client app and the reflex frontend
 """
 import os
+import time
+import logging
 from argparse import ArgumentParser
+
 from fastapi import FastAPI, HTTPException, Depends, Query, Security
 from fastapi.security.api_key import APIKeyHeader
 from typing import Optional, List
@@ -66,8 +69,13 @@ from kalavai_client.core import (
     get_space_quota,
     set_space_quota,
     get_pool_credentials,
+    is_watcher_alive,
+    update_local_repositories,
     TokenType
 )
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 app = FastAPI(
     title="Kalavai Bridge API",
@@ -723,6 +731,19 @@ mcp.mount()
 ##########################
 
 
+def wait_for_external_service():
+    """Wait for external watcher service to be available"""
+
+    # wait for service to be up
+    while not is_watcher_alive():
+        logger.debug("Waiting for external watcher service...")    
+        time.sleep(10)
+    # update necessary requirements
+    result = update_local_repositories()
+    if "error" in result:
+        logger.error(result)
+        raise ValueError(result["error"])
+
 def run_api(host="0.0.0.0", port=8001, log_level="critical"):
     uvicorn.run(
         app,
@@ -738,5 +759,9 @@ if __name__ == "__main__":
     parser.add_argument("--log_level", default="debug")
 
     args = parser.parse_args()
+
+    # wait for preconditions
+    wait_for_external_service()
+    # run API
     run_api(host=args.host, port=args.port, log_level=args.log_level)
     

@@ -6,15 +6,10 @@ import socket
 import ipaddress
 import netifaces as ni
 from urllib.parse import urlparse
-import os
-import glob
-import tarfile
-import json
 
 from kalavai_client.cluster import CLUSTER
 from kalavai_client.utils import (
     NODE_ROLE_LABEL,
-    check_gpu_drivers,
     generate_join_token,
     load_user_id,
     request_to_server,
@@ -22,7 +17,6 @@ from kalavai_client.utils import (
     decode_dict,
     generate_compose_config,
     store_server_info,
-    is_watcher_alive,
     run_cmd,
     leave_vpn,
     safe_remove,
@@ -71,7 +65,8 @@ from kalavai_client.env import (
     DEFAULT_POOL_CONFIG_TEMPLATE,
     FORCE_WATCHER_API_URL,
     FORCE_WATCHER_API_KEY_URL,
-    KALAVAI_TEMPLATES_REPO
+    KALAVAI_TEMPLATE_REPOSITORIES
+    
 )
 from kalavai_client.api_models import (
     GPU,
@@ -80,6 +75,22 @@ from kalavai_client.api_models import (
     DeviceStatus
 )
 
+def is_watcher_alive(server_creds=USER_LOCAL_SERVER_FILE, user_cookie=USER_COOKIE, timeout=30):
+    try:
+        request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
+            method="get",
+            endpoint="/v1/health",
+            data=None,
+            server_creds=server_creds,
+            user_cookie=user_cookie,
+            timeout=timeout
+        )
+    except Exception as e:
+        print(str(e))
+        return False
+    return True
 
 def set_schedulable(schedulable, node_names):
     """
@@ -261,90 +272,109 @@ def set_space_quota(user_id: str, quota: dict):
         return {"error": str(e)}
 
 def fetch_template_data(name):
-    # data = {
-    #     "template_name": name
-    # }
-    # try:
-    #     metadata = request_to_server(
-    #         force_url=FORCE_WATCHER_API_URL,
-    #         force_key=FORCE_WATCHER_API_KEY_URL,
-    #         method="get",
-    #         endpoint="/v1/job_defaults",
-    #         params=data,
-    #         server_creds=USER_LOCAL_SERVER_FILE,
-    #         user_cookie=USER_COOKIE
-    #     )
-    #     return metadata
-    # except Exception as e:
-    #     return {"error": str(e)}
+
     return {
         "values": fetch_template_values(name),
         "metadata": fetch_template_metadata(name),
         "schema": fetch_template_schema(name)
     }
 
-def update_local_repositories():
+def update_local_repositories(helm_repos=KALAVAI_TEMPLATE_REPOSITORIES):
+
     try:
-        return run_cmd(f"helmfile repos --file {USER_HELM_APPS_FILE}", hide_output=True)
+        for name, url in helm_repos:
+            # 1. add repos
+            request_to_server(
+                force_url=FORCE_WATCHER_API_URL,
+                force_key=FORCE_WATCHER_API_KEY_URL,
+                method="post",
+                endpoint="/v1/helm_add_repo",
+                data={
+                    "name": name,
+                    "url": url
+                },
+                server_creds=USER_LOCAL_SERVER_FILE,
+                user_cookie=USER_COOKIE
+            )
+        # 2. update them
+        data = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
+            method="post",
+            endpoint="/v1/helm_update",
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        return data      
     except Exception as e:
-        return {"error": f"Error when updating local repos: {str(e)}"}
+        return {"error": str(e)}
 
 def fetch_template_values(template_name):
     try:
-        str_data = run_cmd(f"helm show values {template_name}")
-
-        return yaml.safe_load(str_data)
-    except Exception as e:
-        return {"error": f"Error when fetching default values for {template_name}. Does it exist?"}
-
-def fetch_template_schema(template_name):
-    try:
-        run_cmd(f"helmfile repos --file {USER_HELM_APPS_FILE}", hide_output=True)
-        run_cmd(f"helm pull {template_name}", hide_output=True)
-    except Exception as e:
-        return {"error": f"Error when fetching schema for {template_name}. Does it exist?"}
-
-    # 2. Find the downloaded file
-    chart_file = template_name.split('/')[-1]
-    tgz_files = glob.glob(f"{chart_file}-*.tgz")
-    
-    if not tgz_files:
-        return {"error": f"Chart file for {template_name} not found. Does it exist?"}
-
-    latest_tgz = tgz_files[0]
-
-    # 3. Extract only the values.schema.json
-    schema_data = None
-    try:
-        with tarfile.open(latest_tgz, "r:gz") as tar:
-            for member in tar.getmembers():
-                if member.name.endswith("values.schema.json"):
-                    f = tar.extractfile(member)
-                    schema_data = json.load(f)
-                    break
-    finally:
-        # Clean up the downloaded tgz file
-        if os.path.exists(latest_tgz):
-            os.remove(latest_tgz)
-
-    return schema_data if schema_data else {"error": f"No values.schema.json found in {template_name} chart"}
-
-def fetch_template_metadata(template_name):
-    try:
-        str_data = run_cmd(f"helm show chart {template_name}")
-
-        return yaml.safe_load(str_data)
-    except Exception as e:
-        return {"error": f"Error when fetching metadata for {template_name}. Does it exist?"}
-    
-def fetch_job_templates(repo: str=KALAVAI_TEMPLATES_REPO):
-    try:
-        run_cmd(f"helmfile repos --file {USER_HELM_APPS_FILE}", hide_output=True)
-        str_data = run_cmd(f"helm search repo {repo} --output json", hide_output=False)
-        data = json.loads(str_data)
+        data = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
+            method="get",
+            endpoint="/v1/helm_show_values",
+            params={"chart_name": template_name},
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
         return data
     except Exception as e:
-        return {"error": f"Error when fetching default values for {repo}. Does it exist?\n\n{str(e)}"}
+        return {"error": str(e)}
+    
+def fetch_template_schema(template_name):
+    try:
+        data = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
+            method="get",
+            endpoint="/v1/helm_pull_schema",
+            params={"chart_name": template_name},
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        return data
+    except Exception as e:
+        return {"error": str(e)}
+    
+def fetch_template_metadata(template_name):
+    try:
+        data = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
+            method="get",
+            endpoint="/v1/helm_show_chart",
+            params={"chart_name": template_name},
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        return data
+    except Exception as e:
+        return {"error": str(e)}
+
+def fetch_job_templates(repo=None):
+    if repo is not None:
+        repos = [repo]
+    else:
+        repos, urls = zip(*KALAVAI_TEMPLATE_REPOSITORIES)
+    try:
+        templates = []
+        for repo in repos:
+            data = request_to_server(
+                force_url=FORCE_WATCHER_API_URL,
+                force_key=FORCE_WATCHER_API_KEY_URL,
+                method="get",
+                endpoint="/v1/helm_repo_search",
+                params={"term": repo},
+                server_creds=USER_LOCAL_SERVER_FILE,
+                user_cookie=USER_COOKIE
+            )
+            templates.extend(data)
+        return templates
+    except Exception as e:
+        return {"error": str(e)}
 
 def fetch_job_names():
     data_groups = [
@@ -404,8 +434,9 @@ def fetch_job_details(force_namespace=None):
             host_nodes = set()
             job_name = job.get("metadata", {}).get("name", job_id)
             # parse pods
-            if "pods" in job and job["pods"] is not None:
-                for name, values in job["pods"].items():
+            job_status = job.get("status", {})
+            if "pods" in job_status and job_status["pods"] is not None:
+                for name, values in job_status["pods"].items():
                     restart_counts = values["restarts"]
                     workers_status[values["phase"]] += 1
                     # get nodes involved in deployment (needs kubewatcher)
@@ -417,17 +448,26 @@ def fetch_job_details(force_namespace=None):
             else:
                 print("Skip pods")
             # parse services
-            node_ports = []
-            if "services" in job and job["services"] is not None:
-                for name, values in job["services"].items():
-                    node_ports.extend(
-                        [f"{port['nodePort']}" for port in values["ports"]]
-                    )
+            endpoints = {}
+            endpoint_address = urlparse(load_server_info(data_key=KALAVAI_API_URL_KEY, file=USER_LOCAL_SERVER_FILE)).hostname
+            if "services" in job_status and job_status["services"] is not None:
+                for name, values in job_status["services"].items():
+                    for port in values["ports"]:
+                        # avoid name clash across multiple ports / services
+                        if port['name'] in endpoints:
+                            endpoint_name = f"{name}-{port['name']}"
+                        else:
+                            endpoint_name = port["name"]
+                        endpoints[endpoint_name] = {
+                            "port": port["nodePort"] if "nodePort" in port else port["targetPort"],
+                            "address": endpoint_address
+                        }
             else:
                 print("Skip service")
-            endpoint_address = urlparse(load_server_info(data_key=KALAVAI_API_URL_KEY, file=USER_LOCAL_SERVER_FILE)).hostname
-            urls = [f"http://{endpoint_address}:{node_port}" for node_port in node_ports]
-            if "Ready" in workers_status and len(workers_status) == 1:
+            #urls = [f"http://{endpoint_address}:{node_port}" for node_port in node_ports]
+            if len(workers_status) == 0:
+                status = "pending"
+            elif all(["Running" == stat for stat in workers_status]):
                 status = "running"
             elif any([st in workers_status for st in ["Failed"]]):
                 status = "error"
@@ -445,7 +485,7 @@ def fetch_job_details(force_namespace=None):
                     owner=namespace,
                     name=job_name,
                     workers=workers,
-                    endpoint="\n".join(urls),
+                    endpoint=endpoints, #"\n".join(urls),
                     status=str(status),
                     host_nodes="\n".join(host_nodes))
             )

@@ -5,13 +5,26 @@ import asyncio
 
 import reflex as rx
 
-from ..backend.utils import request_to_kalavai_core
+from ..backend.utils import (
+    request_to_kalavai_core
+)
 from ..backend.main_state import MainState
 
 
+class JobData(rx.Base):
+    job_id: str
+    spec: dict
+    conditions: dict
+    owner: str
+    name: str
+    workers: str
+    endpoint: dict[str, str]
+    status: str
+    host_nodes: str
+
 class Job(rx.Base):
     """The item class."""
-    data: dict
+    data: JobData
 
 class TemplateData(rx.Base):
     """The template data class."""
@@ -318,10 +331,11 @@ class JobsState(rx.State):
                 if not state:
                     continue
                 try:
+                    job_data = self.items[element].data.dict()
                     result = request_to_kalavai_core(
                         method="post",
                         endpoint="delete_job",
-                        json={"name": self.items[element].data["name"], "force_namespace": self.items[element].data["owner"]}
+                        json={"name": job_data["name"], "force_namespace": job_data["owner"]}
                     )
                 except Exception as e:
                     toast = rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
@@ -335,33 +349,37 @@ class JobsState(rx.State):
     async def redeploy_job(self, form_data: dict):
         """Redeploy a job with new values"""
         # self.template_name and form data to redeploy
-        result = self.deploy(data=form_data, is_redeployment=True)
+        result = await self.deploy(data=form_data, is_redeployment=True)
 
         if "error" in result:
             return rx.toast.error(result["error"], position="top-center")
         if "failed" in result and len(result["failed"]) > 0:
             return rx.toast.error(f"Failed to deploy: {result['failed']}", position="top-center")
-        return rx.toast.sucess("Redeployment updated")
+        return rx.toast.success("Redeployment updated", position="top-center")
 
     @rx.event(background=True)
     async def deploy_job(self, form_data: dict):
-        result = self.deploy(data=form_data, is_redeployment=False)
+        result = await self.deploy(data=form_data, is_redeployment=False)
 
         if "error" in result:
             return rx.toast.error(result["error"], position="top-center")
         if "failed" in result and len(result["failed"]) > 0:
             return rx.toast.error(f"Failed to deploy: {result['failed']}", position="top-center")
-        return rx.toast.sucess("Redeployment updated")
+        return rx.toast.success("Deployment successful", position="top-center")
 
     @rx.event
-    async def open_endpoint(self, index):
-        return rx.redirect(self.items[index].data["endpoint"], is_external=True)
+    async def open_endpoint(self, address):
+        return rx.redirect(address, is_external=True)
     
-    @rx.event
+    @rx.event(background=True)
     async def load_current_job_details(self, index):
         element = index + (self.page_number-1) * self.limit
         async with self:
-            data = self.items[element].data
+            self.is_loading = True
+        await asyncio.sleep(0.1)
+
+        async with self:
+            data = self.items[element].data.dict()
             job_id = data["job_id"]
             self.selected_template = f"{data['spec']['template']['repo']}/{data['spec']['template']['chart']}"
             if "nodeSelectors" in data["spec"]:
@@ -369,17 +387,18 @@ class JobsState(rx.State):
         
             self.fetch_template_details()
         
-        # parse template defaults and use job params instead
-        job_data = self._expand_parameter_values(
-            data["spec"]["template"]["values"]
-        )
-        for key, value in self.template_params.items():
-            if key in job_data:
-                self.template_params[key]["default"] = job_data[key]
+            # parse template defaults and use job params instead
+            job_data = self._expand_parameter_values(
+                data["spec"]["template"]["values"]
+            )
+            for key, value in self.template_params.items():
+                if key in job_data:
+                    self.template_params[key]["default"] = job_data[key]
 
         # set job name
         async with self:
             self.template_name = data["name"]
+            self.is_loading = False
 
     
     @rx.event(background=True)
@@ -387,14 +406,14 @@ class JobsState(rx.State):
         async with self:
             self.job_logs = None
         element = index + (self.page_number-1) * self.limit
+        job_data = self.items[element].data.dict()
         async with self:
-            data = self.items[element].data
-            if "spec" in data:
-                self.job_metadata = json.dumps(data["spec"], indent=3)
+            if "spec" in job_data:
+                self.job_metadata = json.dumps(job_data["spec"], indent=3)
             else:
                 self.job_metadata = "Job spec pending..."
-            if "conditions" in data and "releases" in data["conditions"]:
-                self.job_status = json.dumps(data["conditions"]["releases"], indent=3)
+            if "conditions" in job_data and "releases" in job_data["conditions"]:
+                self.job_status = json.dumps(job_data["conditions"]["releases"], indent=3)
             else:
                 self.job_status = "Status conditions pending..."
             self.job_logs = ""
@@ -404,8 +423,8 @@ class JobsState(rx.State):
                 method="get",
                 endpoint="fetch_job_logs",
                 params={
-                    "job_name": self.items[element].data["name"],
-                    "force_namespace": self.items[element].data["owner"],
+                    "job_name": job_data["job_id"],
+                    "force_namespace": job_data["owner"],
                     "tail": self.log_tail
                 }
             )
@@ -465,9 +484,9 @@ class JobsState(rx.State):
             return rx.toast.error(f"Error:\n{details}", position="top-center")
     
         async with self:
-            
-            
             for job_details in details:
+                # parse endpoint
+                job_details["endpoint"] = {name: f"http://{endpoint['address']}:{endpoint['port']}" for name, endpoint in job_details["endpoint"].items()}
                 self.items.append(
                     Job(
                         data=job_details

@@ -31,10 +31,13 @@ def resource_path(relative_path: str):
     return resource
 
 
+# helm repos available to query in the kalavai-client
+KALAVAI_TEMPLATE_REPOSITORIES = [
+    ("kalavai-templates", "https://kalavai-net.github.io/kalavai-templates/")
+]
 TEMPLATE_LABEL = "kalavai.job.name"
 KALAVAI_SERVICE_LABEL = "app"
 KALAVAI_SERVICE_LABEL_VALUE = "kube-watcher-api"
-KALAVAI_TEMPLATES_REPO = "kalavai-templates"
 STORAGE_CLASS_LABEL = "kalavai.storage.enabled"
 USER_NODE_LABEL = "kalavai.cluster.user"
 SERVER_IP_KEY = "server_ip"

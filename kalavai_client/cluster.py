@@ -22,7 +22,6 @@ from kalavai_client.env import (
     USER_KUBECONFIG_FILE,
     USER_LOCAL_SERVER_FILE,
     USER_HELM_APPS_FILE,
-    KALAVAI_TEMPLATES_REPO,
     user_path
 )
 
