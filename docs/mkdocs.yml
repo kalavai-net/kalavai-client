@@ -7,6 +7,10 @@ nav:
       - Overview: index.md
       - Quick Start: getting_started.md
       - Compatibility: compatibility.md
+    - Configure nodes:
+      - NVIDIA: nvidia_node.md
+      - AMD: amd_node.md
+      - Windows: windows_node.md
     - Interface:
       - CLI: cli.md
       - Browser GUI: gui.md

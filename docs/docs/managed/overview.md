@@ -41,6 +41,6 @@ Get a free account [here](https://platform.kalavai.net) to access the Kalavai Pl
 
 During the Beta Testing phase, you will be asked to join the Beta Program the first time you login. This will grant you free resources to test the platform.
 
-![Join beta testing](./assets/join_beta.png)
+![Join beta testing](./assets/images/join_beta.png)
 
 If you need more resources, you can request more in the Clusters page, but note that capacity is limited.
