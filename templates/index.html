@@ -365,20 +365,31 @@
 <div class="codehilite"><pre><span></span><code>kalavai<span class="w"> </span>job<span class="w"> </span>run<span class="w"> </span>&lt;template<span class="w"> </span>name&gt;<span class="w"> </span>--values<span class="w"> </span>&lt;template<span class="w"> </span>values&gt;
 </code></pre></div>
 
-<p>Where <code>&lt;template name&gt;</code> refers to one of the supported templates above, and <code>&lt;template values&gt;</code> is a local yaml file containing the parameters of the job. See <a href="https://github.com/kalavai-net/kube-watcher/tree/main/templates">examples</a> for more information.</p>
+<p>Where <code>&lt;template name&gt;</code> refers to one of the supported templates above, and <code>&lt;template values&gt;</code> is a local yaml file containing the parameters of the job. See <a href="https://github.com/kalavai-net/kalavai-templates">examples</a> for more information.</p>
 <h2 id="list-of-available-templates">List of available templates</h2>
+<p>We currently support out of the box the following AI engines:</p>
 <ul>
-<li><a href="https://github.com/kalavai-net/kube-watcher/tree/main/templates">vLLM</a>: deploy your favourite LLMs in distributed machines.</li>
-<li><a href="https://github.com/kalavai-net/kube-watcher/tree/main/templates">llama.cpp</a>: deploy llama.cpp models (CPU and GPU) in distributed machines.</li>
-<li><a href="https://github.com/kalavai-net/kube-watcher/tree/main/templates">Aphrodite</a>: deploy your favourite LLMs in distributed machines.</li>
-<li><a href="https://github.com/kalavai-net/kube-watcher/tree/main/templates">Petals</a>: bit-torrent style deployment of LLMs</li>
-<li><a href="https://github.com/kalavai-net/kube-watcher/tree/main/templates">litellm</a>: Unified LLM API.</li>
-<li><a href="https://github.com/kalavai-net/kube-watcher/tree/main/templates">playground</a>: Unified UI playground.</li>
+<li><a href="https://docs.vllm.ai/en/latest/">vLLM</a>: most popular GPU-based model inference.</li>
+<li><a href="https://docs.ray.io/en/latest/serve/index.html">Ray Clusters</a> inference.</li>
+<li><a href="https://docs.gpustack.ai/0.4/overview/">GPUstack</a> (experimental)</li>
+</ul>
+<p>Coming soon:</p>
+<ul>
+<li><a href="https://github.com/ggerganov/llama.cpp">llama.cpp</a>: CPU-based GGUF model inference.</li>
+<li><a href="https://github.com/sgl-project/sglang">SGLang</a>: Super fast GPU-based model inference.</li>
+<li><a href="https://n8n.io/">n8n</a> (experimental): no-code workload automation framework.</li>
+<li><a href="https://flowiseai.com/">Flowise</a> (experimental): no-code agentic AI workload framework.</li>
+<li><a href="https://speaches.ai/">Speaches</a>: audio (speech-to-text and text-to-speech) model inference.</li>
+<li><a href="https://langfuse.com/">Langfuse</a> (experimental): open source evaluation and monitoring GenAI framework.</li>
+<li><a href="https://docs.openwebui.com/">OpenWebUI</a>: ChatGPT-like UI playground to interface with any models.</li>
+<li><a href="https://huggingface.co/docs/diffusers/en/index">diffusers</a> (experimental)</li>
+<li><a href="https://docs.ray.io/en/latest/serve/index.html">RayServe</a> inference.</li>
+<li><a href="https://docs.gpustack.ai/0.4/overview/">GPUstack</a> (experimental)</li>
 </ul>
 <h2 id="how-to-contribute">How to contribute</h2>
-<p>Do you want to <strong>develop your own template</strong> and share it with the community? We are working on a path to make it easier for developers to do so. Hang on tight! But for now, head over to <a href="https://github.com/kalavai-net/kube-watcher/tree/main/templates#how-to-contribute">our repository</a> and check the examples in there.</p>
+<p>Do you want to <strong>develop your own template</strong> and share it with the community? We are working on a path to make it easier for developers to do so. Hang on tight! But for now, head over to <a href="https://github.com/kalavai-net/kalavai-templates">our repository</a> and check the examples in there.</p>
 <h2 id="why-is-insert-preferred-application-not-supported">Why is <em>[insert preferred application]</em> not supported?</h2>
-<p>If your preferred distributed ML application is not yet supported, <a href="https://github.com/kalavai-net/kalavai-client/issues">let us know</a>! Or better yet, add it and <a href="https://github.com/kalavai-net/kube-watcher/tree/main/templates">contribute to community integrations</a>.</p>
+<p>If your preferred distributed ML application is not yet supported, <a href="https://github.com/kalavai-net/kalavai-client/issues">let us know</a>! Or better yet, add it and <a href="https://github.com/kalavai-net/kalavai-templates">contribute to community integrations</a>.</p>
   </div>
 </article>
                                 <div class="mx-auto flex flex-wrap h-16 w-full max-w-2xl items-center gap-2 px-4 md:px-0">

@@ -5,15 +5,18 @@ tags:
 
 # Connecting to a remote pool
 
-You can connect to a remote pool too. First, get the connection credentials from the seed node:
+You can connect to a remote pool too from any machine that has the kalavai-client installed. The only requirement is to have a [compatible version of python](getting_started.md#install-the-client) installed. 
+
+First, get the connection credentials from the seed node:
 
 ```bash
+# Run from the seed node
 kalavai pool credentials
 ```
 
 This command shows how to connect a remote machine to the local pool.
 
-```
+```bash
 Kalavai API URL: http://<ip address>:49152
 Kalavai API Key: be416a3e-5aa3-47e3-8398-0f993518f3dc
 

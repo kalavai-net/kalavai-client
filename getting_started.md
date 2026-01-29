@@ -19,14 +19,14 @@ For seed nodes:
 
 - A 64 bits x86 based Linux machine (laptop, desktop or VM)
 - [Docker engine installed](https://docs.docker.com/engine/install/ubuntu/) with [privilege access](https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities).
-- Python 3.10+
+- Python 3.12+
 
 For workers sharing resources with the pool:
 
 - A laptop, desktop or Virtual Machine (MacOS, Linux or Windows; ARM or x86)
-- If self-hosting, workers should be on the same network as the seed node. Looking for over-the-internet connectivity? Check out our [managed seeds](#1b-managed-pools-create-a-seed)
+- If self-hosting, workers should be on the same network as the seed node. Looking for over-the-internet connectivity? Check out our [managed service](https://platform.kalavai.net)
 - Docker engine installed (for [linux](https://docs.docker.com/engine/install/ubuntu/), [Windows and MacOS](https://docs.docker.com/desktop/)) with [privilege access](https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities).
-- Python 3.10+
+- Python 3.12+
 
 #### Ports
 
@@ -59,11 +59,9 @@ pip install kalavai-client
 ```
 
 
-## Create a local, private AI pool
+## Create a local, private pool
 
-> Kalavai is **free to use, no caps, for both commercial and non-commercial purposes**. All you need to get started is one or more computers that can see each other (i.e. within the same network), and you are good to go. For over-the-internet pools, visit our [managed platform](https://platform.kalavai.net).
-
-To create your own AI pool, you will need at least one machine (the seed) and (optionally) one or more workers. See our [concepts](./concepts.md) page for an overview of AI pool architecture. Note that **seed machines should always be available for the platform to remain operational**.
+To create your own GPU pool, you will need at least one machine (the seed) and (optionally) one or more workers. See [Kalavai concepts](./index.md#core-components) for an overview of AI pool architecture. Note that **seed machines should always be available for the platform to remain operational**.
 
 You can create a seed by self-hosting the open source platform (limited to same network machines only) or using our managed pools service (pre-configured, hosted seed with over-the-internet workers from everywhere).
 
@@ -81,11 +79,11 @@ Where <name> is the name of the pool. This will deploy a series of docker contai
 ```bash
 $ kalavai gui start
 
-[10:11:13] Using ports: [49152, 49153, 49154]                                      cli.py:236
+[10:11:13] Using ports: [49152, 49153, 49154]                                
 [+] Running 2/2
  ✔ Network kalavai_kalavai-net  Created0.1s  
  ✔ Container kalavai_gui        Started0.4s  
-           Loading GUI, may take a few minutes. It will be available at            cli.py:258
+           Loading GUI, may take a few minutes. It will be available at       
            http://localhost:49153
 ```
 
@@ -103,14 +101,14 @@ Create a [free account on our platform](https://platform.kalavai.net). Then, nav
 
 ![Managed seeds](assets/images/managed_pools.png)
 
-Once your seed is up and running and the status is `Healthy`, you can access the GUI by clicking on the GUI action.
+Once your seed is up and running and the status is `Healthy`, follow the on-screen instructions to access it via remote GUI.
 
 
 ### 2. Add worker nodes
 
 > **Important: if you are self hosting seed nodes, only nodes within the same network as the seed node can be added successfully. This limitation does not apply to our managed seeds**
 
-Increase the power of your AI pool by adding resources from other devices. For that, you need to generate a joining token. You can do this by using the seed GUI or the CLI.
+Increase the power of your GPU pool by adding resources from other devices. For that, you need to generate a joining token. You can do this by using the seed GUI or the CLI.
 
 **[On the seed node] Using the GUI**
 
@@ -133,29 +131,12 @@ kalavai pool token --worker
 
 Once you have the joining token, use it on the machines you want to add to the pool. Workers can use the GUI interface to make this step easier too:
 
-```bash
-kalavai gui start
-```
-
-Then paste the joining token in the text field under `Access with token`, and click join
-
-![Use the token to join](assets/images/ui_join_part1.png)
-
-Kalavai asks you if you want to join (run workloads in the local machine) or attach (use the node to access and control the pool, without running workloads) to the pool. 
-
-![Choose to join or attach](assets/images/ui_join_part2.png)
-
-**Alternatively**, for command-liners, join with the CLI:
+From the command line, join with:
 
 ```bash
 kalavai pool join <TOKEN>
 ```
 
-Or attach with the CLI:
-
-```bash
-kalavai pool attach <TOKEN>
-```
 
 ### 3. Explore resources
 
@@ -165,13 +146,9 @@ For both seed and worker nodes, the dashboard shows a high level view of the LLM
 
 Use the navigation bar to see more details on key resources:
 
-- **Devices**: every machine connected to the pool and its current status
+- **Resources**: every machine and GPU devices connected to the pool and its current status
 
-![Devices](assets/images/ui_all_devices.png)
-
-- **GPUs**: list of all available and utilised GPUs
-
-![GPUs](assets/images/ui_all_gpus.png)
+![Resources](assets/images/ui_all_devices.png)
 
 - **Jobs**: all models and deployments active in the pool
 
@@ -180,11 +157,7 @@ Use the navigation bar to see more details on key resources:
 
 ### 4. Leave the pool
 
-Any device can leave the pool at any point and its workload will get reassigned. To leave the pool, click the `circle-stop` button on the dashboard, under `Local status` card. Nodes can rejoin at any point [following the above procedure](#2-add-worker-nodes).
-
-![Leave the pool](assets/images/ui_leave_pool.png)
-
-Or do so with the CLI (from the worker machine):
+Any device can leave the pool at any point and its workload will get reassigned. To leave the pool, use the command line CLI on the worker you wish to disconnect:
 
 ```bash
 kalavai pool stop
