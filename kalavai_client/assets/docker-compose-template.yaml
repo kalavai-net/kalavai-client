@@ -20,7 +20,7 @@ services:
 {% endif %}
 {% if vpn %}
   {{vpn_name}}:
-    image: gravitl/netclient:v0.90.0
+    image: ghcr.io/kalavai-net/netclient:v0.90.0
     container_name: {{vpn_name}}
     platform: linux/{{target_platform}}
     privileged: true
