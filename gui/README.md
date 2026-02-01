@@ -69,6 +69,5 @@ To add a new page:
 
 ## Build docker
 
-docker build -t kalavai/kalavai-gui:latest .
-docker push kalavai/kalavai-gui:latest
-
+docker build -t ghcr.io/kalavai-net/kalavai-gui:latest .
+docker push ghcr.io/kalavai-net/kalavai-gui:latest

@@ -139,7 +139,6 @@ class ResourcesState(rx.State):
         temp_data = defaultdict(dict)
         async with self:
             self.is_loading = True
-        
         try:
             devices = request_to_kalavai_core(
                 method="get",
@@ -181,10 +180,14 @@ class ResourcesState(rx.State):
             else:
                 self.items = []
                 for gpu in devices:
+                    if gpu["ready"]:
+                        used = 100 - int(float(gpu["available"]) / float(gpu["total"]) * 100) if gpu["total"] > 0 else 0
+                    else:
+                        used = 0
                     gpu_data = {
                         "node": gpu["node"],
                         "model": gpu["model"],
-                        "used": 100 - int(float(gpu["available"]) / float(gpu["total"]) * 100) if gpu["total"] > 0 else 0,
+                        "used": used,
                         "total": gpu["total"]
                     }
                     item = {**temp_data[gpu["node"]], **gpu_data}
