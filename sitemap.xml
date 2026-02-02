@@ -2,74 +2,74 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://kalavai-net.github.io/kalavai-client/</loc>
-         <lastmod>2026-01-29</lastmod>
+         <lastmod>2026-02-02</lastmod>
     </url>
     <url>
          <loc>https://kalavai-net.github.io/kalavai-client/amd_node/</loc>
-         <lastmod>2026-01-29</lastmod>
+         <lastmod>2026-02-02</lastmod>
     </url>
     <url>
          <loc>https://kalavai-net.github.io/kalavai-client/boinc/</loc>
-         <lastmod>2026-01-29</lastmod>
+         <lastmod>2026-02-02</lastmod>
     </url>
     <url>
          <loc>https://kalavai-net.github.io/kalavai-client/cli/</loc>
-         <lastmod>2026-01-29</lastmod>
+         <lastmod>2026-02-02</lastmod>
     </url>
     <url>
          <loc>https://kalavai-net.github.io/kalavai-client/compatibility/</loc>
-         <lastmod>2026-01-29</lastmod>
+         <lastmod>2026-02-02</lastmod>
     </url>
     <url>
          <loc>https://kalavai-net.github.io/kalavai-client/faqs/</loc>
-         <lastmod>2026-01-29</lastmod>
+         <lastmod>2026-02-02</lastmod>
     </url>
     <url>
          <loc>https://kalavai-net.github.io/kalavai-client/getting_started/</loc>
-         <lastmod>2026-01-29</lastmod>
+         <lastmod>2026-02-02</lastmod>
     </url>
     <url>
          <loc>https://kalavai-net.github.io/kalavai-client/gui/</loc>
-         <lastmod>2026-01-29</lastmod>
+         <lastmod>2026-02-02</lastmod>
     </url>
     <url>
          <loc>https://kalavai-net.github.io/kalavai-client/nvidia_node/</loc>
-         <lastmod>2026-01-29</lastmod>
+         <lastmod>2026-02-02</lastmod>
     </url>
     <url>
          <loc>https://kalavai-net.github.io/kalavai-client/remote_pool/</loc>
-         <lastmod>2026-01-29</lastmod>
+         <lastmod>2026-02-02</lastmod>
     </url>
     <url>
          <loc>https://kalavai-net.github.io/kalavai-client/templates/</loc>
-         <lastmod>2026-01-29</lastmod>
+         <lastmod>2026-02-02</lastmod>
     </url>
     <url>
          <loc>https://kalavai-net.github.io/kalavai-client/windows_node/</loc>
-         <lastmod>2026-01-29</lastmod>
+         <lastmod>2026-02-02</lastmod>
     </url>
     <url>
          <loc>https://kalavai-net.github.io/kalavai-client/managed/overview/</loc>
-         <lastmod>2026-01-29</lastmod>
+         <lastmod>2026-02-02</lastmod>
     </url>
     <url>
          <loc>https://kalavai-net.github.io/kalavai-client/use_cases/fine_tuning/</loc>
-         <lastmod>2026-01-29</lastmod>
+         <lastmod>2026-02-02</lastmod>
     </url>
     <url>
          <loc>https://kalavai-net.github.io/kalavai-client/use_cases/gpustack/</loc>
-         <lastmod>2026-01-29</lastmod>
+         <lastmod>2026-02-02</lastmod>
     </url>
     <url>
          <loc>https://kalavai-net.github.io/kalavai-client/use_cases/multi_gpu_inference/</loc>
-         <lastmod>2026-01-29</lastmod>
+         <lastmod>2026-02-02</lastmod>
     </url>
     <url>
          <loc>https://kalavai-net.github.io/kalavai-client/use_cases/ray/</loc>
-         <lastmod>2026-01-29</lastmod>
+         <lastmod>2026-02-02</lastmod>
     </url>
     <url>
          <loc>https://kalavai-net.github.io/kalavai-client/use_cases/self_hosted_llm_pool/</loc>
-         <lastmod>2026-01-29</lastmod>
+         <lastmod>2026-02-02</lastmod>
     </url>
 </urlset>

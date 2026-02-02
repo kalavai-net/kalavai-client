@@ -591,7 +591,7 @@
     <p>Kalavai platform supports the use of both NVIDIA and AMD cards. To ensure full compatibility, the worker node must have the following requirements met:</p>
 <ul>
 <li>OS: Linux; kernel &lt;= 6.11</li>
-<li>Python: 3.10 - 3.12</li>
+<li>Python: +3.12</li>
 <li>GPU: MI200s (gfx90a), MI300 (gfx942), Radeon RX 7900 series (gfx1100)</li>
 <li>ROCm 6.4.2</li>
 </ul>
@@ -613,7 +613,6 @@ sudo<span class="w"> </span>tee<span class="w"> </span>/etc/apt/sources.list.d/d
 
 sudo<span class="w"> </span>apt<span class="w"> </span>update
 sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>docker-ce<span class="w"> </span>docker-ce-cli<span class="w"> </span>containerd.io<span class="w"> </span>docker-buildx-plugin<span class="w"> </span>docker-compose-plugin<span class="w"> </span>-y
-<span class="c1"># optional</span>
 sudo<span class="w"> </span>usermod<span class="w"> </span>-aG<span class="w"> </span>docker<span class="w"> </span><span class="nv">$USER</span>
 
 <span class="c1"># install python3.12+ (dev and venv)</span>

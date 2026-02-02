@@ -591,23 +591,42 @@
     <p>Kalavai platform supports the use of both NVIDIA and AMD cards. To ensure full compatibility, the worker node must have the following requirements met:</p>
 <ul>
 <li>OS: Linux</li>
-<li>Python: 3.10+</li>
+<li>Python: 3.12+</li>
 <li>GPU: Any modern architecture after Pascal (2016) should work (Pascal, Volta, Turing, Ampere, Hopper, Ada Lovelace and Blackwell). Older architectures have not been tested but they may still work (Maxwell and Kepler)</li>
-<li>CUDA 11.6+</li>
+<li>NVIDIA GPU drivers installed</li>
 </ul>
+<h2 id="helper-pre-requisite-installer">Helper pre-requisite installer</h2>
+<p>If you have an older version of python and need to update nvidia drivers, you can run:</p>
+<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>update
+
+<span class="c1"># (only if not present) install nvidia drivers</span>
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>nvidia-driver-570<span class="w"> </span>-y
+
+<span class="c1"># (only if python &lt; 3.12) upgrade python to version +3.12</span>
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>software-properties-common<span class="w"> </span>-y
+sudo<span class="w"> </span>add-apt-repository<span class="w"> </span>ppa:deadsnakes/ppa<span class="w"> </span>-y
+sudo<span class="w"> </span>apt<span class="w"> </span>update
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>python3.12<span class="w"> </span>-y
+sudo<span class="w"> </span>update-alternatives<span class="w"> </span>--install<span class="w"> </span>/usr/bin/python3<span class="w"> </span>python3<span class="w"> </span>/usr/bin/python3.12<span class="w"> </span><span class="m">1</span>
+</code></pre></div>
+
+<p>If you installed a new version and used update-alternatives to set python3, you may need to rewire the apt_pkg:</p>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/usr/lib/python3/dist-packages/
+ls<span class="w"> </span>apt_pkg.cpython*
+sudo<span class="w"> </span>ln<span class="w"> </span>-s<span class="w"> </span>apt_pkg.cpython-310-x86_64-linux-gnu.so<span class="w"> </span>apt_pkg.so
+</code></pre></div>
+
 <h2 id="installing-dependencies">Installing dependencies</h2>
 <p>In this example we are using Ubuntu 24.04 LTS as a base OS, but this will work with any debian-based distribution too.</p>
 <div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>update
 
-<span class="c1"># install nvidia drivers (if not present)</span>
-sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>nvidia-driver-570<span class="w"> </span>-y
-
-<span class="c1"># install python dependencies (if not present)</span>
-sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>python3<span class="w"> </span>python3-pip<span class="w"> </span>python3-venv<span class="w"> </span>python3-dev<span class="w"> </span>-y
+<span class="c1"># (only if not present) install python dependencies</span>
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>python3-pip<span class="w"> </span>python3-venv<span class="w"> </span>python3-dev<span class="w"> </span>-y
 
 <span class="c1"># install docker</span>
+sudo<span class="w"> </span>add-apt-repository<span class="w"> </span>ppa:ubuntu-toolchain-r/test
 sudo<span class="w"> </span>apt-get<span class="w"> </span>update
-sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>ca-certificates<span class="w"> </span>curl<span class="w"> </span>gcc-14<span class="w"> </span>-y
+sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>ca-certificates<span class="w"> </span>curl<span class="w"> </span>gcc-14<span class="w"> </span>g++-14<span class="w"> </span>-y
 sudo<span class="w"> </span>install<span class="w"> </span>-m<span class="w"> </span><span class="m">0755</span><span class="w"> </span>-d<span class="w"> </span>/etc/apt/keyrings
 sudo<span class="w"> </span>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://download.docker.com/linux/ubuntu/gpg<span class="w"> </span>-o<span class="w"> </span>/etc/apt/keyrings/docker.asc
 sudo<span class="w"> </span>chmod<span class="w"> </span>a+r<span class="w"> </span>/etc/apt/keyrings/docker.asc
@@ -621,6 +640,7 @@ sudo<span class="w"> </span>tee<span class="w"> </span>/etc/apt/sources.list.d/d
 
 sudo<span class="w"> </span>apt<span class="w"> </span>update
 sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>docker-ce<span class="w"> </span>docker-ce-cli<span class="w"> </span>containerd.io<span class="w"> </span>docker-buildx-plugin<span class="w"> </span>docker-compose-plugin<span class="w"> </span>-y
+sudo<span class="w"> </span>usermod<span class="w"> </span>-aG<span class="w"> </span>docker<span class="w"> </span><span class="nv">$USER</span>
 
 <span class="c1"># install nvidia container runtime</span>
 curl<span class="w"> </span>-fsSL<span class="w"> </span>https://nvidia.github.io/libnvidia-container/gpgkey<span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>gpg<span class="w"> </span>--dearmor<span class="w"> </span>-o<span class="w"> </span>/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg<span class="w"> </span><span class="se">\</span>
@@ -628,12 +648,14 @@ curl<span class="w"> </span>-fsSL<span class="w"> </span>https://nvidia.github.i
 <span class="w">    </span>sed<span class="w"> </span><span class="s1">&#39;s#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>sudo<span class="w"> </span>tee<span class="w"> </span>/etc/apt/sources.list.d/nvidia-container-toolkit.list
 sudo<span class="w"> </span>apt-get<span class="w"> </span>update
-<span class="nb">export</span><span class="w"> </span><span class="nv">NVIDIA_CONTAINER_TOOLKIT_VERSION</span><span class="o">=</span><span class="m">1</span>.17.8-1
+<span class="nb">export</span><span class="w"> </span><span class="nv">NVIDIA_CONTAINER_TOOLKIT_VERSION</span><span class="o">=</span><span class="m">1</span>.18.2-1
 sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>nvidia-container-toolkit<span class="o">=</span><span class="si">${</span><span class="nv">NVIDIA_CONTAINER_TOOLKIT_VERSION</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>nvidia-container-toolkit-base<span class="o">=</span><span class="si">${</span><span class="nv">NVIDIA_CONTAINER_TOOLKIT_VERSION</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>libnvidia-container-tools<span class="o">=</span><span class="si">${</span><span class="nv">NVIDIA_CONTAINER_TOOLKIT_VERSION</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>libnvidia-container1<span class="o">=</span><span class="si">${</span><span class="nv">NVIDIA_CONTAINER_TOOLKIT_VERSION</span><span class="si">}</span>
+sudo<span class="w"> </span>nvidia-ctk<span class="w"> </span>runtime<span class="w"> </span>configure<span class="w"> </span>--runtime<span class="o">=</span>docker
+sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>docker
 
 <span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;REBOOT REQUIRED! Run: sudo shutdown -r now&quot;</span>
 </code></pre></div>
@@ -748,6 +770,22 @@ kalavai<span class="w"> </span>pool<span class="w"> </span>join<span class="w"> 
         
         
         
+        
+        <a href="#helper-pre-requisite-installer"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            Helper pre-requisite installer
+        </a>
+        
+
+        
+        <a href="#installing-dependencies"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            Installing dependencies
+        </a>
+        
+
         
         
         
