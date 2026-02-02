@@ -9,9 +9,27 @@ tags:
 Kalavai platform supports the use of both NVIDIA and AMD cards. To ensure full compatibility, the worker node must have the following requirements met:
 
 - OS: Linux
-- Python: 3.10+
+- Python: 3.12+
 - GPU: Any modern architecture after Pascal (2016) should work (Pascal, Volta, Turing, Ampere, Hopper, Ada Lovelace and Blackwell). Older architectures have not been tested but they may still work (Maxwell and Kepler)
-- CUDA 11.6+
+- NVIDIA GPU drivers installed
+
+## Helper pre-requisite installer
+
+If you have an older version of python and need to update nvidia drivers, you can run:
+
+```bash
+sudo apt update
+
+# (only if not present) install nvidia drivers
+sudo apt install nvidia-driver-570 -y
+
+# (only if python < 3.12) upgrade python to version +3.12
+sudo apt install software-properties-common -y
+sudo add-apt-repository ppa:deadsnakes/ppa -y
+sudo apt update
+sudo apt install python3.12 -y
+sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1
+```
 
 ## Installing dependencies
 
@@ -20,11 +38,8 @@ In this example we are using Ubuntu 24.04 LTS as a base OS, but this will work w
 ```bash
 sudo apt update
 
-# install nvidia drivers (if not present)
-sudo apt install nvidia-driver-570 -y
-
-# install python dependencies (if not present)
-sudo apt install python3 python3-pip python3-venv python3-dev -y
+# (only if not present) install python dependencies
+sudo apt install python3-pip python3-venv python3-dev -y
 
 # install docker
 sudo apt-get update
@@ -42,6 +57,7 @@ EOF
 
 sudo apt update
 sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+sudo usermod -aG docker $USER
 
 # install nvidia container runtime
 curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \

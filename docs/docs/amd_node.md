@@ -9,7 +9,7 @@ tags:
 Kalavai platform supports the use of both NVIDIA and AMD cards. To ensure full compatibility, the worker node must have the following requirements met:
 
 - OS: Linux; kernel <= 6.11
-- Python: 3.10 - 3.12
+- Python: +3.12
 - GPU: MI200s (gfx90a), MI300 (gfx942), Radeon RX 7900 series (gfx1100)
 - ROCm 6.4.2
 
@@ -34,7 +34,6 @@ EOF
 
 sudo apt update
 sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
-# optional
 sudo usermod -aG docker $USER
 
 # install python3.12+ (dev and venv)
