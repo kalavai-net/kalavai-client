@@ -46,6 +46,7 @@ from kalavai_client.core import (
 )
 from kalavai_client.utils import (
     check_gpu_drivers,
+    get_max_gpus,
     load_template,
     run_cmd,
     user_confirm,
@@ -174,9 +175,7 @@ def input_gpus(non_interactive=False):
     try:
         has_gpus = check_gpu_drivers()
         if has_gpus:
-            max_gpus = len(
-                [r for r in run_cmd("nvidia-smi -L").decode().split("\n") if len(r.strip())>0]
-            )
+            max_gpus = get_max_gpus()
             if non_interactive:
                 num_gpus = max_gpus
             else:
@@ -198,6 +197,18 @@ def show_connection_suggestion():
 ##################
 ## CLI COMMANDS ##
 ##################
+
+@arguably.command
+def check__gpus(*others):
+    """Check if gpus are detected in the local machine"""
+    has_gpus = check_gpu_drivers()
+    if has_gpus:
+        max_gpus = get_max_gpus()
+        console.log(f"Has GPUs: {has_gpus}")
+        console.log(f"Max GPUs: {max_gpus}")
+    else:
+        console.log("[red]No local GPUs detected")
+    
 
 @arguably.command
 def pool__spaces(*others):

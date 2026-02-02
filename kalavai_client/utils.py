@@ -90,9 +90,7 @@ def get_max_gpus():
     try:
         has_gpus = check_gpu_drivers()
         if has_gpus:
-            return len(
-                [r for r in run_cmd("nvidia-smi -L").decode().split("\n") if len(r.strip())>0]
-            )
+            return int(run_cmd("nvidia-smi -L | wc -l").decode())
         else:
             return 0
     except:
