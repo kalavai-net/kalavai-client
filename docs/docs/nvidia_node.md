@@ -31,6 +31,14 @@ sudo apt install python3.12 -y
 sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1
 ```
 
+If you installed a new version and used update-alternatives to set python3, you may need to rewire the apt_pkg:
+
+```bash
+cd /usr/lib/python3/dist-packages/
+ls apt_pkg.cpython*
+sudo ln -s apt_pkg.cpython-310-x86_64-linux-gnu.so apt_pkg.so
+```
+
 ## Installing dependencies
 
 In this example we are using Ubuntu 24.04 LTS as a base OS, but this will work with any debian-based distribution too.
@@ -42,8 +50,9 @@ sudo apt update
 sudo apt install python3-pip python3-venv python3-dev -y
 
 # install docker
+sudo add-apt-repository ppa:ubuntu-toolchain-r/test
 sudo apt-get update
-sudo apt-get install ca-certificates curl gcc-14 -y
+sudo apt-get install ca-certificates curl gcc-14 g++-14 -y
 sudo install -m 0755 -d /etc/apt/keyrings
 sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
 sudo chmod a+r /etc/apt/keyrings/docker.asc
@@ -65,12 +74,14 @@ curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dear
     sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
     sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
 sudo apt-get update
-export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.17.8-1
+export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.18.2-1
 sudo apt-get install -y \
     nvidia-container-toolkit=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
     nvidia-container-toolkit-base=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
     libnvidia-container-tools=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
     libnvidia-container1=${NVIDIA_CONTAINER_TOOLKIT_VERSION}
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker
 
 echo "REBOOT REQUIRED! Run: sudo shutdown -r now"
 ```
