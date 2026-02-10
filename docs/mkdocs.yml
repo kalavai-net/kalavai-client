@@ -26,6 +26,7 @@ nav:
       - BYO Model Gateway: use_cases/self_hosted_llm_pool.md
   - Managed platform:
     - Overview: managed/overview.md
+    - GPU fleets: managed/gpu_fleet.md
 
 theme:
   name: shadcn
