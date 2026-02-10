@@ -5,6 +5,7 @@ from .jobs import jobs
 #from .gpus import gpus
 from .resources import resources
 from .dashboard import dashboard
+from .services import services
 
 __all__ = [
     "dashboard",
@@ -13,4 +14,5 @@ __all__ = [
     #"devices",
     "jobs",
     #"gpus",
-    "resources"]
+    "resources",
+    "services"]

@@ -186,7 +186,7 @@ class ResourcesState(rx.State):
                         used = 0
                     gpu_data = {
                         "node": gpu["node"],
-                        "model": gpu["model"],
+                        "models": "\n\n".join(gpu["models"]),
                         "used": used,
                         "total": gpu["total"]
                     }

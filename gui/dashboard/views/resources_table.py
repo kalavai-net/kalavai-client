@@ -16,7 +16,7 @@ class ResourcesView(TableView):
             show_columns={
                 "node": ("computer", "Where the GPU is located"),
                 "ready": ("check-check", "GPU available (connected and not used)"),
-                "model": ("gpu", "Model ID for the GPU"),
+                "models": ("gpu", "Model ID for the GPU"),
                 "used": ("check", "Used GPU capacity (0-100%)"),
                 "disabled": ("notebook-pen", "Node available to receive jobs"),
                 "issues": ("info", "Node issues")
@@ -24,7 +24,7 @@ class ResourcesView(TableView):
             item_id="Name",
             render_mapping={
                 "node": lambda idx, x: rx.table.cell(self._decorate_name(x, idx)),
-                "model": lambda idx, x: rx.table.cell(rx.text(x, size="1", white_space="pre-line"), max_width="10px"),
+                "models": lambda idx, x: rx.table.cell(rx.text(x, size="1", white_space="pre-line"), max_width="10px"),
                 "used": lambda idx, x: rx.table.cell(render_progress(x)),
                 "ready": lambda idx, x: rx.table.cell(device_status_badge(x)),
                 "disabled": lambda idx, x: rx.table.cell(self._decorate_schedulable(x, idx)),

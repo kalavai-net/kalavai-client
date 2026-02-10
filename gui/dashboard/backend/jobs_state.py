@@ -41,7 +41,7 @@ class JobsState(rx.State):
     current_deploy_step: int = 0
     is_loading: bool = False
     job_metadata: Union[str, None] = None
-    job_logs: Union[str, None] = None
+    job_logs: Union[dict[str, str], None] = None
     job_status: Union[str, None] = None
     log_tail: int = 100
     service_logs: Union[str, None] = None
@@ -161,7 +161,7 @@ class JobsState(rx.State):
         async with self:
             state = await self.get_state(MainState)
         data = {
-            "name": self.template_name,
+            "name": self.template_name.lower(),
             "template_name": self.selected_template,
             "values": form_data,
             "force_namespace": state.selected_user_space,
@@ -412,11 +412,11 @@ class JobsState(rx.State):
                 self.job_metadata = json.dumps(job_data["spec"], indent=3)
             else:
                 self.job_metadata = "Job spec pending..."
-            if "conditions" in job_data and "releases" in job_data["conditions"]:
-                self.job_status = json.dumps(job_data["conditions"]["releases"], indent=3)
+            if "conditions" in job_data:
+                self.job_status = json.dumps(job_data["conditions"], indent=3)
             else:
                 self.job_status = "Status conditions pending..."
-            self.job_logs = ""
+            self.job_logs = {}
         
         try:
             data = request_to_kalavai_core(
@@ -432,23 +432,24 @@ class JobsState(rx.State):
             return rx.toast.error(f"Missing ACCESS_KEY?\n{e}", position="top-center")
         async with self:
             if "error" in data:
-                self.job_logs = data["error"]
+                self.job_logs = {"error": data["error"]}
             else:
-                self.job_logs = ""
+                self.job_logs = {}
                 for match_label, logs in data.items():
                     for name, info in logs.items():
                         if "describe" not in info:
-                            self.job_logs = "Logs not ready yet"
+                            self.job_logs[name] = "Logs not ready yet"
                             continue
                         pod_spec = info["describe"]
                         if "logs" not in info or info["logs"] is None:
-                            self.job_logs = "Logs not ready yet"
+                            self.job_logs[name] = "Logs not ready yet"
                         else:
-                            self.job_logs += "------"
-                            self.job_logs += f"--> Pod: {name} in {pod_spec['spec']['node_name']}"
-                            self.job_logs += "------"
-                            self.job_logs += info["logs"]
-                            self.job_logs += "\n\n"
+                            n_logs = "------"
+                            n_logs += "LOGS"
+                            n_logs += "------\n"
+                            n_logs += info["logs"]
+                            n_logs += "\n\n"
+                            self.job_logs[name] = n_logs
 
     @rx.event(background=True)
     async def set_target_label_mode(self, mode):

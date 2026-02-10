@@ -75,6 +75,19 @@ class JobsView(TableView):
                 _display(item)
             )
 
+    def _format_code_display(self, content):
+        """Helper function to display code/JSON with proper formatting and wrapping."""
+        return rx.text(
+            content,
+            white_space="pre-wrap",
+            font_family="monospace",
+            size="1",
+            color="gray.12",
+            background_color="gray.2",
+            padding="12px",
+            border_radius="6px"
+        )
+
     def _decorate_name(self, item, index):
         return rx.hstack(
             rx.center(
@@ -86,7 +99,7 @@ class JobsView(TableView):
                     rx.dialog.content(
                         rx.hstack(
                             rx.text(f"Job: {item}", size="4", weight="bold"),
-                            rx.button(rx.icon("refresh-cw"), on_click=self.table_state.load_logs(index)),
+                            rx.button(rx.icon("refresh-cw"), on_click=[self.table_state.load_entries, self.table_state.load_logs(index)]),
                             rx.dialog.close(
                                 rx.flex(rx.button("Close", size="2"), justify="end")
                             ),
@@ -108,7 +121,7 @@ class JobsView(TableView):
                                         rx.container(
                                             rx.vstack(
                                                 rx.scroll_area(
-                                                    rx.code_block(self.table_state.job_metadata),
+                                                    self._format_code_display(self.table_state.job_metadata),
                                                     scrollbars="vertical",
                                                     style={"height": 500}
                                                 )
@@ -123,8 +136,8 @@ class JobsView(TableView):
                                         rx.container(
                                             rx.vstack(
                                                 rx.scroll_area(
-                                                    rx.code_block(self.table_state.job_status),
-                                                    #scrollbars="vertical",
+                                                    self._format_code_display(self.table_state.job_status),
+                                                    scrollbars="vertical",
                                                     style={"height": 500},
                                                 ),
                                             ),
@@ -142,11 +155,18 @@ class JobsView(TableView):
                                             ),
                                             rx.container(
                                                 rx.vstack(
-                                                    rx.scroll_area(
-                                                        rx.code_block(self.table_state.job_logs),
-                                                        style={"height": 500},
-                                                        width="100%"
+                                                    rx.foreach(
+                                                        self.table_state.job_logs,
+                                                        lambda x: rx.vstack(
+                                                            rx.text(f"Pod: {x[0]}", size="3"),
+                                                            rx.scroll_area(
+                                                                self._format_code_display(x[1]),
+                                                                style={"height": 500},
+                                                                width="100%"
+                                                            )
+                                                        ),
                                                     ),
+                                                    spacing="6",
                                                     overflow_x="auto",
                                                     overflow_y="auto"
                                                 ),
@@ -315,7 +335,7 @@ class JobsView(TableView):
                             ),
                             rx.vstack(
                                 rx.scroll_area(
-                                    rx.code_block(self.table_state.service_logs),
+                                    self._format_code_display(self.table_state.service_logs),
                                     scrollbars="vertical",
                                     style={"height": 500}
                                 )
