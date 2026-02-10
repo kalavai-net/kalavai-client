@@ -40,7 +40,7 @@ releases:
   - name: job-operator
     namespace: kalavai
     chart: kalavai-job-operator/kalavai-job-operator
-    version: 0.0.12
+    version: 0.0.15
     installed: true
     needs:
     - flux-system/flux

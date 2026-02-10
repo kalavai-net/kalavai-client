@@ -42,7 +42,7 @@ from kalavai_client.core import (
     stop_pool,
     TokenType,
     update_pool,
-    get_user_spaces,
+    fetch_pool_services
 )
 from kalavai_client.utils import (
     check_gpu_drivers,
@@ -701,6 +701,7 @@ def pool__gpus(*others, available=False):
         show_connection_suggestion()
         return
     
+
     gpus = request_to_api(
         method="GET",
         endpoint="/fetch_gpus",
@@ -717,7 +718,7 @@ def pool__gpus(*others, available=False):
             rows.append([
                 gpu["node"],
                 str(gpu["ready"]),
-                gpu["model"],
+                "\n".join(gpu["models"]),
                 str(gpu["available"]),
                 str(gpu["total"])
             ])
@@ -875,6 +876,32 @@ def pool__attach(token, *others, node_name=None):
     # set status to schedulable
     console.log(f"[green] You are connected to {result}")
 
+@arguably.command
+def pool__services(*others, force_namespace: str = None):
+    """
+    Pool Services available
+    """
+    if not has_api_details():
+        show_connection_suggestion()
+        return
+    
+    # services = fetch_pool_services(force_namespace=force_namespace)
+    # print(services)
+    # exit()
+    
+    services = request_to_api(
+        method="GET",
+        endpoint="/fetch_pool_services"
+    )
+    if "error" in services:
+        console.log(f"[red]Error when fetching services: {services}")
+        return
+    
+    console.log("Services available in the pool")
+    for namespace, ns_service in services.items():
+        console.log(f"[green]{namespace} services:")
+        console.log(json.dumps(ns_service, indent=2))
+        console.log("-------------")
 
 @arguably.command
 def storage__create(name, storage, *others, force_namespace: str=None):

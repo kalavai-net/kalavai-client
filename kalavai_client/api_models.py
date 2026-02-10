@@ -14,6 +14,10 @@ class Job(BaseModel):
     status: Optional[str] = None
     host_nodes: Optional[str] = None
 
+class Service(BaseModel):
+    name: Optional[str] = None
+    endpoints: Optional[dict[str, dict]] = {}
+
 class DeviceStatus(BaseModel):
     name: str
     memory_pressure: bool
@@ -27,7 +31,7 @@ class GPU(BaseModel):
     available: int
     total: int
     ready: bool
-    model: str
+    models: list[str]
 
 class TokenType(str, Enum):
     ADMIN = "admin"

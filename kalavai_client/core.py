@@ -71,6 +71,7 @@ from kalavai_client.env import (
 from kalavai_client.api_models import (
     GPU,
     Job,
+    Service,
     TokenType,
     DeviceStatus
 )
@@ -471,9 +472,9 @@ def fetch_job_details(force_namespace=None):
                 status = "running"
             elif any([st in workers_status for st in ["Failed"]]):
                 status = "error"
-            elif any([st in workers_status for st in ["Pending"]]) or len(workers_status) == 0:
+            elif all([st in workers_status for st in ["Pending"]]):
                 status = "pending"
-            elif any([st in workers_status for st in ["Succeeded", "Completed"]]):
+            elif all([st in workers_status for st in ["Succeeded", "Completed"]]):
                 status = "completed"
             else:
                 status = "working"
@@ -692,17 +693,65 @@ def fetch_devices():
 
 def fetch_job_logs(job_name, force_namespace=None, pod_name=None, tail=100):
     return fetch_pod_logs(
-        label_key=TEMPLATE_LABEL,
-        label_value=job_name,
+        labels={TEMPLATE_LABEL: job_name},
         pod_name=pod_name,
         force_namespace=force_namespace,
         tail=tail
     )
 
-def fetch_pod_logs(label_key, label_value, force_namespace=None, pod_name=None, tail=100):
+def fetch_pool_services(force_namespace=None):
     data = {
-        "label": label_key,
-        "value": label_value,
+        "labels": {TEMPLATE_LABEL: None},
+        "force_namespace": force_namespace
+    }
+    try:
+        # send tail as parameter (fetch only last _tail_ lines)
+        data = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
+            method="post",
+            endpoint="/v1/get_services_for_label",
+            data=data,
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        # parse services
+        # info we need:
+        # name
+        # port number(s) only node ports
+        # internal addresses (dns + nodeport)
+        # external addresses (kalavai url + node ports)
+        external_address = urlparse(load_server_info(data_key=KALAVAI_API_URL_KEY, file=USER_LOCAL_SERVER_FILE)).hostname
+        all_services = defaultdict(list)
+        for namespace, services in data.items():
+            for service in services:
+                name = service["metadata"]["name"]
+                endpoints = defaultdict(dict)
+                for port in service["spec"]["ports"]:
+                    if port["name"] in endpoints:
+                        port_name = f"{name}-{port['name']}"
+                    else:
+                        port_name = port["name"]
+                    endpoints[port_name]["internal"] = f"http://{name}.{namespace}.svc:{port['port']}"
+                    if "nodePort" in port:
+                        endpoints[port_name]["external"] = f"{external_address}:{port['nodePort']}"
+
+
+                all_services[namespace].append(
+                    Service(
+                        name=service["metadata"]["name"],
+                        endpoints=endpoints
+                    )
+                )
+        return  all_services
+
+
+    except Exception as e:
+        return {"error": str(e)}
+
+def fetch_pod_logs(labels, force_namespace=None, pod_name=None, tail=100):
+    data = {
+        "labels": labels,
         "tail_lines": tail
     }
     if force_namespace is not None:
@@ -750,15 +799,16 @@ def fetch_gpus(available=False):
             if len(row_gpus) > 0:
                 models, statuses = zip(*row_gpus)
                 #rows.append([node, "\n".join(statuses), "\n".join(models), str(gpus["available"]), str(gpus["capacity"])])
-                all_gpus.extend([
+                status = any(statuses)
+                all_gpus.append(
                     GPU(
                         node=node,
                         ready=status,
-                        model=model,
+                        models=models,
                         available=gpus["available"],
                         total=gpus["capacity"]
-                    ) for model, status in zip(models, statuses)
-                ])
+                    )
+                )
         return all_gpus
 
     except Exception as e:

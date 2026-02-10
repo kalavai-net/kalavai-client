@@ -44,6 +44,7 @@ from kalavai_client.core import (
     fetch_job_details,
     fetch_job_logs,
     fetch_job_templates,
+    fetch_pool_services,
     fetch_template_data,
     fetch_pod_logs,
     deploy_job,
@@ -320,7 +321,11 @@ def get_devices(api_key: str = Depends(verify_api_key)):
     tags=["info"],
     response_description="Logs")
 def get_service_logs(tail: int=100, api_key: str = Depends(verify_api_key)):
-    return fetch_pod_logs(label_key=KALAVAI_SERVICE_LABEL, label_value=KALAVAI_SERVICE_LABEL_VALUE, force_namespace="kalavai", tail=tail)
+    return fetch_pod_logs(
+        labels={KALAVAI_SERVICE_LABEL: KALAVAI_SERVICE_LABEL_VALUE},
+        force_namespace="kalavai",
+        tail=tail
+    )
 
 @app.get("/fetch_resources",
     operation_id="fetch_resources",
@@ -402,6 +407,15 @@ def job_logs(
     response_description="List of job templates")
 def job_templates(api_key: str = Depends(verify_api_key)):
     return fetch_job_templates()
+
+@app.get("/fetch_pool_services",
+    operation_id="fetch_pool_services",
+    summary="Get available job services",
+    description="Retrieves a list of all available job services attach to jobs deployed",
+    tags=["info"],
+    response_description="List of job services")
+def job_services(api_key: str = Depends(verify_api_key)):
+    return fetch_pool_services()
 
 @app.get("/fetch_template_values",
     operation_id="fetch_template_values",
