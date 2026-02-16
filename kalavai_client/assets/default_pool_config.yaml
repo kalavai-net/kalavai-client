@@ -4,7 +4,7 @@ server:
   location: null
   name: "kalavai_cluster"
   mtu: ""
-  watcher_image_tag: "latest" #"2026.1.5"
+  watcher_image_tag: "2026.2.1"
   host_root_path: "/hostroot"
 
 core:
@@ -13,7 +13,7 @@ core:
   #- rocm
   #- lago
   #- opencost
-  #- prometheus
+  #- monitoring
   #- minio
   # "Kalavai API"
   kalavai_api_version: null
@@ -32,11 +32,26 @@ core:
   watcher_replicas: 1
   # "Prometheus and opencost"
   prometheus_service_name: prometheus-kube-prometheus-prometheus
-  prometheus_namespace: prometheus-system
+  prometheus_namespace: monitoring
   prometheus_port: 9090
   # "Prometheus server retention"
   prometheus_server_retention: "30d"
   prometheus_disk_size: "8Gi"
+  prometheus_externalLabel_cluster: kalavai-prod
+  # Thanos
+  thanos_s3_access_key: ""
+  thanos_s3_secret_key: ""
+  thanos_s3_endpoint: s3.fr-par.scw.cloud
+  thanos_s3_region: fr-par
+  thanos_s3_bucket: prod-monitoring
+  thanos_query_replicas: 1
+  thanos_query_frontend_replicas: 1
+  thanos_store_replicas: 1
+  thanos_bucket_replicas: 1
+  # Thanos retention on s3
+  thanos_retention_raw: "30d"
+  thanos_retention_5m: "45d"
+  thanos_retention_1h: "70d"
   # "Longhorn UI port"
   longhorn_ui_port: 30000
   # "Longhorn manager port"
@@ -66,10 +81,11 @@ core:
   # "MinIO root password"
   minio_rootPassword: "password"
   # GPU
-  gpu_deviceSplitCount: 10
+  gpu_deviceSplitCount: 4
   gpu_nodeSchedulerPolicy : binpack
   gpu_gpuSchedulerPolicy : binpack
 
 pool:
   # Name of the storage class to use for the pool
   storage_class_name: "longhorn"
+  
