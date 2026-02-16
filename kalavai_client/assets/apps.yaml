@@ -21,9 +21,11 @@ repositories:
   {% endif %}
   - name: volcano-sh
     url: https://volcano-sh.github.io/helm-charts
-  {% if deploy_prometheus %}
+  {% if deploy_monitoring %}
   - name: prometheus-community # prometheus
     url: https://prometheus-community.github.io/helm-charts
+  - name: bitnami
+    url: https://charts.bitnami.com/bitnami
   {% endif %}
   {% if deploy_opencost %}
   - name: opencost-charts
@@ -53,11 +55,11 @@ releases:
     set:
     - name: helmController.create
       value: true
-    - name: helmController.nodeSelector.kalavai/role
+    - name: server.nodeSelector.{{kalavai_role_label}}
       value: server
     - name: sourceController.create
       value: true
-    - name: sourceController.nodeSelector.kalavai/role
+    - name: server.nodeSelector.{{kalavai_role_label}}
       value: server
     - name: imageAutomationController.create
       value: false
@@ -166,9 +168,19 @@ releases:
   - name: prometheus
     namespace: {{prometheus_namespace}}
     chart: prometheus-community/kube-prometheus-stack #prometheus/prometheus
-    installed: {{deploy_prometheus|default("false", true)}}
+    installed: {{deploy_monitoring|default("false", true)}}
     version: "80.5.0"
     set:
+    - name: alertmanager.alertmanagerSpec.nodeSelector.{{kalavai_role_label}}
+      value: server
+    - name: prometheus.prometheusSpec.nodeSelector.{{kalavai_role_label}}
+      value: server
+    - name: grafana.nodeSelector.{{kalavai_role_label}}
+      value: server
+    - name: prometheusOperator.nodeSelector.{{kalavai_role_label}}
+      value: server
+    - name: kube-state-metrics.nodeSelector.{{kalavai_role_label}}
+      value: server
     - name: server.nodeSelector.{{kalavai_role_label}}
       value: server
     - name: prometheus-pushgateway.enabled
@@ -181,6 +193,104 @@ releases:
       value: {{prometheus_disk_size}}
     - name: prometheus-node-exporter.hostRootFsMount.enabled
       value: false
+    # thanos sidecar
+    # https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#thanosspec
+    - name: prometheus.prometheusSpec.thanos.image
+      value: quay.io/thanos/thanos:v0.41.0
+    - name: prometheus.prometheusSpec.thanos.objectStorageConfig.secret.type
+      value: s3
+    - name: prometheus.prometheusSpec.thanos.objectStorageConfig.secret.config.bucket
+      value: {{thanos_s3_bucket}}
+    - name: prometheus.prometheusSpec.thanos.objectStorageConfig.secret.config.endpoint
+      value: {{thanos_s3_endpoint}}
+    - name: prometheus.prometheusSpec.thanos.objectStorageConfig.secret.config.region
+      value: {{thanos_s3_region}}
+    - name: prometheus.prometheusSpec.thanos.objectStorageConfig.secret.config.access_key
+      value: {{thanos_s3_access_key}}
+    - name: prometheus.prometheusSpec.thanos.objectStorageConfig.secret.config.secret_key
+      value: {{thanos_s3_secret_key}}
+    - name: prometheus.prometheusSpec.thanosService.enabled
+      value: true
+    - name: prometheus.prometheusSpec.externalLabels.cluster
+      value: "{{prometheus_externalLabel_cluster}}"
+    - name: prometheus.prometheusSpec.disableCompaction
+      value: true
+  # thanos (compactor, query, bucket, store gateway) components with custom image
+  - name: thanos
+    needs:
+    - monitoring/prometheus
+    namespace: monitoring
+    chart: bitnami/thanos
+    version: "17.3.1"
+    installed: {{deploy_monitoring|default("false", true)}}
+    set:
+    # Custom Docker images
+    - name: image.registry
+      value: quay.io
+    - name: image.repository
+      value: thanos/thanos
+    - name: image.tag
+      value: v0.41.0
+    - name: global.security.allowInsecureImages
+      value: true
+    # Enable all Thanos components
+    - name: query.nodeSelector.{{kalavai_role_label}}
+      value: "server"
+    - name: queryFrontend.nodeSelector.{{kalavai_role_label}}
+      value: "server"
+    - name: bucketweb.nodeSelector.{{kalavai_role_label}}
+      value: "server"
+    - name: compactor.nodeSelector.{{kalavai_role_label}}
+      value: "server"
+    - name: storegateway.nodeSelector.{{kalavai_role_label}}
+      value: "server"
+    - name: query.enabled
+      value: true
+    - name: query.replicaCount
+      value: {{thanos_query_replicas|default("1")}} # more concurrent users and complex queries
+    - name: query.resources.requests.memory
+      value: "1Gi"
+    - name: query.resources.requests.cpu
+      value: "1000m"
+    - name: storegateway.resources.requests.memory  
+      value: "2Gi"
+    - name: queryFrontend.enabled
+      value: true
+    - name: queryFrontend.service.type
+      value: NodePort
+    - name: queryFrontend.replicaCount  
+      value: {{thanos_query_frontend_replicas|default("1")}} # better query caching
+    - name: compactor.enabled
+      value: true
+    - name: compactor.retentionResolutionRaw
+      value: {{thanos_retention_raw|default("30d")}}
+    - name: compactor.retentionResolution5m
+      value: {{thanos_retention_5m|default("60d")}}
+    - name: compactor.retentionResolution1h
+      value: {{thanos_retention_1h|default("90d")}}
+    - name: storegateway.enabled
+      value: true
+    - name: storegateway.replicaCount
+      value: {{thanos_store_replicas|default("1")}} # better s3 data serving
+    - name: bucketweb.enabled
+      value: true
+    - name: bucketweb.replicaCount
+      value: {{thanos_bucket_replicas|default("1")}}
+    # - name: ruler.enabled
+    #   value: true
+    # - name: ruler.replicaCount
+    #   value: {{thanos_ruler_replicas|default("1")}}
+    # S3 object storage configuration
+    - name: objstoreConfig
+      value: |
+        type: s3
+        config:
+          bucket: {{thanos_s3_bucket}}
+          endpoint: {{thanos_s3_endpoint}}
+          region: {{thanos_s3_region}}
+          access_key: {{thanos_s3_access_key}}
+          secret_key: {{thanos_s3_secret_key}}
+          insecure: true
   - name: volcano-sh
     namespace: volcano-system
     chart: volcano-sh/volcano
@@ -226,7 +336,7 @@ releases:
     - name: deployment.replicas
       value: {{watcher_replicas}}
     - name: image_tag
-      value: "{{watcher_image_tag}}" #"v2025.07.34"
+      value: {{watcher_image_tag}}
     - name: deployment.in_cluster
       value: "True"
     - name: deployment.kalavai_username_key
@@ -242,7 +352,7 @@ releases:
     - name: deployment.is_shared_pool
       value: {{watcher_is_shared_pool}}
     - name: deployment.prometheus_endpoint
-      value: "http://{{prometheus_service_name}}.{{prometheus_namespace}}.svc.cluster.local:{{prometheus_port}}"
+      value: "http://thanos-query-frontend.{{prometheus_namespace}}:{{prometheus_port}}"
     - name: deployment.opencost_endpoint
       value: {{opencost_endpoint}}
     - name: deployment.longhorn_manager_endpoint
