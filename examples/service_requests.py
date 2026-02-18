@@ -10,12 +10,12 @@ import signal
 from typing import List, Dict, Any
 
 # Configuration
-API_URL = "http://51.159.177.196:30528/v1/chat/completions" #"https://api.cogenai.kalavai.net/v1/chat/completions"  # Replace with your OpenAI-compatible API URL
-API_KEY = "sk-25021984"  # Replace with your actual API key
+API_URL = "http://51.159.177.196:32008/v1/chat/completions" #"https://api.cogenai.kalavai.net/v1/chat/completions"  # Replace with your OpenAI-compatible API URL
+API_KEY = "sk-1234"  # Replace with your actual API key
 DEFAULT_MODEL = "Qwen/Qwen3-4B"  # Default model name
 NUM_PARALLEL_CALLS = 100  # Change this to adjust number of parallel requests
 NUM_REQUESTS = 100  # Total number of requests to make
-MAX_OUTPUT_TOKENS = 250
+MAX_OUTPUT_TOKENS = 100
 PROMPT_TEMPLATE = "Answer the following question: {topic}"
 
 # Global flag for graceful shutdown
