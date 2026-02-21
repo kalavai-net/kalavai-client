@@ -1,4 +1,5 @@
 gui/
+ui/
 env/
 test/
 docker/

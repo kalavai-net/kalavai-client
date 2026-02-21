@@ -37,7 +37,7 @@ KALAVAI_TEMPLATE_REPOSITORIES = [
 ]
 TEMPLATE_LABEL = "kalavai.job.name"
 KALAVAI_SERVICE_LABEL = "app"
-KALAVAI_SERVICE_LABEL_VALUE = "kube-watcher-api"
+KALAVAI_SERVICE_LABEL_VALUE = "kalavai-watcher-app"
 STORAGE_CLASS_LABEL = "kalavai.storage.enabled"
 USER_NODE_LABEL = "kalavai.cluster.user"
 SERVER_IP_KEY = "server_ip"
