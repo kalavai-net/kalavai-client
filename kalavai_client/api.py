@@ -7,6 +7,7 @@ import time
 import logging
 from argparse import ArgumentParser
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Depends, Query, Security
 from fastapi.security.api_key import APIKeyHeader
 from typing import Optional, List
@@ -78,12 +79,25 @@ from kalavai_client.core import (
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("Initializing Helm template repositories...")
+    result = update_local_repositories()
+    if isinstance(result, dict) and "error" in result:
+        logger.warning(f"Failed to update Helm repos on startup: {result['error']}")
+    else:
+        logger.info("Helm template repositories updated successfully")
+    yield
+
+
 app = FastAPI(
     title="Kalavai Bridge API",
     description="API for managing Kalavai pools, jobs, and nodes",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 API_KEY_NAME = "X-API-Key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
