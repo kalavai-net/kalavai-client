@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kalavai-ui-secret
+type: Opaque
+stringData:
+  access-key: "your-access-key"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kalavai-ui
+  labels:
+    app: kalavai-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kalavai-ui
+  template:
+    metadata:
+      labels:
+        app: kalavai-ui
+    spec:
+      containers:
+        - name: kalavai-ui
+          image: ghcr.io/kalavai-net/kalavai-ui:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NEXT_PUBLIC_KALAVAI_API_URL
+              value: "http://your-kalavai-api-server:49152"
+            - name: NEXT_PUBLIC_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: kalavai-ui-secret
+                  key: access-key
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kalavai-ui
+spec:
+  selector:
+    app: kalavai-ui
+  ports:
+    - port: 80
+      targetPort: 3000
+  type: ClusterIP
