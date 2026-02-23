@@ -217,6 +217,11 @@ class KalavaiApiClient {
     return this.post('resume_agent');
   }
 
+  // Repository Management
+  async updateRepositories() {
+    return this.post('update_repositories');
+  }
+
   // IP Addresses
   async getIpAddresses(subnet?: string) {
     return this.get('get_ip_addresses', { params: { subnet } });
