@@ -5,7 +5,7 @@ shift
 
 ray_port=6379
 ray_init_timeout=360000
-ray_object_store_memory=4000000000
+ray_object_store_memory=4
 ray_block=""
 
 round() {
@@ -47,7 +47,7 @@ case "$subcommand" in
     fi
 
     for (( i=0; i < $ray_init_timeout; i+=5 )); do
-      memory=$(echo "$ray_object_store_memory*0.75" | bc -l)
+      memory=$(echo "$ray_object_store_memory*950000000" | bc -l)
       round_mem=$(round ${memory} 0)
       RAY_BACKEND_LOG_LEVEL=error ray start --address=$ray_address:$ray_port $ray_block --object-store-memory=$round_mem
       if [ $? -eq 0 ]; then
@@ -93,7 +93,7 @@ case "$subcommand" in
     fi
 
     # start the ray daemon
-    memory=$(echo "$ray_object_store_memory*0.75" | bc -l)
+    memory=$(echo "$ray_object_store_memory*950000000" | bc -l)
     round_mem=$(round ${memory} 0)
     RAY_BACKEND_LOG_LEVEL=error ray start --head --port=$ray_port --object-store-memory=$round_mem $ray_block
     # --include-dashboard=True --dashboard-host=0.0.0.0

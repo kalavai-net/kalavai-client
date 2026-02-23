@@ -3,8 +3,8 @@
 Base image for templates that need ray installed.
 
 ```bash
-docker build -t kalavai/ray-base:latest .
-docker push kalavai/ray-base:latest
+docker build -t ghcr.io/kalavai-net/ray-base:latest .
+docker push ghcr.io/kalavai-net/ray-base:latest
 ```
 
 Includes:
