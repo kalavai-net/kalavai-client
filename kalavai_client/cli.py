@@ -904,6 +904,25 @@ def pool__services(*others, force_namespace: str = None):
         console.log("-------------")
 
 @arguably.command
+def repositories__update(*others):
+    """
+    Update local Helm repositories
+    """
+    if not has_api_details():
+        show_connection_suggestion()
+        return
+    
+    result = request_to_api(
+        method="POST",
+        endpoint="/update_repositories"
+    )
+
+    if "error" in result:
+        console.log(f"[red]{result['error']}")
+    else:
+        console.log(f"[green]Repositories updated successfully: {result}")
+
+@arguably.command
 def storage__create(name, storage, *others, force_namespace: str=None):
     """
     Create storage for the cluster

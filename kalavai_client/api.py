@@ -629,6 +629,20 @@ def agent_resume():
     result = resume_agent()
     return result
 
+@app.post("/update_repositories",
+    operation_id="update_repositories",
+    summary="Update local Helm repositories",
+    description="Updates the local Helm repositories by adding configured repositories and refreshing their contents. This ensures access to the latest charts and templates.",
+    tags=["repository_management"],
+    response_description="Result of repository update")
+def update_repositories(api_key: str = Depends(verify_api_key)):
+    """Update local Helm repositories"""
+    result = update_local_repositories()
+    if "error" in result:
+        logger.error(result)
+        raise HTTPException(status_code=500, detail=result["error"])
+    return result
+
 @app.get("/get_ip_addresses",
     operation_id="get_ip_addresses",
     summary="Get available IP addresses for pool configuration",
