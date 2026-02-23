@@ -296,6 +296,17 @@ releases:
     chart: volcano-sh/volcano
     installed: true
     version: "1.13.0"
+    values:
+    - custom:
+        default_affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: "{{kalavai_role_label}}"
+                      operator: In
+                      values:
+                        - "server"
   - name: kuberay
     namespace: kuberay
     chart: kuberay/kuberay-operator
