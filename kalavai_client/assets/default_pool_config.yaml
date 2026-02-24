@@ -4,7 +4,7 @@ server:
   location: null
   name: "kalavai_cluster"
   mtu: ""
-  watcher_image_tag: "2026.2.2"
+  watcher_image_tag: "2026.2.3"
   host_root_path: "/hostroot"
 
 core:
@@ -27,8 +27,8 @@ core:
   helios_harvest_interval: 120
   # "Watcher is shared pool"
   watcher_is_shared_pool: "True"
-  watcher_resources_memory: 512Mi
-  watcher_resources_cpu: 0.5
+  watcher_resources_memory: 1Gi
+  watcher_resources_cpu: 1
   watcher_replicas: 1
   # "Prometheus and opencost"
   prometheus_service_name: prometheus-kube-prometheus-prometheus # switch to thanos if enabled

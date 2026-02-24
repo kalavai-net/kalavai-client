@@ -374,6 +374,10 @@ releases:
       value: {{watcher_resources_memory}}
     - name: resources.limits.cpu
       value: {{watcher_resources_cpu}}
+    - name: resources.requests.memory
+      value: {{watcher_resources_memory}}
+    - name: resources.requests.cpu
+      value: {{watcher_resources_cpu}}
     - name: deployment.nodeSelector.{{kalavai_role_label}}
       value: "server"
   - name: hami-vgpu
