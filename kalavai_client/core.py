@@ -221,6 +221,62 @@ def fetch_resources(node_names: list[str]=None):
         
     return {"total": total, "available": available}
 
+def get_compute_usage(
+    start_time: int,
+    end_time: int,
+    node_names: list[str]=None,
+    namespaces: list[str]=None,
+    node_labels: list[str]=None
+):
+    data = {
+        "node_names": node_names,
+        #"namespaces": namespaces,
+        "start_time": start_time,
+        "end_time": end_time,
+        #"node_labels": node_labels
+    }
+    try:
+        data = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
+            method="post",
+            data=data,
+            endpoint="/v1/get_compute_usage",
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        return data
+    except Exception as e:
+        return {"error": str(e)}
+
+def get_nodes_metrics(
+    start_time: int,
+    end_time: int,
+    node_names: list[str]=None,
+    node_labels: list[str]=None,
+    aggregate_results: bool=True
+):
+    data = {
+        "node_names": node_names,
+        "start_time": start_time,
+        "end_time": end_time,
+        "node_labels": node_labels,
+        "aggregate_results": aggregate_results
+    }
+    try:
+        data = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
+            method="post",
+            data=data,
+            endpoint="/v1/get_nodes_stats",
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        return data
+    except Exception as e:
+        return {"error": str(e)}
+
 def get_user_spaces():
 
     try:
@@ -728,10 +784,11 @@ def fetch_pool_services(force_namespace=None):
                 name = service["metadata"]["name"]
                 endpoints = defaultdict(dict)
                 for port in service["spec"]["ports"]:
-                    if port["name"] in endpoints:
-                        port_name = f"{name}-{port['name']}"
+                    raw_name = port.get("name") or str(port["port"])
+                    if raw_name in endpoints:
+                        port_name = f"{name}-{raw_name}"
                     else:
-                        port_name = port["name"]
+                        port_name = raw_name
                     endpoints[port_name]["internal"] = f"http://{name}.{namespace}.svc:{port['port']}"
                     if "nodePort" in port:
                         endpoints[port_name]["external"] = f"{external_address}:{port['nodePort']}"

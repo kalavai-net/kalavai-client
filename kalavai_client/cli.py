@@ -904,6 +904,54 @@ def pool__services(*others, force_namespace: str = None):
         console.log("-------------")
 
 @arguably.command
+def pool__usage(*others, start_time: str="24h", end_time: str="now"):
+    from kalavai_client.api import get_compute_usage
+
+    devices = request_to_api(
+        method="GET",
+        endpoint="/fetch_devices"
+    )
+    if "error" in devices:
+        console.log(f"[red]Error when fetching devices: {devices}")
+        return
+    devices = [device["name"] for device in devices]
+
+    console.log(f"Getting usage for: {devices}")
+    usage = get_compute_usage(
+        node_names=devices,
+        start_time=start_time,
+        end_time=end_time
+    )
+    if "error" in usage:
+        console.log(f"[red]Error when fetching usage: {usage}")
+        return
+    console.log(json.dumps(usage, indent=2))
+
+
+@arguably.command
+def pool__metrics(*others, start_time: str="24h", end_time: str="now"):
+    from kalavai_client.api import get_nodes_metrics
+
+    devices = request_to_api(
+        method="GET",
+        endpoint="/fetch_devices"
+    )
+    if "error" in devices:
+        console.log(f"[red]Error when fetching devices: {devices}")
+        return
+    devices = [device["name"] for device in devices]
+    console.log(f"Getting metrics for: {devices}")
+    metrics = get_nodes_metrics(
+        node_names=devices,
+        start_time=start_time,
+        end_time=end_time
+    )
+    if "error" in metrics:
+        console.log(f"[red]Error when fetching metrics: {metrics}")
+        return
+    console.log(json.dumps(metrics, indent=2))
+
+@arguably.command
 def repositories__update(*others):
     """
     Update local Helm repositories

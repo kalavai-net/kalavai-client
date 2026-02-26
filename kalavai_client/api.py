@@ -21,6 +21,8 @@ from kalavai_client.env import (
     KALAVAI_SERVICE_LABEL_VALUE
 )
 from kalavai_client.api_models import (
+    NodeMetricsRequest,
+    ComputeUsageRequest,
     CreatePoolRequest,
     JoinPoolRequest,
     StopPoolRequest,
@@ -73,7 +75,9 @@ from kalavai_client.core import (
     get_pool_credentials,
     is_watcher_alive,
     update_local_repositories,
-    TokenType
+    TokenType,
+    get_compute_usage,
+    get_nodes_metrics
 )
 
 logger = logging.getLogger(__name__)
@@ -317,6 +321,42 @@ def generate_worker_config(request: WorkerConfigRequest, api_key: str = Depends(
         num_gpus=request.num_gpus,
         ip_address=request.ip_address,
         storage_compatible=request.storage_compatible)
+
+@app.get("/get_compute_usage",
+    operation_id="get_compute_usage",
+    summary="Get compute usage",
+    description="Retrieves information about all compute devices (nodes) currently connected to the Kalavai pool, including their status, available resources, and current workload distribution.",
+    tags=["info"],
+    response_description="List of devices")
+def compute_usage(request: ComputeUsageRequest, api_key: str = Depends(verify_api_key)):
+    """Get compute usage"""
+    if FORCED_USER_SPACE_NAME is not None:
+        namespaces = [FORCED_USER_SPACE_NAME]
+    else:
+        namespaces = get_user_spaces()
+    return get_compute_usage(
+        start_time=request.start_time,
+        end_time=request.end_time,
+        node_names=request.node_names,
+        namespaces=namespaces,
+        node_labels=request.node_labels
+    )
+
+@app.get("/get_nodes_metrics",
+    operation_id="get_nodes_metrics",
+    summary="Get nodes metrics",
+    description="Retrieves information about node usage on key resources such as CPU, memory and GPU.",
+    tags=["info"],
+    response_description="List of devices")
+def nodes_metrics(request: NodeMetricsRequest, api_key: str = Depends(verify_api_key)):
+    """Get nodes metrics"""
+    return get_nodes_metrics(
+        start_time=request.start_time,
+        end_time=request.end_time,
+        node_names=request.node_names,
+        node_labels=request.node_labels,
+        aggregate_results=request.aggregate_results
+    )
 
 @app.get("/fetch_devices",
     operation_id="fetch_devices",

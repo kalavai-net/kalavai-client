@@ -3,6 +3,19 @@ from typing import List, Dict, Union, Optional, Literal
 from enum import Enum
 
 
+class ComputeUsageRequest(BaseModel):
+    start_time: str
+    end_time: str
+    node_names: Optional[List[str]] = None
+    node_labels: Optional[Dict[str, str]] = None
+
+class NodeMetricsRequest(BaseModel):
+    node_names: Optional[List[str]] = None
+    node_labels: Optional[Dict[str, str]] = None
+    start_time: str
+    end_time: str
+    aggregate_results: Optional[bool] = True
+
 class Job(BaseModel):
     job_id: Optional[str] = None
     spec: Optional[dict] = {}
