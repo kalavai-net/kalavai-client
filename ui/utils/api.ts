@@ -93,14 +93,38 @@ class KalavaiApiClient {
   }
 
   // Info
-  async fetchDevices() {
-    return this.get('fetch_devices');
+  async fetchDevices(nodeLabels?: Record<string, string>) {
+    return this.post('fetch_devices', { node_labels: nodeLabels });
+  }
+
+  async getComputeUsage(data: {
+    start_time: string;
+    end_time: string;
+    node_names?: string[];
+    node_labels?: Record<string, string>;
+  }) {
+    return this.post('fetch_compute_usage', data);
+  }
+
+  async fetchNodesMetrics(data: {
+    start_time: string;
+    end_time: string;
+    node_names?: string[];
+    node_labels?: Record<string, string>;
+    resources?: string[];
+    aggregate_results?: boolean;
+  }) {
+    return this.post('fetch_nodes_metrics', data);
   }
 
   async fetchResources(nodes?: string[]) {
-    const response = await this.client.get('/fetch_resources', {
-      data: nodes ? { nodes } : undefined,
+    console.log('fetchResources called with nodes:', nodes);
+    const payload = nodes ? { nodes } : {};
+    console.log('Sending payload:', payload);
+    const response = await this.client.post('/fetch_resources', {
+      data: payload,
     });
+    console.log('fetchResources response:', response.data);
     return response.data;
   }
 

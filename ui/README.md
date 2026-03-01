@@ -101,9 +101,11 @@ The UI communicates with the Kalavai core API via REST endpoints. The API client
 - `cordonNodes()` / `uncordonNodes()` - Control node scheduling
 
 ### Resource Monitoring
-- `fetchDevices()` - List all compute devices
+- `fetchDevices(nodeLabels?)` - List all compute devices (optionally filtered by node labels)
 - `fetchResources()` - Get resource utilization
 - `fetchGpus()` - Get GPU information
+- `getComputeUsage(data)` - Get compute usage metrics for time range
+- `fetchNodesMetrics(data)` - Get node metrics time series data
 
 ### Job Management
 - `fetchJobDetails()` - List deployed jobs

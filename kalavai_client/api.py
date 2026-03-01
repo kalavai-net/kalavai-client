@@ -33,7 +33,8 @@ from kalavai_client.api_models import (
     CustomDeployJobRequest,
     NodesActionRequest,
     NodeLabelsRequest,
-    WorkerConfigRequest
+    WorkerConfigRequest,
+    FetchDevicesRequest
 )
 from kalavai_client.core import (
     create_pool,
@@ -107,6 +108,8 @@ API_KEY_NAME = "X-API-Key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 MASTER_API_KEY = os.getenv("MASTER_API_KEY", None)
 FORCED_USER_SPACE_NAME = os.getenv("FORCED_USER_SPACE_NAME", None)
+RINGFENCE_NODE_LABEL = os.getenv("RINGFENCE_NODE_LABEL", None)
+RINGFENCE_NODE_VALUE = os.getenv("RINGFENCE_NODE_VALUE", None)
 
 
 ################################
@@ -322,8 +325,8 @@ def generate_worker_config(request: WorkerConfigRequest, api_key: str = Depends(
         ip_address=request.ip_address,
         storage_compatible=request.storage_compatible)
 
-@app.get("/get_compute_usage",
-    operation_id="get_compute_usage",
+@app.post("/fetch_compute_usage",
+    operation_id="fetch_compute_usage",
     summary="Get compute usage",
     description="Retrieves information about all compute devices (nodes) currently connected to the Kalavai pool, including their status, available resources, and current workload distribution.",
     tags=["info"],
@@ -342,8 +345,8 @@ def compute_usage(request: ComputeUsageRequest, api_key: str = Depends(verify_ap
         node_labels=request.node_labels
     )
 
-@app.get("/get_nodes_metrics",
-    operation_id="get_nodes_metrics",
+@app.post("/fetch_nodes_metrics",
+    operation_id="fetch_nodes_metrics",
     summary="Get nodes metrics",
     description="Retrieves information about node usage on key resources such as CPU, memory and GPU.",
     tags=["info"],
@@ -355,18 +358,23 @@ def nodes_metrics(request: NodeMetricsRequest, api_key: str = Depends(verify_api
         end_time=request.end_time,
         node_names=request.node_names,
         node_labels=request.node_labels,
+        resources=request.resources,
         aggregate_results=request.aggregate_results
     )
 
-@app.get("/fetch_devices",
+@app.post("/fetch_devices",
     operation_id="fetch_devices",
     summary="Get list of all compute devices in the pool",
     description="Retrieves information about all compute devices (nodes) currently connected to the Kalavai pool, including their status, available resources, and current workload distribution.",
     tags=["info"],
     response_description="List of devices")
-def get_devices(api_key: str = Depends(verify_api_key)):
+def get_devices(request: FetchDevicesRequest, api_key: str = Depends(verify_api_key)):
     """Get list of available devices"""
-    return fetch_devices()
+    if RINGFENCE_NODE_LABEL is not None and RINGFENCE_NODE_VALUE is not None:
+        if request.node_labels is None:
+            request.node_labels = {}
+        request.node_labels = {RINGFENCE_NODE_LABEL: RINGFENCE_NODE_VALUE, **request.node_labels}
+    return fetch_devices(request.node_labels)
 
 @app.get("/fetch_service_logs",
     operation_id="fetch_service_logs",
@@ -381,7 +389,7 @@ def get_service_logs(tail: int=100, api_key: str = Depends(verify_api_key)):
         tail=tail
     )
 
-@app.get("/fetch_resources",
+@app.post("/fetch_resources",
     operation_id="fetch_resources",
     summary="Get resource utilization for specific nodes",
     description="Retrieves detailed resource information (CPU, memory, GPU usage) for the pool; optionally for a list of specified nodes in the pool (as {'nodes': node_list}). This helps monitor resource utilization and plan workload distribution.",
@@ -389,7 +397,16 @@ def get_service_logs(tail: int=100, api_key: str = Depends(verify_api_key)):
     response_description="Resource information")
 def resources(request: Optional[NodesActionRequest]=NodesActionRequest(), api_key: str = Depends(verify_api_key)):
     """Get available resources"""
-    return fetch_resources(node_names=request.nodes)
+    if RINGFENCE_NODE_LABEL is not None and RINGFENCE_NODE_VALUE is not None:
+        if request.node_labels is None:
+            request.node_labels = {}
+        request.node_labels = {RINGFENCE_NODE_LABEL: RINGFENCE_NODE_VALUE, **request.node_labels}
+    
+    print(f"DEBUG: Final request.nodes: {request.nodes}")
+    print(f"DEBUG: Final request.node_labels: {request.node_labels}")
+    
+    result = fetch_resources(node_names=request.nodes, node_labels=request.node_labels)
+    return result
 
 @app.get("/fetch_job_names",
     operation_id="fetch_job_names",
@@ -526,6 +543,10 @@ def job_deploy(request: DeployJobRequest, api_key: str = Depends(verify_api_key)
     - **force_namespace**: Optional namespace override
     - **target_labels**: Optional target node labels
     """
+    if RINGFENCE_NODE_LABEL is not None and RINGFENCE_NODE_VALUE is not None:
+        if request.target_labels is None:
+            request.target_labels = {}
+        request.target_labels = {RINGFENCE_NODE_LABEL: RINGFENCE_NODE_VALUE, **request.target_labels}
     result = deploy_job(
         job_name=request.name,
         template_repo=request.template_repo,
@@ -547,6 +568,10 @@ def custom_job_deploy(request: CustomDeployJobRequest, api_key: str = Depends(ve
     """
     Deploy a custom job with the following parameters:
     """
+    if RINGFENCE_NODE_LABEL is not None and RINGFENCE_NODE_VALUE is not None:
+        if request.target_labels is None:
+            request.target_labels = {}
+        request.target_labels = {RINGFENCE_NODE_LABEL: RINGFENCE_NODE_VALUE, **request.target_labels}
     result = deploy_test_job(
         template_str=request.template_str,
         values_dict=request.values,

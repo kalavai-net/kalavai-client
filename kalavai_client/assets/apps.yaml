@@ -42,7 +42,7 @@ releases:
   - name: job-operator
     namespace: kalavai
     chart: kalavai-job-operator/kalavai-job-operator
-    version: 0.0.15
+    version: 0.0.16
     installed: true
     needs:
     - flux-system/flux
@@ -339,34 +339,34 @@ releases:
   - name: kalavai-watcher
     namespace: kalavai
     chart: kalavai/kalavai-watcher
-    version: "0.4.22"
+    version: "0.4.24"
     installed: true
     set:
     - name: namespace
       value: kalavai
     - name: deployment.replicas
       value: {{watcher_replicas}}
-    - name: image_tag
+    - name: imageTag
       value: {{watcher_image_tag}}
-    - name: deployment.in_cluster
+    - name: deployment.inCluster
       value: "True"
-    - name: deployment.kalavai_username_key
+    - name: deployment.kalavaiUsernameKey
       value: "{{kalavai_username_key}}"
-    - name: deployment.use_auth_key
+    - name: deployment.useAuthKey
       value: "True"
-    - name: deployment.admin_key
+    - name: deployment.adminKey
       value: "{{watcher_admin_key}}"
-    - name: deployment.write_key
+    - name: deployment.writeKey
       value: "{{watcher_write_key}}"
-    - name: deployment.readonly_key
+    - name: deployment.readonlyKey
       value: "{{watcher_readonly_key}}"
-    - name: deployment.is_shared_pool
+    - name: deployment.isSharedPool
       value: {{watcher_is_shared_pool}}
-    - name: deployment.prometheus_endpoint
+    - name: deployment.prometheusEndpoint #TODO dynamically point to prometheus / thanos
       value: "http://thanos-query-frontend.{{prometheus_namespace}}:{{prometheus_port}}"
-    - name: deployment.opencost_endpoint
+    - name: deployment.opencostEndpoint
       value: {{opencost_endpoint}}
-    - name: deployment.longhorn_manager_endpoint
+    - name: deployment.longhornManagerEndpoint
       value: {{longhorn_manager_endpoint}}
     - name: service.nodePort
       value: {{watcher_port}}

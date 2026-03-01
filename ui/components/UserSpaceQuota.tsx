@@ -59,8 +59,8 @@ function QuotaMeter({
       </div>
 
       <div className="flex items-baseline gap-1">
-        <span className="text-lg font-bold tabular-nums leading-none">{used}</span>
-        <span className="text-xs text-muted-foreground">/ {max} {unit}</span>
+        <span className="text-lg font-bold tabular-nums leading-none">{parseFloat(used.toFixed(2))}</span>
+        <span className="text-xs text-muted-foreground">/ {parseFloat(max.toFixed(2))} {unit}</span>
       </div>
     </div>
   );

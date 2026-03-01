@@ -6,14 +6,15 @@ from enum import Enum
 class ComputeUsageRequest(BaseModel):
     start_time: str
     end_time: str
-    node_names: Optional[List[str]] = None
-    node_labels: Optional[Dict[str, str]] = None
+    node_names: Optional[List[str]] = Field(None, description="List of node names to perform the action on, defaults to None")
+    node_labels: Optional[Dict[str, str]] = Field(None, description="List of node labels to perform the action on, defaults to None")
 
 class NodeMetricsRequest(BaseModel):
-    node_names: Optional[List[str]] = None
-    node_labels: Optional[Dict[str, str]] = None
+    node_names: Optional[List[str]] = Field(None, description="List of node names to perform the action on, defaults to None")
+    node_labels: Optional[Dict[str, str]] = Field(None, description="List of node labels to perform the action on, defaults to None")
     start_time: str
     end_time: str
+    resources: List[str] = ["amd_com_gpu", "nvidia_com_gpu"]
     aggregate_results: Optional[bool] = True
 
 class Job(BaseModel):
@@ -69,6 +70,7 @@ class WorkerConfigRequest(BaseModel):
 
 class NodesActionRequest(BaseModel):
     nodes: list[str] = Field(None, description="List of node names to perform the action on, defaults to None")
+    node_labels: dict[str, str] = Field(None, description="List of node labels to perform the action on, defaults to None")
 
 class JoinPoolRequest(BaseModel):
     token: str = Field(description="Token to join the pool")
@@ -110,3 +112,6 @@ class NodeLabelsRequest(BaseModel):
 class UserQuotaRequest(BaseModel):
     user_id: str = Field(description="User id for which to set the resource quota (namespace)")
     quota: dict = Field(description="Dictionary including the quota to be set for the user")
+
+class FetchDevicesRequest(BaseModel):
+    node_labels: Optional[Union[dict[str, str], None]] = Field(None, description="Optional target node labels")

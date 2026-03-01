@@ -18,8 +18,6 @@ interface ResourceData {
   online_gpus: number;
   total_ram: number;
   online_ram: number;
-  total_jobs: number;
-  online_jobs: number;
   total_devices: number;
   online_devices: number;
 }
@@ -37,10 +35,13 @@ function GaugeCard({
   total: number;
   unit: string;
 }) {
+  const usedPct = total === 0 ? 0 : Math.min(100, ((total - value) / total) * 100);
   const data = [
     { name: 'Available', value: value },
     { name: 'Used', value: Math.max(0, total - value) },
   ];
+
+  const fmt = (n: number) => parseFloat(n.toFixed(2));
 
   return (
     <div className="bg-card border border-border rounded-lg p-6">
@@ -49,7 +50,7 @@ function GaugeCard({
         <h3 className="font-medium">{title}</h3>
       </div>
       
-      <div className="h-48">
+      <div className="h-48 relative">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -66,14 +67,17 @@ function GaugeCard({
                 <Cell key={`cell-${index}`} fill={COLORS[index]} />
               ))}
             </Pie>
-            <Tooltip />
+            <Tooltip formatter={(v: number) => parseFloat(v.toFixed(2))} />
           </PieChart>
         </ResponsiveContainer>
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <span className="text-xl font-bold text-foreground">{usedPct.toFixed(1)}%</span>
+        </div>
       </div>
       
       <div className="text-center mt-2">
-        <span className="text-2xl font-bold">{value}</span>
-        <span className="text-muted-foreground"> / {total} {unit}</span>
+        <span className="text-2xl font-bold">{fmt(value)}</span>
+        <span className="text-muted-foreground"> / {fmt(total)} {unit}</span>
       </div>
     </div>
   );
@@ -99,7 +103,7 @@ function StatCard({
         <div>
           <p className="text-sm text-muted-foreground">{title}</p>
           <p className="text-xl font-semibold">
-            {value} <span className="text-sm text-muted-foreground">/ {total}</span>
+            {parseFloat(value.toFixed(2))} <span className="text-sm text-muted-foreground">/ {parseFloat(total.toFixed(2))}</span>
           </p>
         </div>
       </div>
@@ -110,6 +114,7 @@ function StatCard({
 function DashboardContent() {
   const { selectedUserSpace } = useConnectionStore();
   const [isLoading, setIsLoading] = useState(true);
+  const [jobCount, setJobCount] = useState(0);
   const [resources, setResources] = useState<ResourceData>({
     total_cpus: 0,
     online_cpus: 0,
@@ -117,8 +122,6 @@ function DashboardContent() {
     online_gpus: 0,
     total_ram: 0,
     online_ram: 0,
-    total_jobs: 0,
-    online_jobs: 0,
     total_devices: 0,
     online_devices: 0,
   });
@@ -130,10 +133,18 @@ function DashboardContent() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [resourcesData, jobNames] = await Promise.all([
+      console.log('Dashboard: Loading data...');
+      const [resourcesData, jobDetails] = await Promise.all([
         kalavaiApi.fetchResources(),
-        kalavaiApi.fetchJobNames(),
+        kalavaiApi.fetchJobDetails(selectedUserSpace ?? undefined),
       ]);
+
+      console.log('Dashboard: Raw resources response:', resourcesData);
+      console.log('Dashboard: Resources keys:', Object.keys(resourcesData || {}));
+      console.log('Dashboard: Resources total:', resourcesData?.total);
+      console.log('Dashboard: Resources available:', resourcesData?.available);
+
+      setJobCount(Array.isArray(jobDetails) ? jobDetails.length : 0);
 
       let totalGpus = 0;
       let onlineGpus = 0;
@@ -154,8 +165,6 @@ function DashboardContent() {
         online_gpus: onlineGpus,
         total_ram: (resourcesData.total?.memory || 0) / 1000000000,
         online_ram: (resourcesData.available?.memory || 0) / 1000000000,
-        total_jobs: jobNames?.length || 0,
-        online_jobs: jobNames?.length || 0,
         total_devices: resourcesData.total?.n_nodes || 0,
         online_devices: resourcesData.available?.n_nodes || 0,
       });
@@ -187,7 +196,7 @@ function DashboardContent() {
 
       <div>
         <h2 className="text-lg font-semibold mb-4">Pool Overview</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <StatCard
             title="Devices"
             value={resources.online_devices}
@@ -196,21 +205,9 @@ function DashboardContent() {
           />
           <StatCard
             title="Jobs"
-            value={resources.online_jobs}
-            total={resources.total_jobs}
+            value={jobCount}
+            total={jobCount}
             icon={Briefcase}
-          />
-          <StatCard
-            title="CPUs"
-            value={resources.online_cpus}
-            total={resources.total_cpus}
-            icon={Cpu}
-          />
-          <StatCard
-            title="GPUs"
-            value={resources.online_gpus}
-            total={resources.total_gpus}
-            icon={Monitor}
           />
         </div>
       </div>
@@ -235,8 +232,8 @@ function DashboardContent() {
           <GaugeCard
             title="RAM"
             icon={MemoryStick}
-            value={Math.round(resources.online_ram)}
-            total={Math.round(resources.total_ram)}
+            value={resources.online_ram}
+            total={resources.total_ram}
             unit="GB"
           />
         </div>

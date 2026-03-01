@@ -193,10 +193,11 @@ def get_ip_addresses(subnet=None):
             raise ValueError(f"No IPs available on subnet {subnet}")
     return ips
 
-def fetch_resources(node_names: list[str]=None):
-    data = {}
-    if node_names is not None:
-        data["node_names"] = node_names
+def fetch_resources(node_names: list[str]=None, node_labels: dict[str, str]=None):
+    data = {
+        "node_names": node_names,
+        "node_labels": node_labels
+    }
     try:
         total = request_to_server(
             force_url=FORCE_WATCHER_API_URL,
@@ -230,10 +231,10 @@ def get_compute_usage(
 ):
     data = {
         "node_names": node_names,
-        #"namespaces": namespaces,
+        "namespaces": namespaces,
         "start_time": start_time,
         "end_time": end_time,
-        #"node_labels": node_labels
+        "node_labels": node_labels
     }
     try:
         data = request_to_server(
@@ -241,7 +242,7 @@ def get_compute_usage(
             force_key=FORCE_WATCHER_API_KEY_URL,
             method="post",
             data=data,
-            endpoint="/v1/get_compute_usage",
+            endpoint="/v1/fetch_compute_usage",
             server_creds=USER_LOCAL_SERVER_FILE,
             user_cookie=USER_COOKIE
         )
@@ -254,13 +255,17 @@ def get_nodes_metrics(
     end_time: int,
     node_names: list[str]=None,
     node_labels: list[str]=None,
-    aggregate_results: bool=True
+    aggregate_results: bool=True,
+    resources: list[str]=["amd_com_gpu", "nvidia_com_gpu"],
+    step="1h"
 ):
     data = {
         "node_names": node_names,
         "start_time": start_time,
         "end_time": end_time,
         "node_labels": node_labels,
+        "resources": resources,
+        "step": step,
         "aggregate_results": aggregate_results
     }
     try:
@@ -269,7 +274,7 @@ def get_nodes_metrics(
             force_key=FORCE_WATCHER_API_KEY_URL,
             method="post",
             data=data,
-            endpoint="/v1/get_nodes_stats",
+            endpoint="/v1/fetch_nodes_stats",
             server_creds=USER_LOCAL_SERVER_FILE,
             user_cookie=USER_COOKIE
         )
@@ -718,15 +723,15 @@ def delete_job(name, force_namespace=None):
     # except Exception as e:
     #     return {"error": str(e)}
 
-def fetch_devices():
+def fetch_devices(node_labels=None):
     """Load devices status info for all hosts"""
     try:
         data = request_to_server(
             force_url=FORCE_WATCHER_API_URL,
             force_key=FORCE_WATCHER_API_KEY_URL,
-            method="get",
-            endpoint="/v1/get_nodes",
-            data={},
+            method="post",
+            endpoint="/v1/fetch_nodes",
+            data={"node_labels": node_labels},
             server_creds=USER_LOCAL_SERVER_FILE,
             user_cookie=USER_COOKIE
         )
@@ -1174,13 +1179,16 @@ def create_pool(
         return {"error": f"Error when loading pool config. Missing format? {str(e)}"}
 
     # Generate docker compose recipe
+    # TODO: chicken and egg problem with watcher URL?
+        # it's required by the worker composer file,
+        # but we only know the IP after having joined the VPN?
+        # Solution: I don't think we need to pass the watcher URL to the worker composer file
     auth_key = user_id if user_id is not None else str(uuid.uuid4())
     write_auth_key = str(uuid.uuid4())
     readonly_auth_key = str(uuid.uuid4())
 
     if ip_address is None:
         ip_address = "0.0.0.0"
-    watcher_service = f"{ip_address}:{DEFAULT_WATCHER_PORT}"
     kalavai_api_port = 49152
 
     generate_compose_config(
@@ -1195,7 +1203,7 @@ def create_pool(
         mtu=mtu,
         host_root_path=config_values["server"]["host_root_path"],
         watcher_api_key=auth_key,
-        watcher_api_url=watcher_service,
+        watcher_api_url=f"{ip_address}:{DEFAULT_WATCHER_PORT}",
         kalavai_api_port=kalavai_api_port,
         kalavai_api_key=auth_key,
         kalavai_api_version=kalavai_api_version
@@ -1217,7 +1225,9 @@ def create_pool(
             time.sleep(10)
     
     primary_address = ip_address if lb_ip_address is None else lb_ip_address
-
+    # now that the primary address is known, we can generate the watcher service
+    watcher_service = f"{primary_address}:{DEFAULT_WATCHER_PORT}"
+    
     # populate local cred files
     values = {
         #CLUSTER_NAME_KEY: cluster_name,

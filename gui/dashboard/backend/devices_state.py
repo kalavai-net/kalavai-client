@@ -92,7 +92,7 @@ class DevicesState(rx.State):
         
         try:
             devices = request_to_kalavai_core(
-                method="get",
+                method="post",
                 endpoint="fetch_devices"
             )
         except Exception as e:
@@ -209,7 +209,7 @@ class DevicesState(rx.State):
         
         try:
             resources_result = request_to_kalavai_core(
-                method="get",
+                method="post",
                 endpoint="fetch_resources",
                 json={"node_names": [node_name]}
             )

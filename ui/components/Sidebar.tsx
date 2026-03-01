@@ -10,6 +10,7 @@ import {
   Briefcase,
   Server,
   LogOut,
+  BarChart3,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuthStore } from '@/stores';
@@ -18,6 +19,7 @@ const navigation = [
   { name: 'Home', href: '/', icon: Home },
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Resources', href: '/resources', icon: Cpu },
+  { name: 'Monitoring', href: '/monitoring', icon: BarChart3 },
   { name: 'Jobs', href: '/jobs', icon: Briefcase },
   { name: 'Services', href: '/services', icon: Server },
   { name: 'Settings', href: '/settings', icon: Settings },

@@ -738,7 +738,7 @@ def pool__resources(*others):
         return
     
     data = request_to_api(
-        method="GET",
+        method="POST",
         endpoint="/fetch_resources"
     )
 
@@ -908,8 +908,9 @@ def pool__usage(*others, start_time: str="24h", end_time: str="now"):
     from kalavai_client.api import get_compute_usage
 
     devices = request_to_api(
-        method="GET",
-        endpoint="/fetch_devices"
+        method="POST",
+        endpoint="/fetch_devices",
+        json={}
     )
     if "error" in devices:
         console.log(f"[red]Error when fetching devices: {devices}")
@@ -933,12 +934,14 @@ def pool__metrics(*others, start_time: str="24h", end_time: str="now"):
     from kalavai_client.api import get_nodes_metrics
 
     devices = request_to_api(
-        method="GET",
-        endpoint="/fetch_devices"
+        method="POST",
+        endpoint="/fetch_devices",
+        json={}
     )
     if "error" in devices:
         console.log(f"[red]Error when fetching devices: {devices}")
         return
+    print(devices)
     devices = [device["name"] for device in devices]
     console.log(f"Getting metrics for: {devices}")
     metrics = get_nodes_metrics(
@@ -1094,7 +1097,7 @@ def node__list(*others):
         return
     
     devices = request_to_api(
-        method="GET",
+        method="POST",
         endpoint="/fetch_devices"
     )
 
