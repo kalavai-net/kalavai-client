@@ -157,6 +157,14 @@ releases:
     - name: opencost.nodeSelector.{{kalavai_role_label}}
       value: server
     # point at prometheus instance (theres an opencost.prometheus.external too)
+    - name: opencost.prometheus.thanos.enabled
+      value: true
+    - name: opencost.prometheus.thanos.internal.serviceName
+      value: {{thanos_service_name}}
+    - name: opencost.prometheus.thanos.internal.namespaceName
+      value: {{thanos_namespace}}
+    - name: opencost.prometheus.thanos.internal.port
+      value: {{thanos_port}}
     - name: opencost.prometheus.internal.enabled
       value: true
     - name: opencost.prometheus.internal.serviceName
@@ -165,6 +173,10 @@ releases:
       value: {{prometheus_namespace}}
     - name: opencost.prometheus.internal.port
       value: {{prometheus_port}}
+    # - name: opencost.customPricing.enabled
+    #   value: true
+    # - name: opencost.customPricing.costModel
+    #   value: '{"CPU":1.25,"GPU":0.95,"RAM":0.5,"description":"Modified pricing configuration.","internetNetworkEgress":0.12,"regionNetworkEgress":0.01,"spotCPU":0.006655,"spotRAM":0.000892,"storage":0.25,"zoneNetworkEgress":0.01}'
   - name: prometheus
     namespace: {{prometheus_namespace}}
     chart: prometheus-community/kube-prometheus-stack #prometheus/prometheus
@@ -219,7 +231,7 @@ releases:
   - name: thanos
     needs:
     - monitoring/prometheus
-    namespace: monitoring
+    namespace: {{thanos_namespace}}
     chart: bitnami/thanos
     version: "17.3.1"
     installed: {{deploy_monitoring|default("false", true)}}
@@ -339,7 +351,7 @@ releases:
   - name: kalavai-watcher
     namespace: kalavai
     chart: kalavai/kalavai-watcher
-    version: "0.4.24"
+    version: "0.4.25"
     installed: true
     set:
     - name: namespace
@@ -363,7 +375,7 @@ releases:
     - name: deployment.isSharedPool
       value: {{watcher_is_shared_pool}}
     - name: deployment.prometheusEndpoint #TODO dynamically point to prometheus / thanos
-      value: "http://thanos-query-frontend.{{prometheus_namespace}}:{{prometheus_port}}"
+      value: "http://{{thanos_service_name}}.{{thanos_namespace}}:{{thanos_port}}"
     - name: deployment.opencostEndpoint
       value: {{opencost_endpoint}}
     - name: deployment.longhornManagerEndpoint
