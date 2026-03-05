@@ -36,13 +36,12 @@ KALAVAI_TEMPLATE_REPOSITORIES = [
     ("kalavai-templates", "https://kalavai-net.github.io/kalavai-templates/")
 ]
 TEMPLATE_LABEL = "kalavai.job.name"
+CORE_SERVICE_LABEL = "kalavai/service"
 KALAVAI_SERVICE_LABEL = "app"
 KALAVAI_SERVICE_LABEL_VALUE = "kalavai-watcher-app"
 STORAGE_CLASS_LABEL = "kalavai.storage.enabled"
 USER_NODE_LABEL = "kalavai.cluster.user"
 SERVER_IP_KEY = "server_ip"
-KALAVAI_PLATFORM_URL = "https://platform.kalavai.net"
-KALAVAI_PLATFORM_ENDPOINT = "https://platform.kalavai.net/_/api"
 DEFAULT_CONTAINER_NAME = "kalavai"
 DEFAULT_VPN_CONTAINER_NAME = "kalavai-vpn"
 CONTAINER_HOST_PATH = user_path("", create_path=True)

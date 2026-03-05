@@ -8,6 +8,7 @@ class ComputeUsageRequest(BaseModel):
     end_time: str
     node_names: Optional[List[str]] = Field(None, description="List of node names to perform the action on, defaults to None")
     node_labels: Optional[Dict[str, str]] = Field(None, description="List of node labels to perform the action on, defaults to None")
+    step_seconds: Optional[int] = Field(600, description="Step in seconds for the query, defaults to None")
 
 class NodeMetricsRequest(BaseModel):
     node_names: Optional[List[str]] = Field(None, description="List of node names to perform the action on, defaults to None")
@@ -16,6 +17,7 @@ class NodeMetricsRequest(BaseModel):
     end_time: str
     resources: List[str] = ["amd_com_gpu", "nvidia_com_gpu"]
     aggregate_results: Optional[bool] = True
+    step: Optional[str] = Field("1h", description="Step duration for the query, defaults to None")
 
 class Job(BaseModel):
     job_id: Optional[str] = None
@@ -112,6 +114,7 @@ class NodeLabelsRequest(BaseModel):
 class UserQuotaRequest(BaseModel):
     user_id: str = Field(description="User id for which to set the resource quota (namespace)")
     quota: dict = Field(description="Dictionary including the quota to be set for the user")
+    labels: Optional[Union[dict[str, str], None]] = Field(None, description="Optional labels for the user space")
 
 class FetchDevicesRequest(BaseModel):
     node_labels: Optional[Union[dict[str, str], None]] = Field(None, description="Optional target node labels")

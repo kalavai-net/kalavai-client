@@ -71,6 +71,7 @@ from kalavai_client.core import (
     get_node_labels,
     generate_worker_package,
     get_user_spaces,
+    delete_user_space,
     get_space_quota,
     set_space_quota,
     get_pool_credentials,
@@ -109,7 +110,7 @@ api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 MASTER_API_KEY = os.getenv("MASTER_API_KEY", None)
 FORCED_USER_SPACE_NAME = os.getenv("FORCED_USER_SPACE_NAME", None)
 RINGFENCE_NODE_LABEL = os.getenv("RINGFENCE_NODE_LABEL", None)
-RINGFENCE_NODE_VALUE = os.getenv("RINGFENCE_NODE_VALUE", None)
+RINGFENCE_NODE_LABEL_VALUE = os.getenv("RINGFENCE_NODE_LABEL_VALUE", None)
 
 
 ################################
@@ -298,6 +299,18 @@ def get_token(mode: TokenType, api_key: str = Depends(verify_api_key)):
     """
     return get_pool_token(mode=TokenType(mode))
 
+@app.get("/get_token_unauth",
+    operation_id="get_token_unauth",
+    summary="Generate a low permissions token (worker) for pool access",
+    description="Generates a secure low permissions token that can be used to join to the current Kalavai pool as a worker.",
+    tags=["auth"],
+    response_description="Pool token")
+def get_token_unauth():
+    """
+    Get pool token (worker only)
+    """
+    return get_pool_token(mode=TokenType.WORKER)
+
 @app.get("/get_pool_credentials",
     operation_id="get_pool_credentials",
     summary="Generate credentials for remote pool access",
@@ -342,7 +355,8 @@ def compute_usage(request: ComputeUsageRequest, api_key: str = Depends(verify_ap
         end_time=request.end_time,
         node_names=request.node_names,
         namespaces=namespaces,
-        node_labels=request.node_labels
+        node_labels=request.node_labels,
+        step_seconds=request.step_seconds
     )
 
 @app.post("/fetch_nodes_metrics",
@@ -359,7 +373,8 @@ def nodes_metrics(request: NodeMetricsRequest, api_key: str = Depends(verify_api
         node_names=request.node_names,
         node_labels=request.node_labels,
         resources=request.resources,
-        aggregate_results=request.aggregate_results
+        aggregate_results=request.aggregate_results,
+        step=request.step
     )
 
 @app.post("/fetch_devices",
@@ -370,10 +385,10 @@ def nodes_metrics(request: NodeMetricsRequest, api_key: str = Depends(verify_api
     response_description="List of devices")
 def get_devices(request: FetchDevicesRequest, api_key: str = Depends(verify_api_key)):
     """Get list of available devices"""
-    if RINGFENCE_NODE_LABEL is not None and RINGFENCE_NODE_VALUE is not None:
+    if RINGFENCE_NODE_LABEL is not None and RINGFENCE_NODE_LABEL_VALUE is not None:
         if request.node_labels is None:
             request.node_labels = {}
-        request.node_labels = {RINGFENCE_NODE_LABEL: RINGFENCE_NODE_VALUE, **request.node_labels}
+        request.node_labels = {RINGFENCE_NODE_LABEL: RINGFENCE_NODE_LABEL_VALUE, **request.node_labels}
     return fetch_devices(request.node_labels)
 
 @app.get("/fetch_service_logs",
@@ -397,13 +412,17 @@ def get_service_logs(tail: int=100, api_key: str = Depends(verify_api_key)):
     response_description="Resource information")
 def resources(request: Optional[NodesActionRequest]=NodesActionRequest(), api_key: str = Depends(verify_api_key)):
     """Get available resources"""
-    if RINGFENCE_NODE_LABEL is not None and RINGFENCE_NODE_VALUE is not None:
+    print("PRETEST: RINGFENCE_NODE_LABEL:", RINGFENCE_NODE_LABEL)
+    print("PRETEST: RINGFENCE_NODE_LABEL_VALUE:", RINGFENCE_NODE_LABEL_VALUE)
+    
+    if RINGFENCE_NODE_LABEL is not None and RINGFENCE_NODE_LABEL_VALUE is not None:
         if request.node_labels is None:
             request.node_labels = {}
-        request.node_labels = {RINGFENCE_NODE_LABEL: RINGFENCE_NODE_VALUE, **request.node_labels}
-    
-    print(f"DEBUG: Final request.nodes: {request.nodes}")
-    print(f"DEBUG: Final request.node_labels: {request.node_labels}")
+        node_labels = {RINGFENCE_NODE_LABEL: RINGFENCE_NODE_LABEL_VALUE, **request.node_labels}
+        print("TEST: node_labels:", node_labels)
+        request.node_labels = node_labels
+    print(f"POSTTEST: Final request.nodes: {request.nodes}")
+    print(f"POSTTEST: Final request.node_labels: {request.node_labels}")
     
     result = fetch_resources(node_names=request.nodes, node_labels=request.node_labels)
     return result
@@ -543,10 +562,10 @@ def job_deploy(request: DeployJobRequest, api_key: str = Depends(verify_api_key)
     - **force_namespace**: Optional namespace override
     - **target_labels**: Optional target node labels
     """
-    if RINGFENCE_NODE_LABEL is not None and RINGFENCE_NODE_VALUE is not None:
+    if RINGFENCE_NODE_LABEL is not None and RINGFENCE_NODE_LABEL_VALUE is not None:
         if request.target_labels is None:
             request.target_labels = {}
-        request.target_labels = {RINGFENCE_NODE_LABEL: RINGFENCE_NODE_VALUE, **request.target_labels}
+        request.target_labels = {RINGFENCE_NODE_LABEL: RINGFENCE_NODE_LABEL_VALUE, **request.target_labels}
     result = deploy_job(
         job_name=request.name,
         template_repo=request.template_repo,
@@ -568,10 +587,10 @@ def custom_job_deploy(request: CustomDeployJobRequest, api_key: str = Depends(ve
     """
     Deploy a custom job with the following parameters:
     """
-    if RINGFENCE_NODE_LABEL is not None and RINGFENCE_NODE_VALUE is not None:
+    if RINGFENCE_NODE_LABEL is not None and RINGFENCE_NODE_LABEL_VALUE is not None:
         if request.target_labels is None:
             request.target_labels = {}
-        request.target_labels = {RINGFENCE_NODE_LABEL: RINGFENCE_NODE_VALUE, **request.target_labels}
+        request.target_labels = {RINGFENCE_NODE_LABEL: RINGFENCE_NODE_LABEL_VALUE, **request.target_labels}
     result = deploy_test_job(
         template_str=request.template_str,
         values_dict=request.values,
@@ -774,7 +793,9 @@ def get_available_user_spaces(api_key: str = Depends(verify_api_key)):
     if FORCED_USER_SPACE_NAME is not None:
         return [FORCED_USER_SPACE_NAME]
     else:
-        return get_user_spaces()
+        user_spaces = get_user_spaces()
+        print("Returned by watcher:", user_spaces)
+        return user_spaces
 
 @app.get("/get_user_space_quota",
     operation_id="get_user_space_quota",
@@ -805,9 +826,32 @@ def set_user_space_quota(request: UserQuotaRequest, api_key: str = Depends(verif
     
     - **user_id**: name of the user space to set resource quota
     """
+    if FORCED_USER_SPACE_NAME is not None:
+        return {"error": "Cannot set user space quota for a client-only instance"}
+    
     return set_space_quota(
         user_id=request.user_id,
-        quota=request.quota
+        quota=request.quota,
+        labels=request.labels
+    )
+
+@app.delete("/delete_user_space",
+    operation_id="delete_user_space",
+    summary="Delete user space",
+    description="Delete user space.",
+    tags=["info"],
+    response_description="Delete result")
+def delete_space(user_id: str, api_key: str = Depends(verify_api_key)):
+    """
+    Delete user space with the following parameters:
+    
+    - **user_id**: name of the user space to delete
+    """
+    if FORCED_USER_SPACE_NAME is not None:
+        return {"error": "Cannot delete user space for a client-only instance"}
+    
+    return delete_user_space(
+        user_id=user_id
     )
 
 # Endpoint to check health

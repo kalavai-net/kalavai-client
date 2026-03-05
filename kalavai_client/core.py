@@ -46,6 +46,7 @@ from kalavai_client.env import (
     USER_COOKIE,
     USER_LOCAL_SERVER_FILE,
     TEMPLATE_LABEL,
+    CORE_SERVICE_LABEL,
     SERVER_IP_KEY,
     USER_COMPOSE_FILE,
     DEFAULT_VPN_CONTAINER_NAME,
@@ -227,14 +228,16 @@ def get_compute_usage(
     end_time: int,
     node_names: list[str]=None,
     namespaces: list[str]=None,
-    node_labels: list[str]=None
+    node_labels: list[str]=None,
+    step_seconds: int=600
 ):
     data = {
         "node_names": node_names,
         "namespaces": namespaces,
         "start_time": start_time,
         "end_time": end_time,
-        "node_labels": node_labels
+        "node_labels": node_labels,
+        "step_seconds": step_seconds
     }
     try:
         data = request_to_server(
@@ -313,11 +316,12 @@ def get_space_quota(space_name):
     except Exception as e:
         return {"error": str(e)}
     
-def set_space_quota(user_id: str, quota: dict):
+def set_space_quota(user_id: str, quota: dict, labels: dict[str, str]=None):
 
     quota_request = {
         "user_id": user_id,
-        "quota": quota
+        "quota": quota,
+        "labels": labels
     }
     try:
         data = request_to_server(
@@ -326,6 +330,25 @@ def set_space_quota(user_id: str, quota: dict):
             method="post",
             endpoint="/v1/set_space_quota",
             data=quota_request,
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        return data
+    except Exception as e:
+        return {"error": str(e)}
+
+def delete_user_space(user_id: str):
+
+    data = {
+        "force_namespace": user_id,
+    }
+    try:
+        data = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
+            method="post",
+            endpoint="/v1/delete_user_space",
+            data=data,
             server_creds=USER_LOCAL_SERVER_FILE,
             user_cookie=USER_COOKIE
         )
@@ -514,12 +537,15 @@ def fetch_job_details(force_namespace=None):
             endpoint_address = urlparse(load_server_info(data_key=KALAVAI_API_URL_KEY, file=USER_LOCAL_SERVER_FILE)).hostname
             if "services" in job_status and job_status["services"] is not None:
                 for name, values in job_status["services"].items():
-                    for port in values["ports"]:
-                        # avoid name clash across multiple ports / services
-                        if port['name'] in endpoints:
-                            endpoint_name = f"{name}-{port['name']}"
+                    for i, port in enumerate(values["ports"]):
+                        if "name" not in port:
+                            endpoint_name = f"port-{name}-{i}"
                         else:
-                            endpoint_name = port["name"]
+                            # avoid name clash across multiple ports / services
+                            if port['name'] in endpoints:
+                                endpoint_name = f"{name}-{port['name']}"
+                            else:
+                                endpoint_name = port["name"]
                         endpoints[endpoint_name] = {
                             "port": port["nodePort"] if "nodePort" in port else port["targetPort"],
                             "address": endpoint_address
@@ -762,7 +788,7 @@ def fetch_job_logs(job_name, force_namespace=None, pod_name=None, tail=100):
 
 def fetch_pool_services(force_namespace=None):
     data = {
-        "labels": {TEMPLATE_LABEL: None},
+        "labels": {CORE_SERVICE_LABEL: None},
         "force_namespace": force_namespace
     }
     try:
