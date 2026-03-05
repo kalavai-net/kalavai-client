@@ -11,6 +11,7 @@ import {
   Server,
   LogOut,
   BarChart3,
+  Users,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuthStore } from '@/stores';
@@ -22,6 +23,7 @@ const navigation = [
   { name: 'Monitoring', href: '/monitoring', icon: BarChart3 },
   { name: 'Jobs', href: '/jobs', icon: Briefcase },
   { name: 'Services', href: '/services', icon: Server },
+  { name: 'User Spaces', href: '/user-spaces', icon: Users },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 

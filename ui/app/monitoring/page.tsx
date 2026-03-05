@@ -393,12 +393,55 @@ function TimeSeriesPanel({ data, isLoading, timePeriod, resourceType }: { data: 
     );
   }
 
-  // Transform the data for the chart
-  const chartData = data.timestamp.map((timestamp, index) => ({
-    time: new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    availableResources: data.total_resources[index] || 0,
-    usedResources: data.used_resources[index] || 0,
-  }));
+  // Transform the data for the chart with unique labels
+  const chartData = data.timestamp.map((timestamp, index) => {
+    const date = new Date(timestamp);
+    const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    return {
+      date: dateStr,
+      fullTimestamp: timestamp,
+      displayLabel: dateStr,
+      availableResources: data.total_resources[index] || 0,
+      usedResources: data.used_resources[index] || 0,
+    };
+  });
+
+  // Create unique labels to handle multiple entries on same day
+  const uniqueChartData = chartData.map((item, index) => {
+    const previousItems = chartData.slice(0, index);
+    const sameDayCount = previousItems.filter(prev => prev.date === item.date).length;
+    
+    if (sameDayCount > 0) {
+      // If multiple entries on same day, add time to create unique label
+      const time = new Date(item.fullTimestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return {
+        ...item,
+        displayLabel: `${item.date} ${time}`
+      };
+    }
+    
+    return item;
+  });
+
+  // Get tick interval based on time range to prevent crowding
+  const getTickInterval = (timeRange: string, dataLength: number) => {
+    switch (timeRange) {
+      case '24h':
+        return Math.max(1, Math.floor(dataLength / 8)); // Show ~8 ticks for 24h
+      case '3d':
+        return Math.max(1, Math.floor(dataLength / 6)); // Show ~6 ticks for 3 days
+      case '7d':
+        return Math.max(1, Math.floor(dataLength / 7)); // Show ~7 ticks for week
+      case '15d':
+        return Math.max(1, Math.floor(dataLength / 8)); // Show ~8 ticks for 2 weeks
+      default:
+        return Math.max(1, Math.floor(dataLength / 6));
+    }
+  };
+
+  const tickInterval = getTickInterval(timePeriod, uniqueChartData.length);
 
   return (
     <div className="bg-card border border-border rounded-lg p-6">
@@ -408,12 +451,13 @@ function TimeSeriesPanel({ data, isLoading, timePeriod, resourceType }: { data: 
       </div>
       <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData}>
+          <LineChart data={uniqueChartData}>
             <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
             <XAxis 
-              dataKey="time" 
+              dataKey="displayLabel" 
               tick={{ fontSize: 12 }}
               tickLine={false}
+              interval={tickInterval - 1}
             />
             <YAxis 
               tick={{ fontSize: 12 }}
@@ -424,6 +468,19 @@ function TimeSeriesPanel({ data, isLoading, timePeriod, resourceType }: { data: 
                 backgroundColor: 'hsl(var(--card))',
                 border: '1px solid hsl(var(--border))',
                 borderRadius: '8px'
+              }}
+              labelFormatter={(value) => {
+                const dataPoint = uniqueChartData.find(d => d.displayLabel === value);
+                if (dataPoint) {
+                  const date = new Date(dataPoint.fullTimestamp);
+                  return date.toLocaleString([], { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  });
+                }
+                return value;
               }}
             />
             <Legend />
@@ -550,7 +607,8 @@ function MonitoringContent() {
       const usageResponse = await kalavaiApi.getComputeUsage({
         start_time,
         end_time,
-        node_names: appliedDevices
+        node_names: appliedDevices,
+        step_seconds: 600
       });
 
       console.log('Raw API response:', usageResponse);
@@ -594,7 +652,8 @@ function MonitoringContent() {
         end_time,
         node_names: appliedDevices,
         resources,
-        aggregate_results: true
+        aggregate_results: true,
+        step: "1h"
       });
 
       console.log('Raw time series API response:', metricsResponse);

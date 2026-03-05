@@ -168,10 +168,10 @@ export const useConnectionStore = create<ConnectionState>()((set, get) => ({
       
       set({
         isConnected,
-        userSpaces: spaces || [],
+        userSpaces: Array.isArray(spaces) ? spaces : [],
       });
       
-      if (spaces && spaces.length > 0 && !get().selectedUserSpace) {
+      if (Array.isArray(spaces) && spaces.length > 0 && !get().selectedUserSpace) {
         await get().setUserSpace(spaces[0]);
       }
     } catch (error) {

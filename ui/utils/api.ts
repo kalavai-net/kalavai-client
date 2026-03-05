@@ -102,6 +102,7 @@ class KalavaiApiClient {
     end_time: string;
     node_names?: string[];
     node_labels?: Record<string, string>;
+    step_seconds?: number;
   }) {
     return this.post('fetch_compute_usage', data);
   }
@@ -113,6 +114,7 @@ class KalavaiApiClient {
     node_labels?: Record<string, string>;
     resources?: string[];
     aggregate_results?: boolean;
+    step?: string;
   }) {
     return this.post('fetch_nodes_metrics', data);
   }
@@ -211,11 +213,53 @@ class KalavaiApiClient {
   }
 
   async getUserSpaceQuota(space_name?: string) {
-    return this.get('get_user_space_quota', { params: { space_name } });
+    console.log('[FRONTEND API DEBUG] Calling getUserSpaceQuota with space_name:', space_name);
+    const result = await this.get('get_user_space_quota', { params: { space_name } });
+    console.log('[FRONTEND API DEBUG] Raw API response:', result);
+    console.log('[FRONTEND API DEBUG] Response type:', typeof result);
+    console.log('[FRONTEND API DEBUG] Response keys:', result ? Object.keys(result) : 'null/undefined');
+    
+    // Handle the actual response structure: Array with objects containing status.hard and status.used
+    if (Array.isArray(result) && result.length > 0) {
+      const firstItem = result[0];
+      console.log('[FRONTEND API DEBUG] Processing array response, first item:', firstItem);
+      
+      if (firstItem.status && firstItem.status.hard) {
+        console.log('[FRONTEND API DEBUG] Found quota in status.hard:', firstItem.status.hard);
+        console.log('[FRONTEND API DEBUG] Found usage in status.used:', firstItem.status.used);
+        
+        // Return a structured object that matches what the UI expects
+        return {
+          quota: firstItem.status.hard,
+          used: firstItem.status.used,
+          labels: firstItem.metadata?.labels || {}
+        };
+      }
+    }
+    
+    // Fallback to original logic for backward compatibility
+    if (result && typeof result === 'object') {
+      if ('quota' in result) {
+        console.log('[FRONTEND API DEBUG] Found quota property:', result.quota);
+      } else if ('cpu' in result || 'memory' in result) {
+        console.log('[FRONTEND API DEBUG] Found direct quota fields:', {
+          cpu: result.cpu,
+          memory: result.memory,
+          'nvidia.com/gpu': result['nvidia.com/gpu'],
+          'amd.com/gpu': result['amd.com/gpu']
+        });
+      }
+    }
+    
+    return result;
   }
 
   async setUserSpaceQuota(user_id: string, quota: Record<string, string>) {
     return this.post('set_user_space_quota', { user_id, quota });
+  }
+
+  async deleteUserSpace(user_id: string) {
+    return this.delete('delete_user_space', { params: { user_id } });
   }
 
   // Node Labels
@@ -274,8 +318,13 @@ class KalavaiApiClient {
     return response.data;
   }
 
-  private async post(endpoint: string, data?: unknown) {
-    const response = await this.client.post(`/${endpoint}`, data);
+  private async post(endpoint: string, data?: unknown, config?: AxiosRequestConfig) {
+    const response = await this.client.post(`/${endpoint}`, data, config);
+    return response.data;
+  }
+
+  private async delete(endpoint: string, config?: AxiosRequestConfig) {
+    const response = await this.client.delete(`/${endpoint}`, config);
     return response.data;
   }
 }

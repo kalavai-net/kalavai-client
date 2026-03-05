@@ -15,7 +15,7 @@ interface Job {
   status: string;
   workers: string;
   host_nodes: string;
-  endpoint: Record<string, { address: string; port: string } | string>;
+  endpoint: Record<string, { address: string; port: string | number } | string>;
   spec?: Record<string, unknown>;
   conditions?: Record<string, unknown>;
 }
@@ -25,35 +25,190 @@ interface Template { name: string; }
 interface TemplateParam {
   name: string; type: string; default: unknown;
   description: string; required: boolean; options?: string[];
+  itemType?: string; // For arrays - the type of items in the array
+  properties?: Record<string, TemplateParam>; // For objects - nested properties
 }
 
 interface TemplateData {
   values: Record<string, unknown>;
-  schema: { properties?: Record<string, { type: string; description?: string; enum?: unknown[] }>; required?: string[] };
+  schema: { 
+    properties?: Record<string, { 
+      type: string; 
+      description?: string; 
+      enum?: unknown[];
+      properties?: Record<string, any>;
+      items?: any;
+      required?: string[];
+    }>; 
+    required?: string[] 
+  };
   metadata: { name?: string; description?: string; icon?: string; sources?: string[]; version?: string };
 }
 
-function parseEndpointUrl(ep: { address: string; port: string } | string): string {
+function parseEndpointUrl(ep: { address: string; port: string | number } | string): string {
   if (typeof ep === 'string') return ep;
   return `http://${ep.address}:${ep.port}`;
 }
 
 function buildParams(data: TemplateData): Record<string, TemplateParam> {
+  console.log('[buildParams] Input data:', JSON.stringify(data, null, 2));
+  console.log('[buildParams] data.values keys:', Object.keys(data.values || {}));
+  console.log('[buildParams] data.schema:', data.schema);
+  console.log('[buildParams] data.schema.properties keys:', Object.keys(data.schema?.properties || {}));
+  console.log('[buildParams] data.schema.required:', data.schema?.required);
+  
+  // Check what fields have schemas vs values
+  const valueKeys = Object.keys(data.values || {});
+  const schemaKeys = Object.keys(data.schema?.properties || {});
+  console.log('[buildParams] Fields with values but no schema:', valueKeys.filter(k => !schemaKeys.includes(k)));
+  console.log('[buildParams] Fields with schema but no values:', schemaKeys.filter(k => !valueKeys.includes(k)));
+  
   const params: Record<string, TemplateParam> = {};
   const required = data.schema?.required || [];
+  
+  // Helper function to process object properties recursively
+  function processObjectProperties(
+    properties: Record<string, any>, 
+    values: Record<string, any> = {}, 
+    requiredFields: string[] = [],
+    depth: number = 0
+  ): Record<string, TemplateParam> {
+    const indent = '  '.repeat(depth);
+    console.log(`${indent}[processObjectProperties] depth=${depth}, properties:`, Object.keys(properties));
+    console.log(`${indent}[processObjectProperties] values:`, values);
+    console.log(`${indent}[processObjectProperties] requiredFields:`, requiredFields);
+    
+    const result: Record<string, TemplateParam> = {};
+    
+    Object.entries(properties).forEach(([name, schema]) => {
+      const value = values?.[name];
+      const isRequired = requiredFields.includes(name);
+      
+      console.log(`${indent}[processObjectProperties] Processing field: ${name}, type: ${schema.type}, value:`, value);
+      
+      // Handle nested object types
+      if (schema.type === 'object' && schema.properties) {
+        console.log(`${indent}[processObjectProperties] Found nested object: ${name}`);
+        const nestedRequired = (schema as any).required || [];
+        const nestedParams = processObjectProperties(schema.properties, value as any, nestedRequired, depth + 1);
+        
+        result[name] = {
+          name,
+          default: value,
+          type: 'object',
+          description: schema.description || '',
+          required: isRequired,
+          properties: nestedParams,
+        };
+        console.log(`${indent}[processObjectProperties] Added nested object ${name} with ${Object.keys(nestedParams).length} properties`);
+        return;
+      }
+      
+      // Handle array types
+      if (schema.type === 'array' && schema.items) {
+        const itemSchema = schema.items as any;
+        const itemType = itemSchema.enum ? 'enum' : itemSchema.type;
+        
+        result[name] = {
+          name,
+          default: value,
+          type: 'array',
+          description: schema.description || '',
+          required: isRequired,
+          itemType,
+          options: itemSchema.enum as string[] | undefined,
+        };
+        console.log(`${indent}[processObjectProperties] Added array: ${name}`);
+        return;
+      }
+      
+      // Handle basic types
+      if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+        console.log(`${indent}[processObjectProperties] Skipping object without schema: ${name}`);
+        return;
+      }
+      
+      result[name] = {
+        name,
+        default: value,
+        type: schema.enum ? 'enum' : schema.type,
+        description: schema.description || '',
+        required: isRequired,
+        options: schema.enum as string[] | undefined,
+      };
+      console.log(`${indent}[processObjectProperties] Added basic type: ${name} (${result[name].type})`);
+    });
+    
+    console.log(`${indent}[processObjectProperties] Returning result with ${Object.keys(result).length} properties:`, Object.keys(result));
+    return result;
+  }
+  
   Object.entries(data.values || {}).forEach(([name, value]) => {
     const schema = data.schema?.properties?.[name];
-    if (!schema) return;
-    if (schema.type === 'object' || schema.type === 'array') return;
-    if (value !== null && typeof value === 'object') return;
+    if (!schema) {
+      console.log(`[buildParams] No schema found for field: ${name}`);
+      return;
+    }
+    
+    console.log(`[buildParams] Processing top-level field: ${name}, type: ${schema.type}, value:`, value);
+    
+    // Handle object types
+    if (schema.type === 'object' && schema.properties) {
+      console.log(`[buildParams] Found top-level object: ${name}`);
+      const nestedRequired = (schema as any).required || [];
+      const nestedParams = processObjectProperties(schema.properties, value as any, nestedRequired, 1);
+      
+      params[name] = {
+        name,
+        default: value,
+        type: 'object',
+        description: schema.description || '',
+        required: required.includes(name),
+        properties: nestedParams,
+      };
+      console.log(`[buildParams] Added top-level object ${name} with ${Object.keys(nestedParams).length} properties`);
+      return;
+    }
+    
+    // Handle array types
+    if (schema.type === 'array' && schema.items) {
+      const itemSchema = schema.items as any;
+      const itemType = itemSchema.enum ? 'enum' : itemSchema.type;
+      
+      params[name] = {
+        name,
+        default: value,
+        type: 'array',
+        description: schema.description || '',
+        required: required.includes(name),
+        itemType,
+        options: itemSchema.enum as string[] | undefined,
+      };
+      console.log(`[buildParams] Added top-level array: ${name}`);
+      return;
+    }
+    
+    // Handle basic types (existing logic)
+    if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+      console.log(`[buildParams] Skipping object without schema: ${name}`);
+      return;
+    }
+    
     params[name] = {
-      name, default: value,
+      name,
+      default: value,
       type: schema.enum ? 'enum' : schema.type,
       description: schema.description || '',
       required: required.includes(name),
       options: schema.enum as string[] | undefined,
     };
+    console.log(`[buildParams] Added basic type: ${name} (${params[name].type})`);
   });
+  
+  console.log(`[buildParams] Final result:`, params);
+  console.log(`[buildParams] Final result keys:`, Object.keys(params));
+  console.log(`[buildParams] Object fields:`, Object.entries(params).filter(([_, p]) => p.type === 'object').map(([name, p]) => `${name} (${Object.keys(p.properties || {}).length} properties)`));
+  
   return params;
 }
 
@@ -66,6 +221,79 @@ function statusBadge(status: string) {
 
 function ParamField({ param, value, onChange }: { param: TemplateParam; value: unknown; onChange: (v: unknown) => void }) {
   const base = 'w-full px-3 py-2 border border-border rounded-md text-sm bg-background';
+  
+  // Handle array types
+  if (param.type === 'array') {
+    const arrayValue = Array.isArray(value) ? value : [];
+    const stringValue = arrayValue.length > 0 ? String(arrayValue[0]) : '';
+    
+    if (param.itemType === 'enum' && param.options) {
+      return (
+        <div className="space-y-2">
+          <select 
+            className={base} 
+            value={stringValue} 
+            onChange={e => {
+              const newValue = e.target.value ? [e.target.value] : [];
+              onChange(newValue);
+            }}
+          >
+            <option value="">Select value...</option>
+            {param.options.map(o => <option key={o} value={o}>{o}</option>)}
+          </select>
+          <p className="text-xs text-muted-foreground">Array type - first item shown, empty array = null</p>
+        </div>
+      );
+    }
+    
+    if (param.itemType === 'integer' || param.itemType === 'number') {
+      return (
+        <div className="space-y-2">
+          <input 
+            type="number" 
+            className={base} 
+            value={stringValue}
+            onChange={e => {
+              const numValue = e.target.value === '' ? '' : Number(e.target.value);
+              onChange(numValue === '' ? [] : [numValue]);
+            }} 
+          />
+          <p className="text-xs text-muted-foreground">Array type - first item shown, empty = null</p>
+        </div>
+      );
+    }
+    
+    if (param.itemType === 'boolean') {
+      return (
+        <div className="space-y-2">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input 
+              type="checkbox" 
+              checked={arrayValue.length > 0 ? Boolean(arrayValue[0]) : false} 
+              onChange={e => onChange([e.target.checked])} 
+              className="w-4 h-4" 
+            />
+            <span className="text-sm">{arrayValue.length > 0 ? String(arrayValue[0]) : 'false'}</span>
+          </label>
+          <p className="text-xs text-muted-foreground">Array type - first item shown, empty = null</p>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="space-y-2">
+        <input 
+          type="text" 
+          className={base} 
+          value={stringValue} 
+          onChange={e => onChange(e.target.value ? [e.target.value] : [])} 
+        />
+        <p className="text-xs text-muted-foreground">Array type - first item shown, empty = null</p>
+      </div>
+    );
+  }
+  
+  // Existing logic for basic types
   if (param.type === 'enum' && param.options) {
     return <select className={base} value={String(value ?? param.default ?? '')} onChange={e => onChange(e.target.value)}>
       {param.options.map(o => <option key={o} value={o}>{o}</option>)}
@@ -82,6 +310,60 @@ function ParamField({ param, value, onChange }: { param: TemplateParam; value: u
     </label>;
   }
   return <input type="text" className={base} value={String(value ?? param.default ?? '')} onChange={e => onChange(e.target.value)} />;
+}
+
+function ObjectParamField({ param, value, onChange }: { param: TemplateParam; value: unknown; onChange: (v: unknown) => void }) {
+  const [expanded, setExpanded] = useState(false);
+  
+  if (!param.properties) return null;
+  
+  const objectValue = (value as Record<string, unknown>) || {};
+  
+  return (
+    <div className="border border-border rounded-md">
+      <button
+        type="button"
+        onClick={() => setExpanded(!expanded)}
+        className="w-full px-3 py-2 text-sm font-medium text-left hover:bg-muted flex items-center justify-between"
+      >
+        <span>{param.name} {param.required && <span className="text-red-500">*</span>}</span>
+        <ChevronRight className={`w-4 h-4 transition-transform ${expanded ? 'rotate-90' : ''}`} />
+      </button>
+      
+      {expanded && (
+        <div className="px-3 pb-3 space-y-3 border-t border-border">
+          {param.description && (
+            <p className="text-xs text-muted-foreground pt-2">{param.description}</p>
+          )}
+          {Object.values(param.properties).map(nestedParam => (
+            <div key={nestedParam.name}>
+              {nestedParam.type === 'object' ? (
+                <ObjectParamField 
+                  param={nestedParam} 
+                  value={objectValue[nestedParam.name]} 
+                  onChange={v => onChange({ ...objectValue, [nestedParam.name]: v })} 
+                />
+              ) : (
+                <>
+                  <label className="block text-sm font-medium mb-1">
+                    {nestedParam.name} {nestedParam.required && <span className="text-red-500">*</span>}
+                  </label>
+                  <ParamField 
+                    param={nestedParam} 
+                    value={objectValue[nestedParam.name]} 
+                    onChange={v => onChange({ ...objectValue, [nestedParam.name]: v })} 
+                  />
+                  {nestedParam.description && (
+                    <p className="text-xs text-muted-foreground mt-1">{nestedParam.description}</p>
+                  )}
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function ExpandableNodes({ nodes }: { nodes: string }) {
@@ -656,9 +938,25 @@ function JobsContent() {
                       <p className="text-xs font-semibold uppercase text-muted-foreground">Parameters</p>
                       {requiredParams.map(p => (
                         <div key={p.name}>
-                          <label className="block text-sm font-medium mb-1">{p.name} <span className="text-red-500">*</span></label>
-                          <ParamField param={p} value={formValues[p.name]} onChange={v => setFormValues(prev => ({ ...prev, [p.name]: v }))} />
-                          {p.description && <p className="text-xs text-muted-foreground mt-1">{p.description}</p>}
+                          {p.type === 'object' ? (
+                            <ObjectParamField 
+                              param={p} 
+                              value={formValues[p.name]} 
+                              onChange={v => setFormValues(prev => ({ ...prev, [p.name]: v }))} 
+                            />
+                          ) : (
+                            <>
+                              <label className="block text-sm font-medium mb-1">
+                                {p.name} <span className="text-red-500">*</span>
+                              </label>
+                              <ParamField 
+                                param={p} 
+                                value={formValues[p.name]} 
+                                onChange={v => setFormValues(prev => ({ ...prev, [p.name]: v }))} 
+                              />
+                              {p.description && <p className="text-xs text-muted-foreground mt-1">{p.description}</p>}
+                            </>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -669,9 +967,23 @@ function JobsContent() {
                       <div className="px-3 pb-3 space-y-3 pt-2">
                         {optionalParams.map(p => (
                           <div key={p.name}>
-                            <label className="block text-sm font-medium mb-1">{p.name}</label>
-                            <ParamField param={p} value={formValues[p.name]} onChange={v => setFormValues(prev => ({ ...prev, [p.name]: v }))} />
-                            {p.description && <p className="text-xs text-muted-foreground mt-1">{p.description}</p>}
+                            {p.type === 'object' ? (
+                              <ObjectParamField 
+                                param={p} 
+                                value={formValues[p.name]} 
+                                onChange={v => setFormValues(prev => ({ ...prev, [p.name]: v }))} 
+                              />
+                            ) : (
+                              <>
+                                <label className="block text-sm font-medium mb-1">{p.name}</label>
+                                <ParamField 
+                                  param={p} 
+                                  value={formValues[p.name]} 
+                                  onChange={v => setFormValues(prev => ({ ...prev, [p.name]: v }))} 
+                                />
+                                {p.description && <p className="text-xs text-muted-foreground mt-1">{p.description}</p>}
+                              </>
+                            )}
                           </div>
                         ))}
                       </div>

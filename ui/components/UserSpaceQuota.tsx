@@ -85,7 +85,7 @@ export function UserSpaceQuota() {
     loadConnectionState();
   }, []);
 
-  if (userSpaces.length === 0) {
+  if (!userSpaces || userSpaces.length === 0) {
     return null;
   }
 
@@ -111,7 +111,7 @@ export function UserSpaceQuota() {
           onChange={(e) => setUserSpace(e.target.value)}
           className="text-xs bg-muted border border-border rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary text-foreground cursor-pointer min-w-0 max-w-[200px] truncate"
         >
-          {userSpaces.map((space) => (
+          {(Array.isArray(userSpaces) ? userSpaces : []).map((space) => (
             <option key={space} value={space}>
               {space}
             </option>
