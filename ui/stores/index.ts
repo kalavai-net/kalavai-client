@@ -11,7 +11,7 @@ interface AuthState {
   
   // Actions
   setUserKey: (key: string) => void;
-  authorize: (accessKey: string) => Promise<boolean>;
+  authorize: (typedKey: string) => Promise<boolean>;
   signOut: () => void;
   setAccessKey: (key: string | null) => void;
 }
@@ -73,11 +73,11 @@ export const useAuthStore = create<AuthState>()(
       
       setAccessKey: (key: string | null) => set({ accessKey: key }),
       
-      authorize: async (accessKey: string) => {
+      authorize: async (typedKey: string) => {
         set({ isLoading: true, loginErrorMessage: '' });
         
-        const { userKey } = get();
-        const isValid = userKey === accessKey;
+        const { accessKey } = get();
+        const isValid = typedKey === accessKey;
         
         set({
           isLoggedIn: isValid || !accessKey,

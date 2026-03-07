@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect } from 'react';
 import { useAuthStore } from '@/stores';
 import { LoginForm } from '@/components/LoginForm';
 import { AppLayout } from '@/components/AppLayout';
@@ -90,6 +91,7 @@ function HomeContent() {
 export default function HomePage() {
   const { isLoggedIn, isLoading } = useAuthStore();
 
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -99,7 +101,7 @@ export default function HomePage() {
   }
 
   if (!isLoggedIn) {
-    return <LoginForm accessKey={ACCESS_KEY || undefined} />;
+    return <LoginForm />;
   }
 
   return (
