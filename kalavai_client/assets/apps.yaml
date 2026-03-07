@@ -42,11 +42,14 @@ releases:
   - name: job-operator
     namespace: kalavai
     chart: kalavai-job-operator/kalavai-job-operator
-    version: 0.0.16
+    version: 0.0.17
     installed: true
     needs:
     - flux-system/flux
     - volcano-system/volcano-sh
+    set:
+    - name: nodeSelector.{{kalavai_role_label}}
+      value: server
   - name: flux
     namespace: flux-system
     chart: oci://ghcr.io/fluxcd-community/charts/flux2
@@ -55,11 +58,11 @@ releases:
     set:
     - name: helmController.create
       value: true
-    - name: server.nodeSelector.{{kalavai_role_label}}
+    - name: helmController.nodeSelector.{{kalavai_role_label}}
       value: server
     - name: sourceController.create
       value: true
-    - name: server.nodeSelector.{{kalavai_role_label}}
+    - name: sourceController.nodeSelector.{{kalavai_role_label}}
       value: server
     - name: imageAutomationController.create
       value: false
