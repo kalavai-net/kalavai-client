@@ -95,6 +95,7 @@ class DeployJobRequest(BaseModel):
     force_namespace: Optional[Union[str, None]] = Field(None, description="Optional namespace override")
     target_labels: Optional[Union[dict[str, Union[str, List]], None]] = Field(None, description="Optional target node labels")
     target_labels_ops: Optional[Literal["OR", "AND"]] = Field("AND", description="Optional target node labels operator")
+    priority: Literal["kalavai-system-priority", "user-high-priority", "user-spot-priority", "test-low-priority", "test-high-priority"] = "user-spot-priority"
 
 class CustomDeployJobRequest(BaseModel):
     template_str: str = Field(description="YAML str containing the custom template job to use")

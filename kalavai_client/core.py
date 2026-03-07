@@ -631,7 +631,7 @@ def fetch_job_details(force_namespace=None):
     #         )
     # return job_details
 
-def deploy_job(job_name, template_name, template_repo, values_dict, force_namespace=None, target_labels=None, target_labels_ops="AND"):
+def deploy_job(job_name, template_name, template_repo, values_dict, priority="user-spot-priority", force_namespace=None, target_labels=None, target_labels_ops="AND"):
     """Deploy a KalavaiJob template"""
     # deploy template with kube-watcher
     if "/" in template_name:
@@ -645,6 +645,7 @@ def deploy_job(job_name, template_name, template_repo, values_dict, force_namesp
         "force_namespace": force_namespace,
         "template_chart": template_name,
         "template_values": values_dict,
+        "priority": priority,
         "target_labels": target_labels,
         "target_labels_ops": target_labels_ops
     }

@@ -108,7 +108,9 @@ app = FastAPI(
 API_KEY_NAME = "X-API-Key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 MASTER_API_KEY = os.getenv("MASTER_API_KEY", None)
+# Forced backend nodes and jobs for user spaced pools
 FORCED_USER_SPACE_NAME = os.getenv("FORCED_USER_SPACE_NAME", None)
+FORCED_PRIORITY = os.getenv("FORCED_PRIORITY", None)
 RINGFENCE_NODE_LABEL = os.getenv("RINGFENCE_NODE_LABEL", None)
 RINGFENCE_NODE_LABEL_VALUE = os.getenv("RINGFENCE_NODE_LABEL_VALUE", None)
 
@@ -566,6 +568,8 @@ def job_deploy(request: DeployJobRequest, api_key: str = Depends(verify_api_key)
         if request.target_labels is None:
             request.target_labels = {}
         request.target_labels = {RINGFENCE_NODE_LABEL: RINGFENCE_NODE_LABEL_VALUE, **request.target_labels}
+    if FORCED_PRIORITY:
+        logger.info(f"FORCE_PRIORITY set, ignoring user requested priority: {request.priority}")
     result = deploy_job(
         job_name=request.name,
         template_repo=request.template_repo,
@@ -573,7 +577,8 @@ def job_deploy(request: DeployJobRequest, api_key: str = Depends(verify_api_key)
         values_dict=request.values,
         force_namespace=request.force_namespace,
         target_labels=request.target_labels,
-        target_labels_ops=request.target_labels_ops
+        target_labels_ops=request.target_labels_ops,
+        priority=FORCED_PRIORITY if FORCED_PRIORITY is not None else request.priority
     )
     return result
 
@@ -591,12 +596,15 @@ def custom_job_deploy(request: CustomDeployJobRequest, api_key: str = Depends(ve
         if request.target_labels is None:
             request.target_labels = {}
         request.target_labels = {RINGFENCE_NODE_LABEL: RINGFENCE_NODE_LABEL_VALUE, **request.target_labels}
+    if FORCED_PRIORITY:
+        logger.info(f"FORCE_PRIORITY set, ignoring user requested priority: {request.priority}")
     result = deploy_test_job(
         template_str=request.template_str,
         values_dict=request.values,
         force_namespace=request.force_namespace,
         default_values=request.default_values,
-        target_labels=request.target_labels
+        target_labels=request.target_labels,
+        priority=FORCED_PRIORITY if FORCED_PRIORITY is not None else request.priority
     )
     return result
 
