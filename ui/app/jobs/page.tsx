@@ -600,6 +600,14 @@ function JobsContent() {
     if (!jobName.trim() || !selectedTemplate) return;
     setDeploying(true);
     try {
+      // Debug: Log the formValues structure to verify nested object handling
+      console.log('[handleDeploy] formValues structure:', JSON.stringify(formValues, null, 2));
+      console.log('[handleDeploy] Object parameters in formValues:', 
+        Object.entries(formValues)
+          .filter(([_, value]) => typeof value === 'object' && value !== null && !Array.isArray(value))
+          .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
+      );
+      
       const payload: Parameters<typeof kalavaiApi.deployJob>[0] = {
         name: jobName.toLowerCase().trim(),
         template_name: selectedTemplate,
