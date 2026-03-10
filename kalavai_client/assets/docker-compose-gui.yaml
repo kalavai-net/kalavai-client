@@ -1,24 +1,18 @@
 services:
-  kalavai_gui:
-    container_name: kalavai_gui
-    image: ghcr.io/kalavai-net/kalavai-gui:{{gui_version}}
+  kalavai_ui:
+    container_name: kalavai_ui
+    image: ghcr.io/kalavai-net/kalavai-ui:{{gui_version}}
     platform: linux/amd64
     # extra_hosts:
     # - "host.docker.internal:host-gateway"
     network_mode: host
     environment:
-    - KALAVAI_API_URL={{kalavai_api_url}}
+    - NEXT_PUBLIC_KALAVAI_API_URL={{kalavai_api_url}}
+    - PORT={{gui_frontend_port}}
     {% if protected_access %}
-    - ACCESS_KEY={{protected_access}}
+    - NEXT_PUBLIC_ACCESS_KEY={{protected_access}}
     {% endif %}
-    entrypoint: ["reflex"]
-    command: >
-      run
-      --backend-port {{gui_backend_port}}
-      --frontend-port {{gui_frontend_port}}
-    # ports:
-    # - "{{gui_backend_port}}:{{gui_backend_port}}"
-    # - "{{gui_frontend_port}}:{{gui_frontend_port}}"
     volumes:
       - "{{path}}:/root/.cache/kalavai"
     restart: always
+

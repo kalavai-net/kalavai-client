@@ -230,27 +230,25 @@ def gui__start(
     version="latest"
 ):
     """Run GUI (docker) and kalavai core backend (api)"""
-    ports_needed = 2
     # find 2 available ports
     ip = socket.gethostbyname (socket.gethostname())
-    ports = []
+    selected_port = -1
     for port in range(49153,65535):
         try:
             serv = socket.socket(socket.AF_INET,socket.SOCK_STREAM) # create a new socket
             serv.bind((ip, port)) # bind socket with address
             serv.close()
-            ports.append(port)
+            selected_port = port
+            break
         except:
             #port closed
             pass
-        if len(ports) >= ports_needed:
-            break
     
-    if len(ports) < ports_needed:
+    if selected_port == -1:
         # if not found, error
-        console.log(f"[red]Cannot initialise GUI: Could not find {ports_needed} free ports in your machine")    
+        console.log(f"[red]Cannot initialise GUI: Could not find a free port in your machine")    
         return
-    console.log(f"Using ports: {ports}")
+    console.log(f"Using port: {selected_port}")
     kalavai_api_url = load_server_info(data_key=KALAVAI_API_URL_KEY, file=USER_LOCAL_SERVER_FILE)
     if kalavai_api_url is None:
         show_connection_suggestion()
@@ -261,8 +259,7 @@ def gui__start(
         console.log(f"[green]Using user key: {user_key}")
     
     values = {
-        "gui_frontend_port": ports[0],
-        "gui_backend_port": ports[1],
+        "gui_frontend_port": selected_port,
         "kalavai_api_url": kalavai_api_url,
         "path": user_path("", create_path=True),
         "protected_access": user_key,
@@ -276,7 +273,7 @@ def gui__start(
     
     run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} up -d")
 
-    console.log(f"[green]Loading GUI, may take a few minutes. It will be available at http://localhost:{ports[0]}")
+    console.log(f"[green]Loading GUI, may take a few minutes. It will be available at http://localhost:{selected_port}")
     console.log("Run [yellow]kalavai gui stop[white] to stop running the GUI")
 
 @arguably.command
