@@ -43,4 +43,23 @@ During the Beta Testing phase, you will be asked to join the Beta Program the fi
 
 ![Join beta testing](./assets/images/join_beta.png)
 
-If you need more resources, you can request more in the Clusters page, but note that capacity is limited.
+
+## Available Resources
+
+All accounts get a default resources quota, which includes the core resources you are allowed to utilise in your `Serverless` deployments. These are the default resources for a free account:
+
+- `8 CPUs`
+- `32 GB RAM`
+- `2 NVIDIA GPUs`
+- `0 AMD GPUs`
+
+Note that this is not resources that have been allocated to your account. It simply states the maximum resources your deployments can utilise at once. The `Serverless` page shows the utilised resources and the quota under `Available Resources`.
+
+![Resource quotas](./assets/images/resource_quota.png)
+
+To increase your assigned quota during the beta testing period, use the `Request Quota Increase` button under `Available Resources`.
+
+
+## What next?
+
+Head over to the [GPU fleet guide](./gpu_fleet.md) to create your first pool and get going with AI deployments!
