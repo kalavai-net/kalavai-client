@@ -572,40 +572,40 @@
 </blockquote>
 <h1 id="llm-service-requests-example">LLM Service Requests Example</h1>
 <p>This example shows how to make requests to the LLM service using the OpenAI compatible API.</p>
-<p>Requires to have <code>openai</code> installed:</p>
+<h2 id="installation">Installation</h2>
+<p>Install the required packages:</p>
 <div class="codehilite"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>openai
 </code></pre></div>
 
+<h2 id="configuration">Configuration</h2>
 <p>Substitute the following values with your own:</p>
 <ul>
 <li><code>MODEL</code>: The model ID of the model you want to use. Example: <code>Qwen/Qwen3-4B</code></li>
 <li><code>API_KEY</code>: Your API key (if authentication is required)</li>
 <li><code>API_URL</code>: The URL of the API. Example: <code>http://kalavai-api.public.kalavai.net/v1</code></li>
 </ul>
+<h2 id="examples">Examples</h2>
+<h3 id="1-streaming-inference">1. Streaming Inference</h3>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openai</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAI</span>
 
+<span class="n">API_URL</span> <span class="o">=</span> <span class="s2">&quot;http://kalavai-api.public.kalavai.net/v1&quot;</span>
+<span class="n">API_KEY</span> <span class="o">=</span> <span class="s2">&quot;&lt;your-api-key&gt;&quot;</span>
+<span class="n">MODEL</span> <span class="o">=</span> <span class="s2">&quot;Qwen/Qwen3-4B&quot;</span>
 
-<span class="n">API_URL</span> <span class="o">=</span> <span class="s2">&quot;http://51.159.173.70:31567/v1&quot;</span> <span class="c1">#&quot;https://api.cogenai.kalavai.net/v1&quot; #&quot;https://api.cogenai.kalavai.net/v1&quot;  # Replace with your OpenAI-compatible API URL</span>
-<span class="n">API_KEY</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>  <span class="c1"># Replace with your actual API key</span>
-<span class="n">MODEL</span> <span class="o">=</span> <span class="s2">&quot;Qwen/Qwen3-4B&quot;</span> <span class="c1"># Replace with your model name</span>
-
-
-<span class="c1"># point this to your vLLM API server</span>
 <span class="n">client</span> <span class="o">=</span> <span class="n">OpenAI</span><span class="p">(</span>
-    <span class="n">base_url</span><span class="o">=</span><span class="n">API_URL</span><span class="p">,</span>  <span class="c1"># change if your server runs elsewhere</span>
-    <span class="n">api_key</span><span class="o">=</span><span class="n">API_KEY</span>  <span class="c1"># vLLM ignores the key, but the client requires it</span>
+    <span class="n">base_url</span><span class="o">=</span><span class="n">API_URL</span><span class="p">,</span>
+    <span class="n">api_key</span><span class="o">=</span><span class="n">API_KEY</span>
 <span class="p">)</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">stream_chat</span><span class="p">():</span>
     <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">chat</span><span class="o">.</span><span class="n">completions</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-        <span class="n">model</span><span class="o">=</span><span class="n">MODEL</span><span class="p">,</span>   <span class="c1"># replace with your model name</span>
+        <span class="n">model</span><span class="o">=</span><span class="n">MODEL</span><span class="p">,</span>
         <span class="n">messages</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;Tell me a long story&quot;</span><span class="p">}],</span>
         <span class="n">stream</span><span class="o">=</span><span class="kc">True</span>
     <span class="p">)</span>
 
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Assistant:&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
-        <span class="c1"># Each chunk may contain part of the message</span>
         <span class="n">delta</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">choices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">delta</span>
         <span class="k">if</span> <span class="n">delta</span> <span class="ow">and</span> <span class="n">delta</span><span class="o">.</span><span class="n">content</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">delta</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -615,6 +615,57 @@
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
     <span class="n">stream_chat</span><span class="p">()</span>
 </code></pre></div>
+
+<h3 id="2-batched-inference">2. Batched Inference</h3>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openai</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAI</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+
+<span class="n">API_URL</span> <span class="o">=</span> <span class="s2">&quot;http://kalavai-api.public.kalavai.net/v1&quot;</span>
+<span class="n">API_KEY</span> <span class="o">=</span> <span class="s2">&quot;&lt;your-api-key&gt;&quot;</span>
+<span class="n">MODEL</span> <span class="o">=</span> <span class="s2">&quot;Qwen/Qwen3-4B&quot;</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">OpenAI</span><span class="p">(</span>
+    <span class="n">base_url</span><span class="o">=</span><span class="n">API_URL</span><span class="p">,</span>
+    <span class="n">api_key</span><span class="o">=</span><span class="n">API_KEY</span>
+<span class="p">)</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">batched_inference_openai</span><span class="p">():</span>
+    <span class="n">prompts</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;What is the capital of France?&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Explain quantum computing&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Write a short poem&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;What are the benefits of exercise?&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Describe the solar system&quot;</span>
+    <span class="p">]</span>
+
+    <span class="n">tasks</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">prompt</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">prompts</span><span class="p">):</span>
+        <span class="n">task</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">single_request</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">MODEL</span><span class="p">,</span> <span class="n">prompt</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+        <span class="n">tasks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+
+    <span class="n">results</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="n">tasks</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">results</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Response </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">result</span><span class="p">[:</span><span class="mi">100</span><span class="p">]</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">single_request</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">prompt</span><span class="p">,</span> <span class="n">request_id</span><span class="p">):</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">chat</span><span class="o">.</span><span class="n">completions</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+        <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+        <span class="n">messages</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">prompt</span><span class="p">}],</span>
+        <span class="n">max_tokens</span><span class="o">=</span><span class="mi">100</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">choices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">content</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">batched_inference_openai</span><span class="p">())</span>
+</code></pre></div>
+
+<h2 id="high-performance-notes">High-Performance notes</h2>
+<ul>
+<li><strong>Streaming</strong>: Use <code>stream=True</code> for real-time response generation</li>
+<li><strong>Batching</strong>: Use async/await patterns for concurrent requests</li>
+<li><strong>Error Handling</strong>: Always include proper error handling for network requests</li>
+</ul>
   </div>
 </article>
                                 <div class="mx-auto flex flex-wrap h-16 w-full max-w-2xl items-center gap-2 px-4 md:px-0">
@@ -719,6 +770,52 @@
         
         
         
+        
+        <a href="#installation"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            Installation
+        </a>
+        
+
+        
+        <a href="#configuration"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            Configuration
+        </a>
+        
+
+        
+        <a href="#examples"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            Examples
+        </a>
+        
+        
+        <a href="#1-streaming-inference"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            1. Streaming Inference
+        </a>
+        
+        <a href="#2-batched-inference"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            2. Batched Inference
+        </a>
+        
+        
+
+        
+        <a href="#high-performance-notes"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            High-Performance notes
+        </a>
+        
+
         
         
         
