@@ -10,12 +10,15 @@ tags:
 
 This example shows how to make requests to the LLM service using the OpenAI compatible API.
 
-Requires to have `openai` installed:
+## Installation
+
+Install the required packages:
 
 ```bash
 pip install openai
 ```
 
+## Configuration
 
 Substitute the following values with your own:
 
@@ -23,33 +26,34 @@ Substitute the following values with your own:
 - `API_KEY`: Your API key (if authentication is required)
 - `API_URL`: The URL of the API. Example: `http://kalavai-api.public.kalavai.net/v1`
 
+## Examples
+
+### 1. Streaming Inference
+
+A single request with streaming response to get the output tokens as soon as they are generated.
 
 
 ```python
 from openai import OpenAI
 
+API_URL = "http://kalavai-api.public.kalavai.net/v1"
+API_KEY = "<your-api-key>"
+MODEL = "Qwen/Qwen3-4B"
 
-API_URL = "http://51.159.173.70:31567/v1" #"https://api.cogenai.kalavai.net/v1" #"https://api.cogenai.kalavai.net/v1"  # Replace with your OpenAI-compatible API URL
-API_KEY = ""  # Replace with your actual API key
-MODEL = "Qwen/Qwen3-4B" # Replace with your model name
-
-
-# point this to your vLLM API server
 client = OpenAI(
-    base_url=API_URL,  # change if your server runs elsewhere
-    api_key=API_KEY  # vLLM ignores the key, but the client requires it
+    base_url=API_URL,
+    api_key=API_KEY
 )
 
 def stream_chat():
     response = client.chat.completions.create(
-        model=MODEL,   # replace with your model name
+        model=MODEL,
         messages=[{"role": "user", "content": "Tell me a long story"}],
         stream=True
     )
 
     print("Assistant:", end=" ", flush=True)
     for chunk in response:
-        # Each chunk may contain part of the message
         delta = chunk.choices[0].delta
         if delta and delta.content:
             print(delta.content, end="", flush=True)
@@ -60,3 +64,60 @@ if __name__ == "__main__":
     stream_chat()
 ```
 
+
+### 2. Batched Inference
+
+Multiple requests submitted simultaneously. The results are displayed in bulk once all of them are completed.
+
+
+```python
+from openai import OpenAI
+import asyncio
+
+API_URL = "http://kalavai-api.public.kalavai.net/v1"
+API_KEY = "<your-api-key>"
+MODEL = "Qwen/Qwen3-4B"
+
+client = OpenAI(
+    base_url=API_URL,
+    api_key=API_KEY
+)
+
+async def batched_inference_openai():
+    prompts = [
+        "What is the capital of France?",
+        "Explain quantum computing",
+        "Write a short poem",
+        "What are the benefits of exercise?",
+        "Describe the solar system"
+    ]
+    
+    tasks = []
+    for i, prompt in enumerate(prompts):
+        task = asyncio.create_task(single_request(client, MODEL, prompt, i))
+        tasks.append(task)
+    
+    results = await asyncio.gather(*tasks)
+    
+    for i, result in enumerate(results):
+        print(f"Response {i+1}: {result[:100]}...")
+
+async def single_request(client, model, prompt, request_id):
+    response = client.chat.completions.create(
+        model=model,
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=100
+    )
+    return response.choices[0].message.content
+
+if __name__ == "__main__":
+    asyncio.run(batched_inference_openai())
+```
+
+
+## High-Performance notes
+
+
+- **Streaming**: Use `stream=True` for real-time response generation
+- **Batching**: Use async/await patterns for concurrent requests
+- **Error Handling**: Always include proper error handling for network requests
