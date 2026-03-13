@@ -30,6 +30,9 @@ Substitute the following values with your own:
 
 ### 1. Streaming Inference
 
+A single request with streaming response to get the output tokens as soon as they are generated.
+
+
 ```python
 from openai import OpenAI
 
@@ -63,6 +66,9 @@ if __name__ == "__main__":
 
 
 ### 2. Batched Inference
+
+Multiple requests submitted simultaneously. The results are displayed in bulk once all of them are completed.
+
 
 ```python
 from openai import OpenAI

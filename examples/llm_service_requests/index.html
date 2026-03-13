@@ -586,6 +586,7 @@
 </ul>
 <h2 id="examples">Examples</h2>
 <h3 id="1-streaming-inference">1. Streaming Inference</h3>
+<p>A single request with streaming response to get the output tokens as soon as they are generated.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openai</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAI</span>
 
 <span class="n">API_URL</span> <span class="o">=</span> <span class="s2">&quot;http://kalavai-api.public.kalavai.net/v1&quot;</span>
@@ -617,6 +618,7 @@
 </code></pre></div>
 
 <h3 id="2-batched-inference">2. Batched Inference</h3>
+<p>Multiple requests submitted simultaneously. The results are displayed in bulk once all of them are completed.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openai</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAI</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 
