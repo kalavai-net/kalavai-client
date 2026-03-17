@@ -61,7 +61,8 @@ for i in range(len(resp.json()["data"])):
 
 ## Batched Inference Example
 
-This example demonstrates batched inference with multiple images and batch size optimization.
+This example demonstrates batched inference with multiple images and batch size optimization. This is a more efficient way to generate multiple images at once, rather than sending individual requests, having them processed at once.
+
 
 ```python
 import time
@@ -104,3 +105,17 @@ for i in range(len(resp.json()["data"])):
         f.write(base64.b64decode(image_data))
 ```
 
+
+## Performance tips
+
+Increase the `batch_size` and `n` parameters to process multiple images in a single request
+
+- Use batched inference when generating multiple images to improve efficiency
+
+Lower resolution images (256x256) are faster to generate than higher resolution images (512x512 or 1024x1024)
+
+- Set the `size` parameter to "256x256" for faster generation
+
+Reduce the number of inference steps for faster generation. Quality generally platoes after 4 r 5 iterations, but one might find good results with fewer steps.
+
+- Set the `num_inference_steps` parameter to a lower value for faster generation

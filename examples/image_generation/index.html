@@ -619,7 +619,7 @@
 </code></pre></div>
 
 <h2 id="batched-inference-example">Batched Inference Example</h2>
-<p>This example demonstrates batched inference with multiple images and batch size optimization.</p>
+<p>This example demonstrates batched inference with multiple images and batch size optimization. This is a more efficient way to generate multiple images at once, rather than sending individual requests, having them processed at once.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">base64</span>
@@ -659,6 +659,20 @@
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;batched_output_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">.png&quot;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">image_data</span><span class="p">))</span>
 </code></pre></div>
+
+<h2 id="performance-tips">Performance tips</h2>
+<p>Increase the <code>batch_size</code> and <code>n</code> parameters to process multiple images in a single request</p>
+<ul>
+<li>Use batched inference when generating multiple images to improve efficiency</li>
+</ul>
+<p>Lower resolution images (256x256) are faster to generate than higher resolution images (512x512 or 1024x1024)</p>
+<ul>
+<li>Set the <code>size</code> parameter to "256x256" for faster generation</li>
+</ul>
+<p>Reduce the number of inference steps for faster generation. Quality generally platoes after 4 r 5 iterations, but one might find good results with fewer steps.</p>
+<ul>
+<li>Set the <code>num_inference_steps</code> parameter to a lower value for faster generation</li>
+</ul>
   </div>
 </article>
                                 <div class="mx-auto flex flex-wrap h-16 w-full max-w-2xl items-center gap-2 px-4 md:px-0">
@@ -774,6 +788,14 @@
             class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
             data-active="false" data-depth="2">
             Batched Inference Example
+        </a>
+        
+
+        
+        <a href="#performance-tips"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            Performance tips
         </a>
         
 
