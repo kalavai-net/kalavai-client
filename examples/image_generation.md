@@ -112,10 +112,11 @@ Increase the `batch_size` and `n` parameters to process multiple images in a sin
 
 - Use batched inference when generating multiple images to improve efficiency
 
-Lower resolution images (256x256) are faster to generate than higher resolution images (512x512 or 1024x1024)
+Set the `size` parameter to "256x256" for faster generation
 
-- Set the `size` parameter to "256x256" for faster generation
+- Lower resolution images (256x256) are faster to generate than higher resolution images (512x512 or 1024x1024)
 
-Reduce the number of inference steps for faster generation. Quality generally platoes after 4 r 5 iterations, but one might find good results with fewer steps.
+Set the `num_inference_steps` parameter to a lower value for faster generation
 
-- Set the `num_inference_steps` parameter to a lower value for faster generation
+- Reduce the number of inference steps for faster generation. Quality generally platoes after 4 r 5 iterations, but one might find good results with fewer steps.
+
