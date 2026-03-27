@@ -81,10 +81,12 @@ from kalavai_client.core import (
     get_compute_usage,
     get_nodes_metrics
 )
-
+from kalavai_client.utils import (
+    apply_cutoff_date_delta
+)
+import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -113,6 +115,7 @@ FORCED_USER_SPACE_NAME = os.getenv("FORCED_USER_SPACE_NAME", None)
 FORCED_PRIORITY = os.getenv("FORCED_PRIORITY", None)
 RINGFENCE_NODE_LABEL = os.getenv("RINGFENCE_NODE_LABEL", None)
 RINGFENCE_NODE_LABEL_VALUE = os.getenv("RINGFENCE_NODE_LABEL_VALUE", None)
+CUTOFF_METRICS_DATE = os.getenv("CUTOFF_METRICS_DATE", None)
 
 
 ################################
@@ -343,20 +346,40 @@ def generate_worker_config(request: WorkerConfigRequest, api_key: str = Depends(
 @app.post("/fetch_compute_usage",
     operation_id="fetch_compute_usage",
     summary="Get compute usage",
-    description="Retrieves information about all compute devices (nodes) currently connected to the Kalavai pool, including their status, available resources, and current workload distribution.",
+    description="Retrieves information about all compute devices (nodes) currently connected to the Kalavai pool, including their availability and usage.",
     tags=["info"],
     response_description="List of devices")
 def compute_usage(request: ComputeUsageRequest, api_key: str = Depends(verify_api_key)):
-    """Get compute usage"""
-    if FORCED_USER_SPACE_NAME is not None:
-        namespaces = [FORCED_USER_SPACE_NAME]
-    else:
-        namespaces = get_user_spaces()
+    """
+    Get compute usage metrics on key resources across available nodes.
+
+    - Filter by ringfenced devices (if any)
+    - if FORCED_USER_SPACE_NAME is enforced, set namespaces to that value
+    """
+    if RINGFENCE_NODE_LABEL is not None and RINGFENCE_NODE_LABEL_VALUE is not None:
+        if request.node_labels is None:
+            request.node_labels = {}
+        request.node_labels = {RINGFENCE_NODE_LABEL: RINGFENCE_NODE_LABEL_VALUE, **request.node_labels}
+    # if namespace provided, must be accessible
+    if request.namespaces is not None:
+        if FORCED_USER_SPACE_NAME is not None:
+            available_ns = [FORCED_USER_SPACE_NAME]
+        else:
+            available_ns = get_user_spaces()
+        request.namespaces = [ns for ns in request.namespaces if ns in available_ns]
+    
+    # Apply cutoff date limitation
+    try:
+        start_time_delta = apply_cutoff_date_delta(request.start_time, CUTOFF_METRICS_DATE)
+    except ValueError as e:
+        logger.warning(f"Failed to apply cutoff date: {e}")
+        start_time_delta = request.start_time
+    
     return get_compute_usage(
-        start_time=request.start_time,
+        start_time=start_time_delta,
         end_time=request.end_time,
         node_names=request.node_names,
-        namespaces=namespaces,
+        namespaces=request.namespaces,
         node_labels=request.node_labels,
         step_seconds=request.step_seconds
     )
@@ -364,19 +387,44 @@ def compute_usage(request: ComputeUsageRequest, api_key: str = Depends(verify_ap
 @app.post("/fetch_nodes_metrics",
     operation_id="fetch_nodes_metrics",
     summary="Get nodes metrics",
-    description="Retrieves information about node usage on key resources such as CPU, memory and GPU.",
+    description="Retrieves time series information about resource usage such as CPU, memory and GPU.",
     tags=["info"],
     response_description="List of devices")
 def nodes_metrics(request: NodeMetricsRequest, api_key: str = Depends(verify_api_key)):
-    """Get nodes metrics"""
+    """
+    Get nodes metrics
+    
+    - Look at ringfenced nodes only
+    - if FORCED_USER_SPACE_NAME is enforced, set namespaces to that value
+    """
+    if RINGFENCE_NODE_LABEL is not None and RINGFENCE_NODE_LABEL_VALUE is not None:
+        if request.node_labels is None:
+            request.node_labels = {}
+        request.node_labels = {RINGFENCE_NODE_LABEL: RINGFENCE_NODE_LABEL_VALUE, **request.node_labels}
+    # if namespace provided, must be accessible
+    if request.namespaces is not None:
+        if FORCED_USER_SPACE_NAME is not None:
+            available_ns = [FORCED_USER_SPACE_NAME]
+        else:
+            available_ns = get_user_spaces()
+        request.namespaces = [ns for ns in request.namespaces if ns in available_ns]
+    
+    # Apply cutoff date limitation
+    try:
+        start_time_delta = apply_cutoff_date_delta(request.start_time, CUTOFF_METRICS_DATE)
+    except ValueError as e:
+        logger.warning(f"Failed to apply cutoff date: {e}")
+        start_time_delta = request.start_time
+    
     return get_nodes_metrics(
-        start_time=request.start_time,
+        start_time=start_time_delta,
         end_time=request.end_time,
         node_names=request.node_names,
         node_labels=request.node_labels,
         resources=request.resources,
         aggregate_results=request.aggregate_results,
-        step=request.step
+        step=request.step,
+        namespaces=request.namespaces
     )
 
 @app.post("/fetch_devices",

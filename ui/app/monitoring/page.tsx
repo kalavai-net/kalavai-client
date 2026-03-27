@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useAuthStore } from '@/stores';
+import { useAuthStore, useConnectionStore } from '@/stores';
 import { AppLayout } from '@/components/AppLayout';
 import { LoginForm } from '@/components/LoginForm';
 import { 
@@ -27,6 +27,115 @@ interface UsageData {
   cpu_hours: number;
   memory_hours: number;
   gpu_hours: number;
+}
+
+interface CombinedUsageData {
+  overall: UsageData;
+  userSpace: UsageData;
+}
+
+function CombinedUsageCard({
+  title,
+  overallValue,
+  userSpaceValue,
+  icon: Icon,
+  unit
+}: {
+  title: string;
+  overallValue: number;
+  userSpaceValue: number;
+  icon: React.ComponentType<{ className?: string }>;
+  unit: string;
+}) {
+  return (
+    <div className="bg-card border border-border rounded-lg p-6 group relative">
+      {/* Tooltip */}
+      <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-popover border border-border rounded-md px-3 py-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 whitespace-nowrap">
+        <div className="font-semibold mb-1">Resource Usage</div>
+        <div>Top: Overall usage across selected devices</div>
+        <div>Bottom: Usage for selected user space</div>
+      </div>
+      
+      <div className="flex items-center gap-3 mb-4">
+        <div className="p-2 bg-primary/10 rounded-lg">
+          <Icon className="w-5 h-5 text-primary" />
+        </div>
+        <h3 className="font-medium text-sm text-muted-foreground">{title}</h3>
+      </div>
+      
+      {/* Overall Usage - Prominent */}
+      <div className="mb-3">
+        <div className="text-xs text-muted-foreground mb-1">Overall Usage</div>
+        <div className="text-2xl font-bold text-foreground">
+          {overallValue.toFixed(2)}
+          <span className="text-sm font-normal text-muted-foreground ml-1">{unit}</span>
+        </div>
+      </div>
+      
+      {/* User Space Usage - Secondary */}
+      <div className="border-t border-border pt-3">
+        <div className="text-xs text-muted-foreground mb-1">User Space Usage</div>
+        <div className="text-lg font-semibold text-blue-600 dark:text-blue-400">
+          {userSpaceValue.toFixed(2)}
+          <span className="text-sm font-normal text-muted-foreground ml-1">{unit}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function UserSpaceSelector({
+  selectedUserSpace,
+  onUserSpaceChange,
+  userSpaces,
+  isLoading
+}: {
+  selectedUserSpace: string | null;
+  onUserSpaceChange: (userSpace: string | null) => void;
+  userSpaces: string[];
+  isLoading: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleSelect = (userSpace: string | null) => {
+    onUserSpaceChange(userSpace);
+    setIsOpen(false);
+  };
+
+  const selectedLabel = selectedUserSpace || 'Select user space';
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        disabled={isLoading}
+        className="flex items-center gap-2 px-3 py-1.5 bg-card border border-border rounded-lg hover:bg-accent transition-colors text-sm disabled:opacity-50"
+      >
+        <span>{selectedLabel}</span>
+        <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 mt-2 w-48 bg-card border border-border rounded-lg shadow-lg z-50">
+          <div className="p-2">
+            {userSpaces.map((userSpace) => (
+              <button
+                key={userSpace}
+                onClick={() => handleSelect(userSpace)}
+                className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${
+                  selectedUserSpace === userSpace
+                    ? 'bg-primary text-primary-foreground'
+                    : 'hover:bg-accent'
+                }`}
+              >
+                {userSpace}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 interface TimeSeriesData {
@@ -280,11 +389,25 @@ function UsageStatCard({
   );
 }
 
-function OverallUsagePanel({ data, isLoading, timePeriod }: { data: UsageData; isLoading: boolean; timePeriod: string }) {
+function CombinedUsagePanel({ 
+  data, 
+  isLoading, 
+  timePeriod, 
+  selectedUserSpace,
+  onUserSpaceChange,
+  userSpaces 
+}: { 
+  data: CombinedUsageData; 
+  isLoading: boolean; 
+  timePeriod: string;
+  selectedUserSpace: string | null;
+  onUserSpaceChange: (userSpace: string | null) => void;
+  userSpaces: string[];
+}) {
   if (isLoading) {
     return (
       <div className="bg-card border border-border rounded-lg p-6">
-        <h2 className="text-lg font-semibold mb-4">Overall Usage</h2>
+        <h2 className="text-lg font-semibold mb-4">Resource Usage</h2>
         <div className="flex items-center justify-center h-32">
           <Loader2 className="w-6 h-6 animate-spin text-primary" />
         </div>
@@ -304,26 +427,37 @@ function OverallUsagePanel({ data, isLoading, timePeriod }: { data: UsageData; i
 
   return (
     <div className="bg-card border border-border rounded-lg p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">Overall Usage</h2>
-        <span className="text-sm text-muted-foreground">{getTimePeriodLabel(timePeriod)}</span>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-lg font-semibold">Resource Usage</h2>
+        <div className="flex items-center gap-3">
+          <UserSpaceSelector
+            selectedUserSpace={selectedUserSpace}
+            onUserSpaceChange={onUserSpaceChange}
+            userSpaces={userSpaces}
+            isLoading={isLoading}
+          />
+          <span className="text-sm text-muted-foreground">{getTimePeriodLabel(timePeriod)}</span>
+        </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <UsageStatCard
+        <CombinedUsageCard
           title="CPU Usage"
-          value={data.cpu_hours}
+          overallValue={data.overall.cpu_hours}
+          userSpaceValue={data.userSpace.cpu_hours}
           icon={Cpu}
           unit="hours"
         />
-        <UsageStatCard
+        <CombinedUsageCard
           title="Memory Usage"
-          value={data.memory_hours}
+          overallValue={data.overall.memory_hours}
+          userSpaceValue={data.userSpace.memory_hours}
           icon={MemoryStick}
           unit="GB-hours"
         />
-        <UsageStatCard
+        <CombinedUsageCard
           title="GPU Usage"
-          value={data.gpu_hours}
+          overallValue={data.overall.gpu_hours}
+          userSpaceValue={data.userSpace.gpu_hours}
           icon={Monitor}
           unit="hours"
         />
@@ -525,6 +659,7 @@ function TimeSeriesPanel({ data, isLoading, timePeriod, resourceType }: { data: 
 
 
 function MonitoringContent() {
+  const { userSpaces, selectedUserSpace, loadConnectionState } = useConnectionStore();
   const [devices, setDevices] = useState<Device[]>([]);
   const [selectedDevices, setSelectedDevices] = useState<string[]>([]);
   const [appliedDevices, setAppliedDevices] = useState<string[]>([]);
@@ -532,26 +667,43 @@ function MonitoringContent() {
   const [appliedTimeRange, setAppliedTimeRange] = useState<string>('24h');
   const [selectedResource, setSelectedResource] = useState<string>('gpus');
   const [appliedResource, setAppliedResource] = useState<string>('gpus');
+  const [selectedUserSpaceForPanel, setSelectedUserSpaceForPanel] = useState<string | null>(selectedUserSpace);
   const [isLoadingDevices, setIsLoadingDevices] = useState(true);
   const [isLoadingUsage, setIsLoadingUsage] = useState(true);
   const [isLoadingTimeSeries, setIsLoadingTimeSeries] = useState(true);
-  const [usageData, setUsageData] = useState<UsageData>({
-    cpu_hours: 0,
-    memory_hours: 0,
-    gpu_hours: 0
+  const [combinedUsageData, setCombinedUsageData] = useState<CombinedUsageData>({
+    overall: {
+      cpu_hours: 0,
+      memory_hours: 0,
+      gpu_hours: 0
+    },
+    userSpace: {
+      cpu_hours: 0,
+      memory_hours: 0,
+      gpu_hours: 0
+    }
   });
   const [timeSeriesData, setTimeSeriesData] = useState<TimeSeriesData | null>(null);
 
   useEffect(() => {
+    // Load connection state to get user spaces
+    loadConnectionState();
     loadDevices();
   }, []);
 
   useEffect(() => {
+    // Set default user space to selected user space when available
+    if (selectedUserSpace && !selectedUserSpaceForPanel) {
+      setSelectedUserSpaceForPanel(selectedUserSpace);
+    }
+  }, [selectedUserSpace, selectedUserSpaceForPanel]);
+
+  useEffect(() => {
     if (appliedDevices.length > 0) {
-      loadUsageData();
+      loadCombinedUsageData();
       loadTimeSeriesData();
     }
-  }, [appliedDevices, appliedTimeRange, appliedResource]);
+  }, [appliedDevices, appliedTimeRange, appliedResource, selectedUserSpaceForPanel]);
 
   const loadDevices = async () => {
     setIsLoadingDevices(true);
@@ -569,65 +721,78 @@ function MonitoringContent() {
     }
   };
 
-  const getTimeRangeFromSelection = (timeRange: string) => {
-    const now = new Date();
-    const endTime = now.toISOString();
-    let startTime: Date;
-    
-    switch (timeRange) {
-      case '3d':
-        startTime = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
-        break;
-      case '7d':
-        startTime = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        break;
-      case '15d':
-        startTime = new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000);
-        break;
-      case '24h':
-      default:
-        startTime = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-        break;
-    }
-    
-    return {
-      start_time: startTime.toISOString(),
-      end_time: endTime
-    };
-  };
-
-  const loadUsageData = async () => {
+  
+  const loadCombinedUsageData = async () => {
     setIsLoadingUsage(true);
     try {
-      const { start_time, end_time } = getTimeRangeFromSelection(appliedTimeRange);
+      console.log('Loading combined usage data for devices:', appliedDevices);
+      console.log('Time range:', { start_time: appliedTimeRange, end_time: 'now' });
+      console.log('User space:', selectedUserSpaceForPanel);
 
-      console.log('Loading usage data for devices:', appliedDevices);
-      console.log('Time range:', { start_time, end_time });
-
-      const usageResponse = await kalavaiApi.getComputeUsage({
-        start_time,
-        end_time,
+      // Call 1: Overall usage (no namespace filter)
+      const overallResponse = await kalavaiApi.getComputeUsage({
+        start_time: appliedTimeRange,
+        end_time: 'now',
         node_names: appliedDevices,
         step_seconds: 600
       });
 
-      console.log('Raw API response:', usageResponse);
+      console.log('Overall API response:', overallResponse);
 
-      // Convert raw values to hours and round to 2 decimal places
-      const cpuHours = parseFloat((usageResponse.cpu / 3600).toFixed(2));
-      const memoryHours = parseFloat(((usageResponse.ram / (1024 * 1024 * 1024)) / 3600).toFixed(2)); // Convert bytes to GB then to hours
-      const gpuHours = parseFloat((usageResponse.gpus).toFixed(2));
+      // Convert overall usage
+      const overallCpuValue = overallResponse?.cpu ?? 0;
+      const overallRamValue = overallResponse?.ram ?? 0;
+      const overallGpusValue = overallResponse?.gpus ?? 0;
 
-      console.log('Converted values:', { cpuHours, memoryHours, gpuHours });
+      const overallUsage = {
+        cpu_hours: parseFloat(overallCpuValue.toFixed(2)),
+        memory_hours: parseFloat((overallRamValue / (1024 * 1024 * 1024)).toFixed(2)),
+        gpu_hours: parseFloat(overallGpusValue.toFixed(2))
+      };
 
-      setUsageData({
-        cpu_hours: cpuHours,
-        memory_hours: memoryHours,
-        gpu_hours: gpuHours
+      // Call 2: User space usage if user space is selected
+      let userSpaceUsage = {
+        cpu_hours: 0,
+        memory_hours: 0,
+        gpu_hours: 0
+      };
+
+      if (selectedUserSpaceForPanel) {
+        try {
+          const userSpaceResponse = await kalavaiApi.getComputeUsage({
+            start_time: appliedTimeRange,
+            end_time: 'now',
+            node_names: appliedDevices,
+            namespaces: [selectedUserSpaceForPanel],
+            step_seconds: 600
+          });
+
+          console.log('User space API response:', userSpaceResponse);
+
+          // Convert user space usage
+          const userSpaceCpuValue = userSpaceResponse?.cpu ?? 0;
+          const userSpaceRamValue = userSpaceResponse?.ram ?? 0;
+          const userSpaceGpusValue = userSpaceResponse?.gpus ?? 0;
+
+          userSpaceUsage = {
+            cpu_hours: parseFloat(userSpaceCpuValue.toFixed(2)),
+            memory_hours: parseFloat((userSpaceRamValue / (1024 * 1024 * 1024)).toFixed(2)),
+            gpu_hours: parseFloat(userSpaceGpusValue.toFixed(2))
+          };
+        } catch (error) {
+          console.warn('Failed to load user space usage:', error);
+        }
+      }
+
+      console.log('Converted overall values:', overallUsage);
+      console.log('Converted user space values:', userSpaceUsage);
+
+      setCombinedUsageData({
+        overall: overallUsage,
+        userSpace: userSpaceUsage
       });
     } catch (error) {
-      console.error('Error loading usage data:', error);
-      // Keep mock data as fallback
+      console.error('Error loading combined usage data:', error);
     } finally {
       setIsLoadingUsage(false);
     }
@@ -636,20 +801,18 @@ function MonitoringContent() {
   const loadTimeSeriesData = async () => {
     setIsLoadingTimeSeries(true);
     try {
-      const { start_time, end_time } = getTimeRangeFromSelection(appliedTimeRange);
-      
       // Get the resources list based on selection
       const resources = appliedResource === 'gpus' 
         ? ['amd_com_gpu', 'nvidia_com_gpu'] 
         : ['cpu'];
       
       console.log('Loading time series data for devices:', appliedDevices);
-      console.log('Time range:', { start_time, end_time });
+      console.log('Time range:', { start_time: appliedTimeRange, end_time: 'now' });
       console.log('Resources:', resources);
 
       const metricsResponse = await kalavaiApi.fetchNodesMetrics({
-        start_time,
-        end_time,
+        start_time: appliedTimeRange,
+        end_time: 'now',
         node_names: appliedDevices,
         resources,
         aggregate_results: true,
@@ -727,7 +890,14 @@ function MonitoringContent() {
       </div>
 
       <div className="space-y-6">
-        <OverallUsagePanel data={usageData} isLoading={isLoadingUsage} timePeriod={appliedTimeRange} />
+        <CombinedUsagePanel 
+          data={combinedUsageData} 
+          isLoading={isLoadingUsage} 
+          timePeriod={appliedTimeRange}
+          selectedUserSpace={selectedUserSpaceForPanel}
+          onUserSpaceChange={setSelectedUserSpaceForPanel}
+          userSpaces={userSpaces}
+        />
         <TimeSeriesPanel data={timeSeriesData} isLoading={isLoadingTimeSeries} timePeriod={appliedTimeRange} resourceType={appliedResource} />
       </div>
     </div>

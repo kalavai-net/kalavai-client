@@ -4,7 +4,7 @@ server:
   location: null
   name: "kalavai_cluster"
   mtu: ""
-  watcher_image_tag: "2026.3.2"
+  watcher_image_tag: "2026.3.4"
   host_root_path: "/hostroot"
 
 core:
@@ -89,4 +89,9 @@ core:
 pool:
   # Name of the storage class to use for the pool
   storage_class_name: "longhorn"
+  dns_api_token: null
+  dns_email: "info@kalavai.net"
+  dns_subdomain: "spaces.kalavai.net"
+  dns_cert_manager_namespace: "cert-manager"
+  dns_ingress_controller_namespace: "kube-system"
   

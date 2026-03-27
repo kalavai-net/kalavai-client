@@ -260,6 +260,7 @@ def get_nodes_metrics(
     node_labels: list[str]=None,
     aggregate_results: bool=True,
     resources: list[str]=["amd_com_gpu", "nvidia_com_gpu"],
+    namespaces: list[str]=None,
     step="1h"
 ):
     data = {
@@ -269,7 +270,8 @@ def get_nodes_metrics(
         "node_labels": node_labels,
         "resources": resources,
         "step": step,
-        "aggregate_results": aggregate_results
+        "aggregate_results": aggregate_results,
+        "namespaces": namespaces
     }
     try:
         data = request_to_server(
@@ -511,7 +513,7 @@ def fetch_job_details(force_namespace=None):
         user_cookie=USER_COOKIE)
     
     for namespace, deployments in result.items():
-        """deployments --> "job_id": {"pods": {}, "services": {}, "job": {}} }"""
+        """deployments --> "job_id": {"pods": {}, "services": {}, "ingress": {}, "job": {}} }"""
         for job_id, job in deployments.items():
             workers_status = defaultdict(int)
             workers = ""
@@ -534,6 +536,7 @@ def fetch_job_details(force_namespace=None):
                 print("Skip pods")
             # parse services
             endpoints = {}
+            # TODO: for client-pools, this value won't be in the server file
             endpoint_address = urlparse(load_server_info(data_key=KALAVAI_API_URL_KEY, file=USER_LOCAL_SERVER_FILE)).hostname
             if "services" in job_status and job_status["services"] is not None:
                 for name, values in job_status["services"].items():
@@ -546,12 +549,25 @@ def fetch_job_details(force_namespace=None):
                                 endpoint_name = f"{name}-{port['name']}"
                             else:
                                 endpoint_name = port["name"]
+                        active_port = port["nodePort"] if "nodePort" in port else port["targetPort"]
                         endpoints[endpoint_name] = {
-                            "port": port["nodePort"] if "nodePort" in port else port["targetPort"],
-                            "address": endpoint_address
+                            "port": active_port,
+                            "address": endpoint_address,
+                            "link": f"http://{endpoint_address}:{active_port}"
                         }
             else:
                 print("Skip service")
+            # parse ingresses
+            if "ingress" in job_status and job_status["ingress"] is not None:
+                for ingress_name, hosts in job_status["ingress"].items():
+                    for i, host_config in enumerate(hosts):
+                        path = host_config.get('path', '')
+                        endpoint_name = f"{host_config['address']}{path}"
+                        endpoints[endpoint_name] = {
+                            "port": host_config['backendService']['port'],
+                            "address": f"{host_config['address']}",
+                            "link": f"https://{host_config['address']}{path}"
+                        }
             #urls = [f"http://{endpoint_address}:{node_port}" for node_port in node_ports]
             if len(workers_status) == 0:
                 status = "pending"
@@ -762,6 +778,7 @@ def fetch_devices(node_labels=None):
             server_creds=USER_LOCAL_SERVER_FILE,
             user_cookie=USER_COOKIE
         )
+        print("Devices from watcher: ", data)
         devices = []
         for node, status in data.items():
             devices.append(
@@ -1323,7 +1340,7 @@ def create_pool(
     
     return {"success"}
 
-def update_pool(debug=True):
+def update_pool(debug=True, releases=None):
     try:
         CLUSTER.validate_cluster()
     except Exception as e:
@@ -1334,7 +1351,7 @@ def update_pool(debug=True):
     
     # update dependencies
     try:
-        CLUSTER.update_dependencies(debug=debug)
+        CLUSTER.update_dependencies(debug=debug, releases=releases)
         return {"success": "Pool updating. Expect some downtime on core services"}
     except Exception as e:
         return {"error": f"[red]Error when updating pool: {str(e)}"}

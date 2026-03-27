@@ -15,7 +15,7 @@ interface Job {
   status: string;
   workers: string;
   host_nodes: string;
-  endpoint: Record<string, { address: string; port: string | number } | string>;
+  endpoint: Record<string, { port: number | null; address: string; link: string } | string>;
   spec?: Record<string, unknown>;
   conditions?: Record<string, unknown>;
 }
@@ -45,9 +45,9 @@ interface TemplateData {
   metadata: { name?: string; description?: string; icon?: string; sources?: string[]; version?: string };
 }
 
-function parseEndpointUrl(ep: { address: string; port: string | number } | string): string {
+function parseEndpointUrl(ep: { port: number | null; address: string; link: string } | string): string {
   if (typeof ep === 'string') return ep;
-  return `http://${ep.address}:${ep.port}`;
+  return ep.link;
 }
 
 function buildParams(data: TemplateData): Record<string, TemplateParam> {
@@ -531,7 +531,7 @@ function JobsContent() {
       const formatted: Job[] = (Array.isArray(details) ? details : []).map((job: Job) => ({
         ...job,
         endpoint: Object.fromEntries(
-          Object.entries(job.endpoint || {}).map(([n, ep]) => [n, parseEndpointUrl(ep as { address: string; port: string } | string)])
+          Object.entries(job.endpoint || {}).map(([n, ep]) => [n, parseEndpointUrl(ep as { port: number | null; address: string; link: string } | string)])
         ),
       }));
       setJobs(formatted);

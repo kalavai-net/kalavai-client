@@ -30,6 +30,7 @@ from kalavai_client.env import (
     resource_path,
 )
 from kalavai_client.core import (
+    fetch_job_details,
     generate_worker_package,
     load_gpu_models,
     check_token,
@@ -767,11 +768,11 @@ def pool__resources(*others):
         
 
 @arguably.command
-def pool__update(*others):
+def pool__update(*others, releases: list[str]=None):
     """
     Update kalavai pool
     """
-    result = update_pool(debug=True)
+    result = update_pool(debug=True, releases=releases)
 
     if "error" in result:
         console.log(f"[red]{result['error']}")
@@ -902,7 +903,6 @@ def pool__services(*others, force_namespace: str = None):
 
 @arguably.command
 def pool__usage(*others, start_time: str="24h", end_time: str="now"):
-    from kalavai_client.api import get_compute_usage
 
     devices = request_to_api(
         method="POST",
@@ -912,14 +912,19 @@ def pool__usage(*others, start_time: str="24h", end_time: str="now"):
     if "error" in devices:
         console.log(f"[red]Error when fetching devices: {devices}")
         return
-    devices = [device["name"] for device in devices]
-
-    console.log(f"Getting usage for: {devices}")
-    usage = get_compute_usage(
-        node_names=devices,
-        start_time=start_time,
-        end_time=end_time
+    device_names = [device["name"] for device in devices]
+    console.log(f"Getting usage for: {device_names}")
+    
+    usage = request_to_api(
+        method="POST",
+        endpoint="/fetch_compute_usage",
+        json={
+            "node_names": device_names,
+            "start_time": start_time,
+            "end_time": end_time
+        }
     )
+    
     if "error" in usage:
         console.log(f"[red]Error when fetching usage: {usage}")
         return
@@ -928,7 +933,6 @@ def pool__usage(*others, start_time: str="24h", end_time: str="now"):
 
 @arguably.command
 def pool__metrics(*others, start_time: str="24h", end_time: str="now"):
-    from kalavai_client.api import get_nodes_metrics
 
     devices = request_to_api(
         method="POST",
@@ -938,13 +942,16 @@ def pool__metrics(*others, start_time: str="24h", end_time: str="now"):
     if "error" in devices:
         console.log(f"[red]Error when fetching devices: {devices}")
         return
-    print(devices)
-    devices = [device["name"] for device in devices]
-    console.log(f"Getting metrics for: {devices}")
-    metrics = get_nodes_metrics(
-        node_names=devices,
-        start_time=start_time,
-        end_time=end_time
+    device_names = [device["name"] for device in devices]
+    console.log(f"Getting metrics for: {device_names}")
+    metrics = request_to_api(
+        method="POST",
+        endpoint="/fetch_nodes_metrics",
+        json={
+            "node_names": device_names,
+            "start_time": start_time,
+            "end_time": end_time
+        }
     )
     if "error" in metrics:
         console.log(f"[red]Error when fetching metrics: {metrics}")
@@ -1413,7 +1420,7 @@ def job__list(*others, force_namespace: str=None):
     
     try:
         columns = ["ID", "Name", "Workers", "Endpoint"]
-        rows = [[job["job_id"], job["name"], job["workers"], "\n".join([f"{k} -> {v['address']}:{v['port']}" for k, v in job["endpoint"].items()])] for job in details]
+        rows = [[job["job_id"], job["name"], job["workers"], "\n".join([f"{k} -> {v['link']}" for k, v in job["endpoint"].items()])] for job in details]
         
         console.print(
             generate_table(columns=columns, rows=rows, end_sections=range(len(rows)))

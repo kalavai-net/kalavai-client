@@ -42,7 +42,7 @@ releases:
   - name: job-operator
     namespace: kalavai
     chart: kalavai-job-operator/kalavai-job-operator
-    version: 0.0.17
+    version: 0.0.21
     installed: true
     needs:
     - flux-system/flux
@@ -354,7 +354,7 @@ releases:
   - name: kalavai-watcher
     namespace: kalavai
     chart: kalavai/kalavai-watcher
-    version: "0.4.25"
+    version: "0.4.26"
     installed: true
     set:
     - name: namespace

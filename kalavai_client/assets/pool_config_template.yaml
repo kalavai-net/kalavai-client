@@ -70,3 +70,64 @@ metadata:
 spec:
   interval: 1h
   url: https://kalavai-net.github.io/helm-charts/
+---
+---
+{% if dns_api_token %}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: digitalocean-dns
+  namespace: {{ dns_cert_manager_namespace }} # same as cert-manager
+type: Opaque
+data:
+  # echo -n "token" | base64
+  access-token: {{ dns_api_token | b64encode }}
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-dns-prod
+spec:
+  acme:
+    # The ACME server URL
+    server: https://acme-v02.api.letsencrypt.org/directory
+    # Email address used for ACME registration
+    email: {{ dns_email }}
+    # Name of a secret used to store the ACME account private key
+    privateKeySecretRef:
+      name: letsencrypt-dns-prod
+    solvers:
+    # Enable DNS challenge provider (Digital ocean)
+    - dns01:
+        digitalocean:
+          tokenSecretRef:
+            name: digitalocean-dns
+            key: access-token
+    
+---
+# one cert to rule them all
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard-tls
+  namespace: {{ dns_ingress_controller_namespace }} # ingress controller namespace
+spec:
+  secretName: wildcard-tls-secret
+  issuerRef:
+    name: letsencrypt-dns-prod
+    kind: ClusterIssuer
+  commonName: "*.{{ dns_subdomain }}"
+  dnsNames:
+  - "*.{{ dns_subdomain }}"
+  - "{{ dns_subdomain }}"
+---
+# default certificate
+apiVersion: traefik.io/v1alpha1
+kind: TLSStore
+metadata:
+  name: default # must be named default
+  namespace: {{ dns_ingress_controller_namespace }} # The namespace where Traefik is installed
+spec:
+  defaultCertificate:
+    secretName: wildcard-tls-secret # Matches the secretName in your Certificate
+{% endif %}

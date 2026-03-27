@@ -102,6 +102,7 @@ class KalavaiApiClient {
     end_time: string;
     node_names?: string[];
     node_labels?: Record<string, string>;
+    namespaces?: string[];
     step_seconds?: number;
   }) {
     return this.post('fetch_compute_usage', data);

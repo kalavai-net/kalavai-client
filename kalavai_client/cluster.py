@@ -115,7 +115,7 @@ class dockerCluster(Cluster):
             values_dict={"container_name": self.container_name, "iface_name": self.default_flannel_iface})
         return run_cmd(command).decode().strip()
 
-    def update_dependencies(self, dependencies_file=None, debug=False, retries=3):
+    def update_dependencies(self, dependencies_file=None, debug=False, retries=3, releases=None):
         if dependencies_file is not None:
             self.dependencies_file = dependencies_file
         while True:
@@ -126,7 +126,11 @@ class dockerCluster(Cluster):
                 kubeconfig_path = f"{target_path}/{Path(self.kubeconfig_file).name}"
                 dependencies_path = f"{target_path}/{Path(self.dependencies_file).name}"
 
-                run_cmd(f"docker run --rm --net=host -v {home}:{target_path} ghcr.io/helmfile/helmfile:v0.169.2 helmfile sync --file {dependencies_path} --kubeconfig {kubeconfig_path}", hide_output=not debug)
+                if releases is not None:
+                    release_cmd = "-l "+ ",".join([f"name={release}" for release in releases])
+                else:
+                    release_cmd = ""
+                run_cmd(f"docker run --rm --net=host -v {home}:{target_path} ghcr.io/helmfile/helmfile:v0.169.2 helmfile {release_cmd} sync --file {dependencies_path} --kubeconfig {kubeconfig_path}", hide_output=not debug)
                 break
             except Exception as e:
                 if retries > 0:

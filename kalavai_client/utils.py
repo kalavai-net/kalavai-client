@@ -6,6 +6,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import re
+from datetime import datetime, timedelta
 
 from jinja2 import Template
 
@@ -503,3 +504,152 @@ def safe_remove(filepath, force=True):
             run_cmd(f"rm -rf {filepath}")
         except:
             pass
+
+
+def parse_delta_to_datetime(delta_str: str) -> datetime:
+    """
+    Parse a delta time string to a datetime object.
+    
+    Args:
+        delta_str: Delta time string (e.g., "24h", "3d", "7d", "15d")
+        
+    Returns:
+        Datetime object representing the time delta from now
+        
+    Raises:
+        ValueError: If delta format is invalid
+    """
+    now = datetime.now()
+    
+    # Handle "now" as a special case
+    if delta_str == "now":
+        return now
+    
+    # Parse delta format
+    if delta_str.endswith('h'):
+        hours = int(delta_str[:-1])
+        return now - timedelta(hours=hours)
+    elif delta_str.endswith('d'):
+        days = int(delta_str[:-1])
+        return now - timedelta(days=days)
+    elif delta_str.endswith('m'):
+        minutes = int(delta_str[:-1])
+        return now - timedelta(minutes=minutes)
+    elif delta_str.endswith('s'):
+        seconds = int(delta_str[:-1])
+        return now - timedelta(seconds=seconds)
+    else:
+        raise ValueError(f"Invalid delta format: {delta_str}. Expected formats: '24h', '3d', etc.")
+
+
+def datetime_to_delta(dt: datetime) -> str:
+    """
+    Convert a datetime to a delta time string from now.
+    
+    Args:
+        dt: Datetime object in the past
+        
+    Returns:
+        Delta time string (e.g., "24h", "3d", "15d")
+        
+    Raises:
+        ValueError: If datetime is in the future
+    """
+    now = datetime.now()
+    
+    # Handle timezone awareness - if dt is timezone-aware, make now also timezone-aware
+    if dt.tzinfo is not None:
+        now = now.replace(tzinfo=dt.tzinfo)
+    elif dt.tzinfo is None and now.tzinfo is not None:
+        dt = dt.replace(tzinfo=now.tzinfo)
+    
+    if dt > now:
+        raise ValueError("Cannot convert future datetime to delta")
+    
+    delta = now - dt
+    
+    # Choose the most appropriate unit
+    if delta.days >= 1:
+        return f"{delta.days}d"
+    elif delta.seconds >= 3600:
+        hours = delta.seconds // 3600
+        return f"{hours}h"
+    elif delta.seconds >= 60:
+        minutes = delta.seconds // 60
+        return f"{minutes}m"
+    else:
+        return f"{delta.seconds}s"
+
+
+def apply_cutoff_date_delta(start_time: str, cutoff_date: str) -> str:
+    """
+    Apply cutoff date limitation to delta time string or timestamp.
+    
+    Args:
+        start_time: Original start time as delta string (e.g., "24h", "3d") or ISO timestamp
+        cutoff_date: Cutoff date in ISO format
+        
+    Returns:
+        The delta string representing the later of start_time or cutoff_date
+        
+    Raises:
+        ValueError: If date parsing fails
+    """
+    if cutoff_date is None:
+        return start_time  
+    
+    try:
+        # Parse cutoff date
+        cutoff_dt = datetime.fromisoformat(cutoff_date)
+        
+        # Determine input type and parse accordingly
+        if _is_delta_string(start_time):
+            # Input is delta string
+            start_dt = parse_delta_to_datetime(start_time)
+        else:
+            # Input is timestamp
+            start_dt = datetime.fromisoformat(start_time)
+        
+        # Ensure both datetimes have the same timezone awareness
+        if start_dt.tzinfo is None and cutoff_dt.tzinfo is not None:
+            start_dt = start_dt.replace(tzinfo=cutoff_dt.tzinfo)
+        elif start_dt.tzinfo is not None and cutoff_dt.tzinfo is None:
+            cutoff_dt = cutoff_dt.replace(tzinfo=start_dt.tzinfo)
+        
+        # Use the later date
+        if cutoff_dt > start_dt:
+            new_delta = datetime_to_delta(cutoff_dt)
+            print(f"Overriding start_time from {start_time} to {new_delta} (cutoff: {cutoff_date})")
+            return new_delta
+        else:
+            # Return original if it was delta, or convert timestamp to delta
+            if _is_delta_string(start_time):
+                return start_time
+            else:
+                return datetime_to_delta(start_dt)
+    except ValueError as e:
+        raise ValueError(f"Failed to parse dates for cutoff comparison: {e}")
+
+
+def _is_delta_string(time_str: str) -> bool:
+    """
+    Check if a string is a delta time format.
+    
+    Args:
+        time_str: Time string to check
+        
+    Returns:
+        True if it's a delta string (e.g., "24h", "3d"), False if it's a timestamp
+    """
+    if time_str == "now":
+        return True
+    
+    # Check for common delta patterns
+    delta_patterns = [
+        r'^\d+h$',   # hours: 24h, 1h, 12h
+        r'^\d+d$',   # days: 3d, 1d, 7d
+        r'^\d+m$',   # minutes: 30m, 5m
+        r'^\d+s$',   # seconds: 45s, 10s
+    ]
+    
+    return any(re.match(pattern, time_str) for pattern in delta_patterns)
