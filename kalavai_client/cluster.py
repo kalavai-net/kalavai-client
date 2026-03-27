@@ -102,7 +102,7 @@ class dockerCluster(Cluster):
             try:
                 run_cmd(f"docker cp {self.container_name}:/etc/rancher/k3s/k3s.yaml {self.kubeconfig_file}", hide_output=True)
                 break
-            except:
+            except Exception:
                 pass
             time.sleep(5)
 
@@ -143,7 +143,7 @@ class dockerCluster(Cluster):
         try:
             run_cmd(f'docker compose -f {self.compose_file} down --volumes')
             return True
-        except:
+        except Exception:
             return False
 
     def is_agent_running(self):
@@ -170,7 +170,7 @@ class dockerCluster(Cluster):
         try:
             run_cmd(f"docker container exec {self.container_name} cat /var/lib/rancher/k3s/server/node-token", hide_output=True)
             return True
-        except:
+        except Exception:
             return False
     
     def is_cluster_init(self):
@@ -188,14 +188,14 @@ class dockerCluster(Cluster):
         try:
             run_cmd(f'docker compose -f {self.compose_file} stop')
             status = True
-        except:
+        except Exception:
             pass
         return status
 
     def restart_agent(self):
         try:
             run_cmd(f'docker compose -f {self.compose_file} start')
-        except:
+        except Exception:
             pass
         time.sleep(5)
         return self.is_agent_running()
@@ -234,7 +234,7 @@ class k3sCluster(Cluster):
         try:
             if check_gpu_drivers():
                 self.node_labels = "--node-label gpu=on"
-        except:
+        except Exception:
             print("[Warning] issues detected with nvidia, GPU has been disabled for this node")
             self.node_labels = ""
         
@@ -289,12 +289,12 @@ class k3sCluster(Cluster):
             run_cmd('/usr/local/bin/k3s-uninstall.sh', hide_output=True)
             run_cmd('sudo rm -r /etc/rancher/node/', hide_output=True)
             return True
-        except:
+        except Exception:
             pass
         try:
             run_cmd('/usr/local/bin/k3s-agent-uninstall.sh', hide_output=True)
             return True
-        except:
+        except Exception:
             pass
         return False
 
@@ -314,23 +314,23 @@ class k3sCluster(Cluster):
         try:
             run_cmd('sudo systemctl stop k3s', hide_output=True)
             status = True
-        except:
+        except Exception:
             pass
         try:
             run_cmd('sudo systemctl stop k3s-agent', hide_output=True)
             status = True
-        except:
+        except Exception:
             pass
         return status
 
     def restart_agent(self):
         try:
             run_cmd('sudo systemctl start k3s', hide_output=True)
-        except:
+        except Exception:
             pass
         try:
             run_cmd('sudo systemctl start k3s-agent', hide_output=True)
-        except:
+        except Exception:
             pass
         return self.is_agent_running()
 
