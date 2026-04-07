@@ -218,3 +218,49 @@ const fetchStargazers = (repoUrl) => {
 		}
 	}
 };
+
+const setActiveTocLink = (id) => {
+	id = id.replace("#", "");
+	const tocLinks = document.querySelectorAll("#toc a");
+	tocLinks.forEach((link) => {
+		if (link.getAttribute("href") === `#${id}`) {
+			link.dataset.active = "true";
+		} else {
+			link.dataset.active = "false";
+		}
+	});
+};
+
+const deferSetActiveTocLink = (id) => {
+	console.log(`Deferring setActiveTocLink for id: ${id}`);
+	setTimeout(() => {
+		setActiveTocLink(id);
+	}, 500);
+};
+
+const toc = {
+	forceActiveId: "",
+	currentActiveId: "",
+	observer: new IntersectionObserver(
+		(entries) => {
+			//  track the "topmost visible heading"
+			entries.forEach((entry) => {
+				if (entry.isIntersecting) {
+					toc.currentActiveId = entry.target.id
+						? entry.target.id
+						: toc.currentActiveId;
+				}
+			});
+
+			if (toc.forceActiveId) {
+				toc.currentActiveId = toc.forceActiveId;
+				toc.forceActiveId = "";
+			}
+			setActiveTocLink(toc.currentActiveId);
+		},
+		{
+			// rootMargin: top offset to trigger "early"
+			rootMargin: "0px 0px -60% 0px",
+		},
+	),
+};
