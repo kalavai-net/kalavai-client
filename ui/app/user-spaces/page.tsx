@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/stores';
 import { AppLayout } from '@/components/AppLayout';
 import { LoginForm } from '@/components/LoginForm';
+import { FeatureGate } from '@/components/FeatureGate';
 import { 
   Layers, 
   Plus, 
@@ -16,7 +17,8 @@ import {
   Check, 
   X,
   Users,
-  Shield
+  Shield,
+  RefreshCw
 } from 'lucide-react';
 import kalavaiApi from '@/utils/api';
 
@@ -202,8 +204,10 @@ export default function UserSpacesPage() {
       if (quotaData && Object.keys(quotaData).length > 0) {
         console.log('[UI DEBUG] Setting form data with quota:', quotaData);
         setFormData({
-          cpu: quotaData.cpu || '',
-          memory: quotaData.memory || '',
+          cpu: quotaData.cpu ? 
+          (quotaData.cpu.includes('m') ? (parseFloat(quotaData.cpu.replace('m', '')) / 1000).toString() : quotaData.cpu) 
+          : '',
+          memory: quotaData.memory ? quotaData.memory.replace('Gi', '') : '',
           nvidiaGpu: quotaData['nvidia.com/gpu'] || '',
           amdGpu: quotaData['amd.com/gpu'] || '',
           labels: labelsData || {}
@@ -285,9 +289,13 @@ export default function UserSpacesPage() {
       const quota: Record<string, string> = {};
       
       if (formData.cpu) quota.cpu = formData.cpu;
-      if (formData.memory) quota.memory = formData.memory;
+      if (formData.memory) quota.memory = `${formData.memory}Gi`;
       if (formData.nvidiaGpu) quota['nvidia.com/gpu'] = formData.nvidiaGpu;
       if (formData.amdGpu) quota['amd.com/gpu'] = formData.amdGpu;
+      
+      console.log('[DEBUG] Form data:', formData);
+      console.log('[DEBUG] Sending quota to API:', quota);
+      console.log('[DEBUG] CPU value:', formData.cpu, '-> quota.cpu:', quota.cpu);
       
       const name = spaceName || newSpaceName || selectedSpace?.name || '';
       if (!name) {
@@ -404,9 +412,10 @@ export default function UserSpacesPage() {
   }
 
   return (
-    <AppLayout>
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
+    <FeatureGate feature="SHOW_USER_SPACES" featureName="User Spaces">
+      <AppLayout>
+        <div className="p-6 space-y-6">
+          <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-primary/10">
               <Users className="w-6 h-6 text-primary" />
@@ -427,13 +436,28 @@ export default function UserSpacesPage() {
                   <Layers className="w-5 h-5" />
                   Available Spaces
                 </h2>
-                <button
-                  onClick={handleCreateNew}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add
-                </button>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    onClick={() => {
+                      loadUserSpaces();
+                      if (selectedSpace) {
+                        handleSpaceSelect(selectedSpace.name);
+                      }
+                    }}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-muted border border-border rounded-lg hover:bg-muted/80 transition-colors text-sm whitespace-nowrap"
+                    title="Refresh spaces and quota data"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    Refresh
+                  </button>
+                  <button
+                    onClick={handleCreateNew}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm whitespace-nowrap"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add
+                  </button>
+                </div>
               </div>
               
               {loading ? (
@@ -511,11 +535,14 @@ export default function UserSpacesPage() {
                           <div className="flex-1">
                             <div className="text-sm font-medium">CPU</div>
                             <div className="text-lg font-bold">
-                              {selectedSpace.used?.cpu || '0'} / {selectedSpace.quota.cpu} cores
+                              {selectedSpace.used?.cpu ? 
+                                (selectedSpace.used.cpu.includes('m') ? (parseFloat(selectedSpace.used.cpu.replace('m', '')) / 1000).toFixed(3) : selectedSpace.used.cpu) 
+                                : '0'} / {selectedSpace.quota.cpu || '0'} cores
                             </div>
-                            {selectedSpace.used?.cpu && (
+                            {selectedSpace.used?.cpu && selectedSpace.quota.cpu && (
                               <div className="text-xs text-muted-foreground">
-                                {((parseFloat(selectedSpace.used.cpu) / parseFloat(selectedSpace.quota.cpu)) * 100).toFixed(1)}% used
+                                {((parseFloat(selectedSpace.used.cpu.includes('m') ? selectedSpace.used.cpu.replace('m', '') : selectedSpace.used.cpu) / 
+                                   parseFloat(selectedSpace.quota.cpu.includes('m') ? (parseFloat(selectedSpace.quota.cpu.replace('m', '')) / 1000).toString() : selectedSpace.quota.cpu)) * 100).toFixed(1)}% used
                               </div>
                             )}
                           </div>
@@ -644,7 +671,7 @@ export default function UserSpacesPage() {
                         className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary bg-background text-foreground placeholder:text-foreground/60 ${
                           formErrors.cpu ? 'border-red-500' : 'border-border'
                         }`}
-                        placeholder="e.g., 2"
+                        placeholder="e.g., 0.5"
                       />
                       {formErrors.cpu && (
                         <p className="text-red-500 text-xs mt-1">{formErrors.cpu}</p>
@@ -843,5 +870,6 @@ export default function UserSpacesPage() {
         )}
       </div>
     </AppLayout>
+    </FeatureGate>
   );
 }

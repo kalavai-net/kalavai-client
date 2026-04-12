@@ -9,7 +9,7 @@ class ComputeUsageRequest(BaseModel):
     node_names: Optional[List[str]] = Field(None, description="List of node names to perform the action on, defaults to None")
     node_labels: Optional[Dict[str, str]] = Field(None, description="List of node labels to perform the action on, defaults to None")
     namespaces: Optional[List[str]] = Field(None, description="List of namespaces to filter metrics, defaults to all available")
-    step_seconds: Optional[int] = Field(600, description="Step in seconds for the query, defaults to None")
+    step_seconds: Optional[int] = Field(3600, description="Step in seconds for the query, defaults to None")
 
 class NodeMetricsRequest(BaseModel):
     node_names: Optional[List[str]] = Field(None, description="List of node names to perform the action on, defaults to None")

@@ -209,15 +209,14 @@ Value: The Personal Access Token you copied from Docker Hub.
 
 <summary>Expand</summary>
 
-Python version >= 3.10.
+Python version >= 3.12.
 
 ```bash
 sudo add-apt-repository ppa:deadsnakes/ppa
 sudo apt update
-sudo apt install python3.10 python3.10-dev python3-virtualenv python3-venv
-virtualenv -p python3.10 env
+sudo apt install python3-dev gcc python3-venv
+python3 -m venv env
 source env/bin/activate
-sudo apt install  python3.10-venv python3.10-dev -y
 pip install -U setuptools
 pip install -e .[dev]
 ```

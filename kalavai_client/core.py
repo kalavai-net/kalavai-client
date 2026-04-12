@@ -229,7 +229,7 @@ def get_compute_usage(
     node_names: list[str]=None,
     namespaces: list[str]=None,
     node_labels: list[str]=None,
-    step_seconds: int=600
+    step_seconds: int=3600
 ):
     data = {
         "node_names": node_names,
@@ -339,6 +339,45 @@ def set_space_quota(user_id: str, quota: dict, labels: dict[str, str]=None):
     except Exception as e:
         return {"error": str(e)}
 
+def set_user_space_secret(user_id: str, data: dict):
+    data_request = {
+        "force_namespace": user_id,
+        "name": "user-data",
+        "data": data
+    }
+    try:
+        result = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
+            method="post",
+            endpoint="/v1/create_or_update_user_data",
+            data=data_request,
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        return result
+    except Exception as e:
+        return {"error": str(e)}
+
+def fetch_user_space_secret(user_id: str):
+    data_request = {
+        "force_namespace": user_id,
+        "name": "user-data"
+    }
+    try:
+        result = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
+            method="post",
+            endpoint="/v1/fetch_user_data",
+            data=data_request,
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        return result
+    except Exception as e:
+        return {"error": str(e)}
+
 def delete_user_space(user_id: str):
 
     data = {
@@ -441,7 +480,8 @@ def fetch_template_metadata(template_name):
     except Exception as e:
         return {"error": str(e)}
 
-def fetch_job_templates(repo=None):
+def fetch_job_templates(repo=None, statuses=None):
+    # TODO: switch to using helm_show_chart in bulk and filter in watcher
     if repo is not None:
         repos = [repo]
     else:
@@ -1540,7 +1580,7 @@ def add_node_labels(node_name: str, labels: dict):
     except Exception as e:
         return {"error": f"Error when adding labels to node {node_name}: {str(e)}"}
 
-def get_node_labels(node_names: list[str]):
+def get_node_labels(node_names: list[str] = None):
     """
     Get labels for specified nodes in the cluster.
     

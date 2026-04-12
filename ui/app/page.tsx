@@ -6,7 +6,7 @@ import { useAuthStore } from '@/stores';
 import { LoginForm } from '@/components/LoginForm';
 import { AppLayout } from '@/components/AppLayout';
 import { UserSpaceQuota } from '@/components/UserSpaceQuota';
-import { Computer, Cpu, Anchor, BookOpen, Loader2 } from 'lucide-react';
+import { Computer, Cpu, Anchor, BookOpen, Loader2, Monitor } from 'lucide-react';
 
 const ACCESS_KEY = process.env.NEXT_PUBLIC_ACCESS_KEY || null;
 
@@ -58,26 +58,20 @@ function HomeContent() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <IntroCard
-          title="Explore your resources"
-          icon={Computer}
-          text="Visit the dashboard for a high level overview of your Kalavai pool"
-          href="/dashboard"
-        />
-        <IntroCard
-          title="Add resources to your pool"
-          icon={Cpu}
-          text="Want to add your own devices to the pool? Check out how"
-          href="https://kalavai-net.github.io/kalavai-client/getting_started/#2-add-worker-nodes"
-          isExternal
-        />
-        <IntroCard
           title="Deploy jobs and models"
           icon={Anchor}
           text="Put your resources to work by deploying models and workloads with our ready-made templates"
           href="/jobs"
         />
         <IntroCard
-          title="Kalavai documentation"
+          title="Interactive sessions with multi-GPUs"
+          icon={Monitor}
+          text="Launch JupyterHub sessions with multi-GPU support for interactive development"
+          href="https://kalavai-net.github.io/kalavai-client/managed/use_cases/jupyterhub/"
+          isExternal
+        />
+        <IntroCard
+          title="Open source foundations"
           icon={BookOpen}
           text="Explore what Kalavai has to offer"
           href="https://kalavai-net.github.io/kalavai-client/"

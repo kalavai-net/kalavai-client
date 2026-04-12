@@ -256,7 +256,10 @@ class KalavaiApiClient {
   }
 
   async setUserSpaceQuota(user_id: string, quota: Record<string, string>) {
-    return this.post('set_user_space_quota', { user_id, quota });
+    console.log('[API DEBUG] setUserSpaceQuota called with:', { user_id, quota });
+    const result = await this.post('set_user_space_quota', { user_id, quota });
+    console.log('[API DEBUG] setUserSpaceQuota response:', result);
+    return result;
   }
 
   async deleteUserSpace(user_id: string) {

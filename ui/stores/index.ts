@@ -2,6 +2,48 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import kalavaiApi from '@/utils/api';
 
+// Helper function to convert Kubernetes memory units to GB
+function convertK8sMemoryToGB(memoryStr: string): number {
+  if (!memoryStr || memoryStr === '0') return 0;
+  
+  // Remove any whitespace
+  const cleanStr = memoryStr.trim();
+  
+  // Extract number and unit
+  const match = cleanStr.match(/^(\d+(?:\.\d+)?)([KMG]i)?$/);
+  if (!match) return parseInt(cleanStr.replace(/\D/g, '')) || 0;
+  
+  const value = parseFloat(match[1]);
+  const unit = match[2] || '';
+  
+  switch (unit) {
+    case 'Ki': return value / (1024 * 1024);  // KiB to GB
+    case 'Mi': return value / 1024;           // MiB to GB  
+    case 'Gi': return value;                   // GiB to GB
+    default: return value / (1024 * 1024 * 1024); // Bytes to GB
+  }
+}
+
+// Helper function to convert Kubernetes CPU units to cores
+function convertK8sCpuToCores(cpuStr: string): number {
+  if (!cpuStr || cpuStr === '0') return 0;
+  
+  // Remove any whitespace
+  const cleanStr = cpuStr.trim();
+  
+  // Extract number and unit
+  const match = cleanStr.match(/^(\d+(?:\.\d+)?)(m)?$/);
+  if (!match) return parseInt(cleanStr.replace(/\D/g, '')) || 0;
+  
+  const value = parseFloat(match[1]);
+  const unit = match[2] || '';
+  
+  switch (unit) {
+    case 'm': return value / 1000;  // millicores to cores
+    default: return value;          // cores to cores
+  }
+}
+
 interface AuthState {
   isLoggedIn: boolean;
   isLoading: boolean;
@@ -138,24 +180,60 @@ export const useConnectionStore = create<ConnectionState>()((set, get) => ({
     
     try {
       const quota = await kalavaiApi.getUserSpaceQuota(space);
+      console.log('[STORE DEBUG] Quota response:', quota);
       
-      if (Array.isArray(quota) && quota.length > 0) {
+      // Handle the structured response from API
+      if (quota && typeof quota === 'object' && quota.quota && quota.used) {
+        const hard = quota.quota || {};
+        const used = quota.used || {};
+        
+        console.log('[STORE DEBUG] Processing quota - hard:', hard, 'used:', used);
+        console.log('[STORE DEBUG] Available hard fields:', Object.keys(hard));
+        console.log('[STORE DEBUG] Available used fields:', Object.keys(used));
+        
+        // Try different possible field names
+        const cpuUsed = used['limits.cpu'] || used['cpu'] || '0';
+        const cpuHard = hard['limits.cpu'] || hard['cpu'] || '0';
+        const memoryUsed = used['limits.memory'] || used['memory'] || '0';
+        const memoryHard = hard['limits.memory'] || hard['memory'] || '0';
+        const gpuUsed = used['limits.nvidia.com/gpu'] || used['nvidia.com/gpu'] || '0';
+        const gpuHard = hard['limits.nvidia.com/gpu'] || hard['nvidia.com/gpu'] || '0';
+        
+        console.log('[STORE DEBUG] Parsed values:', {
+          cpuUsed, cpuHard, memoryUsed, memoryHard, gpuUsed, gpuHard
+        });
+        
+        set({
+          usedCpuQuota: convertK8sCpuToCores(cpuUsed),
+          maxCpuQuota: convertK8sCpuToCores(cpuHard),
+          usedGpuQuota: parseInt(gpuUsed),
+          maxGpuQuota: parseInt(gpuHard),
+          usedMemoryQuota: convertK8sMemoryToGB(memoryUsed),
+          maxMemoryQuota: convertK8sMemoryToGB(memoryHard),
+          userSpaceHasQuota: true,
+        });
+      } else if (Array.isArray(quota) && quota.length > 0) {
+        // Fallback for array response (backward compatibility)
         const q = quota[0];
         const used = q.status?.used || {};
         const hard = q.status?.hard || {};
         
         set({
-          usedCpuQuota: parseInt(used['limits.cpu'] || '0'),
-          maxCpuQuota: parseInt(hard['limits.cpu'] || '0'),
+          usedCpuQuota: convertK8sCpuToCores(used['limits.cpu'] || '0'),
+          maxCpuQuota: convertK8sCpuToCores(hard['limits.cpu'] || '0'),
           usedGpuQuota: parseInt(used['limits.nvidia.com/gpu'] || '0'),
           maxGpuQuota: parseInt(hard['limits.nvidia.com/gpu'] || '0'),
-          usedMemoryQuota: parseInt((used['limits.memory'] || '0').replace(/\D/g, '')),
-          maxMemoryQuota: parseInt((hard['limits.memory'] || '0').replace(/\D/g, '')),
+          usedMemoryQuota: convertK8sMemoryToGB(used['limits.memory'] || '0'),
+          maxMemoryQuota: convertK8sMemoryToGB(hard['limits.memory'] || '0'),
           userSpaceHasQuota: true,
         });
+      } else {
+        console.log('[STORE DEBUG] No quota data found, setting userSpaceHasQuota to false');
+        set({ userSpaceHasQuota: false });
       }
     } catch (error) {
       console.error('Error loading quota:', error);
+      set({ userSpaceHasQuota: false });
     }
   },
   

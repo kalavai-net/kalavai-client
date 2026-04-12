@@ -34,6 +34,12 @@ export default function RootLayout({
             } catch(e) {
               document.documentElement.classList.add('dark');
             }
+            
+            // Inject environment variables
+            window.env = window.env || {};
+            window.env.SHOW_RESOURCES = "${process.env.SHOW_RESOURCES || 'true'}";
+            window.env.SHOW_MONITORING = "${process.env.SHOW_MONITORING || 'true'}";
+            window.env.SHOW_USER_SPACES = "${process.env.SHOW_USER_SPACES || 'true'}";
           })();
         `}} />
       </head>

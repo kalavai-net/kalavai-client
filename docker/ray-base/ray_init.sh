@@ -63,6 +63,7 @@ case "$subcommand" in
 
   leader)
     ray_cluster_size=""
+    ray_dashboard=""
     while [ $# -gt 0 ]; do
       case "$1" in
         --ray_port=*)
@@ -73,6 +74,9 @@ case "$subcommand" in
           ;;
         --ray_block=*)
           ray_block="--block"
+          ;;
+        --ray_dashboard=*)
+          ray_dashboard="--include-dashboard=True --dashboard-host=0.0.0.0"
           ;;
         --ray_cluster_size=*)
           ray_cluster_size="${1#*=}"
@@ -95,8 +99,7 @@ case "$subcommand" in
     # start the ray daemon
     memory=$(echo "$ray_object_store_memory*950000000" | bc -l)
     round_mem=$(round ${memory} 0)
-    RAY_BACKEND_LOG_LEVEL=error ray start --head --port=$ray_port --object-store-memory=$round_mem $ray_block
-    # --include-dashboard=True --dashboard-host=0.0.0.0
+    RAY_BACKEND_LOG_LEVEL=error ray start --head --port=$ray_port --object-store-memory=$round_mem $ray_block $ray_dashboard
     # wait until all workers are active
     for (( i=0; i < $ray_init_timeout; i+=5 )); do
         active_nodes=`python3 -c 'import ray; ray.init(); print(sum(node["Alive"] for node in ray.nodes()))'`

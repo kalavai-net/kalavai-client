@@ -751,8 +751,14 @@ def pool__resources(*others):
         if col in RESOURCE_EXCLUDE:
             continue
         columns.append(col)
-        total_values.append(str(data["total"][col]))
-        available_values.append(str(data["available"][col]))
+        if col in data["total"]:
+            total_values.append(str(data["total"][col]))
+        else:
+            total_values.append("0")
+        if col in data["available"]:
+            available_values.append(str(data["available"][col]))
+        else:
+            available_values.append("0")
     
     columns = [""] + columns
     total_values = ["Total"] + total_values
@@ -1128,6 +1134,21 @@ def node__list(*others):
     except Exception as e:
         console.log(f"[red]Error when connecting to kalavai service: {str(e)}")
 
+@arguably.command
+def node__labels(*others):
+    """
+    Display labels for nodes
+    """
+    if not has_api_details():
+        show_connection_suggestion()
+        return
+    
+    labels = request_to_api(
+        method="GET",
+        endpoint="/get_node_labels"
+    )
+    
+    print(labels)
 
 @arguably.command
 def node__delete(node_name, *others):
@@ -1190,7 +1211,7 @@ def node__uncordon(node_name, *others):
         console.log(result)
 
 @arguably.command
-def job__templates(*others):
+def job__templates(*others, status: str = None):
     """
     Job templates integrated with kalavai. Use env var LOCAL_TEMPLATES_DIR to test local templates
     """
@@ -1198,9 +1219,14 @@ def job__templates(*others):
         show_connection_suggestion()
         return
     
+    data = {}
+    if status is not None:
+        data["statuses"] = [status]
+    
     templates = request_to_api(
         method="GET",
-        endpoint="/fetch_job_templates"
+        endpoint="/fetch_job_templates",
+        params=data
     )
     if "error" in templates:
         console.log(f"[red]Error when fetching templates: {templates}")

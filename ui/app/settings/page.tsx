@@ -4,13 +4,15 @@ import React, { useState } from 'react';
 import { useAuthStore, useThemeStore } from '@/stores';
 import { AppLayout } from '@/components/AppLayout';
 import { LoginForm } from '@/components/LoginForm';
-import { Loader2, Moon, Sun, RefreshCw, Database, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Loader2, Moon, Sun, RefreshCw, Database, AlertTriangle, CheckCircle, Settings } from 'lucide-react';
 import { kalavaiApi } from '@/utils/api';
+import { getAllFeatureFlags } from '@/utils/featureFlags';
 
 function SettingsContent() {
   const { darkMode, setDarkMode } = useThemeStore();
   const [isUpdatingRepos, setIsUpdatingRepos] = useState(false);
   const [actionMsg, setActionMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const allFlags = getAllFeatureFlags();
 
   const showMsg = (type: 'success' | 'error', text: string) => {
     setActionMsg({ type, text });
@@ -88,6 +90,31 @@ function SettingsContent() {
               </>
             )}
           </button>
+        </div>
+      </div>
+
+      <div className="bg-card border border-border rounded-lg p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <Settings className="w-5 h-5 text-primary" />
+          <h2 className="font-semibold">Feature Flags</h2>
+        </div>
+        
+        <div className="space-y-3">
+          <h3 className="text-sm font-medium text-muted-foreground">Current Status:</h3>
+          <div className="space-y-2">
+            {Object.entries(allFlags).map(([key, value]) => (
+              <div key={key} className="flex items-center justify-between py-2 px-3 bg-muted rounded-md">
+                <span className="font-mono text-sm">{key.replace('SHOW_', '').replace('_', ' ')}</span>
+                <span className={`px-2 py-1 rounded text-xs font-medium ${
+                  value 
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                    : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                }`}>
+                  {value ? 'ENABLED' : 'DISABLED'}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

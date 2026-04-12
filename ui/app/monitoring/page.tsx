@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuthStore, useConnectionStore } from '@/stores';
 import { AppLayout } from '@/components/AppLayout';
 import { LoginForm } from '@/components/LoginForm';
+import { FeatureGate } from '@/components/FeatureGate';
 import { 
   BarChart3, 
   Cpu, 
@@ -734,7 +735,7 @@ function MonitoringContent() {
         start_time: appliedTimeRange,
         end_time: 'now',
         node_names: appliedDevices,
-        step_seconds: 600
+        step_seconds: 3600
       });
 
       console.log('Overall API response:', overallResponse);
@@ -764,7 +765,7 @@ function MonitoringContent() {
             end_time: 'now',
             node_names: appliedDevices,
             namespaces: [selectedUserSpaceForPanel],
-            step_seconds: 600
+            step_seconds: 3600
           });
 
           console.log('User space API response:', userSpaceResponse);
@@ -816,7 +817,7 @@ function MonitoringContent() {
         node_names: appliedDevices,
         resources,
         aggregate_results: true,
-        step: "1h"
+        step: "5400s"
       });
 
       console.log('Raw time series API response:', metricsResponse);
@@ -920,8 +921,10 @@ export default function MonitoringPage() {
   }
 
   return (
-    <AppLayout>
-      <MonitoringContent />
-    </AppLayout>
+    <FeatureGate feature="SHOW_MONITORING" featureName="Monitoring">
+      <AppLayout>
+        <MonitoringContent />
+      </AppLayout>
+    </FeatureGate>
   );
 }

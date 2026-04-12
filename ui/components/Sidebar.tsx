@@ -15,21 +15,41 @@ import {
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuthStore } from '@/stores';
+import { getFeatureFlag } from '@/utils/featureFlags';
 
-const navigation = [
-  { name: 'Home', href: '/', icon: Home },
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Resources', href: '/resources', icon: Cpu },
-  { name: 'Monitoring', href: '/monitoring', icon: BarChart3 },
-  { name: 'Jobs', href: '/jobs', icon: Briefcase },
-  { name: 'Services', href: '/services', icon: Server },
-  { name: 'User Spaces', href: '/user-spaces', icon: Users },
-  { name: 'Settings', href: '/settings', icon: Settings },
-];
+const getNavigationItems = () => {
+  const navigation = [
+    { name: 'Home', href: '/', icon: Home },
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  ];
+
+  if (getFeatureFlag('SHOW_RESOURCES')) {
+    navigation.push({ name: 'Resources', href: '/resources', icon: Cpu });
+  }
+
+  if (getFeatureFlag('SHOW_MONITORING')) {
+    navigation.push({ name: 'Monitoring', href: '/monitoring', icon: BarChart3 });
+  }
+
+  navigation.push(
+    { name: 'Usage', href: '/usage', icon: BarChart3 },
+    { name: 'Jobs', href: '/jobs', icon: Briefcase },
+    { name: 'Services', href: '/services', icon: Server }
+  );
+
+  if (getFeatureFlag('SHOW_USER_SPACES')) {
+    navigation.push({ name: 'User Spaces', href: '/user-spaces', icon: Users });
+  }
+
+  navigation.push({ name: 'Settings', href: '/settings', icon: Settings });
+
+  return navigation;
+};
 
 export function Sidebar() {
   const pathname = usePathname();
   const { signOut } = useAuthStore();
+  const navigation = getNavigationItems();
 
   return (
     <div className="hidden md:flex md:flex-col md:w-64 md:bg-card md:border-r md:border-border md:min-h-screen">
@@ -40,7 +60,7 @@ export function Sidebar() {
       </div>
       
       <nav className="flex-1 px-3 py-4 space-y-1">
-        {navigation.map((item) => {
+        {navigation.map((item: { name: string; href: string; icon: React.ComponentType<{ className?: string }> }) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
           

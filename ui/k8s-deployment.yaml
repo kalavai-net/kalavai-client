@@ -35,6 +35,12 @@ spec:
                 secretKeyRef:
                   name: kalavai-ui-secret
                   key: access-key
+            - name: SHOW_RESOURCES
+              value: "true"
+            - name: SHOW_MONITORING
+              value: "true"
+            - name: SHOW_USER_SPACES
+              value: "true"
           resources:
             requests:
               cpu: "500m"

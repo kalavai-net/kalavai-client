@@ -13,7 +13,7 @@ Kalavai leverages spare data center capacity to deliver flexible, cost-effective
 
 ## What is the Kalavai Platform
 
-Kalavai Platform is a managed computing platform that simplifies access to GPU compute and LLM hosting. It builds on our [open-source orchestration library](https://github.com/kalavai-net/kalavai-client), integrating directly with tools you already use — like `Ray` and `GPUStack` — to provide on-demand distributed compute for AI workloads.
+Kalavai Platform is a managed computing platform that simplifies access to GPU compute and LLM hosting. It builds on our [open-source orchestration library](https://github.com/kalavai-net/kalavai-client), integrating directly with tools you already use — like `Ray` and `JupyterHub` — to provide on-demand distributed compute for AI workloads.
 
 
 ### Efficient cost and low infrastructure overhead
@@ -22,44 +22,19 @@ Our platform abstracts the complexity of provisioning and managing GPU clusters,
 
 | Product                       | Description                                                                                                 |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| **Managed GPU Clusters**      | Spin up distributed `Ray` and `GPUStack` clusters for training, hyperparameter tuning, reinforcement learning and custom workloads.           |
+| **Managed GPU Clusters**      | Spin up distributed `Ray` and `LocalAI` clusters for training, hyperparameter tuning, reinforcement learning and custom workloads.           |
 | **Async Inference & LLM queue**   | Affordable LLM inference for large scale intelligence projects |
 | **Model fine tuning** | Easily customise LLM to your data |
 
 
-## Beta Tester Program 🚀
+## Beta Tester Program
 
-We’re currently in Beta, and inviting developers and research teams to get early access to Kalavai. We're seeking developers who have hands-on experience with one or more of the following frameworks to participate in our beta testing program: `Ray`, `Unsloth`, `Axolotl` or `GPUStack`.
+We’re currently in Beta, and inviting developers and research teams to get early access to Kalavai. We're seeking developers who have hands-on experience with one or more of the following frameworks to participate in our beta testing program: `Ray`, `Unsloth`, `Axolotl`, `LocalAI` `Unsloth Studio` or `GPUStack`.
 
 👉 [Join the Beta Tester Program](https://kalavai.net/beta) to get started.
 
 Join our exclusive [Discord community](https://discord.gg/YN6ThTJKbM) for beta testers.
 
-## Get started for free
-
-Get a free account [here](https://platform.kalavai.net) to access the Kalavai Platform. All accounts come with access to free resources, like CPUs, GPUs and memory.
-
-During the Beta Testing phase, you will be asked to join the Beta Program the first time you login. This will grant you free resources to test the platform.
-
-![Join beta testing](./assets/images/join_beta.png)
-
-
-## Available Resources
-
-All accounts get a default resources quota, which includes the core resources you are allowed to utilise in your `Serverless` deployments. These are the default resources for a free account:
-
-- `8 CPUs`
-- `32 GB RAM`
-- `2 NVIDIA GPUs`
-- `0 AMD GPUs`
-
-Note that this is not resources that have been allocated to your account. It simply states the maximum resources your deployments can utilise at once. The `Serverless` page shows the utilised resources and the quota under `Available Resources`.
-
-![Resource quotas](./assets/images/resource_quota.png)
-
-To increase your assigned quota during the beta testing period, use the `Request Quota Increase` button under `Available Resources`.
-
-
 ## What next?
 
-Head over to the [GPU fleet guide](./gpu_fleet.md) to create your first pool and get going with AI deployments!
+Head over to the [Getting started guide](./platform_getting_started.md) and get going with AI deployments!

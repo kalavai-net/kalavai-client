@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/stores';
 import { AppLayout } from '@/components/AppLayout';
 import { LoginForm } from '@/components/LoginForm';
+import { FeatureGate } from '@/components/FeatureGate';
 import { Pagination } from '@/components/Pagination';
 import kalavaiApi from '@/utils/api';
 import { Loader2, Server, CheckCircle, XCircle, Trash2, Tag, Settings, RefreshCw, ToggleLeft, ToggleRight, AlertTriangle, X } from 'lucide-react';
@@ -403,8 +404,10 @@ export default function ResourcesPage() {
   }
 
   return (
-    <AppLayout>
-      <ResourcesContent />
-    </AppLayout>
+    <FeatureGate feature="SHOW_RESOURCES" featureName="Resources">
+      <AppLayout>
+        <ResourcesContent />
+      </AppLayout>
+    </FeatureGate>
   );
 }

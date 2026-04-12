@@ -545,8 +545,8 @@ def job_logs(
     description="Retrieves a list of all available job templates that can be used to deploy workloads. Templates provide predefined configurations for frameworks.",
     tags=["info"],
     response_description="List of job templates")
-def job_templates(api_key: str = Depends(verify_api_key)):
-    return fetch_job_templates()
+def job_templates(statuses: list[str] = Query(None), api_key: str = Depends(verify_api_key)):
+    return fetch_job_templates(statuses=statuses)
 
 @app.get("/fetch_pool_services",
     operation_id="fetch_pool_services",

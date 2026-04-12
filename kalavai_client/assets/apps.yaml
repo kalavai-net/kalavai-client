@@ -196,6 +196,9 @@ releases:
       value: server
     - name: kube-state-metrics.nodeSelector.{{kalavai_role_label}}
       value: server
+    # include more metrics (like labels)
+    - name: kube-state-metrics.metricLabelsAllowlist
+      value: "pods=[kalavai.job.name],nodes=[kalavai.cluster.user,kalavai/instance,kalavai/region,kalavai/role]"
     - name: server.nodeSelector.{{kalavai_role_label}}
       value: server
     - name: prometheus-pushgateway.enabled
