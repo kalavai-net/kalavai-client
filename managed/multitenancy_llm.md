@@ -38,7 +38,7 @@ Once you have given access to your account, follow the steps below to get starte
 
 Model weights are loaded from Hugging Face. To access gated and private models, you need to configure the HF_TOKEN in the Deployer. To do so, go to Home page and add the HF_TOKEN value.
 
-![HF token config](/docs/docs/managed/assets/images/deployer_hf_token.png)
+![HF token config](assets/images/deployer_hf_token.png)
 
 Note: we recommend using a readonly token for security reasons.
 
@@ -47,7 +47,7 @@ Note: we recommend using a readonly token for security reasons.
 
 To deploy a new model, head to the Deploy Model page and select the model you want to deploy. Each model comes in multiple variants, like different quantizations or serving configurations, select the one that best fits your needs.
 
-![Deploy model](/docs/docs/managed/assets/images/deployer_deploy_model.png)
+![Deploy model](assets/images/deployer_deploy_model.png)
 
 Models in the library are pre-configured and automatically select smart defaults for you, including the resources required.
 
@@ -68,7 +68,7 @@ Any model deployed through the Deployer can be accessed via the LLM gateway, whi
 
 Go to the `LLM Gateway` page to create an API Key and use the API key to access the deployed model as shown below. 
 
-![LLM Gateway](/docs/docs/managed/assets/images/deployer_gateway_key.png)
+![LLM Gateway](assets/images/deployer_gateway_key.png)
 
 
 This API grants access to all models in the Deployer. For more granular access, visit the `LiteLLM` dashboard through the Management UI URL shown in your `LLM Gateway` page.

@@ -34,7 +34,7 @@ In your Kalavai Pool, go to `Jobs` and create a new job. Select `JupyterHub` as 
 
 In the template parameters section of the deployment, you can configure the resources for the JupyterHub instance, under `Advanced parameters`.
 
-![JupyterHub configuration](/docs/docs/managed/assets/images/jupyterhub_config.png)
+![JupyterHub configuration](assets/images/jupyterhub_config.png)
 
 
 
@@ -59,7 +59,7 @@ Best for heavy workloads, distributed training, and large-scale machine learning
 Single JupyterHub instance with direct access to a Ray cluster for easy workload distribution.
 
 
-![Multi-GPU JupyterHub configuration](/docs/docs/managed/assets/images/jupyterhub_multi_gpu.png)
+![Multi-GPU JupyterHub configuration](assets/images/jupyterhub_multi_gpu.png)
 
 
 
