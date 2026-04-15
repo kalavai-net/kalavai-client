@@ -495,31 +495,72 @@
 </tr>
 </tbody>
 </table></div>
-<p>Features:
-- Manage multiple AI deployments in one place
-- Support for LLMs, diffusion pipelines, audio models and more
-- Auto deployment on Kalavai infrastructure (no devops required)
-- Automatically scale up and down based on demand
-- Access control via API keys
-- Usage tracking and billing
-- Extensive library of pre-configured models and templates</p>
+<p>Building core AI applications in production requires managing and scaling multiple AI models, handle access control for different users, track usage and monitor performance. No easy feat for any AI team alone.</p>
+<p><code>Kalavai Deployer</code> is an application built on top of our GPUops platform that allows teams to <strong>manage all their AI deployments in one place</strong>, batteries included. It supports templated deployments of LLMs, diffusion pipelines, audio models and more, and exposes all its services through a single API gateway, with built-in monitoring and access control.</p>
+<h2 id="features">Features</h2>
+<p>With <code>Kalavai Deployer</code> you can build your own multi-tenancy AI cloud service.</p>
+<ul>
+<li>Manage multiple AI deployments in one place</li>
+<li>Support for LLMs, diffusion pipelines, audio models and more</li>
+<li>Auto deployment on Kalavai GPU infrastructure (no devops required)</li>
+<li>Automatically scale up and down based on demand -including scale to 0 for cost optimization.</li>
+<li>Access control via API keys</li>
+<li>Usage tracking and cost attribution</li>
+<li>Extensive library of pre-configured models and templates</li>
+</ul>
 <h2 id="getting-started">Getting started</h2>
-<p>Closed access by invitation. Interested? Contact...</p>
-<p>Steps to get started:</p>
-<ol>
-<li>Configure HF_TOKEN value (readonly recommended)</li>
-<li>Deploy a model via Deploy Model</li>
-<li>Generate an API key in LLM Gateway</li>
-<li>List model availability in Deployments</li>
-<li>Use the API key to access the deployed model</li>
-</ol>
+<p>Access to <code>Kalavai Deployer</code> is currently limited to select customers. <a href="mailto:info@kalavai.ai">Contact us</a> if you are interested in early access.</p>
+<p>Once you have given access to your account, follow the steps below to get started:</p>
+<h3 id="1-configure-environment">1. Configure environment</h3>
+<p>Model weights are loaded from Hugging Face. To access gated and private models, you need to configure the HF_TOKEN in the Deployer. To do so, go to Home page and add the HF_TOKEN value.</p>
+<p><img alt="HF token config" src="/docs/docs/managed/assets/images/deployer_hf_token.png" /></p>
+<p>Note: we recommend using a readonly token for security reasons.</p>
+<h3 id="2-deploy-a-model-from-the-library">2. Deploy a model from the library</h3>
+<p>To deploy a new model, head to the Deploy Model page and select the model you want to deploy. Each model comes in multiple variants, like different quantizations or serving configurations, select the one that best fits your needs.</p>
+<p><img alt="Deploy model" src="/docs/docs/managed/assets/images/deployer_deploy_model.png" /></p>
+<p>Models in the library are pre-configured and automatically select smart defaults for you, including the resources required.</p>
+<p>Once you've successfully deployed, models may take a few minutes to become available, as the backend needs to provision the hardware resources, configure the deployment, download the weights and load them into memory. You can check the progress in the Deployments page, which shows the status of each deployment:</p>
+<ul>
+<li><code>Model ID</code>: The unique identifier for the model (to be used during inference)</li>
+<li><code>Status</code>: The current status of the provisioning (pending, running, failed)</li>
+<li><code>Endpoints</code>: A list of available endpoints to access the model directly (for testing purposes; for inference, using the LLM gateway is recommended)</li>
+<li><code>Health</code>: The current health status of the model (healthy, unhealthy), which indicates if it is ready to serve requests.</li>
+<li><code>Actions</code>: Logs (coming soon) and Delete (remove the deployment)</li>
+</ul>
+<p>Once the model is healthy, you can use it for inference via the LLM gateway.</p>
+<h3 id="3-use-the-llm-gateway-for-inference">3. Use the LLM gateway for inference</h3>
+<p>Any model deployed through the Deployer can be accessed via the LLM gateway, which is an authenticated endpoint that routes requests to the appropriate model. </p>
+<p>Go to the <code>LLM Gateway</code> page to create an API Key and use the API key to access the deployed model as shown below. </p>
+<p><img alt="LLM Gateway" src="/docs/docs/managed/assets/images/deployer_gateway_key.png" /></p>
+<p>This API grants access to all models in the Deployer. For more granular access, visit the <code>LiteLLM</code> dashboard through the Management UI URL shown in your <code>LLM Gateway</code> page.</p>
+<h2 id="code-examples">Code examples</h2>
+<p>Substitute <GATEWAY API ENDPOINT> with the actual gateway API endpoint and YOUR_API_KEY with your actual API key. Simple request:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+
+<span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;&lt;GATEWAY API ENDPOINT&gt;/v1/chat/completions&quot;</span>
+<span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="s2">&quot;Bearer YOUR_API_KEY&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span>
+<span class="p">}</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;your-model-id&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;Hello, how are you?&quot;</span><span class="p">}</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>
+</code></pre></div>
+
+<p>For more advanced examples (streaming, batch processing), see the <a href="/docs/docs/examples/llm_service_requests.md">LLM Service Requests Example</a>.</p>
 <h2 id="advanced">Advanced</h2>
 <h3 id="monitoring-and-access-control">Monitoring and access control</h3>
 <p>Via LiteLLM, you can monitor and control the access to each model, and create custom rules for each tenant. Visit the Management dashboard under LLM Gateway. Credentials listed in there.</p>
 <h3 id="cost-control">Cost control</h3>
 <p>Setup pricing for models based on token usage via LiteLLM.</p>
 <h3 id="adding-custom-models">Adding custom models</h3>
-<p>(coming soon) You can add custom models to the deployment via Configuration.</p>
+<p>(coming soon) You can add custom models to the deployment via Configuration. <a href="mailto:info@kalavai.ai">Contact us</a> if you want us to add custom models.</p>
   </div>
 </article>
                                 <div class="mx-auto flex flex-wrap h-16 w-full max-w-2xl items-center gap-2 px-4 md:px-0">
@@ -618,10 +659,46 @@
         
         
         
+        <a href="#features"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            Features
+        </a>
+        
+
+        
         <a href="#getting-started"
             class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
             data-active="false" data-depth="2">
             Getting started
+        </a>
+        
+        
+        <a href="#1-configure-environment"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            1. Configure environment
+        </a>
+        
+        <a href="#2-deploy-a-model-from-the-library"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            2. Deploy a model from the library
+        </a>
+        
+        <a href="#3-use-the-llm-gateway-for-inference"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            3. Use the LLM gateway for inference
+        </a>
+        
+        
+
+        
+        <a href="#code-examples"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            Code examples
         </a>
         
 
