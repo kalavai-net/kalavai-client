@@ -60,3 +60,26 @@ Single JupyterHub instance with direct access to a Ray cluster for easy workload
 
 
 ![Multi-GPU JupyterHub configuration](/docs/docs/managed/assets/images/jupyterhub_multi_gpu.png)
+
+
+
+## Custom base images
+
+You can customise the images JupyterHub uses. This is a great way to version control environments for multiple users with the safety net that you can always redeploy and start over if something goes wrong.
+
+Specify image when deploying the Hub.
+
+Build your own image requirements:
+
+- Install jypyter
+- Dockerfile example
+
+
+## FAQs
+
+#### INstall specific version of python
+
+Match Ray cluster version for ray and python:
+
+conda create -n "myenv" python=3.12.9
+pip install ray[client]==2.54.0
