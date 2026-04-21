@@ -85,31 +85,84 @@ EOF
 )
 
 echo "JSON payload: "$json_payload
-result=$(curl -X POST "$litellm_base_url/model/new" \
-  -H "Authorization: Bearer $litellm_key" \
-  -H "accept: application/json" \
-  -H "Content-Type: application/json" \
-  -d "$json_payload" 2>&1)
 
-# result=$(curl -X POST "$litellm_base_url/model/new" \
-#     -H 'Authorization: Bearer '$litellm_key \
-#     -H "accept: application/json" \
-#     -H "Content-Type: application/json" \
-#     -d '{
-#           "model_name": "'$litellm_model_name'",
-#           "model_info": '$model_info',
-#           "kalavai_extras": '$litellm_kalavai_extras',
-#           "litellm_params": {"drop_params": false, "model": "'$provider'/'$model_id'", "api_base": "'$api_base'", "api_key": "'$api_key'", "job_id": "'$job_id'"}
-#         }' 2>&1)
+# Retry mechanism with exponential backoff
+max_retries=3
+retry_delay=5
+attempt=1
+success=false
 
-
-if [[ $? -ne 0 ]]; then
-    echo $result
-    exit 1
-else
-    echo "Model registered successfully!"
-    echo $result
-    if [ "$return" = "no" ]; then
-      tail -f /dev/null
+while [ $attempt -le $max_retries ] && [ "$success" = false ]; do
+    echo "Attempt $attempt of $max_retries..."
+    
+    # Make the API call with timeout
+    result=$(curl -X POST "$litellm_base_url/model/new" \
+        -H "Authorization: Bearer $litellm_key" \
+        -H "accept: application/json" \
+        -H "Content-Type: application/json" \
+        -d "$json_payload" \
+        --connect-timeout 30 \
+        --max-time 60 \
+        --silent \
+        --write-out "\nHTTP_CODE:%{http_code}\nCURL_CODE:%{exitcode}\n" \
+        2>&1)
+    
+    curl_exit_code=$?
+    
+    # Extract HTTP code and curl code from result
+    http_code=$(echo "$result" | grep "HTTP_CODE:" | cut -d: -f2)
+    curl_code=$(echo "$result" | grep "CURL_CODE:" | cut -d: -f2)
+    response_body=$(echo "$result" | grep -v "HTTP_CODE:" | grep -v "CURL_CODE:")
+    
+    echo "HTTP Status Code: $http_code"
+    echo "CURL Exit Code: $curl_code"
+    echo "Response: $response_body"
+    
+    # Check for success conditions
+    if [ "$curl_code" = "0" ] && [ "$http_code" = "200" ]; then
+        # Additional check: verify response contains success indicators
+        if echo "$response_body" | grep -q -E "(success|registered|created|ok)" || echo "$response_body" | grep -q -v -E "(error|fail|timeout|gateway)"; then
+            success=true
+            echo "Model registered successfully!"
+            echo "$response_body"
+            if [ "$return" = "no" ]; then
+                tail -f /dev/null
+            fi
+            exit 0
+        else
+            echo "Response received but appears to contain error indicators"
+        fi
+    else
+        echo "Request failed - HTTP: $http_code, CURL: $curl_code"
+        
+        # Check for specific error patterns
+        if echo "$response_body" | grep -qi -E "(timeout|gateway timeout|connection timeout)"; then
+            echo "Timeout detected - will retry"
+        elif echo "$response_body" | grep -qi -E "(gateway|502|503|504)"; then
+            echo "Gateway error detected - will retry"
+        elif [ "$http_code" -ge 500 ]; then
+            echo "Server error detected - will retry"
+        else
+            echo "Client error or unrecoverable error detected"
+            if [ $attempt -eq $max_retries ]; then
+                echo "Max retries reached with client error - giving up"
+                echo "$response_body"
+                exit 1
+            fi
+        fi
     fi
+    
+    if [ "$success" = false ] && [ $attempt -lt $max_retries ]; then
+        echo "Waiting ${retry_delay}s before retry..."
+        sleep $retry_delay
+        retry_delay=$((retry_delay * 2))  # Exponential backoff
+    fi
+    
+    attempt=$((attempt + 1))
+done
+
+if [ "$success" = false ]; then
+    echo "Failed to register model after $max_retries attempts"
+    echo "Last response: $response_body"
+    exit 1
 fi

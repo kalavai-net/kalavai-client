@@ -66,6 +66,7 @@ if __name__ == '__main__':
     parser.add_argument("--litellm_url")
     parser.add_argument("--api_key", default="sk-1234")
     parser.add_argument("--job_id", default=None)
+    parser.add_argument("--soft_delete", default=False)
     args = parser.parse_args()
 
     model = get_model_info(litellm_url=args.litellm_url, api_key=args.api_key, job_id=args.job_id)
@@ -73,24 +74,26 @@ if __name__ == '__main__':
         print("Model not found")
         exit(1)
     model_id = model["model_info"]["id"]
-    # mark model as obsolete:
-    #   add deletion date
-    #   set to none access group
-    model["model_name"] = "deleted"
-    model["model_info"]["access_groups"] = ["none"]
-    model["litellm_params"]["extras"]["deleted_at"] = datetime.datetime.now().isoformat()
 
-    # update model
-    response = update_model(litellm_url=args.litellm_url, api_key=args.api_key, model_id=model_id, model=model)
-    print(response)
+    if args.soft_delete:
+        # mark model as obsolete:
+        #   add deletion date
+        #   set to none access group
+        model["model_name"] = "deleted"
+        model["model_info"]["access_groups"] = ["none"]
+        model["litellm_params"]["extras"]["deleted_at"] = datetime.datetime.now().isoformat()
 
-    # response = make_request(
-    #     method="get",
-    #     base_url=args.litellm_url,
-    #     endpoint="/v1/model/info",
-    #     api_key=args.api_key
-    # )
-    # # parse response to find model_name id
-    # print(
-    #     extract_model_id(model_name=args.model_name, models=response["data"], job_id=args.job_id)
-    # )
+        # update model
+        response = update_model(litellm_url=args.litellm_url, api_key=args.api_key, model_id=model_id, model=model)
+        print(response)
+    else:
+        # delete from database
+        response = make_request(
+            method="POST",
+            base_url=args.litellm_url,
+            endpoint=f"/model/delete",
+            api_key=args.api_key,
+            json={"id": model_id}
+        )
+        print(response)
+
