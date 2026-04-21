@@ -18,8 +18,7 @@ done
 ####################
 # wait for host #
 ####################
-servers=`sed ':a;N;$!ba;s/\n/;/g' <<< "$servers"` #convert \n to ; between worker addresses
-IFS=';' read -r -a workers <<< "$servers" # split into array
+IFS=',' read -r -a workers <<< "$servers" # split into array
 rpc_workers=()
 for worker in "${workers[@]}"
 do
