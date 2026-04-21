@@ -66,7 +66,7 @@ if __name__ == '__main__':
     parser.add_argument("--litellm_url")
     parser.add_argument("--api_key", default="sk-1234")
     parser.add_argument("--job_id", default=None)
-    parser.add_argument("--soft_delete", default=False)
+    parser.add_argument("--soft_delete", action="store_true", default=False)
     args = parser.parse_args()
 
     model = get_model_info(litellm_url=args.litellm_url, api_key=args.api_key, job_id=args.job_id)
