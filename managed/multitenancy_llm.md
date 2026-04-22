@@ -36,7 +36,7 @@ Once you have given access to your account, follow the steps below to get starte
 
 ### 1. Configure environment
 
-Model weights are loaded from Hugging Face. To access gated and private models, you need to configure the HF_TOKEN in the Deployer. To do so, go to Home page and add the HF_TOKEN value.
+Model weights are loaded from Hugging Face. To access gated and private models, you need to configure the HF_TOKEN in the Deployer. To do so, go to Home page and add the `HF_TOKEN` value.
 
 ![HF token config](assets/images/deployer_hf_token.png)
 
@@ -45,13 +45,13 @@ Note: we recommend using a readonly token for security reasons.
 
 ### 2. Deploy a model from the library
 
-To deploy a new model, head to the Deploy Model page and select the model you want to deploy. Each model comes in multiple variants, like different quantizations or serving configurations, select the one that best fits your needs.
+To deploy a new model, head to the `Deploy Model` page and select the model you want to deploy. Each model comes in multiple variants, like different quantizations or serving configurations, select the one that best fits your needs.
 
 ![Deploy model](assets/images/deployer_deploy_model.png)
 
 Models in the library are pre-configured and automatically select smart defaults for you, including the resources required.
 
-Once you've successfully deployed, models may take a few minutes to become available, as the backend needs to provision the hardware resources, configure the deployment, download the weights and load them into memory. You can check the progress in the Deployments page, which shows the status of each deployment:
+Once you've successfully deployed, models may take a few minutes to become available, as the backend needs to provision the hardware resources, configure the deployment, download the weights and load them into memory. You can check the progress in the `Deployments` page, which shows the status of each deployment:
 
 - `Model ID`: The unique identifier for the model (to be used during inference)
 - `Status`: The current status of the provisioning (pending, running, failed)
@@ -64,14 +64,20 @@ Once the model is healthy, you can use it for inference via the LLM gateway.
 
 ### 3. Use the LLM gateway for inference
 
-Any model deployed through the Deployer can be accessed via the LLM gateway, which is an authenticated endpoint that routes requests to the appropriate model. 
+Any model deployed through the `Deployer` can be accessed via the LLM API gateway, which is an authenticated endpoint that routes requests to the appropriate model. To do inference you need:
 
-Go to the `LLM Gateway` page to create an API Key and use the API key to access the deployed model as shown below. 
+- The API Gateway endpoint, as shown in the `LLM Gateway` page
+- A valid API Key (see below for how to create one)
+
+To generate a valid API Key, go to the `LLM Gateway` page to create an API Key and use the API key to access the deployed model as shown below. 
 
 ![LLM Gateway](assets/images/deployer_gateway_key.png)
 
+During API key creation, users can specify the following:
 
-This API grants access to all models in the Deployer. For more granular access, visit the `LiteLLM` dashboard through the Management UI URL shown in your `LLM Gateway` page.
+- Key alias: A human-readable name for the API key.
+- Models to which the API key grants access. Default is all of them.
+- Limits: Rate limits and other constraints for the API key.
 
 
 ## Code examples

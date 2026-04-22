@@ -512,14 +512,14 @@
 <p>Access to <code>Kalavai Deployer</code> is currently limited to select customers. <a href="mailto:info@kalavai.ai">Contact us</a> if you are interested in early access.</p>
 <p>Once you have given access to your account, follow the steps below to get started:</p>
 <h3 id="1-configure-environment">1. Configure environment</h3>
-<p>Model weights are loaded from Hugging Face. To access gated and private models, you need to configure the HF_TOKEN in the Deployer. To do so, go to Home page and add the HF_TOKEN value.</p>
+<p>Model weights are loaded from Hugging Face. To access gated and private models, you need to configure the HF_TOKEN in the Deployer. To do so, go to Home page and add the <code>HF_TOKEN</code> value.</p>
 <p><img alt="HF token config" src="../assets/images/deployer_hf_token.png" /></p>
 <p>Note: we recommend using a readonly token for security reasons.</p>
 <h3 id="2-deploy-a-model-from-the-library">2. Deploy a model from the library</h3>
-<p>To deploy a new model, head to the Deploy Model page and select the model you want to deploy. Each model comes in multiple variants, like different quantizations or serving configurations, select the one that best fits your needs.</p>
+<p>To deploy a new model, head to the <code>Deploy Model</code> page and select the model you want to deploy. Each model comes in multiple variants, like different quantizations or serving configurations, select the one that best fits your needs.</p>
 <p><img alt="Deploy model" src="../assets/images/deployer_deploy_model.png" /></p>
 <p>Models in the library are pre-configured and automatically select smart defaults for you, including the resources required.</p>
-<p>Once you've successfully deployed, models may take a few minutes to become available, as the backend needs to provision the hardware resources, configure the deployment, download the weights and load them into memory. You can check the progress in the Deployments page, which shows the status of each deployment:</p>
+<p>Once you've successfully deployed, models may take a few minutes to become available, as the backend needs to provision the hardware resources, configure the deployment, download the weights and load them into memory. You can check the progress in the <code>Deployments</code> page, which shows the status of each deployment:</p>
 <ul>
 <li><code>Model ID</code>: The unique identifier for the model (to be used during inference)</li>
 <li><code>Status</code>: The current status of the provisioning (pending, running, failed)</li>
@@ -529,10 +529,19 @@
 </ul>
 <p>Once the model is healthy, you can use it for inference via the LLM gateway.</p>
 <h3 id="3-use-the-llm-gateway-for-inference">3. Use the LLM gateway for inference</h3>
-<p>Any model deployed through the Deployer can be accessed via the LLM gateway, which is an authenticated endpoint that routes requests to the appropriate model. </p>
-<p>Go to the <code>LLM Gateway</code> page to create an API Key and use the API key to access the deployed model as shown below. </p>
+<p>Any model deployed through the <code>Deployer</code> can be accessed via the LLM API gateway, which is an authenticated endpoint that routes requests to the appropriate model. To do inference you need:</p>
+<ul>
+<li>The API Gateway endpoint, as shown in the <code>LLM Gateway</code> page</li>
+<li>A valid API Key (see below for how to create one)</li>
+</ul>
+<p>To generate a valid API Key, go to the <code>LLM Gateway</code> page to create an API Key and use the API key to access the deployed model as shown below. </p>
 <p><img alt="LLM Gateway" src="../assets/images/deployer_gateway_key.png" /></p>
-<p>This API grants access to all models in the Deployer. For more granular access, visit the <code>LiteLLM</code> dashboard through the Management UI URL shown in your <code>LLM Gateway</code> page.</p>
+<p>During API key creation, users can specify the following:</p>
+<ul>
+<li>Key alias: A human-readable name for the API key.</li>
+<li>Models to which the API key grants access. Default is all of them.</li>
+<li>Limits: Rate limits and other constraints for the API key.</li>
+</ul>
 <h2 id="code-examples">Code examples</h2>
 <p>Substitute <GATEWAY API ENDPOINT> with the actual gateway API endpoint and YOUR_API_KEY with your actual API key. Simple request:</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
