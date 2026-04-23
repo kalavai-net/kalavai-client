@@ -49,7 +49,8 @@ class GPU(BaseModel):
     available: int
     total: int
     ready: bool
-    models: list[str]
+    model: str
+    memory: str
 
 class TokenType(str, Enum):
     ADMIN = "admin"
@@ -93,12 +94,14 @@ class DeployJobRequest(BaseModel):
     name: str = Field(description="Name of the job")
     template_name: str = Field(description="Job template to use")
     template_repo: Optional[str] = Field("kalavai-templates", description="Repository to find the job template")
+    template_version: Optional[str] = Field(None, description="Version of the job template")
     values: dict = Field(description="Job configuration values")
     force_namespace: Optional[Union[str, None]] = Field(None, description="Optional namespace override")
     target_labels: Optional[Union[dict[str, Union[str, List]], None]] = Field(None, description="Optional target node labels")
     target_labels_ops: Optional[Literal["OR", "AND"]] = Field("AND", description="Optional target node labels operator")
     priority: Literal["kalavai-system-priority", "user-high-priority", "user-spot-priority", "test-low-priority", "test-high-priority"] = "user-spot-priority"
-
+    random_suffix: bool = Field(True, description="Whether to add a random suffix to the job name")
+    
 class CustomDeployJobRequest(BaseModel):
     template_str: str = Field(description="YAML str containing the custom template job to use")
     values: dict = Field(description="Job configuration values")
@@ -121,3 +124,12 @@ class UserQuotaRequest(BaseModel):
 
 class FetchDevicesRequest(BaseModel):
     node_labels: Optional[Union[dict[str, str], None]] = Field(None, description="Optional target node labels")
+
+class UserSpaceSecretRequest(BaseModel):
+    user_id: str = Field(description="User ID for which to set the secret data")
+    data: dict = Field(description="Dictionary containing the secret data to store")
+
+class FetchGPUsRequest(BaseModel):
+    available: bool = Field(False, description="Whether to show only available GPUs")
+    node_names: Optional[List[str]] = Field(None, description="Optional list of node names to filter by")
+    node_labels: Optional[Dict[str, str]] = Field(None, description="Optional dictionary of node labels to filter by")

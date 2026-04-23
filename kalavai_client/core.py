@@ -374,6 +374,17 @@ def fetch_user_space_secret(user_id: str):
             server_creds=USER_LOCAL_SERVER_FILE,
             user_cookie=USER_COOKIE
         )
+        # extract data
+        if "error" in result:
+            return {"data": {}, "error": result["error"]}
+        # expected format: 
+        # {
+        #   'name': 'user-data', 
+        #   'namespace': 'default', 
+        #   'type': 'Secret', 
+        #   'data': {'HF_TOKEN': 'XXXX'}, 
+        #   'created_at': '2026-04-12T19:25:09+00:00'
+        # }
         return result
     except Exception as e:
         return {"error": str(e)}
@@ -687,7 +698,18 @@ def fetch_job_details(force_namespace=None):
     #         )
     # return job_details
 
-def deploy_job(job_name, template_name, template_repo, values_dict, priority="user-spot-priority", force_namespace=None, target_labels=None, target_labels_ops="AND"):
+def deploy_job(
+    job_name,
+    template_name,
+    template_repo,
+    values_dict,
+    template_version=None,
+    priority="user-spot-priority",
+    force_namespace=None,
+    target_labels=None,
+    target_labels_ops="AND",
+    random_suffix=True
+):
     """Deploy a KalavaiJob template"""
     # deploy template with kube-watcher
     if "/" in template_name:
@@ -701,9 +723,11 @@ def deploy_job(job_name, template_name, template_repo, values_dict, priority="us
         "force_namespace": force_namespace,
         "template_chart": template_name,
         "template_values": values_dict,
+        "template_version": template_version,
         "priority": priority,
         "target_labels": target_labels,
-        "target_labels_ops": target_labels_ops
+        "target_labels_ops": target_labels_ops,
+        "random_suffix": random_suffix
     }
     try:
         result = request_to_server(
@@ -919,38 +943,46 @@ def fetch_pod_logs(labels, force_namespace=None, pod_name=None, tail=100):
         return {"error": str(e)}
     
 
-def load_gpu_models():
+def load_gpu_models(node_names=None, node_labels=None):
     data = request_to_server(
         force_url=FORCE_WATCHER_API_URL,
         force_key=FORCE_WATCHER_API_KEY_URL,
         method="post",
         endpoint="/v1/get_node_gpus",
-        data={},
+        data={
+            "node_names": node_names,
+            "node_labels": node_labels
+        },
         server_creds=USER_LOCAL_SERVER_FILE,
         user_cookie=USER_COOKIE
     )
     return data.items()
 
-def fetch_gpus(available=False):
+def fetch_gpus(
+    available=False,
+    node_names=None,
+    node_labels=None
+):
     try:
-        data = load_gpu_models()
+        data = load_gpu_models(node_names=node_names, node_labels=node_labels)
         all_gpus = []
         for node, gpus in data:
-            row_gpus = []
+            models, memories, statuses = [], [], []
             for gpu in gpus["gpus"]:
                 status = gpu["ready"] if "ready" in gpu else True
                 if available and not status:
                     continue
-                row_gpus.append( (f"{gpu['model']} ({gpu['memory']} vRAM)", str(status)))
-            if len(row_gpus) > 0:
-                models, statuses = zip(*row_gpus)
+                models.append(gpu['model'])
+                memories.append(gpu['memory'])
+                statuses.append(str(status))
+            for model, memory, status in zip(models, memories, statuses):
                 #rows.append([node, "\n".join(statuses), "\n".join(models), str(gpus["available"]), str(gpus["capacity"])])
-                status = any(statuses)
                 all_gpus.append(
                     GPU(
                         node=node,
                         ready=status,
-                        models=models,
+                        model=model,
+                        memory=memory,
                         available=gpus["available"],
                         total=gpus["capacity"]
                     )

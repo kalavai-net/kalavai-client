@@ -698,12 +698,11 @@ def pool__gpus(*others, available=False):
     if not has_api_details():
         show_connection_suggestion()
         return
-    
 
     gpus = request_to_api(
-        method="GET",
+        method="POST",
         endpoint="/fetch_gpus",
-        params={"available": available}
+        json={"available": available}
     )
     if "error" in gpus:
         console.log(f"[red]Error when fetching gpus: {gpus}")
@@ -713,10 +712,13 @@ def pool__gpus(*others, available=False):
     rows = []
     try:
         for gpu in gpus:
+            if available and gpu["available"] == 0:
+                continue
+            models = [f"{model} ({memory}GB)" for model, memory in zip(gpu["model"], gpu["memory"])]
             rows.append([
                 gpu["node"],
                 str(gpu["ready"]),
-                "\n".join(gpu["models"]),
+                "\n".join(models),
                 str(gpu["available"]),
                 str(gpu["total"])
             ])
@@ -1108,7 +1110,8 @@ def node__list(*others):
     
     devices = request_to_api(
         method="POST",
-        endpoint="/fetch_devices"
+        endpoint="/fetch_devices",
+        json={}
     )
 
     try:

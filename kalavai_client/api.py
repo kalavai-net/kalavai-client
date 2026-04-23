@@ -32,9 +32,11 @@ from kalavai_client.api_models import (
     UserQuotaRequest,
     CustomDeployJobRequest,
     NodesActionRequest,
+    FetchGPUsRequest,
     NodeLabelsRequest,
     WorkerConfigRequest,
-    FetchDevicesRequest
+    FetchDevicesRequest,
+    UserSpaceSecretRequest
 )
 from kalavai_client.core import (
     create_pool,
@@ -79,7 +81,9 @@ from kalavai_client.core import (
     update_local_repositories,
     TokenType,
     get_compute_usage,
-    get_nodes_metrics
+    get_nodes_metrics,
+    set_user_space_secret,
+    fetch_user_space_secret
 )
 from kalavai_client.utils import (
     apply_cutoff_date_delta
@@ -469,7 +473,6 @@ def resources(request: Optional[NodesActionRequest]=NodesActionRequest(), api_ke
         if request.node_labels is None:
             request.node_labels = {}
         node_labels = {RINGFENCE_NODE_LABEL: RINGFENCE_NODE_LABEL_VALUE, **request.node_labels}
-        print("TEST: node_labels:", node_labels)
         request.node_labels = node_labels
     print(f"POSTTEST: Final request.nodes: {request.nodes}")
     print(f"POSTTEST: Final request.node_labels: {request.node_labels}")
@@ -487,19 +490,28 @@ def job_names(api_key: str = Depends(verify_api_key)):
     """Get list of job names"""
     return fetch_job_names()
 
-@app.get("/fetch_gpus",
+@app.post("/fetch_gpus",
     operation_id="fetch_gpus",
     summary="Get GPU information across the pool",
     description="Retrieves detailed information about all GPUs in the Kalavai pool, including their availability status, current utilization, and which jobs are using them. Can filter to show only available GPUs.",
     tags=["info"],
     response_description="List of GPUs")
-def gpus(available: bool = False, api_key: str = Depends(verify_api_key)):
+def gpus(
+    request: FetchGPUsRequest,
+    api_key: str = Depends(verify_api_key)
+):
     """
     Get list of GPUs with the following parameters:
     
     - **available**: Whether to show only available GPUs
+    - **node_names**: Optional list of node names to filter by
+    - **node_labels**: Optional dictionary of node labels to filter by
     """
-    return fetch_gpus(available=available)
+    return fetch_gpus(
+        available=request.available,
+        node_names=request.node_names,
+        node_labels=request.node_labels
+    )
 
 @app.get("/fetch_job_details",
     operation_id="fetch_job_details",
@@ -615,17 +627,20 @@ def job_deploy(request: DeployJobRequest, api_key: str = Depends(verify_api_key)
     if RINGFENCE_NODE_LABEL is not None and RINGFENCE_NODE_LABEL_VALUE is not None:
         if request.target_labels is None:
             request.target_labels = {}
-        request.target_labels = {RINGFENCE_NODE_LABEL: RINGFENCE_NODE_LABEL_VALUE, **request.target_labels}
+        request.target_labels = {RINGFENCE_NODE_LABEL: [RINGFENCE_NODE_LABEL_VALUE], **request.target_labels}
     if FORCED_PRIORITY:
         logger.info(f"FORCE_PRIORITY set, ignoring user requested priority: {request.priority}")
+
     result = deploy_job(
         job_name=request.name,
         template_repo=request.template_repo,
         template_name=request.template_name,
+        template_version=request.template_version,
         values_dict=request.values,
         force_namespace=request.force_namespace,
         target_labels=request.target_labels,
         target_labels_ops=request.target_labels_ops,
+        random_suffix=request.random_suffix,
         priority=FORCED_PRIORITY if FORCED_PRIORITY is not None else request.priority
     )
     return result
@@ -643,7 +658,7 @@ def custom_job_deploy(request: CustomDeployJobRequest, api_key: str = Depends(ve
     if RINGFENCE_NODE_LABEL is not None and RINGFENCE_NODE_LABEL_VALUE is not None:
         if request.target_labels is None:
             request.target_labels = {}
-        request.target_labels = {RINGFENCE_NODE_LABEL: RINGFENCE_NODE_LABEL_VALUE, **request.target_labels}
+        request.target_labels = {RINGFENCE_NODE_LABEL: [RINGFENCE_NODE_LABEL_VALUE], **request.target_labels}
     if FORCED_PRIORITY:
         logger.info(f"FORCE_PRIORITY set, ignoring user requested priority: {request.priority}")
     result = deploy_test_job(
@@ -909,6 +924,44 @@ def delete_space(user_id: str, api_key: str = Depends(verify_api_key)):
     return delete_user_space(
         user_id=user_id
     )
+
+@app.post("/set_user_space_secret",
+    operation_id="set_user_space_secret",
+    summary="Set secret data for a user space",
+    description="Creates or updates secret data for a specific user space. This data is stored securely and can be used for configuration or credentials.",
+    tags=["info"],
+    response_description="Result of setting secret data")
+def set_secret(request: UserSpaceSecretRequest, api_key: str = Depends(verify_api_key)):
+    """
+    Set secret data for a user space with the following parameters:
+    
+    - **user_id**: User ID for which to set the secret data
+    - **data**: Dictionary containing the secret data to store
+    """
+    if FORCED_USER_SPACE_NAME is not None and request.user_id != FORCED_USER_SPACE_NAME:
+        return {"error": f"Cannot set user space secret for other users. {FORCED_USER_SPACE_NAME} only"}
+    
+    return set_user_space_secret(
+        user_id=request.user_id,
+        data=request.data
+    )
+
+@app.get("/get_user_space_secret",
+    operation_id="get_user_space_secret",
+    summary="Fetch secret data for a user space",
+    description="Retrieves secret data for a specific user space. This data is stored securely and can be used for configuration or credentials.",
+    tags=["info"],
+    response_description="Secret data for the user space")
+def fetch_secret(user_id: str, api_key: str = Depends(verify_api_key)):
+    """
+    Fetch secret data for a user space with the following parameters:
+    
+    - **user_id**: User ID for which to fetch the secret data
+    """
+    if FORCED_USER_SPACE_NAME is not None:
+        return fetch_user_space_secret(user_id=FORCED_USER_SPACE_NAME)
+    
+    return fetch_user_space_secret(user_id=user_id)
 
 # Endpoint to check health
 @app.get("/health", 
