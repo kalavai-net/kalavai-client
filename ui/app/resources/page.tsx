@@ -20,7 +20,8 @@ interface Device {
 
 interface GpuInfo {
   node: string;
-  models: string[];
+  model: string;
+  memory: string;
   total: number;
   available: number;
   ready: boolean;
@@ -82,24 +83,34 @@ function ResourcesContent() {
 
       const combined: ResourceItem[] = [];
       const gpuNodesSeen = new Set<string>();
+      const nodeGpuMap = new Map<string, { models: string[]; total: number; available: number; ready: boolean }>();
 
+      // Group GPUs by node
       gpus.forEach((gpu) => {
-        gpuNodesSeen.add(gpu.node);
-        const device = deviceMap.get(gpu.node);
-        const used = gpu.total > 0 ? 100 - Math.round((gpu.available / gpu.total) * 100) : 0;
+        if (!nodeGpuMap.has(gpu.node)) {
+          nodeGpuMap.set(gpu.node, { models: [], total: gpu.total, available: gpu.available, ready: gpu.ready });
+        }
+        const nodeData = nodeGpuMap.get(gpu.node)!;
+        nodeData.models.push(`${gpu.model} (${gpu.memory}GB)`);
+      });
+
+      // Create combined resource items
+      nodeGpuMap.forEach((gpuData, nodeName) => {
+        gpuNodesSeen.add(nodeName);
+        const device = deviceMap.get(nodeName);
+        const used = gpuData.total > 0 ? 100 - Math.round((gpuData.available / gpuData.total) * 100) : 0;
         const issues: string[] = [];
         if (device?.memory_pressure) issues.push('memory_pressure');
         if (device?.disk_pressure) issues.push('disk_pressure');
         if (device?.pid_pressure) issues.push('pid_pressure');
-        const modelList = Array.isArray(gpu.models) ? gpu.models : [];
         combined.push({
-          node: gpu.node,
-          models: modelList.join('\n') || '-',
+          node: nodeName,
+          models: gpuData.models.join('\n') || '-',
           used,
-          total: gpu.total,
+          total: gpuData.total,
           issues: issues.join(', '),
           disabled: device?.unschedulable ?? false,
-          ready: device?.ready ?? gpu.ready,
+          ready: device?.ready ?? gpuData.ready,
         });
       });
 

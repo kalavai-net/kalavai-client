@@ -428,6 +428,7 @@ function JobsContent() {
   const [availableLabels, setAvailableLabels] = useState<string[]>([]);
   const [selectedLabels, setSelectedLabels] = useState<Record<string, string[]>>({});
   const [labelMode, setLabelMode] = useState<'AND' | 'OR'>('AND');
+  const [randomSuffix, setRandomSuffix] = useState(true);
 
   // Logs modal
   const [logsJob, setLogsJob] = useState<Job | null>(null);
@@ -542,7 +543,7 @@ function JobsContent() {
   const openDeployModal = async () => {
     setDeployOpen(true); setDeployStep(0); setSelectedTemplate('');
     setTemplateData(null); setParams({}); setFormValues({});
-    setJobName(''); setSelectedLabels({});
+    setJobName(''); setSelectedLabels({}); setRandomSuffix(true);
     setTemplatesLoading(true);
     try {
       const data = await kalavaiApi.fetchJobTemplates();
@@ -613,6 +614,7 @@ function JobsContent() {
         template_name: selectedTemplate,
         values: formValues,
         force_namespace: namespaceFilter ?? undefined,
+        random_suffix: randomSuffix,
       };
       if (Object.keys(selectedLabels).length > 0) {
         payload.target_labels = selectedLabels;
@@ -940,6 +942,18 @@ function JobsContent() {
                     <label className="block text-xs font-medium text-muted-foreground mb-1">Job name <span className="text-red-500">*</span></label>
                     <input type="text" className="w-full px-3 py-2 border border-border rounded-md text-sm bg-background"
                       placeholder="my-job" value={jobName} onChange={e => setJobName(e.target.value)} />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input 
+                      type="checkbox" 
+                      id="random-suffix" 
+                      checked={randomSuffix} 
+                      onChange={e => setRandomSuffix(e.target.checked)} 
+                      className="w-4 h-4 rounded accent-primary cursor-pointer" 
+                    />
+                    <label htmlFor="random-suffix" className="text-sm cursor-pointer">
+                      Add random suffix to job name
+                    </label>
                   </div>
                   {requiredParams.length > 0 && (
                     <div className="space-y-3">

@@ -135,8 +135,8 @@ class KalavaiApiClient {
     return this.get('fetch_job_names');
   }
 
-  async fetchGpus(available?: boolean) {
-    return this.get('fetch_gpus', { params: { available } });
+  async fetchGpus(available?: boolean, node_names?: string[], node_labels?: Record<string, string>) {
+    return this.post('fetch_gpus', { available, node_names, node_labels });
   }
 
   async fetchJobDetails(force_namespace?: string) {
@@ -190,6 +190,7 @@ class KalavaiApiClient {
     force_namespace?: string;
     target_labels?: Record<string, string[]>;
     target_labels_ops?: string;
+    random_suffix?: boolean;
   }) {
     return this.post('deploy_job', data);
   }
