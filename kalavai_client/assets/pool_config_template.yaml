@@ -71,6 +71,13 @@ spec:
   interval: 1h
   url: https://kalavai-net.github.io/helm-charts/
 ---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: kalavai-templates
+spec:
+  interval: 5m
+  url: https://kalavai-net.github.io/kalavai-templates/
 ---
 {% if dns_api_token %}
 apiVersion: v1
