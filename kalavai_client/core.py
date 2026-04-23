@@ -1116,7 +1116,7 @@ def generate_worker_package(
     
     # join private network if provided
     node_labels = {
-        STORAGE_CLASS_LABEL: storage_compatible,
+        STORAGE_CLASS_LABEL: "enabled" if storage_compatible else "disabled",
         NODE_ROLE_LABEL: "worker"
     }
     # Generate docker compose recipe
@@ -1176,7 +1176,7 @@ def join_pool(
     # join private network if provided
     node_labels = {
         **node_labels,
-        STORAGE_CLASS_LABEL: is_storage_compatible(),
+        STORAGE_CLASS_LABEL: "enabled" if is_storage_compatible() else "disabled",
         NODE_ROLE_LABEL: "worker" if not is_seed else "server"
     }  
     # local agent join
@@ -1265,7 +1265,7 @@ def create_pool(
     
     node_labels = {
         **node_labels,
-        STORAGE_CLASS_LABEL: is_storage_compatible(),
+        STORAGE_CLASS_LABEL: "enabled" if is_storage_compatible() else "disabled",
         NODE_ROLE_LABEL: "server"
     }
         

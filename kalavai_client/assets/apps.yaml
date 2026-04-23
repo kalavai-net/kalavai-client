@@ -339,7 +339,9 @@ releases:
     chart: longhorn/longhorn
     installed: {{deploy_longhorn|default("false", true)}}
     set:
+    # Values:https://github.com/longhorn/charts/tree/v1.12.x/charts/longhorn
     # security issue! enable for testing only
+    # use auth ingress instead: https://longhorn.io/docs/1.11.1/deploy/accessing-the-ui/longhorn-ingress/
     - name: service.ui.type
       value: NodePort
     - name: service.ui.nodePort
@@ -349,7 +351,7 @@ releases:
     - name: service.manager.nodePort
       value: {{longhorn_manager_port}}
     - name: persistence.defaultClassReplicaCount
-      value: {{longhorn_replicas}}
+      value: {{longhorn_storage_replicas}}
     - name: global.nodeSelector.{{longhorn_label_selector_key}}
       value: "{{longhorn_label_selector_value}}"
     - name: defaultSettings.storageMinimalAvailablePercentage

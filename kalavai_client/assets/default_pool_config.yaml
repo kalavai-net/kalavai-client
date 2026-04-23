@@ -9,10 +9,11 @@ server:
 
 core:
   # Deploy systems
-  deploy:
-  - rocm
-  - monitoring
+  deploy: []
+  # - rocm
+  # - monitoring
   #- opencost
+  #- longhorn
   # "Kalavai API"
   kalavai_api_version: null
   # "Global"
@@ -60,11 +61,11 @@ core:
   # "Longhorn minimal available percentage"
   longhorn_minimal_available_percentage: 5
   # "Longhorn label selector key"
-  longhorn_label_selector_key: "kalavai.storage.enabled"
+  longhorn_label_selector_key: "kalavai/role"
   # "Longhorn label selector"
-  longhorn_label_selector: "True"
+  longhorn_label_selector_value: "server"
   # "Longhorn replicas"
-  longhorn_replicas: 2
+  longhorn_storage_replicas: 3
   # "MinIO replicas"
   minio_replicas: 2
   # "MinIO resources memory"
@@ -89,6 +90,9 @@ core:
 pool:
   # Name of the storage class to use for the pool
   storage_class_name: "longhorn"
+  storage_label_selector: "kalavai/storage:enabled"
+  storage_replicas: 2
+  storage_stale_replica_timeout: 180
   dns_api_token: null
   dns_email: "info@kalavai.net"
   dns_subdomain: "spaces.kalavai.net"
