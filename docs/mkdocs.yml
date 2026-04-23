@@ -31,8 +31,9 @@ nav:
     - Overview: managed/overview.md
     - Architecture: managed/architecture.md
     - Getting started: managed/platform_getting_started.md
-    - Use cases:
-      - Multi-GPU JupyterHub: managed/use_cases/jupyterhub.md
+    - Applications:
+      - Multi-GPU JupyterHub: managed/jupyterhub.md
+      - Multi-tenancy LLM: managed/multitenancy_llm.md
 
 theme:
   name: shadcn
