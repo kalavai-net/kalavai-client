@@ -1,22 +1,32 @@
 # # storage class for model weights (temporary)
-kind: StorageClass
-apiVersion: storage.k8s.io/v1
-metadata:
-  name: {{storage_class_name}}
-provisioner: driver.longhorn.io
-allowVolumeExpansion: true
-reclaimPolicy: Delete
-volumeBindingMode: Immediate
-parameters:
-  shareManagerNodeSelector: "{{storage_label_selector}}"
-  numberOfReplicas: "{{storage_replicas}}"
-  staleReplicaTimeout: "{{storage_stale_replica_timeout}}"
-  fromBackup: ""
-  fsType: "ext4"
-  dataLocality: "disabled"
-  unmapMarkSnapChainRemoved: "ignored"
-  disableRevisionCounter: "true"
-  dataEngine: "v1"
+# kind: StorageClass
+# apiVersion: storage.k8s.io/v1
+# metadata:
+#   name: {{storage_class_name}}
+# provisioner: driver.longhorn.io
+# allowVolumeExpansion: true
+# reclaimPolicy: Delete
+# volumeBindingMode: Immediate
+# parameters:
+#   shareManagerNodeSelector: "{{storage_label_selector}}"
+#   numberOfReplicas: "{{storage_replicas}}"
+#   staleReplicaTimeout: "{{storage_stale_replica_timeout}}"
+#   fromBackup: ""
+#   fsType: "ext4"
+#   dataLocality: "disabled"
+#   unmapMarkSnapChainRemoved: "ignored"
+#   disableRevisionCounter: "true"
+#   dataEngine: "v1"
+# ---
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: {{storage_class_name}}
+# parameters:
+#   protocol: nvmf
+#   repl: "{{storage_replicas}}"
+# provisioner: io.openebs.csi-mayastor
+---
 # PRIORITY CLASSES
 apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
