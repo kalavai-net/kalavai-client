@@ -1,4 +1,29 @@
-# Base python image
+# Registrar utils
+
+Utils container mostly for model registration on gateway:
+
+- Manages registration / deregistration of models in external Gateway (LiteLLM)
+- Utils scripts for connectivity between workers / servers
+- Basic metrics exposer for model token usage
+
+
+## Env variables
+
+Functionality is configured via environment variables:
+
+- `MODEL_ID`: model id matching the id in the MODEL_API_BASE service
+- `MODEL_API_BASE`: internal address for the OpenAI compatible API server where the model is accessible
+- `LITELLM_BASE_URL`: internal address for the gateway service
+- `LITELLM_API_KEY`: api key to grant access to the gateway service
+- `LITELLM_MODEL_NAME`: new model id reference for the model in the gateway API
+- `LITELLM_EXTRAS`: string dictionary with extra info
+- `LITELLM_ACCESS_GROUP`: access group to assign the model to in gateway
+- `PROVIDER`: gateway provider
+- `DEPLOYMENT_ID`: internal id to link the model to a deployment ID in Kalavai
+
+
+
+## Notes
 
 It includes utils
 
