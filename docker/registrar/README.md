@@ -4,7 +4,7 @@ Utils container mostly for model registration on gateway:
 
 - Manages registration / deregistration of models in external Gateway (LiteLLM)
 - Utils scripts for connectivity between workers / servers
-- Basic metrics exposer for model token usage
+- Handles billing and tracking heartbeats
 
 
 ## Env variables
@@ -22,6 +22,12 @@ Functionality is configured via environment variables:
 - `DEPLOYMENT_ID`: internal id to link the model to a deployment ID in Kalavai
 
 
+## Build
+
+```bash
+docker build -t ghcr.io/kalavai-net/kalavai-registrar:latest .
+docker push ghcr.io/kalavai-net/kalavai-registrar:latest
+```
 
 ## Notes
 

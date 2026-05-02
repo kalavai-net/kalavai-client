@@ -125,9 +125,9 @@ while [ $attempt -le $max_retries ] && [ "$success" = false ]; do
             success=true
             echo "Model registered successfully!"
             echo "$response_body"
-            if [ "$return" = "no" ]; then
-                tail -f /dev/null
-            fi
+            # if [ "$return" = "no" ]; then
+            #     tail -f /dev/null
+            # fi
             exit 0
         else
             echo "Response received but appears to contain error indicators"
