@@ -148,3 +148,34 @@ spec:
   defaultCertificate:
     secretName: wildcard-tls-secret # Matches the secretName in your Certificate
 {% endif %}
+---
+###############################################
+# Read only RBAC for kubernetes downstream API
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kalavai-downstream-api-reader-sa
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kalavai-downstream-api-reader-role
+rules:
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kalavai-downstream-api-reader-binding
+subjects:
+- kind: ServiceAccount
+  name: kalavai-downstream-api-reader-sa
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: kalavai-downstream-api-reader-role
+  apiGroup: rbac.authorization.k8s.io
+###############################################
