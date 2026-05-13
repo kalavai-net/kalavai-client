@@ -15,6 +15,8 @@ repositories:
     url: https://kalavai-net.github.io/kalavai-templates/
   - name: kalavai-job-operator
     url: https://kalavai-net.github.io/kalavai-job-operator/ 
+  - name: server-worker-set
+    url: https://kalavai-net.github.io/server-worker-set/
   {% if deploy_longhorn %}
   - name: longhorn
     url: https://charts.longhorn.io
@@ -39,6 +41,14 @@ repositories:
     url: https://project-hami.github.io/HAMi
 
 releases:
+  - name: sws-operator
+    namespace: kalavai
+    chart: server-worker-set/serverworkerset-operator
+    version: 0.1.2
+    installed: true
+    set:
+    - name: nodeSelector.{{kalavai_role_label}}
+      value: server
   - name: job-operator
     namespace: kalavai
     chart: kalavai-job-operator/kalavai-job-operator
