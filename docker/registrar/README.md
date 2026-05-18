@@ -7,7 +7,11 @@ Utils container mostly for model registration on gateway:
 - Handles billing and tracking heartbeats
 
 
-## Env variables
+## Model registration
+
+The registrar container can be used to register models in the gateway. It will call the gateway API to register the model.
+
+### Env variables
 
 Functionality is configured via environment variables:
 
@@ -20,6 +24,24 @@ Functionality is configured via environment variables:
 - `LITELLM_ACCESS_GROUP`: access group to assign the model to in gateway
 - `PROVIDER`: gateway provider
 - `DEPLOYMENT_ID`: internal id to link the model to a deployment ID in Kalavai
+
+
+## Billing heartbeat
+
+The registrar container can be used to send billing heartbeats to track model usage. It will call the gateway API to send a heartbeat with the current usage metrics.
+
+### Env variables
+
+Functionality is configured via environment variables:
+
+- `USER_ID`: user id to track the usage
+- `JOB_ID`: job id to track the usage
+- `VRAM_USAGE`: VRAM usage in GB
+- `MEMORY_USAGE`: Memory usage in GB
+- `CPU_USAGE`: CPU usage in percentage
+- `GPU_TYPE`: GPU type
+- `INTERVAL_SECONDS`: interval in seconds to send the heartbeat
+- `PROVIDER`: gateway provider
 
 
 ## Build

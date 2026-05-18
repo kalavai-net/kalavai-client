@@ -12,7 +12,7 @@ COPY start_point.sh .
 COPY cleanup.sh .
 COPY wait_for_ping.sh .
 COPY get_node_label_value.py .
-COPY billing_heartbeat.py .
+COPY usage_event_generator.py .
 
 RUN pip3 install -r requirements.txt
 
