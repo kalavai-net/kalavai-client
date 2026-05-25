@@ -9,12 +9,13 @@ Supports configurable parameters via environment variables.
 Vector expects the format:
 {
     "event_id": <event id>,
+    "event_type": <event type>,
     "timestamp": <+%Y-%m-%dT%H:%M:%S.%3NZ>,
     "user_id": <user id>,
     "job_id": <kalavai job id>,
-    "vram_usage": <vram usage>,
-    "memory_usage": <memory usage>,
-    "cpu_usage": <cpu usage>,
+    "vram_amount": <vram amount>,
+    "memory_amount": <memory amount>,
+    "cpu_amount": <cpu amount>,
     "gpu_type": <gpu type>,
     "interval_seconds": <interval in seconds>,
     "provider": <kalavai provider>
@@ -22,7 +23,7 @@ Vector expects the format:
 
 Example:
 
-USER_ID=carlos1 JOB_ID=test-job VRAM_USAGE=10 MEMORY_USAGE=2 CPU_USAGE=4 GPU_TYPE=rtx-ada2000 INTERVAL_SECONDS=60 PROVIDER=shadow python3 usage_event_generator.py
+USER_ID=carlos1 JOB_ID=test-job VRAM_AMOUNT=10 MEMORY_AMOUNT=2 CPU_AMOUNT=4 GPU_TYPE=rtx-ada2000 INTERVAL_SECONDS=60 PROVIDER=shadow python3 usage_event_generator.py
 """
 
 import logging
@@ -43,11 +44,12 @@ logger.addHandler(logHandler)
 ####################
 
 
+EVENT_TYPE = os.getenv("EVENT_TYPE", None)
 USER_ID = os.getenv("USER_ID", None)
 JOB_ID = os.getenv("JOB_ID", None)
-VRAM_USAGE = int(os.getenv("VRAM_USAGE", -1))
-MEMORY_USAGE = int(os.getenv("MEMORY_USAGE", -1))
-CPU_USAGE = float(os.getenv("CPU_USAGE", -1))
+VRAM_AMOUNT = int(os.getenv("VRAM_AMOUNT", -1))
+MEMORY_AMOUNT = int(os.getenv("MEMORY_AMOUNT", -1))
+CPU_AMOUNT = float(os.getenv("CPU_AMOUNT", -1))
 GPU_TYPE = os.getenv("GPU_TYPE", None)
 INTERVAL_SECONDS = int(os.getenv("INTERVAL_SECONDS", -1))
 PROVIDER = os.getenv("PROVIDER", None)
@@ -71,12 +73,13 @@ def main():
 
         logger.info({
             "event_id": f"{USER_ID}_{JOB_ID}_{int(current_time)}",
+            "event_type": EVENT_TYPE,
             "timestamp": datetime.now().isoformat(),
             "user_id": USER_ID,
             "job_id": JOB_ID,
-            "vram_usage": VRAM_USAGE,
-            "memory_usage": MEMORY_USAGE,
-            "cpu_usage": CPU_USAGE,
+            "vram_amount": VRAM_AMOUNT,
+            "memory_amount": MEMORY_AMOUNT,
+            "cpu_amount": CPU_AMOUNT,
             "gpu_type": GPU_TYPE,
             "interval_seconds": INTERVAL_SECONDS,
             "provider": PROVIDER

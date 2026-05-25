@@ -44,7 +44,7 @@ releases:
   - name: sws-operator
     namespace: kalavai
     chart: server-worker-set/serverworkerset-operator
-    version: 0.1.2
+    version: 0.1.10
     installed: true
     set:
     - name: nodeSelector.{{kalavai_role_label}}
@@ -52,7 +52,7 @@ releases:
   - name: job-operator
     namespace: kalavai
     chart: kalavai-job-operator/kalavai-job-operator
-    version: 0.0.23
+    version: 0.1.0
     installed: true
     needs:
     - flux-system/flux
