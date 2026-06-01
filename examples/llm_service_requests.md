@@ -116,6 +116,8 @@ if __name__ == "__main__":
 
 ## OpenAI compatible API
 
+With the OpenAI compatible API, you can use the same code to interact with the LLM service as you would with the OpenAI API. This means that you can use the same code to interact with the service as you would with the OpenAI API, including methods and parameters to customise your inference calls.
+
 For a detailed view of the OpenAI compatible API, supported methods and parameters, see the [LiteLLM API Documentation](https://litellm-api.up.railway.app/#/chat%2Fcompletions/chat_completion_v1_chat_completions_post).
 
 
