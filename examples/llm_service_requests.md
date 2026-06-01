@@ -114,6 +114,10 @@ if __name__ == "__main__":
     asyncio.run(batched_inference_openai())
 ```
 
+## OpenAI compatible API
+
+For a detailed view of the OpenAI compatible API, supported methods and parameters, see the [LiteLLM API Documentation](https://litellm-api.up.railway.app/#/chat%2Fcompletions/chat_completion_v1_chat_completions_post).
+
 
 ## High-Performance notes
 
