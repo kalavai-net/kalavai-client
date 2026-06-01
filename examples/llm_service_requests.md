@@ -114,7 +114,7 @@ if __name__ == "__main__":
     asyncio.run(batched_inference_openai())
 ```
 
-## Custom parameters
+### 3. Custom parameters
 
 Some models support custom parameters that can be passed in the `extra_body` field. For example, the Qwen model supports the `enable_thinking` parameter to disable reasoning mode.
 
