@@ -114,6 +114,50 @@ if __name__ == "__main__":
     asyncio.run(batched_inference_openai())
 ```
 
+## Custom parameters
+
+Some models support custom parameters that can be passed in the `extra_body` field. For example, the Qwen model supports the `enable_thinking` parameter to disable reasoning mode.
+
+```python
+
+from openai import OpenAI
+
+API_URL = "http://kalavai-api.public.kalavai.net/v1"
+API_KEY = "<your-api-key>"
+MODEL = "Qwen/Qwen3-4B"
+
+client = OpenAI(
+    base_url=API_URL,
+    api_key=API_KEY
+)
+
+def stream_chat():
+    response = client.chat.completions.create(
+        model=MODEL,
+        messages=[{"role": "user", "content": "Who, Tell me a story"}],
+        stream=True,
+        extra_body={
+            "chat_template_kwargs": {
+                "enable_thinking": False
+            }
+        }
+    )
+
+    for chunk in response:
+        delta = chunk.choices[0].delta
+        if delta and delta.content:
+            print(delta.content, end="", flush=True)
+        if delta and hasattr(delta, 'reasoning_content') and delta.reasoning_content:
+            print(delta.reasoning_content, end="", flush=True)
+        if delta and hasattr(delta, 'reasoning') and delta.reasoning:
+            print(delta.reasoning, end="", flush=True)
+
+    print("\n--- Done ---")
+
+if __name__ == "__main__":
+    stream_chat()
+```
+
 ## OpenAI compatible API
 
 With the OpenAI compatible API, you can use the same code to interact with the LLM service as you would with the OpenAI API. This means that you can use the same code to interact with the service as you would with the OpenAI API, including methods and parameters to customise your inference calls.

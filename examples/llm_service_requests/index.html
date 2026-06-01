@@ -637,6 +637,46 @@
     <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">batched_inference_openai</span><span class="p">())</span>
 </code></pre></div>
 
+<h2 id="custom-parameters">Custom parameters</h2>
+<p>Some models support custom parameters that can be passed in the <code>extra_body</code> field. For example, the Qwen model supports the <code>enable_thinking</code> parameter to disable reasoning mode.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openai</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAI</span>
+
+<span class="n">API_URL</span> <span class="o">=</span> <span class="s2">&quot;http://kalavai-api.public.kalavai.net/v1&quot;</span>
+<span class="n">API_KEY</span> <span class="o">=</span> <span class="s2">&quot;&lt;your-api-key&gt;&quot;</span>
+<span class="n">MODEL</span> <span class="o">=</span> <span class="s2">&quot;Qwen/Qwen3-4B&quot;</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">OpenAI</span><span class="p">(</span>
+    <span class="n">base_url</span><span class="o">=</span><span class="n">API_URL</span><span class="p">,</span>
+    <span class="n">api_key</span><span class="o">=</span><span class="n">API_KEY</span>
+<span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">stream_chat</span><span class="p">():</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">chat</span><span class="o">.</span><span class="n">completions</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+        <span class="n">model</span><span class="o">=</span><span class="n">MODEL</span><span class="p">,</span>
+        <span class="n">messages</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;Who, Tell me a story&quot;</span><span class="p">}],</span>
+        <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">extra_body</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;chat_template_kwargs&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;enable_thinking&quot;</span><span class="p">:</span> <span class="kc">False</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
+        <span class="n">delta</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">choices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">delta</span>
+        <span class="k">if</span> <span class="n">delta</span> <span class="ow">and</span> <span class="n">delta</span><span class="o">.</span><span class="n">content</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">delta</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">delta</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">delta</span><span class="p">,</span> <span class="s1">&#39;reasoning_content&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">delta</span><span class="o">.</span><span class="n">reasoning_content</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">delta</span><span class="o">.</span><span class="n">reasoning_content</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">delta</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">delta</span><span class="p">,</span> <span class="s1">&#39;reasoning&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">delta</span><span class="o">.</span><span class="n">reasoning</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">delta</span><span class="o">.</span><span class="n">reasoning</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--- Done ---&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">stream_chat</span><span class="p">()</span>
+</code></pre></div>
+
 <h2 id="openai-compatible-api">OpenAI compatible API</h2>
 <p>With the OpenAI compatible API, you can use the same code to interact with the LLM service as you would with the OpenAI API. This means that you can use the same code to interact with the service as you would with the OpenAI API, including methods and parameters to customise your inference calls.</p>
 <p>For a detailed view of the OpenAI compatible API, supported methods and parameters, see the <a href="https://litellm-api.up.railway.app/#/chat%2Fcompletions/chat_completion_v1_chat_completions_post">LiteLLM API Documentation</a>.</p>
@@ -797,6 +837,14 @@
             2. Batched Inference
         </a>
         
+        
+
+        
+        <a href="#custom-parameters"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#custom-parameters');">
+            Custom parameters
+        </a>
         
 
         
