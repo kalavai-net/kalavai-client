@@ -149,6 +149,7 @@ class MetricsAPI():
         query = f"""
             SELECT 
                 job_id,
+                job_name,
                 gpu_type,
                 {'hour,' if not aggregate else ''}
                 {self._create_selector('vram_hours', aggregate)},
