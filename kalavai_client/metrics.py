@@ -217,7 +217,7 @@ class MetricsAPI():
 
 if __name__ == "__main__":
     metrics = MetricsAPI(
-        endpoint=os.getenv("CLICKHOUSE_ENDPOINT", 'acmpvq21xs.europe-west2.gcp.clickhouse.cloud'),
+        endpoint=os.getenv("CLICKHOUSE_ENDPOINT", ''),
         port=int(os.getenv("CLICKHOUSE_PORT", 8443)),
         username=os.getenv("CLICKHOUSE_USERNAME", "default"),
         password=os.getenv("CLICKHOUSE_PASSWORD", "")
