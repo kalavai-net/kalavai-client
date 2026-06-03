@@ -28,7 +28,9 @@ dependencies = [
     "fastapi==0.115.8",
     "uvicorn==0.34.0",
     "fastapi-mcp==0.3.0",
-    "public-ip==0.12"
+    "public-ip==0.12",
+    "pandas==3.0.3",
+    "clickhouse-connect==1.0.1"
 ]
 
 [project.optional-dependencies]

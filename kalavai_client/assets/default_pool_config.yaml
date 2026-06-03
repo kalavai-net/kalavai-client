@@ -15,6 +15,11 @@ core:
   #- opencost
   #- longhorn
   # "Kalavai API"
+  clickhouse:
+    endpoint: "https://clickhouse.svc"
+    password: "password"
+    port: 8443
+    username: default
   kalavai_api_version: null
   # "Global"
   kalavai_role_label: "kalavai/role"
@@ -98,4 +103,6 @@ pool:
   dns_subdomain: "spaces.kalavai.net"
   dns_cert_manager_namespace: "cert-manager"
   dns_ingress_controller_namespace: "kube-system"
+  traefik_external_traffic_policy: "Cluster"
+  traefik_replicas: 1
   

@@ -14,8 +14,12 @@ services:
       - WATCHER_API_URL={{watcher_api_url}}
       - WATCHER_API_KEY={{watcher_api_key}}
       - MASTER_API_KEY={{kalavai_api_key}}
-      # - RINGFENCE_NODE_LABEL={{ringfence_node_label}}
-      # - RINGFENCE_NODE_VALUE={{ringfence_node_value}}
+    {% if clickhouse_endpoint and clickhouse_password and clickhouse_port and clickhouse_username %}
+      - CLICKHOUSE_PASSWORD={{clickhouse_password}}
+      - CLICKHOUSE_ENDPOINT={{clickhouse_endpoint}}
+      - CLICKHOUSE_PORT={{clickhouse_port}}
+      - CLICKHOUSE_USERNAME={{clickhouse_username}}
+    {% endif %}
     restart: unless-stopped
     volumes:
     - {{user_local_path}}:/root/ # required to read .server config
