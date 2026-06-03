@@ -220,7 +220,7 @@ if __name__ == "__main__":
         endpoint=os.getenv("CLICKHOUSE_ENDPOINT", 'acmpvq21xs.europe-west2.gcp.clickhouse.cloud'),
         port=int(os.getenv("CLICKHOUSE_PORT", 8443)),
         username=os.getenv("CLICKHOUSE_USERNAME", "default"),
-        password=os.getenv("CLICKHOUSE_PASSWORD", "NnhCZ97.fG2QI")
+        password=os.getenv("CLICKHOUSE_PASSWORD", "")
     )
     metrics.ping_service()
     data = metrics.get_compute_usage(
