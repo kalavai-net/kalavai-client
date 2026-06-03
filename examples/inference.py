@@ -1,10 +1,10 @@
 from openai import OpenAI
 
+import time
 
-API_URL = "https://mistral-small-3-2-24b-instruct-2a4375-default-vllm.spaces.kalavai.net/v1" #"https://testme-default-litellm.spaces.kalavai.net/v1" #"https://api.cogenai.kalavai.net/v1" #"https://api.cogenai.kalavai.net/v1"  # Replace with your OpenAI-compatible API URL
+API_URL = "https://test-disaggregation-kalavai-prefil.spaces.kalavai.net/v1" #"https://mistral-vllm-default-vllm.spaces.kalavai.net/v1" #"https://testme-default-litellm.spaces.kalavai.net/v1" #"https://api.cogenai.kalavai.net/v1" #"https://api.cogenai.kalavai.net/v1"  # Replace with your OpenAI-compatible API URL
 API_KEY = ""  # Replace with your actual API key
-MODEL = "unsloth/Mistral-Small-3.2-24B-Instruct-2506-FP8" #"Hastagaras/Jamet-8B-L3-MK.V-Blackroot" #mistralai/Mistral-Nemo-Instruct-2407"  # Replace with your model name
-
+MODEL = "Intel/Mistral-Small-3.2-24B-Instruct-2506-int4-AutoRound"
 
 # point this to your vLLM API server
 client = OpenAI(
@@ -13,12 +13,14 @@ client = OpenAI(
 )
 
 def stream_chat():
+    t = time.time()
     response = client.chat.completions.create(
         model=MODEL,   # replace with your model name
-        messages=[{"role": "user", "content": "Tell me a long story"}],
+        messages=[{"role": "user", "content": "Tell me a story"}],
         stream=True,
         max_tokens=500
     )
+    print(f"Time to first token: {time.time() - t}")
 
     print("Assistant:", end=" ", flush=True)
     for chunk in response:
