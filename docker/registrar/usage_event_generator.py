@@ -47,6 +47,7 @@ logger.addHandler(logHandler)
 EVENT_TYPE = os.getenv("EVENT_TYPE", None)
 USER_ID = os.getenv("USER_ID", None)
 JOB_ID = os.getenv("JOB_ID", None)
+JOB_NAME = os.getenv("JOB_NAME", None)
 VRAM_AMOUNT = int(os.getenv("VRAM_AMOUNT", -1))
 MEMORY_AMOUNT = int(os.getenv("MEMORY_AMOUNT", -1))
 CPU_AMOUNT = float(os.getenv("CPU_AMOUNT", -1))
@@ -77,6 +78,7 @@ def main():
             "timestamp": datetime.now().isoformat(),
             "user_id": USER_ID,
             "job_id": JOB_ID,
+            "job_name": JOB_NAME,
             "vram_amount": VRAM_AMOUNT,
             "memory_amount": MEMORY_AMOUNT,
             "cpu_amount": CPU_AMOUNT,
