@@ -3,6 +3,19 @@ from typing import List, Dict, Union, Optional, Literal
 from enum import Enum
 
 
+
+class UserComputeUsageRequest(BaseModel):
+    start_time: str
+    end_time: str
+    job_ids: Optional[Union[None, List[str]]] = None
+    user_ids: Optional[List[str]] = Field(None, description="List of user ids to filter metrics, defaults to all available")
+    aggregate: Optional[bool] = True
+
+class ProviderComputeUsageRequest(BaseModel):
+    start_time: str
+    end_time: str
+    provider_ids: Optional[List[str]] = Field(None, description="List of provider ids to filter metrics, defaults to all available")
+
 class ComputeUsageRequest(BaseModel):
     start_time: str
     end_time: str

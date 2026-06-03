@@ -182,7 +182,8 @@ def generate_compose_config(
     watcher_api_key=None,
     kalavai_api_port=49152,
     kalavai_api_key=None,
-    kalavai_api_version=None
+    kalavai_api_version=None,
+    **kwargs # extra parameters
 ):
     if node_labels is not None:
         node_labels = " ".join([f"--node-label {key}={value}" for key, value in node_labels.items()])
@@ -216,6 +217,10 @@ def generate_compose_config(
         "kalavai_api_key": kalavai_api_key,
         "kalavai_api_image_version": kalavai_api_version if kalavai_api_version is not None else kalavai_client.__version__ 
     }
+    for key, value in kwargs.items():
+        print(f"Injecting value to compose config: {key}")
+        compose_values[key] = value
+    
     # generate local config files
     compose_yaml = load_template(
         template_path=DOCKER_COMPOSE_TEMPLATE,

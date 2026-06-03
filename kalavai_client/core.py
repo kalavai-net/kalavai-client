@@ -1322,7 +1322,11 @@ def create_pool(
         watcher_api_url=f"{ip_address}:{DEFAULT_WATCHER_PORT}",
         kalavai_api_port=kalavai_api_port,
         kalavai_api_key=auth_key,
-        kalavai_api_version=kalavai_api_version
+        kalavai_api_version=kalavai_api_version,
+        clickhouse_password=app_values.get("clickhouse", {}).get("password", None),
+        clickhouse_endpoint=app_values.get("clickhouse", {}).get("endpoint", None),
+        clickhouse_port=app_values.get("clickhouse", {}).get("port", None),
+        clickhouse_username=app_values.get("clickhouse", {}).get("username", None)
     )
 
     # start server

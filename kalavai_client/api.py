@@ -23,6 +23,8 @@ from kalavai_client.env import (
 from kalavai_client.api_models import (
     NodeMetricsRequest,
     ComputeUsageRequest,
+    UserComputeUsageRequest,
+    ProviderComputeUsageRequest,
     CreatePoolRequest,
     JoinPoolRequest,
     StopPoolRequest,
@@ -88,6 +90,8 @@ from kalavai_client.core import (
 from kalavai_client.utils import (
     apply_cutoff_date_delta
 )
+from kalavai_client.metrics import MetricsAPI
+
 import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -103,6 +107,23 @@ async def lifespan(app: FastAPI):
     yield
 
 
+API_KEY_NAME = "X-API-Key"
+api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+MASTER_API_KEY = os.getenv("MASTER_API_KEY", None)
+# Forced backend nodes and jobs for user spaced pools
+FORCED_USER_SPACE_NAME = os.getenv("FORCED_USER_SPACE_NAME", None)
+RINGFENCE_PROVIDER = os.getenv("RINGFENCE_PROVIDER", None)
+FORCED_PRIORITY = os.getenv("FORCED_PRIORITY", None)
+RINGFENCE_NODE_LABEL = os.getenv("RINGFENCE_NODE_LABEL", None)
+RINGFENCE_NODE_LABEL_VALUE = os.getenv("RINGFENCE_NODE_LABEL_VALUE", None)
+CUTOFF_METRICS_DATE = os.getenv("CUTOFF_METRICS_DATE", None)
+# remote metrics API
+CLICKHOUSE_ENDPOINT = os.getenv("CLICKHOUSE_ENDPOINT", 'acmpvq21xs.europe-west2.gcp.clickhouse.cloud')
+CLICKHOUSE_PORT = int(os.getenv("CLICKHOUSE_PORT", 8443))
+CLICKHOUSE_USERNAME = os.getenv("CLICKHOUSE_USERNAME", "default")
+CLICKHOUSE_PASSWORD = os.getenv("CLICKHOUSE_PASSWORD", "NnhCZ97.fG2QI")
+
+
 app = FastAPI(
     title="Kalavai Bridge API",
     description="API for managing Kalavai pools, jobs, and nodes",
@@ -111,15 +132,12 @@ app = FastAPI(
     redoc_url="/redoc",
     lifespan=lifespan,
 )
-API_KEY_NAME = "X-API-Key"
-api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
-MASTER_API_KEY = os.getenv("MASTER_API_KEY", None)
-# Forced backend nodes and jobs for user spaced pools
-FORCED_USER_SPACE_NAME = os.getenv("FORCED_USER_SPACE_NAME", None)
-FORCED_PRIORITY = os.getenv("FORCED_PRIORITY", None)
-RINGFENCE_NODE_LABEL = os.getenv("RINGFENCE_NODE_LABEL", None)
-RINGFENCE_NODE_LABEL_VALUE = os.getenv("RINGFENCE_NODE_LABEL_VALUE", None)
-CUTOFF_METRICS_DATE = os.getenv("CUTOFF_METRICS_DATE", None)
+metrics_api = MetricsAPI(
+    endpoint=CLICKHOUSE_ENDPOINT,
+    port=CLICKHOUSE_PORT,
+    username=CLICKHOUSE_USERNAME,
+    password=CLICKHOUSE_PASSWORD
+)
 
 
 ################################
@@ -347,14 +365,67 @@ def generate_worker_config(request: WorkerConfigRequest, api_key: str = Depends(
         ip_address=request.ip_address,
         storage_compatible=request.storage_compatible)
 
+@app.post("/fetch_user_compute_usage",
+    operation_id="fetch_user_compute_usage",
+    summary="Get compute usage",
+    description="Retrieves information about all compute devices (nodes) currently connected to the Kalavai pool, including their availability and usage.",
+    tags=["info"],
+    response_description="List of devices")
+def compute_usage_get(request: UserComputeUsageRequest, api_key: str = Depends(verify_api_key)):
+    """
+    Get compute usage for specific namespaces.
+
+    - Filter by ringfenced devices (if any)
+    - if FORCED_USER_SPACE_NAME is enforced, set namespaces to that value
+    """
+    if request.user_ids is not None:
+        if FORCED_USER_SPACE_NAME is not None:
+            user_ids = [FORCED_USER_SPACE_NAME]
+        else:
+            user_ids = request.user_ids
+    return metrics_api.get_compute_usage(
+        user_ids=user_ids,
+        start_time=request.start_time,
+        end_time=request.end_time,
+        job_ids=request.job_ids,
+        aggregate=request.aggregate
+    )
+
+@app.post("/fetch_provider_compute_usage",
+    operation_id="fetch_provider_compute_usage",
+    summary="Get compute usage",
+    description="Retrieves information about computing on all nodes belonging to a provider currently connected to the Kalavai pool, including their availability and usage.",
+    tags=["info"],
+    response_description="List of devices")
+def provider_compute_usage_get(request: ProviderComputeUsageRequest, api_key: str = Depends(verify_api_key)):
+    """
+    Get compute usage for specific provider.
+
+    - Filter by ringfenced devices (if any)
+    """
+    if RINGFENCE_PROVIDER is not None:
+        provider_ids = [RINGFENCE_PROVIDER]
+    else:
+        if request.provider_ids is None:
+            provider_ids = get_user_spaces()
+        else:
+            provider_ids = request.provider_ids
+    return metrics_api.get_provider_usage(
+        provider_ids=provider_ids,
+        start_time=request.start_time,
+        end_time=request.end_time
+    )
+
 @app.post("/fetch_compute_usage",
     operation_id="fetch_compute_usage",
     summary="Get compute usage",
     description="Retrieves information about all compute devices (nodes) currently connected to the Kalavai pool, including their availability and usage.",
     tags=["info"],
-    response_description="List of devices")
+    response_description="List of devices",
+    deprecated=True)
 def compute_usage(request: ComputeUsageRequest, api_key: str = Depends(verify_api_key)):
     """
+    DEPRECATED
     Get compute usage metrics on key resources across available nodes.
 
     - Filter by ringfenced devices (if any)
@@ -393,7 +464,8 @@ def compute_usage(request: ComputeUsageRequest, api_key: str = Depends(verify_ap
     summary="Get nodes metrics",
     description="Retrieves time series information about resource usage such as CPU, memory and GPU.",
     tags=["info"],
-    response_description="List of devices")
+    response_description="List of devices",
+    deprecated=True)
 def nodes_metrics(request: NodeMetricsRequest, api_key: str = Depends(verify_api_key)):
     """
     Get nodes metrics
@@ -962,6 +1034,20 @@ def fetch_secret(user_id: str, api_key: str = Depends(verify_api_key)):
         return fetch_user_space_secret(user_id=FORCED_USER_SPACE_NAME)
     
     return fetch_user_space_secret(user_id=user_id)
+
+@app.get("/get_metrics",
+    operation_id="get_metrics",
+    summary="Fetch metrics data",
+    description="Retrieves metrics data from the Metrics API (clickhouse).",
+    tags=["info"],
+    response_description="Metrics data")
+def get_metrics(query: str, api_key: str = Depends(verify_api_key)):
+    """
+    Fetch metrics data with the following parameters:
+    
+    - **query**: SQL query to execute
+    """
+    return metrics_api.query(query=query)
 
 # Endpoint to check health
 @app.get("/health", 
