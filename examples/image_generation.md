@@ -39,8 +39,8 @@ resp = requests.post(
         "model": MODEL_ID,
         "n": 1,
         "size": "256x256", # only 256x256, 512x512, 1024x1024 are supported
-        "response_format": "b64_json",
-        "extra": {"num_inference_steps": 5} # supported parameters https://huggingface.co/docs/diffusers/api/pipelines/flux#diffusers.FluxPipeline
+        "response_format": "b64_json", # url format not supported
+        "extra": {"num_inference_steps": 4} # supported parameters https://huggingface.co/docs/diffusers/api/pipelines/flux#diffusers.FluxPipeline
     },
 )
 print(f"Inference time: {time.time()-t:.2f}s")

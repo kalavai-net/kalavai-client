@@ -573,8 +573,8 @@
         <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="n">MODEL_ID</span><span class="p">,</span>
         <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
         <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="s2">&quot;256x256&quot;</span><span class="p">,</span> <span class="c1"># only 256x256, 512x512, 1024x1024 are supported</span>
-        <span class="s2">&quot;response_format&quot;</span><span class="p">:</span> <span class="s2">&quot;b64_json&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;extra&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;num_inference_steps&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">}</span> <span class="c1"># supported parameters https://huggingface.co/docs/diffusers/api/pipelines/flux#diffusers.FluxPipeline</span>
+        <span class="s2">&quot;response_format&quot;</span><span class="p">:</span> <span class="s2">&quot;b64_json&quot;</span><span class="p">,</span> <span class="c1"># url format not supported</span>
+        <span class="s2">&quot;extra&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;num_inference_steps&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">}</span> <span class="c1"># supported parameters https://huggingface.co/docs/diffusers/api/pipelines/flux#diffusers.FluxPipeline</span>
     <span class="p">},</span>
 <span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Inference time: </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">t</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
