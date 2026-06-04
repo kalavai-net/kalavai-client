@@ -147,7 +147,7 @@ class MetricsAPI():
         # return data
         
         query = f"""
-            SELECT 
+            SELECT
                 job_id,
                 job_name,
                 gpu_type,
@@ -167,9 +167,10 @@ class MetricsAPI():
             end_date = datetime.strptime(end_time, "%Y-%m-%d") + timedelta(days=1)
             query += f" AND hour < '{end_date.strftime('%Y-%m-%d')}'"
         if aggregate:
-            query += " GROUP BY job_id, gpu_type"
+            query += " GROUP BY job_id, gpu_type, job_name"
         else:
-            query += " ORDER BY job_id, gpu_type, hour"
+            query += " ORDER BY job_id, gpu_type, hour, job_name"
+        
         result =  self._query(query)
         return result
     
