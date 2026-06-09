@@ -41,6 +41,7 @@ nav:
     - Text-to-speech: cogenai/tts_inference.md
     - Speech Recognition: cogenai/asr_inference.md
     - Use custom parameters: cogenai/custom_params_inference.md
+    - Get metrics: cogenai/response_metrics.md
     #- Text-to-image: cogenai/image_generation.md
 
 theme:
