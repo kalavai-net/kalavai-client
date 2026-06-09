@@ -44,7 +44,7 @@ releases:
   - name: sws-operator
     namespace: kalavai
     chart: server-worker-set/serverworkerset-operator
-    version: 0.1.10
+    version: 0.1.11
     installed: true
     set:
     - name: nodeSelector.{{kalavai_role_label}}
