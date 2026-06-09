@@ -5,11 +5,9 @@ tags:
   - image
 ---
 
-> Work In progress
-
 # Multimodal Inference Example
 
-This example shows how to make requests to the multimodal inference service using CoGen AI API.
+This example shows how to make inference requests to a multimodal model using CoGen AI service.
 
 ## Installation
 
@@ -24,7 +22,7 @@ pip install requests
 Substitute the following values with your own:
 
 - `MODEL`: The model ID of the multimodal model you want to use. Example: `unsloth/NVIDIA-Nemotron-3-Nano-Omni-30B-A3B-Reasoning-Q4_K_M`
-- `API_KEY`: Your API key (if authentication is required)
+- `API_KEY`: Your API key
 - `API_URL`: The URL of the API. For CoGen AI inference, use: `https://cogenai-prod.spaces.klalavai.net/v1`
 
 

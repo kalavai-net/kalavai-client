@@ -1,14 +1,13 @@
 ---
 tags:
-  - LLM
+  - cogenai
+  - text
   - openai compatible API
 ---
 
-> Work In progress
+# Text Inference Example
 
-# LLM Service Requests Example
-
-This example shows how to make requests to the LLM service using the OpenAI compatible API.
+This example shows how to make inference requests to a text-to-text model using CoGen AI service.
 
 ## Installation
 
@@ -23,8 +22,9 @@ pip install openai
 Substitute the following values with your own:
 
 - `MODEL`: The model ID of the model you want to use. Example: `Qwen/Qwen3-4B`
-- `API_KEY`: Your API key (if authentication is required)
-- `API_URL`: The URL of the API. Example: `http://kalavai-api.public.kalavai.net/v1`
+- `API_KEY`: Your API key
+- `API_URL`: The URL of the API. For CoGen AI inference, use: `https://cogenai-prod.spaces.klalavai.net/v1`
+
 
 ## Examples
 
@@ -36,7 +36,7 @@ A single request with streaming response to get the output tokens as soon as the
 ```python
 from openai import OpenAI
 
-API_URL = "http://kalavai-api.public.kalavai.net/v1"
+API_URL = "https://cogenai-prod.spaces.klalavai.net/v1"
 API_KEY = "<your-api-key>"
 MODEL = "Qwen/Qwen3-4B"
 
@@ -74,7 +74,7 @@ Multiple requests submitted simultaneously. The results are displayed in bulk on
 from openai import OpenAI
 import asyncio
 
-API_URL = "http://kalavai-api.public.kalavai.net/v1"
+API_URL = "https://cogenai-prod.spaces.klalavai.net/v1"
 API_KEY = "<your-api-key>"
 MODEL = "Qwen/Qwen3-4B"
 
@@ -113,61 +113,3 @@ async def single_request(client, model, prompt, request_id):
 if __name__ == "__main__":
     asyncio.run(batched_inference_openai())
 ```
-
-### 3. Custom parameters
-
-Some models support custom parameters that can be passed in the `extra_body` field. For example, the Qwen model supports the `enable_thinking` parameter to disable reasoning mode.
-
-```python
-
-from openai import OpenAI
-
-API_URL = "http://kalavai-api.public.kalavai.net/v1"
-API_KEY = "<your-api-key>"
-MODEL = "Qwen/Qwen3-4B"
-
-client = OpenAI(
-    base_url=API_URL,
-    api_key=API_KEY
-)
-
-def stream_chat():
-    response = client.chat.completions.create(
-        model=MODEL,
-        messages=[{"role": "user", "content": "Who, Tell me a story"}],
-        stream=True,
-        extra_body={
-            "chat_template_kwargs": {
-                "enable_thinking": False
-            }
-        }
-    )
-
-    for chunk in response:
-        delta = chunk.choices[0].delta
-        if delta and delta.content:
-            print(delta.content, end="", flush=True)
-        if delta and hasattr(delta, 'reasoning_content') and delta.reasoning_content:
-            print(delta.reasoning_content, end="", flush=True)
-        if delta and hasattr(delta, 'reasoning') and delta.reasoning:
-            print(delta.reasoning, end="", flush=True)
-
-    print("\n--- Done ---")
-
-if __name__ == "__main__":
-    stream_chat()
-```
-
-## OpenAI compatible API
-
-With the OpenAI compatible API, you can use the same code to interact with the LLM service as you would with the OpenAI API. This means that you can use the same code to interact with the service as you would with the OpenAI API, including methods and parameters to customise your inference calls.
-
-For a detailed view of the OpenAI compatible API, supported methods and parameters, see the [LiteLLM API Documentation](https://litellm-api.up.railway.app/#/chat%2Fcompletions/chat_completion_v1_chat_completions_post).
-
-
-## High-Performance notes
-
-
-- **Streaming**: Use `stream=True` for real-time response generation
-- **Batching**: Use async/await patterns for concurrent requests
-- **Error Handling**: Always include proper error handling for network requests

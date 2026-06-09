@@ -1,173 +1,109 @@
 ---
 tags:
-  - LLM
+  - audio
+  - text-to-speech
   - openai compatible API
 ---
 
-> Work In progress
 
-# LLM Service Requests Example
+# Text-to-Speech Inference Example
 
-This example shows how to make requests to the LLM service using the OpenAI compatible API.
+This example shows how to make requests to the TTS service using the OpenAI compatible API.
 
 ## Installation
 
 Install the required packages:
 
 ```bash
-pip install openai
+pip install openai requests
 ```
 
 ## Configuration
 
 Substitute the following values with your own:
 
-- `MODEL`: The model ID of the model you want to use. Example: `Qwen/Qwen3-4B`
-- `API_KEY`: Your API key (if authentication is required)
-- `API_URL`: The URL of the API. Example: `http://kalavai-api.public.kalavai.net/v1`
+- `MODEL`: The TTS-enabled model ID of the model you want to use. Example: `Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice`
+- `API_KEY`: Your API key
+- `API_URL`: The URL of the API. For CoGen AI inference, use: `https://cogenai-prod.spaces.klalavai.net/v1`
+
 
 ## Examples
 
-### 1. Streaming Inference
+### 1. Text-to-speech Inference
 
-A single request with streaming response to get the output tokens as soon as they are generated.
-
-
-```python
-from openai import OpenAI
-
-API_URL = "http://kalavai-api.public.kalavai.net/v1"
-API_KEY = "<your-api-key>"
-MODEL = "Qwen/Qwen3-4B"
-
-client = OpenAI(
-    base_url=API_URL,
-    api_key=API_KEY
-)
-
-def stream_chat():
-    response = client.chat.completions.create(
-        model=MODEL,
-        messages=[{"role": "user", "content": "Tell me a long story"}],
-        stream=True
-    )
-
-    print("Assistant:", end=" ", flush=True)
-    for chunk in response:
-        delta = chunk.choices[0].delta
-        if delta and delta.content:
-            print(delta.content, end="", flush=True)
-
-    print("\n--- Done ---")
-
-if __name__ == "__main__":
-    stream_chat()
-```
-
-
-### 2. Batched Inference
-
-Multiple requests submitted simultaneously. The results are displayed in bulk once all of them are completed.
+A single request to generate speech from text, with an option to add instructions for the voice style.
 
 
 ```python
+import time
+
 from openai import OpenAI
-import asyncio
 
-API_URL = "http://kalavai-api.public.kalavai.net/v1"
-API_KEY = "<your-api-key>"
-MODEL = "Qwen/Qwen3-4B"
 
-client = OpenAI(
-    base_url=API_URL,
-    api_key=API_KEY
+API_URL = "https://cogenai-prod.spaces.klalavai.net/v1"
+API_KEY = "<your key>"
+MODEL_ID = "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"
+
+
+# Generate speech with style
+client = OpenAI(base_url=f"{API_URL}/v1", api_key=API_KEY)
+
+t = time.time()
+response = client.audio.speech.create(
+    model=MODEL_ID,
+    voice="Vivian",
+    input="Hello, this is a test of the TTS system. What if the text is longer? Does the inference time worsen? Worst? OK, I got it now.",
+    instructions="Speak with great enthusiasm and energy.",
 )
+print(f"Inference time: {time.time() - t}")
+response.stream_to_file("output.wav")
 
-async def batched_inference_openai():
-    prompts = [
-        "What is the capital of France?",
-        "Explain quantum computing",
-        "Write a short poem",
-        "What are the benefits of exercise?",
-        "Describe the solar system"
-    ]
-    
-    tasks = []
-    for i, prompt in enumerate(prompts):
-        task = asyncio.create_task(single_request(client, MODEL, prompt, i))
-        tasks.append(task)
-    
-    results = await asyncio.gather(*tasks)
-    
-    for i, result in enumerate(results):
-        print(f"Response {i+1}: {result[:100]}...")
-
-async def single_request(client, model, prompt, request_id):
-    response = client.chat.completions.create(
-        model=model,
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=100
-    )
-    return response.choices[0].message.content
-
-if __name__ == "__main__":
-    asyncio.run(batched_inference_openai())
+print("Output saved to output.wav")
 ```
 
-### 3. Custom parameters
+For more examples on CustomVoice, check the [vLLM CustomVoice guide](https://docs.vllm.ai/projects/vllm-omni/en/latest/serving/speech_api/#customvoice-with-style-instruction).
 
-Some models support custom parameters that can be passed in the `extra_body` field. For example, the Qwen model supports the `enable_thinking` parameter to disable reasoning mode.
+
+
+### 2. Voice design Inference
+
+A single request to design a custom voice.
+
 
 ```python
+import requests
+import json
 
-from openai import OpenAI
+API_URL = "https://cogenai-prod.spaces.klalavai.net/v1"
+API_KEY = "<your key>"
+MODEL_ID = "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign"
 
-API_URL = "http://kalavai-api.public.kalavai.net/v1"
-API_KEY = "<your-api-key>"
-MODEL = "Qwen/Qwen3-4B"
 
-client = OpenAI(
-    base_url=API_URL,
-    api_key=API_KEY
-)
+# Convert curl command to Python request
+url = f"{API_URL}/v1/audio/speech"
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"Bearer {API_KEY}",
+}
+data = {
+    "model": MODEL_ID,
+    "input": "Annie, this is great!",
+    "task_type": "VoiceDesign",
+    "instructions": "A warm, friendly grandma voice with a gentle tone"
+}
 
-def stream_chat():
-    response = client.chat.completions.create(
-        model=MODEL,
-        messages=[{"role": "user", "content": "Who, Tell me a story"}],
-        stream=True,
-        extra_body={
-            "chat_template_kwargs": {
-                "enable_thinking": False
-            }
-        }
-    )
+response = requests.post(url, headers=headers, json=data)
 
-    for chunk in response:
-        delta = chunk.choices[0].delta
-        if delta and delta.content:
-            print(delta.content, end="", flush=True)
-        if delta and hasattr(delta, 'reasoning_content') and delta.reasoning_content:
-            print(delta.reasoning_content, end="", flush=True)
-        if delta and hasattr(delta, 'reasoning') and delta.reasoning:
-            print(delta.reasoning, end="", flush=True)
+if response.status_code == 200:
+    with open("designed.wav", "wb") as f:
+        f.write(response.content)
+    print("Audio file saved as designed.wav")
+else:
+    print(f"Error: {response.status_code}")
+    print(response.text)
 
-    print("\n--- Done ---")
 
-if __name__ == "__main__":
-    stream_chat()
 ```
 
-## OpenAI compatible API
 
-With the OpenAI compatible API, you can use the same code to interact with the LLM service as you would with the OpenAI API. This means that you can use the same code to interact with the service as you would with the OpenAI API, including methods and parameters to customise your inference calls.
-
-For a detailed view of the OpenAI compatible API, supported methods and parameters, see the [LiteLLM API Documentation](https://litellm-api.up.railway.app/#/chat%2Fcompletions/chat_completion_v1_chat_completions_post).
-
-
-## High-Performance notes
-
-
-- **Streaming**: Use `stream=True` for real-time response generation
-- **Batching**: Use async/await patterns for concurrent requests
-- **Error Handling**: Always include proper error handling for network requests
+For more examples on VoiceDesign, check the [vLLM VoiceDesign guide](https://docs.vllm.ai/projects/vllm-omni/en/latest/serving/speech_api/#voicedesign-natural-language-voice-description).
