@@ -27,13 +27,21 @@ nav:
     - Examples:
       - LLM Service: examples/llm_service_requests.md
       - Image Generation: examples/image_generation.md
-  - Managed platform:
+  - Deployer platform:
     - Overview: managed/overview.md
     - Architecture: managed/architecture.md
     - Getting started: managed/platform_getting_started.md
     - Applications:
       - Multi-GPU JupyterHub: managed/jupyterhub.md
       - Multi-tenancy LLM: managed/multitenancy_llm.md
+  - CoGen AI:
+    - Overview: cogenai/overview.md
+    - Text inference: cogenai/text_inference.md
+    - Multimodal Inference: cogenai/multimodal_inference.md
+    - Text-to-speech: cogenai/tts_inference.md
+    - Speech Recognition: cogenai/asr_inference.md
+    - Use custom parameters: cogenai/custom_params_inference.md
+    #- Text-to-image: cogenai/image_generation.md
 
 theme:
   name: shadcn
