@@ -34,9 +34,9 @@ def extract_model_id(model_name, models, job_id=None):
                     return model["model_info"]["id"]
     return None
 
-def get_model_info(litellm_url, api_key, job_id):
+def get_models_info(litellm_url, api_key, job_id):
     """
-    Get the model info from LiteLLM
+    Get models info from LiteLLM (could be more than one due to multi-instance deployments)
     """
     response = make_request(
         method="GET",
@@ -44,11 +44,13 @@ def get_model_info(litellm_url, api_key, job_id):
         endpoint=f"/v1/model/info",
         api_key=api_key
     )
+    models = []
     for model_info in response["data"]:
         if "job_id" in model_info["litellm_params"] and model_info["litellm_params"]["job_id"] == job_id:
             if "extras" in model_info["litellm_params"] and "deleted_at" in model_info["litellm_params"]["extras"]:
                 continue
-            return model_info
+            models.append(model_info)
+    return models
 
 def update_model(litellm_url, api_key, model_id,model):
     response = make_request(
@@ -69,31 +71,33 @@ if __name__ == '__main__':
     parser.add_argument("--soft_delete", action="store_true", default=False)
     args = parser.parse_args()
 
-    model = get_model_info(litellm_url=args.litellm_url, api_key=args.api_key, job_id=args.job_id)
-    if model is None:
+    models = get_models_info(litellm_url=args.litellm_url, api_key=args.api_key, job_id=args.job_id)
+    if len(models) == 0:
         print("Model not found")
         exit(1)
-    model_id = model["model_info"]["id"]
+    
+    for model in models:
+        model_id = model["model_info"]["id"]
 
-    if args.soft_delete:
-        # mark model as obsolete:
-        #   add deletion date
-        #   set to none access group
-        model["model_name"] = "deleted"
-        model["model_info"]["access_groups"] = ["none"]
-        model["litellm_params"]["extras"]["deleted_at"] = datetime.datetime.now().isoformat()
+        if args.soft_delete:
+            # mark model as obsolete:
+            #   add deletion date
+            #   set to none access group
+            model["model_name"] = "deleted"
+            model["model_info"]["access_groups"] = ["none"]
+            model["litellm_params"]["extras"]["deleted_at"] = datetime.datetime.now().isoformat()
 
-        # update model
-        response = update_model(litellm_url=args.litellm_url, api_key=args.api_key, model_id=model_id, model=model)
-        print(response)
-    else:
-        # delete from database
-        response = make_request(
-            method="POST",
-            base_url=args.litellm_url,
-            endpoint=f"/model/delete",
-            api_key=args.api_key,
-            json={"id": model_id}
-        )
-        print(response)
+            # update model
+            response = update_model(litellm_url=args.litellm_url, api_key=args.api_key, model_id=model_id, model=model)
+            print(response)
+        else:
+            # delete from database
+            response = make_request(
+                method="POST",
+                base_url=args.litellm_url,
+                endpoint=f"/model/delete",
+                api_key=args.api_key,
+                json={"id": model_id}
+            )
+            print(response)
 
