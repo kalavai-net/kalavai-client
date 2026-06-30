@@ -39,12 +39,14 @@ repositories:
   {% endif %}
   - name: hami-charts
     url: https://project-hami.github.io/HAMi
+  - name: istio
+    url: https://istio-release.storage.googleapis.com/charts
 
 releases:
   - name: sws-operator
     namespace: kalavai
     chart: server-worker-set/serverworkerset-operator
-    version: 0.1.11
+    version: 0.1.15
     installed: true
     set:
     - name: nodeSelector.{{kalavai_role_label}}
@@ -52,7 +54,7 @@ releases:
   - name: job-operator
     namespace: kalavai
     chart: kalavai-job-operator/kalavai-job-operator
-    version: 0.1.0
+    version: 0.1.1
     installed: true
     needs:
     - flux-system/flux
@@ -60,6 +62,53 @@ releases:
     set:
     - name: nodeSelector.{{kalavai_role_label}}
       value: server
+  - name: istio-base
+    namespace: istio-system
+    chart: istio/base
+    version: 1.30.1
+    installed: true
+  - name: istiod
+    namespace: istio-system
+    chart: istio/istiod
+    version: 1.30.1
+    installed: true
+    needs:
+    - istio-system/istio-base
+    set:
+    - name: profile
+      value: ambient
+    - name: global.platform
+      value: k3s
+    - name: nodeSelector.{{kalavai_role_label}}
+      value: server
+  - name: istio-cni
+    namespace: istio-system
+    chart: istio/cni
+    version: 1.30.1
+    installed: true
+    needs:
+    - istio-system/istio-base
+    - istio-system/istiod
+    set:
+    - name: profile
+      value: ambient
+    - name: global.platform
+      value: k3s
+    - name: cni.cniBinDir
+      value: /usr/bin
+    - name: cni.cniConfDir
+      value: /var/lib/rancher/k3s/agent/etc/cni/net.d
+  - name: ztunnel
+    namespace: istio-system
+    chart: istio/ztunnel
+    version: 1.30.1
+    installed: true
+    needs:
+    - istio-system/istio-base
+    - istio-system/istio-cni
+    set:
+    - name: global.platform
+      value: k3s
   - name: flux
     namespace: flux-system
     chart: oci://ghcr.io/fluxcd-community/charts/flux2
@@ -369,7 +418,7 @@ releases:
   - name: kalavai-watcher
     namespace: kalavai
     chart: kalavai/kalavai-watcher
-    version: "0.4.32"
+    version: "0.4.33"
     installed: true
     set:
     - name: namespace

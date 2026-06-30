@@ -8,6 +8,8 @@ Minimal Gradio demo for real-time speech transcription using the vLLM Realtime A
 Use --share to create a public Gradio link.
 
 Requirements: websockets, numpy, gradio, pybase64
+
+More info on realtime streaming: https://vllm.ai/blog/2026-01-31-streaming-realtime
 """
 
 import argparse

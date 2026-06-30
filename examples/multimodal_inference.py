@@ -58,8 +58,14 @@ def chat_completion(api_url, api_key, model, messages, stream=False):
         "model": model,
         "messages": messages,
         "stream": stream,
-        "max_tokens": 100,
-        "temperature": 0.7
+        #"max_tokens": 2000,
+        "temperature": 0.0,
+        "repetition_penalty": 1.05,
+        "extra_body": {
+            "chat_template_kwargs": {
+                "enable_thinking": False
+            }
+        }
     }
     
     try:
@@ -80,20 +86,20 @@ def main():
     """Simple multimodal inference examples"""
     
     # Configuration
-    API_URL = "https://gateway-api-tocalabs-gateway.spaces.kalavai.net/v1"
-    API_KEY = "sk-vGP2mcKz7yDVhujPmMlIJg"
-    MODEL = "openai/gemma-4-26B-A4B-it-UD-Q4_K_M.gguf"
+    API_URL = "https://gateway-cogenai-gateway.spaces.kalavai.net/v1" #"https://qwenvl-test-default-vllm.spaces.kalavai.net/v1"
+    API_KEY = "sk-bTokNuI9f7Sa5XDxVLOcyw"
+    MODEL = "inclusionAI/ZwZ-4B-FP8"
     
     print("=== Simple Multimodal Inference ===\n")
     
     # Text + Image
     script_dir = Path(__file__).parent
-    image_path = script_dir / "img" / "job_progress.png"
+    image_path = script_dir / "img" / "tables.jpg"
     
     if image_path.exists():
         print("2. Image analysis:")
         content = create_multimodal_message(
-            "What does this image show?", 
+            "Extract all datapoints including tables from this PDF page. Treat any empty fields as null. Return structured JSON", 
             str(image_path)
         )
         messages = [{"role": "user", "content": content}]
@@ -101,7 +107,7 @@ def main():
         response = chat_completion(API_URL, API_KEY, MODEL, messages)
         if response:
             result = response.json()
-            print(f"Assistant: {result['choices'][0]['message']['content']}\n")
+            print(result)
 
 
 if __name__ == "__main__":

@@ -11,23 +11,31 @@ from typing import List, Dict, Any
 
 import wonderwords
 
-r = wonderwords.RandomWord()
+sentence_generator = wonderwords.RandomSentence()
 
 
 # Configuration
+API_URL = "http://localhost:8000/v1/chat/completions" #"https://gateway-api-shadow-gateway.spaces.kalavai.net/v1/chat/completions" #"https://mistral-vllm-default-vllm.spaces.kalavai.net/v1/chat/completions" #"https://testme-default-litellm.spaces.kalavai.net/v1" #"https://api.cogenai.kalavai.net/v1" #"https://api.cogenai.kalavai.net/v1"  # Replace with your OpenAI-compatible API URL
+API_KEY = "sk-1234"  # Replace with your actual API key
+DEFAULT_MODEL = "Qwen/Qwen3.6-35B-A3B-FP8"  # Replace with your model name
 
-API_URL = "https://mistral-vllm-default-vllm.spaces.kalavai.net/v1/chat/completions" #"https://testme-default-litellm.spaces.kalavai.net/v1" #"https://api.cogenai.kalavai.net/v1" #"https://api.cogenai.kalavai.net/v1"  # Replace with your OpenAI-compatible API URL
-API_KEY = ""  # Replace with your actual API key
-DEFAULT_MODEL = "unsloth/Mistral-Small-3.2-24B-Instruct-2506-FP8" #"Hastagaras/Jamet-8B-L3-MK.V-Blackroot" #mistralai/Mistral-Nemo-Instruct-2407"  # Replace with your model name
 
 NUM_PARALLEL_CALLS = 100  # Change this to adjust number of parallel requests
-NUM_REQUESTS = 5 # Total number of requests to make
-INPUT_TOKENS = 900 
+NUM_REQUESTS = 1  # Total number of requests to make
+INPUT_TOKENS = 500
 TOKEN_TO_WORD_RATIO = 1.5 # uses 1.5 tokens per word estimate
-MAX_OUTPUT_TOKENS = 50
+MAX_OUTPUT_TOKENS = 300
 
 # Global flag for graceful shutdown
 shutdown_flag = False
+
+
+def generate_input_tokens(length: int, tokens_per_word_ratio: float = TOKEN_TO_WORD_RATIO) -> str:
+    input_tokens = []
+    while len(input_tokens) < (length / tokens_per_word_ratio):
+        input_tokens.extend(sentence_generator.sentence().split())
+    return " ".join(input_tokens)
+
 
 async def make_request(session: aiohttp.ClientSession, request_id: int, topic: str, model: str) -> Dict[str, Any]:
     """
@@ -36,7 +44,7 @@ async def make_request(session: aiohttp.ClientSession, request_id: int, topic: s
     payload = {
         "model": model,
         "messages": [
-            {"role": "user", "content": topic}
+            {"role": "user", "content": f"Explain in detail: {topic}"}
         ],
         "max_tokens": MAX_OUTPUT_TOKENS,
         "temperature": 1.0
@@ -56,8 +64,8 @@ async def make_request(session: aiohttp.ClientSession, request_id: int, topic: s
             
             # Extract response details
             response_time = end_time - start_time
+            print("Response time", response_time)
             token_count = result.get("usage", {}).get("total_tokens", 0) - result.get("usage", {}).get("prompt_tokens", 0)
-
             return {
                 "request_id": request_id,
                 "success": True,
@@ -97,7 +105,7 @@ async def run_concurrent_requests(num_parallel_calls: int, num_requests: int, mo
         tasks = []
         for i in range(num_requests):
             # Random sentences generated
-            topic = " ".join([r.word() for _ in range(int(INPUT_TOKENS/TOKEN_TO_WORD_RATIO))])
+            topic = generate_input_tokens(length=INPUT_TOKENS)
             task = make_request(session, request_offset + i + 1, topic, model)
             tasks.append(task)
         

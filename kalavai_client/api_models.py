@@ -115,6 +115,11 @@ class DeployJobRequest(BaseModel):
     priority: Literal["kalavai-system-priority", "user-high-priority", "user-spot-priority", "test-low-priority", "test-high-priority"] = "user-spot-priority"
     random_suffix: bool = Field(True, description="Whether to add a random suffix to the job name")
     
+class UpdateJobRequest(BaseModel):
+    name: str = Field(description="Name of the job")
+    force_namespace: Optional[Union[str, None]] = Field(None, description="Optional namespace override")
+    spec: dict = Field(description="Job specification to update")
+
 class CustomDeployJobRequest(BaseModel):
     template_str: str = Field(description="YAML str containing the custom template job to use")
     values: dict = Field(description="Job configuration values")

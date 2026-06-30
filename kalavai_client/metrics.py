@@ -12,25 +12,40 @@ RJHQWQ4T
 """
 class MetricsAPI():
     def __init__(self, endpoint, port, username, password):
-        try:
-            self.client = clickhouse_connect.get_client(
-                host=endpoint,
-                port=port,
-                username=username,
-                password=password,
-                secure=True,
-                # --- THE CLOUD WAKE-UP PROTECTION ---
-                connect_timeout=60,       # Wait up to 60s for the initial TCP/HTTP connection
-                send_receive_timeout=60,  # Wait up to 60s for the first query to return 
-                query_retries=5           # Retry 5 times if the network drops/refuses during spin-up
-            )
-        except:
-            pass
+        self.endpoint = endpoint
+        self.port = port
+        self.username = username
+        self.password = password
+        self.client = self._start_client()
+    
+    def _start_client(self, attempts=5):
+        for attempt in range(attempts):
+            try:
+                client = clickhouse_connect.get_client(
+                    host=self.endpoint,
+                    port=self.port,
+                    username=self.username,
+                    password=self.password,
+                    secure=True,
+                    # --- THE CLOUD WAKE-UP PROTECTION ---
+                    connect_timeout=60,       # Wait up to 60s for the initial TCP/HTTP connection
+                    send_receive_timeout=60,  # Wait up to 60s for the first query to return 
+                    query_retries=5           # Retry 5 times if the network drops/refuses during spin-up
+                )
+                return client
+            except Exception as e:
+                print(f"❌ {attempt}/{attempts} Failed to connect to ClickHouse: {e}")
+                time.sleep(2 + 3 * attempt)
+        print("❌ Failed to connect to ClickHouse after multiple attempts")
+        return None
     
     def __del__(self):
-        self.client.close()
+        if self.client is not None:
+            self.client.close()
 
     def ping_service(self, max_attempts=6, backoff_time=10):
+        if self.client is None:
+            self.client = self._start_client()
         for attempt in range(max_attempts):
             if self.client.ping():
                 print("🟢 Service is awake and ready!")
@@ -40,6 +55,8 @@ class MetricsAPI():
         return False
 
     def _query(self, query):
+        if self.client is None:
+            self.client = self._start_client()
         df = self.client.query_df(query)
         return df.to_dict(orient="dict")
 

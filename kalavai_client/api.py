@@ -31,6 +31,7 @@ from kalavai_client.api_models import (
     DeployJobRequest,
     DeleteJobRequest,
     JobDetailsRequest,
+    UpdateJobRequest,
     UserQuotaRequest,
     CustomDeployJobRequest,
     NodesActionRequest,
@@ -58,6 +59,7 @@ from kalavai_client.core import (
     deploy_job,
     deploy_test_job,
     delete_job,
+    update_job,
     authenticate_user,
     load_user_session,
     user_logout,
@@ -714,6 +716,29 @@ def job_deploy(request: DeployJobRequest, api_key: str = Depends(verify_api_key)
         target_labels_ops=request.target_labels_ops,
         random_suffix=request.random_suffix,
         priority=FORCED_PRIORITY if FORCED_PRIORITY is not None else request.priority
+    )
+    return result
+
+@app.post("/update_job",
+    operation_id="update_job",
+    summary="Update an existing job in the pool",
+    description="Updates an existing job in the Kalavai pool using the provided specification. The job will be updated on appropriate nodes based on resource availability and any specified target labels.",
+    tags=["job_management"],
+    response_description="Result of job update")
+def job_update(request: UpdateJobRequest, api_key: str = Depends(verify_api_key)):
+    """
+    Update an existing job
+    TODO: can bypass target labels, priorities and ringfenced nodes?
+    """
+    if FORCED_USER_SPACE_NAME is not None:
+        namespace = FORCED_USER_SPACE_NAME
+    else:
+        namespace = request.force_namespace
+    
+    result = update_job(
+        job_name=request.name,
+        force_namespace=namespace,
+        spec=request.spec
     )
     return result
 

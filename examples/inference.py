@@ -2,9 +2,10 @@ from openai import OpenAI
 
 import time
 
-API_URL = "https://test-disaggregation-kalavai-prefil.spaces.kalavai.net/v1" #"https://mistral-vllm-default-vllm.spaces.kalavai.net/v1" #"https://testme-default-litellm.spaces.kalavai.net/v1" #"https://api.cogenai.kalavai.net/v1" #"https://api.cogenai.kalavai.net/v1"  # Replace with your OpenAI-compatible API URL
+API_URL = "https://gemma-test-default-vllm.spaces.kalavai.net/v1" #"https://gateway-api-shadow-gateway.spaces.kalavai.net/v1/chat/completions" #"https://mistral-vllm-default-vllm.spaces.kalavai.net/v1/chat/completions" #"https://testme-default-litellm.spaces.kalavai.net/v1" #"https://api.cogenai.kalavai.net/v1" #"https://api.cogenai.kalavai.net/v1"  # Replace with your OpenAI-compatible API URL
 API_KEY = ""  # Replace with your actual API key
-MODEL = "Intel/Mistral-Small-3.2-24B-Instruct-2506-int4-AutoRound"
+MODEL = "unsloth/Ministral-3-3B-Instruct-2512-FP8"  # Replace with your model name
+
 
 # point this to your vLLM API server
 client = OpenAI(

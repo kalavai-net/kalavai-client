@@ -743,28 +743,31 @@ def deploy_job(
     except Exception as e:
         return {"error": str(e)}  
 
-    # data = {
-    #     "template": template_name,
-    #     "template_values": values_dict
-    # }
-    # if force_namespace is not None:
-    #     data["force_namespace"] = force_namespace
-    # if target_labels is not None:
-    #     data["target_labels"] = target_labels
+def update_job(
+    job_name,
+    spec,
+    force_namespace=None
+):
+    # submit custom deployment
+    data = {
+        "name": job_name,
+        "force_namespace": force_namespace,
+        "spec": spec
+    }
 
-    # try:
-    #     result = request_to_server(
-    #         force_url=FORCE_WATCHER_API_URL,
-    #         force_key=FORCE_WATCHER_API_KEY_URL,
-    #         method="post",
-    #         endpoint="/v1/deploy_job",
-    #         data=data,
-    #         server_creds=USER_LOCAL_SERVER_FILE,
-    #         user_cookie=USER_COOKIE
-    #     )
-    #     return result
-    # except Exception as e:
-    #     return {"error": str(e)}  
+    try:
+        result = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
+            method="post",
+            endpoint="/v1/patch_template",
+            data=data,
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        return result
+    except Exception as e:
+        return {"error": str(e)}
     
 def deploy_test_job(template_str, values_dict, default_values, target_labels=None, force_namespace=None):
     

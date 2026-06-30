@@ -33,10 +33,8 @@ helm install nvidia-operator --wait \
 Build and push for arm64 (mac, raspberry pi)
 
 ```bash
+docker build -t ghcr.io/kalavai-net/kalavai-runner-amd64:latest -f Dockerfile_amd64 .
+docker push ghcr.io/kalavai-net/kalavai-runner-amd64:latest
 docker buildx create --use --name arm64_builder
 docker buildx build --push -t ghcr.io/kalavai-net/kalavai-runner-arm64:latest --platform=linux/arm64 -f Dockerfile_arm64 .
 ```
-
-51.159.184.238
-51.159.150.27
-51.159.165.245
