@@ -961,6 +961,17 @@ def load_gpu_models(node_names=None, node_labels=None):
     )
     return data.items()
 
+def get_gpu_metrics():
+    data = request_to_server(
+        force_url=FORCE_WATCHER_API_URL,
+        force_key=FORCE_WATCHER_API_KEY_URL,
+        method="get",
+        endpoint="/v1/get_gpu_metrics",
+        server_creds=USER_LOCAL_SERVER_FILE,
+        user_cookie=USER_COOKIE
+    )
+    return data
+
 def fetch_gpus(
     available=False,
     node_names=None,
@@ -1648,3 +1659,7 @@ def get_node_labels(node_names: list[str] = None):
             return {"error": "Failed to fetch node labels"}
     except Exception as e:
         return {"error": f"Error when fetching node labels: {str(e)}"}
+
+
+if __name__ == "__main__":
+    print(get_gpu_metrics())

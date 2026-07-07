@@ -56,6 +56,7 @@ from kalavai_client.core import (
     fetch_pool_services,
     fetch_template_data,
     fetch_pod_logs,
+    get_gpu_metrics,
     deploy_job,
     deploy_test_job,
     delete_job,
@@ -586,6 +587,16 @@ def gpus(
         node_names=request.node_names,
         node_labels=request.node_labels
     )
+
+@app.get("/get_gpu_metrics",
+    operation_id="get_gpu_metrics",
+    summary="Get GPU metrics",
+    description="Retrieves GPU metrics",
+    tags=["info"],
+    response_description="GPU metrics")
+def gpu_metrics(api_key: str = Depends(verify_api_key)):
+    """Get GPU metrics"""
+    return get_gpu_metrics()
 
 @app.get("/fetch_job_details",
     operation_id="fetch_job_details",

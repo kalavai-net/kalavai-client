@@ -139,6 +139,10 @@ class KalavaiApiClient {
     return this.post('fetch_gpus', { available, node_names, node_labels });
   }
 
+  async getGpuMetrics() {
+    return this.get('get_gpu_metrics');
+  }
+
   async fetchJobDetails(force_namespace?: string) {
     return this.get('fetch_job_details', { params: { force_namespace } });
   }

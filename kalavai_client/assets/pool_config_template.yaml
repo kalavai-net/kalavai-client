@@ -1,32 +1,3 @@
-# # storage class for model weights (temporary)
-# kind: StorageClass
-# apiVersion: storage.k8s.io/v1
-# metadata:
-#   name: {{storage_class_name}}
-# provisioner: driver.longhorn.io
-# allowVolumeExpansion: true
-# reclaimPolicy: Delete
-# volumeBindingMode: Immediate
-# parameters:
-#   shareManagerNodeSelector: "{{storage_label_selector}}"
-#   numberOfReplicas: "{{storage_replicas}}"
-#   staleReplicaTimeout: "{{storage_stale_replica_timeout}}"
-#   fromBackup: ""
-#   fsType: "ext4"
-#   dataLocality: "disabled"
-#   unmapMarkSnapChainRemoved: "ignored"
-#   disableRevisionCounter: "true"
-#   dataEngine: "v1"
-# ---
-# apiVersion: storage.k8s.io/v1
-# kind: StorageClass
-# metadata:
-#   name: {{storage_class_name}}
-# parameters:
-#   protocol: nvmf
-#   repl: "{{storage_replicas}}"
-# provisioner: io.openebs.csi-mayastor
----
 # PRIORITY CLASSES
 apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
@@ -141,33 +112,3 @@ spec:
     secretName: wildcard-tls-secret # Matches the secretName in your Certificate
 {% endif %}
 ---
-###############################################
-# Read only RBAC for kubernetes downstream API
-# apiVersion: v1
-# kind: ServiceAccount
-# metadata:
-#   name: kalavai-downstream-api-reader-sa
-#   namespace: default
-# ---
-# apiVersion: rbac.authorization.k8s.io/v1
-# kind: ClusterRole
-# metadata:
-#   name: kalavai-downstream-api-reader-role
-# rules:
-# - apiGroups: [""]
-#   resources: ["nodes"]
-#   verbs: ["get", "watch", "list"]
-# ---
-# apiVersion: rbac.authorization.k8s.io/v1
-# kind: ClusterRoleBinding
-# metadata:
-#   name: kalavai-downstream-api-reader-binding
-# subjects:
-# - kind: ServiceAccount
-#   name: kalavai-downstream-api-reader-sa
-#   namespace: default
-# roleRef:
-#   kind: ClusterRole
-#   name: kalavai-downstream-api-reader-role
-#   apiGroup: rbac.authorization.k8s.io
-###############################################

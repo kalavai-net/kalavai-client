@@ -128,6 +128,13 @@ If your system is not currently supported, [open an issue](https://github.com/ka
 
 </details>
 
+### Pre-requisites
+
+gcc compiler and python3-dev are required: 
+
+```bash
+sudo apt install gcc g++ python3-dev
+```
 
 ### Install the client
 

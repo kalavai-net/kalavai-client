@@ -4,7 +4,7 @@ server:
   location: null
   name: "kalavai_cluster"
   mtu: ""
-  watcher_image_tag: "2026.6.3"
+  watcher_image_tag: "2026.7.2"
   host_root_path: "/hostroot"
 
 core:
@@ -12,8 +12,7 @@ core:
   deploy: []
   # - rocm
   # - monitoring
-  #- opencost
-  #- longhorn
+  # - istio
   # "Kalavai API"
   clickhouse:
     endpoint: "https://clickhouse.svc"
@@ -23,12 +22,6 @@ core:
   kalavai_api_version: null
   # "Global"
   kalavai_role_label: "kalavai/role"
-  # "Opencost endpoint"
-  opencost_endpoint: "http://opencost.opencost.svc.cluster.local:9003"
-  # "Longhorn manager endpoint"
-  longhorn_manager_endpoint: "http://longhorn-backend.kalavai.svc.cluster.local:9500"
-  # "Helios harvest interval"
-  helios_harvest_interval: 120
   # "Watcher is shared pool"
   watcher_is_shared_pool: "True"
   watcher_resources_memory: 1Gi
@@ -59,50 +52,15 @@ core:
   thanos_retention_raw: "30d"
   thanos_retention_5m: "45d"
   thanos_retention_1h: "70d"
-  # "Longhorn UI port"
-  longhorn_ui_port: 30000
-  # "Longhorn manager port"
-  longhorn_manager_port: "" #31011
-  # "Longhorn minimal available percentage"
-  longhorn_minimal_available_percentage: 5
-  # "Longhorn label selector key"
-  longhorn_label_selector_key: "kalavai/role"
-  # "Longhorn label selector"
-  longhorn_label_selector_value: "server"
-  # "Longhorn replicas"
-  longhorn_storage_replicas: 3
-  # "MinIO replicas"
-  minio_replicas: 2
-  # "MinIO resources memory"
-  minio_resources_memory: "1Gi"
-  # "MinIO persistence storage class"
-  minio_persistence_storageClass: "longhorn"
-  # "MinIO persistence size"
-  minio_persistence_size: "10Gi"
-  # "MinIO service port"
-  minio_service_port: 32000
-  # "MinIO console port"
-  minio_console_port: 32001
-  # "MinIO root user"
-  minio_rootUser: "admin"
-  # "MinIO root password"
-  minio_rootPassword: "password"
   # GPU
   gpu_deviceSplitCount: 4
   gpu_nodeSchedulerPolicy : binpack
   gpu_gpuSchedulerPolicy : binpack
 
 pool:
-  # Name of the storage class to use for the pool
-  storage_class_name: "longhorn"
-  storage_label_selector: "kalavai/storage:enabled"
-  storage_replicas: 2
-  storage_stale_replica_timeout: 180
   dns_api_token: null
   dns_email: "info@kalavai.net"
   dns_subdomain: "spaces.kalavai.net"
   dns_cert_manager_namespace: "cert-manager"
   dns_ingress_controller_namespace: "kube-system"
-  traefik_external_traffic_policy: "Cluster"
-  traefik_replicas: 1
   

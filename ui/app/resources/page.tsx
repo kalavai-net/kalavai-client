@@ -27,6 +27,16 @@ interface GpuInfo {
   ready: boolean;
 }
 
+interface GpuMetric {
+  name: string;
+  node: string;
+  hami_gpu_memory_limit_bytes: number;
+  hami_gpu_memory_allocated_bytes: number;
+  hami_gpu_core_limit_ratio: number;
+  hami_gpu_core_allocated_ratio: number;
+  workloads: number;
+}
+
 interface ResourceItem {
   node: string;
   models: string;
@@ -53,6 +63,10 @@ function ResourcesContent() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 10;
+  const [activeTab, setActiveTab] = useState<'nodes' | 'gpus'>('gpus');
+  const [gpuMetrics, setGpuMetrics] = useState<Record<string, GpuMetric>>({});
+  const [gpuMetricsLoading, setGpuMetricsLoading] = useState(false);
+  const [gpuMetricsError, setGpuMetricsError] = useState<string | null>(null);
 
   const showMsg = (type: 'success' | 'error', text: string) => {
     setActionMsg({ type, text });
@@ -61,7 +75,14 @@ function ResourcesContent() {
 
   useEffect(() => {
     loadResources();
+    loadGpuMetrics();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'gpus') {
+      loadGpuMetrics();
+    }
+  }, [activeTab]);
 
   const loadResources = async () => {
     setIsLoading(true);
@@ -142,6 +163,23 @@ function ResourcesContent() {
       setError(`Failed to load resources: ${err}`);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadGpuMetrics = async () => {
+    setGpuMetricsLoading(true);
+    setGpuMetricsError(null);
+    try {
+      const result = await kalavaiApi.getGpuMetrics();
+      if (result?.error) {
+        setGpuMetricsError(`Error fetching GPU metrics: ${result.error}`);
+      } else {
+        setGpuMetrics(result || {});
+      }
+    } catch (err) {
+      setGpuMetricsError(`Failed to load GPU metrics: ${err}`);
+    } finally {
+      setGpuMetricsLoading(false);
     }
   };
 
@@ -230,7 +268,7 @@ function ResourcesContent() {
           <h1 className="text-3xl font-bold">Resources</h1>
           <p className="text-muted-foreground">Available resources the pool is managing</p>
         </div>
-        <button onClick={loadResources} className="flex items-center gap-2 px-3 py-2 border border-border rounded-md text-sm hover:bg-accent">
+        <button onClick={() => activeTab === 'nodes' ? loadResources() : loadGpuMetrics()} className="flex items-center gap-2 px-3 py-2 border border-border rounded-md text-sm hover:bg-accent">
           <RefreshCw className="w-4 h-4" /> Refresh
         </button>
       </div>
@@ -247,75 +285,95 @@ function ResourcesContent() {
         </div>
       )}
 
-      {/* Node detail modal */}
-      {selectedNode && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setSelectedNode(null)}>
-          <div className="bg-card border border-border rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-              <div className="flex items-center gap-2">
-                <Server className="w-5 h-5 text-primary" />
-                <h2 className="font-semibold">{selectedNode}</h2>
-              </div>
-              <button onClick={() => setSelectedNode(null)} className="p-1 hover:bg-accent rounded">
-                <X className="w-4 h-4" />
-              </button>
+      {/* Tab Navigation */}
+      <div className="flex items-center gap-1 border-b border-border">
+        <button
+          onClick={() => setActiveTab('nodes')}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === 'nodes'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          Nodes
+        </button>
+        <button
+          onClick={() => setActiveTab('gpus')}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === 'gpus'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          GPUs
+        </button>
+      </div>
+
+      {/* GPU Metrics Tab */}
+      {activeTab === 'gpus' && (
+        <div className="bg-card border border-border rounded-lg overflow-hidden">
+          {gpuMetricsLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
+          ) : gpuMetricsError ? (
+            <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
+              <AlertTriangle className="w-4 h-4 shrink-0" /> {gpuMetricsError}
+            </div>
+          ) : Object.keys(gpuMetrics).length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground">No GPU metrics found.</div>
+          ) : (
+            <table className="w-full">
+              <thead className="bg-muted">
+                <tr>
+                  <th className="px-4 py-3 text-left text-sm font-medium">GPU Name</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium">Node</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium">vRAM Memory Used</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium">Workloads</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {Object.entries(gpuMetrics).map(([gpuId, gpu]) => {
+                  const memoryUsedGB = (gpu.hami_gpu_memory_allocated_bytes / (1024 ** 3)).toFixed(2);
+                  const memoryLimitGB = (gpu.hami_gpu_memory_limit_bytes / (1024 ** 3)).toFixed(2);
+                  const memoryUsagePercent = gpu.hami_gpu_memory_limit_bytes > 0
+                    ? Math.round((gpu.hami_gpu_memory_allocated_bytes / gpu.hami_gpu_memory_limit_bytes) * 100)
+                    : 0;
 
-            {nodeDetailLoading ? (
-              <div className="flex justify-center py-10">
-                <Loader2 className="w-6 h-6 animate-spin text-primary" />
-              </div>
-            ) : (
-              <div className="overflow-y-auto flex-1 p-5 space-y-5">
-                <div>
-                  <h3 className="text-xs font-semibold uppercase text-muted-foreground mb-2">Available Resources</h3>
-                  {Object.keys(nodeResources).length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No resource data</p>
-                  ) : (
-                    <div className="space-y-1">
-                      {Object.entries(nodeResources).map(([key, val]) => (
-                        <div key={key} className="text-sm bg-muted px-3 py-1.5 rounded flex justify-between">
-                          <span className="font-medium">{key}</span>
-                          <span className="text-muted-foreground">{val.available} / {val.total}</span>
+                  return (
+                    <tr key={gpuId} className="hover:bg-muted/50">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <Server className="w-4 h-4 text-muted-foreground shrink-0" />
+                          <span className="font-medium text-sm">{gpu.name}</span>
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <h3 className="text-xs font-semibold uppercase text-muted-foreground mb-2 flex items-center gap-1">
-                    <Tag className="w-3 h-3" /> Device Labels
-                  </h3>
-                  {Object.keys(nodeLabels).length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No labels</p>
-                  ) : (
-                    <div className="space-y-1 max-h-48 overflow-y-auto">
-                      {Object.entries(nodeLabels).map(([key, value]) => (
-                        <div key={key} className="text-xs bg-muted px-3 py-1.5 rounded flex gap-2">
-                          <span className="font-medium shrink-0">{key}:</span>
-                          <span className="text-muted-foreground break-all">{value}</span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-muted-foreground">{gpu.node}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-primary rounded-full"
+                              style={{ width: `${memoryUsagePercent}%` }}
+                            />
+                          </div>
+                          <span className="text-xs text-muted-foreground">
+                            {memoryUsedGB} / {memoryLimitGB} GB ({memoryUsagePercent}%)
+                          </span>
                         </div>
-                      ))}
-                    </div>
-                  )}
-                  <div className="mt-3 space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground">Add new label</p>
-                    <input type="text" placeholder="Key" value={newLabelKey} onChange={(e) => setNewLabelKey(e.target.value)}
-                      className="w-full px-2 py-1.5 border border-border rounded text-sm bg-background" />
-                    <input type="text" placeholder="Value" value={newLabelValue} onChange={(e) => setNewLabelValue(e.target.value)}
-                      className="w-full px-2 py-1.5 border border-border rounded text-sm bg-background" />
-                    <button onClick={handleAddLabel} className="w-full px-3 py-1.5 bg-primary text-primary-foreground rounded text-sm font-medium hover:bg-primary/90">
-                      Add Label
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-muted-foreground">{gpu.workloads}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
       )}
 
+      {/* Nodes Tab */}
+      {activeTab === 'nodes' && (
       <div className="bg-card border border-border rounded-lg overflow-hidden">
             {resources.length === 0 ? (
               <div className="p-8 text-center text-muted-foreground">No resources found in the pool.</div>
@@ -395,6 +453,76 @@ function ResourcesContent() {
             )}
             <Pagination page={page} pageSize={PAGE_SIZE} total={resources.length} onPageChange={setPage} />
       </div>
+      )}
+
+      {/* Node detail modal */}
+      {selectedNode && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setSelectedNode(null)}>
+          <div className="bg-card border border-border rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+              <div className="flex items-center gap-2">
+                <Server className="w-5 h-5 text-primary" />
+                <h2 className="font-semibold">{selectedNode}</h2>
+              </div>
+              <button onClick={() => setSelectedNode(null)} className="p-1 hover:bg-accent rounded">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {nodeDetailLoading ? (
+              <div className="flex justify-center py-10">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              </div>
+            ) : (
+              <div className="overflow-y-auto flex-1 p-5 space-y-5">
+                <div>
+                  <h3 className="text-xs font-semibold uppercase text-muted-foreground mb-2">Available Resources</h3>
+                  {Object.keys(nodeResources).length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No resource data</p>
+                  ) : (
+                    <div className="space-y-1">
+                      {Object.entries(nodeResources).map(([key, val]) => (
+                        <div key={key} className="text-sm bg-muted px-3 py-1.5 rounded flex justify-between">
+                          <span className="font-medium">{key}</span>
+                          <span className="text-muted-foreground">{val.available} / {val.total}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <h3 className="text-xs font-semibold uppercase text-muted-foreground mb-2 flex items-center gap-1">
+                    <Tag className="w-3 h-3" /> Device Labels
+                  </h3>
+                  {Object.keys(nodeLabels).length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No labels</p>
+                  ) : (
+                    <div className="space-y-1 max-h-48 overflow-y-auto">
+                      {Object.entries(nodeLabels).map(([key, value]) => (
+                        <div key={key} className="text-xs bg-muted px-3 py-1.5 rounded flex gap-2">
+                          <span className="font-medium shrink-0">{key}:</span>
+                          <span className="text-muted-foreground break-all">{value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="mt-3 space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground">Add new label</p>
+                    <input type="text" placeholder="Key" value={newLabelKey} onChange={(e) => setNewLabelKey(e.target.value)}
+                      className="w-full px-2 py-1.5 border border-border rounded text-sm bg-background" />
+                    <input type="text" placeholder="Value" value={newLabelValue} onChange={(e) => setNewLabelValue(e.target.value)}
+                      className="w-full px-2 py-1.5 border border-border rounded text-sm bg-background" />
+                    <button onClick={handleAddLabel} className="w-full px-3 py-1.5 bg-primary text-primary-foreground rounded text-sm font-medium hover:bg-primary/90">
+                      Add Label
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

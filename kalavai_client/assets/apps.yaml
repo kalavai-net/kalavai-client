@@ -17,10 +17,6 @@ repositories:
     url: https://kalavai-net.github.io/kalavai-job-operator/ 
   - name: server-worker-set
     url: https://kalavai-net.github.io/server-worker-set/
-  {% if deploy_longhorn %}
-  - name: longhorn
-    url: https://charts.longhorn.io
-  {% endif %}
   - name: volcano-sh
     url: https://volcano-sh.github.io/helm-charts
   {% if deploy_monitoring %}
@@ -29,18 +25,12 @@ repositories:
   - name: bitnami
     url: https://charts.bitnami.com/bitnami
   {% endif %}
-  {% if deploy_opencost %}
-  - name: opencost-charts
-    url: https://opencost.github.io/opencost-helm-chart
-  {% endif %}
-  {% if deploy_minio %}
-  - name: minio
-    url: https://charts.min.io/
-  {% endif %}
   - name: hami-charts
     url: https://project-hami.github.io/HAMi
+  {% if deploy_istio %}  
   - name: istio
     url: https://istio-release.storage.googleapis.com/charts
+  {% endif %}
 
 releases:
   - name: sws-operator
@@ -66,12 +56,12 @@ releases:
     namespace: istio-system
     chart: istio/base
     version: 1.30.1
-    installed: true
+    installed: {{deploy_istio|default("false", true)}}
   - name: istiod
     namespace: istio-system
     chart: istio/istiod
     version: 1.30.1
-    installed: true
+    installed: {{deploy_istio|default("false", true)}}
     needs:
     - istio-system/istio-base
     set:
@@ -85,7 +75,7 @@ releases:
     namespace: istio-system
     chart: istio/cni
     version: 1.30.1
-    installed: true
+    installed: {{deploy_istio|default("false", true)}}
     needs:
     - istio-system/istio-base
     - istio-system/istiod
@@ -102,7 +92,7 @@ releases:
     namespace: istio-system
     chart: istio/ztunnel
     version: 1.30.1
-    installed: true
+    installed: {{deploy_istio|default("false", true)}}
     needs:
     - istio-system/istio-base
     - istio-system/istio-cni
@@ -172,73 +162,6 @@ releases:
       value: http://{{cluster_ip}}:32000
     - name: frontUrl
       value: http://{{cluster_ip}}:30080
-  - name: minio
-    needs: 
-    - kalavai/longhorn
-    namespace: minio
-    chart: minio/minio
-    installed: {{deploy_minio|default("false", true)}}
-    set:
-    - name: replicas
-      value: {{minio_replicas}}
-    - name: resources.requests.memory
-      value: "{{minio_resources_memory}}"
-    - name: persistence.enabled
-      value: true
-    - name: persistence.storageClass
-      value: {{minio_persistence_storageClass}}
-    - name: persistence.size
-      value: "{{minio_persistence_size}}"
-    - name: persistence.accessMode
-      value: "ReadWriteMany"
-    - name: rootUser
-      value: {{minio_rootUser}}
-    - name: rootPassword
-      value: {{minio_rootPassword}}
-    - name: service.type
-      value: "NodePort"
-    - name: service.nodePort
-      value: {{minio_service_port}}
-    - name: consoleService.type
-      value: "NodePort"
-    - name: consoleService.nodePort
-      value: {{minio_console_port}}
-    - name: buckets[0].name
-      value: "llm-storage"
-    - name: buckets[0].policy
-      value: "public"
-    - name: buckets[0].purge
-      value: false
-  - name: opencost
-    namespace: opencost
-    chart: opencost-charts/opencost
-    installed: {{deploy_opencost|default("false", true)}}
-    set:
-    - name: service.type
-      value: NodePort
-    - name: opencost.nodeSelector.{{kalavai_role_label}}
-      value: server
-    # point at prometheus instance (theres an opencost.prometheus.external too)
-    - name: opencost.prometheus.thanos.enabled
-      value: true
-    - name: opencost.prometheus.thanos.internal.serviceName
-      value: {{thanos_service_name}}
-    - name: opencost.prometheus.thanos.internal.namespaceName
-      value: {{thanos_namespace}}
-    - name: opencost.prometheus.thanos.internal.port
-      value: {{thanos_port}}
-    - name: opencost.prometheus.internal.enabled
-      value: true
-    - name: opencost.prometheus.internal.serviceName
-      value: {{prometheus_service_name}}
-    - name: opencost.prometheus.internal.namespaceName
-      value: {{prometheus_namespace}}
-    - name: opencost.prometheus.internal.port
-      value: {{prometheus_port}}
-    # - name: opencost.customPricing.enabled
-    #   value: true
-    # - name: opencost.customPricing.costModel
-    #   value: '{"CPU":1.25,"GPU":0.95,"RAM":0.5,"description":"Modified pricing configuration.","internetNetworkEgress":0.12,"regionNetworkEgress":0.01,"spotCPU":0.006655,"spotRAM":0.000892,"storage":0.25,"zoneNetworkEgress":0.01}'
   - name: prometheus
     namespace: {{prometheus_namespace}}
     chart: prometheus-community/kube-prometheus-stack #prometheus/prometheus
@@ -393,28 +316,41 @@ releases:
     namespace: kuberay
     chart: kuberay/kuberay-apiserver
     installed: true
-  - name: longhorn
-    namespace: kalavai
-    chart: longhorn/longhorn
-    installed: {{deploy_longhorn|default("false", true)}}
-    set:
-    # Values:https://github.com/longhorn/charts/tree/v1.12.x/charts/longhorn
-    # security issue! enable for testing only
-    # use auth ingress instead: https://longhorn.io/docs/1.11.1/deploy/accessing-the-ui/longhorn-ingress/
-    - name: service.ui.type
-      value: NodePort
-    - name: service.ui.nodePort
-      value: {{longhorn_ui_port}}
-    - name: service.manager.type
-      value: NodePort
-    - name: service.manager.nodePort
-      value: {{longhorn_manager_port}}
-    - name: persistence.defaultClassReplicaCount
-      value: {{longhorn_storage_replicas}}
-    - name: global.nodeSelector.{{longhorn_label_selector_key}}
-      value: "{{longhorn_label_selector_value}}"
-    - name: defaultSettings.storageMinimalAvailablePercentage
-      value: {{longhorn_minimal_available_percentage}}
+  # - name: kalavai-pool
+  #   namespace: kalavai
+  #   chart: kalavai-templates/kalavai-pool
+  #   version: "0.1.0"
+  #   installed: true
+  #   set:
+  #   # UI
+  #   - name: ui.enabled
+  #     value: "false"
+  #   # api
+  #   - name: kalavaiApi.enabled
+  #     value: "true"
+  #   # - name: kalavaiApi.imageTag
+  #   #   value: "0.1.0"
+  #   # - name: kalavaiApi.version
+  #   #   value: "0.1.0"
+  #   - name: kalavaiApi.nodeSelector.{{kalavai_role_label}}
+  #     value: "server"
+  #   - name: kalavaiApi.forcedNamespace
+  #     value: "false"
+  #   - name: kalavaiApi.forcedPriority
+  #     value: "kalavai-system-priority"
+  #   # watcher (backend api)
+  #   - name: watcher.enabled
+  #     value: "true"
+  #   - name: watcher.imageTag
+  #     value: {{watcher_image_tag}}
+  #   - name: watcher.version
+  #     value: "0.4.33"
+  #   - name: watcher.adminKey
+  #     value: "{{watcher_admin_key}}"
+  #   - name: watcher.writeKey
+  #     value: "{{watcher_write_key}}"
+  #   - name: watcher.readonlyKey
+  #     value: "{{watcher_readonly_key}}"
   - name: kalavai-watcher
     namespace: kalavai
     chart: kalavai/kalavai-watcher
@@ -443,10 +379,6 @@ releases:
       value: {{watcher_is_shared_pool}}
     - name: deployment.prometheusEndpoint #TODO dynamically point to prometheus / thanos
       value: "http://{{thanos_service_name}}.{{thanos_namespace}}:{{thanos_port}}"
-    - name: deployment.opencostEndpoint
-      value: {{opencost_endpoint}}
-    - name: deployment.longhornManagerEndpoint
-      value: {{longhorn_manager_endpoint}}
     - name: service.nodePort
       value: {{watcher_port}}
     - name: resources.limits.memory
@@ -463,7 +395,7 @@ releases:
     namespace: kalavai
     chart: hami-charts/hami
     installed: true
-    version: "2.6.1"
+    version: "2.9.0"
     set:
     - name: resourceCores
       value: "nvidia.com/gpucores"
