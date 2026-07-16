@@ -6,6 +6,7 @@ import os
 import time
 import logging
 from argparse import ArgumentParser
+from collections import defaultdict
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Depends, Query, Security
@@ -552,8 +553,33 @@ def resources(request: Optional[NodesActionRequest]=NodesActionRequest(), api_ke
     print(f"POSTTEST: Final request.nodes: {request.nodes}")
     print(f"POSTTEST: Final request.node_labels: {request.node_labels}")
     
-    result = fetch_resources(node_names=request.nodes, node_labels=request.node_labels)
+    result = fetch_resources(node_names=request.nodes, node_labels=request.node_labels, detailed=request.detailed)
     return result
+
+@app.post("/fetch_max_resources",
+    operation_id="fetch_max_resources",
+    summary="Get maximum resource availability across any node in the pool",
+    description="Retrieves the maximum resource availability (CPU, memory, GPU) across any nodes in the pool. This helps identify peak resource availability and capacity planning.",
+    tags=["info"],
+    response_description="Maximum resource availability")
+def max_resources(request: Optional[NodesActionRequest]=NodesActionRequest(), api_key: str = Depends(verify_api_key)):
+    """Get available resources"""
+    if RINGFENCE_NODE_LABEL is not None and RINGFENCE_NODE_LABEL_VALUE is not None:
+        if request.node_labels is None:
+            request.node_labels = {}
+        node_labels = {RINGFENCE_NODE_LABEL: RINGFENCE_NODE_LABEL_VALUE, **request.node_labels}
+        request.node_labels = node_labels
+    
+    result = fetch_resources(node_names=request.nodes, node_labels=request.node_labels, detailed=True)
+    max_resources = defaultdict(float)
+    for _, resources in result.get("available", {}).items():
+        for key in ["cpu", "ephemeral-storage", "memory"]:
+            max_resources[key] = max(max_resources[key], resources.get(key, 0.0))
+        for gpu in resources.get("gpus", []):
+            max_resources["vram"] = max(max_resources["vram"], gpu.get("vram", 0.0))
+    print(f"[fetch_max_resources] Final max_resources: {dict(max_resources)}")
+    return max_resources
+
 
 @app.get("/fetch_job_names",
     operation_id="fetch_job_names",
@@ -726,6 +752,7 @@ def job_deploy(request: DeployJobRequest, api_key: str = Depends(verify_api_key)
         target_labels=request.target_labels,
         target_labels_ops=request.target_labels_ops,
         random_suffix=request.random_suffix,
+        resources=request.resources,
         priority=FORCED_PRIORITY if FORCED_PRIORITY is not None else request.priority
     )
     return result

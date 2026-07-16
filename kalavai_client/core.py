@@ -194,10 +194,11 @@ def get_ip_addresses(subnet=None):
             raise ValueError(f"No IPs available on subnet {subnet}")
     return ips
 
-def fetch_resources(node_names: list[str]=None, node_labels: dict[str, str]=None):
+def fetch_resources(node_names: list[str]=None, node_labels: dict[str, str]=None, detailed: bool = False):
     data = {
         "node_names": node_names,
-        "node_labels": node_labels
+        "node_labels": node_labels,
+        "detailed": detailed
     }
     try:
         total = request_to_server(
@@ -708,7 +709,8 @@ def deploy_job(
     force_namespace=None,
     target_labels=None,
     target_labels_ops="AND",
-    random_suffix=True
+    random_suffix=True,
+    resources=None
 ):
     """Deploy a KalavaiJob template"""
     # deploy template with kube-watcher
@@ -727,7 +729,8 @@ def deploy_job(
         "priority": priority,
         "target_labels": target_labels,
         "target_labels_ops": target_labels_ops,
-        "random_suffix": random_suffix
+        "random_suffix": random_suffix,
+        "resources": resources
     }
     try:
         result = request_to_server(

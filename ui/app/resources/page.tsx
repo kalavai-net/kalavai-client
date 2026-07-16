@@ -9,7 +9,7 @@ import { Pagination } from '@/components/Pagination';
 import kalavaiApi from '@/utils/api';
 import { Loader2, Server, CheckCircle, XCircle, Trash2, Tag, Settings, RefreshCw, ToggleLeft, ToggleRight, AlertTriangle, X } from 'lucide-react';
 
-interface Device {
+interface DeviceStatus {
   name: string;
   ready: boolean;
   unschedulable: boolean;
@@ -18,36 +18,47 @@ interface Device {
   pid_pressure: boolean;
 }
 
-interface GpuInfo {
-  node: string;
-  model: string;
-  memory: string;
-  total: number;
-  available: number;
-  ready: boolean;
+interface NodeResources {
+  cpu: number;
+  memory: number;
+  'ephemeral-storage': number;
+  gpus: Array<{
+    name?: string;
+    gpu_id?: string;
+    vram: number;
+  }>;
 }
 
-interface GpuMetric {
-  name: string;
-  node: string;
-  hami_gpu_memory_limit_bytes: number;
-  hami_gpu_memory_allocated_bytes: number;
-  hami_gpu_core_limit_ratio: number;
-  hami_gpu_core_allocated_ratio: number;
-  workloads: number;
+interface NodeResourceData {
+  total: NodeResources;
+  available: NodeResources;
 }
 
 interface ResourceItem {
   node: string;
-  models: string;
-  used: number;
-  total: number;
-  issues: string;
-  disabled: boolean;
   ready: boolean;
+  unschedulable: boolean;
+  memory_pressure: boolean;
+  disk_pressure: boolean;
+  pid_pressure: boolean;
+  cpus: { total: number; available: number };
+  memory: { total: number; available: number };
+  storage: { total: number; available: number };
+  gpus: Array<{
+    name: string;
+    vram: number;
+  }>;
+  total_gpu_vram: number;
+  available_gpu_vram: number;
 }
 
-const RESOURCES_SHOWN = ['cpu', 'memory', 'nvidia.com/gpu', 'amd.com/gpu'];
+const formatBytes = (bytes: number): string => {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
 
 function ResourcesContent() {
   const [isLoading, setIsLoading] = useState(true);
@@ -55,7 +66,6 @@ function ResourcesContent() {
   const [resources, setResources] = useState<ResourceItem[]>([]);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [nodeLabels, setNodeLabels] = useState<Record<string, string>>({});
-  const [nodeResources, setNodeResources] = useState<Record<string, { available: string; total: string }>>({});
   const [nodeDetailLoading, setNodeDetailLoading] = useState(false);
   const [newLabelKey, setNewLabelKey] = useState('');
   const [newLabelValue, setNewLabelValue] = useState('');
@@ -63,10 +73,6 @@ function ResourcesContent() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 10;
-  const [activeTab, setActiveTab] = useState<'nodes' | 'gpus'>('gpus');
-  const [gpuMetrics, setGpuMetrics] = useState<Record<string, GpuMetric>>({});
-  const [gpuMetricsLoading, setGpuMetricsLoading] = useState(false);
-  const [gpuMetricsError, setGpuMetricsError] = useState<string | null>(null);
 
   const showMsg = (type: 'success' | 'error', text: string) => {
     setActionMsg({ type, text });
@@ -75,89 +81,81 @@ function ResourcesContent() {
 
   useEffect(() => {
     loadResources();
-    loadGpuMetrics();
   }, []);
-
-  useEffect(() => {
-    if (activeTab === 'gpus') {
-      loadGpuMetrics();
-    }
-  }, [activeTab]);
 
   const loadResources = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const [devicesResult, gpusResult] = await Promise.all([
-        kalavaiApi.fetchDevices(),
-        kalavaiApi.fetchGpus(),
-      ]);
+      // Step 1: Get all devices from backend
+      const devicesResult = await kalavaiApi.fetchDevices();
+      if (devicesResult?.error) {
+        setError(`Error fetching devices: ${devicesResult.error}`);
+        return;
+      }
 
-      if (devicesResult?.error) { setError(`Error fetching devices: ${devicesResult.error}`); return; }
-      if (gpusResult?.error) { setError(`Error fetching GPUs: ${gpusResult.error}`); return; }
-
-      const devices: Device[] = Array.isArray(devicesResult) ? devicesResult : [];
-      const gpus: GpuInfo[] = Array.isArray(gpusResult) ? gpusResult : [];
-
-      const deviceMap = new Map<string, Device>();
+      const devices: DeviceStatus[] = Array.isArray(devicesResult) ? devicesResult : [];
+      const deviceMap = new Map<string, DeviceStatus>();
       devices.forEach((d) => deviceMap.set(d.name, d));
 
+      // Step 2: Get node names and fetch resources for them
+      const nodeNames = devices.map((d) => d.name);
+      console.log('Fetching resources for nodes:', nodeNames);
+      const resourcesResult = await kalavaiApi.fetchResources(nodeNames, true);
+      console.log('Resources result:', resourcesResult);
+      
+      if (resourcesResult?.error) {
+        setError(`Error fetching resources: ${resourcesResult.error}`);
+        return;
+      }
+
+      // Step 3: Cross-reference device status with resource availability
       const combined: ResourceItem[] = [];
-      const gpuNodesSeen = new Set<string>();
-      const nodeGpuMap = new Map<string, { models: string[]; total: number; available: number; ready: boolean }>();
-
-      // Group GPUs by node
-      gpus.forEach((gpu) => {
-        if (!nodeGpuMap.has(gpu.node)) {
-          nodeGpuMap.set(gpu.node, { models: [], total: gpu.total, available: gpu.available, ready: gpu.ready });
-        }
-        const nodeData = nodeGpuMap.get(gpu.node)!;
-        nodeData.models.push(`${gpu.model} (${gpu.memory}GB)`);
-      });
-
-      // Create combined resource items
-      nodeGpuMap.forEach((gpuData, nodeName) => {
-        gpuNodesSeen.add(nodeName);
-        const device = deviceMap.get(nodeName);
-        const used = gpuData.total > 0 ? 100 - Math.round((gpuData.available / gpuData.total) * 100) : 0;
-        const issues: string[] = [];
-        if (device?.memory_pressure) issues.push('memory_pressure');
-        if (device?.disk_pressure) issues.push('disk_pressure');
-        if (device?.pid_pressure) issues.push('pid_pressure');
-        combined.push({
-          node: nodeName,
-          models: gpuData.models.join('\n') || '-',
-          used,
-          total: gpuData.total,
-          issues: issues.join(', '),
-          disabled: device?.unschedulable ?? false,
-          ready: device?.ready ?? gpuData.ready,
-        });
-      });
-
+      
       devices.forEach((device) => {
-        if (gpuNodesSeen.has(device.name)) return;
-        const issues: string[] = [];
-        if (device.memory_pressure) issues.push('memory_pressure');
-        if (device.disk_pressure) issues.push('disk_pressure');
-        if (device.pid_pressure) issues.push('pid_pressure');
+        // When node names are passed with detailed=True, the response has total/available sections keyed by node name
+        const totalData = resourcesResult?.total?.[device.name] as NodeResources | undefined;
+        const availableData = resourcesResult?.available?.[device.name] as NodeResources | undefined;
+        
+        // Calculate total and available GPU vRAM
+        const totalGpuVram = totalData?.gpus?.reduce((sum: number, gpu: any) => sum + (gpu.vram || 0), 0) ?? 0;
+        const availableGpuVram = availableData?.gpus?.reduce((sum: number, gpu: any) => sum + (gpu.vram || 0), 0) ?? 0;
+        
         combined.push({
           node: device.name,
-          models: '-',
-          used: 0,
-          total: 0,
-          issues: issues.join(', '),
-          disabled: device.unschedulable,
           ready: device.ready,
+          unschedulable: device.unschedulable,
+          memory_pressure: device.memory_pressure,
+          disk_pressure: device.disk_pressure,
+          pid_pressure: device.pid_pressure,
+          cpus: {
+            total: totalData?.cpu ?? 0,
+            available: availableData?.cpu ?? 0,
+          },
+          memory: {
+            total: totalData?.memory ?? 0,
+            available: availableData?.memory ?? 0,
+          },
+          storage: {
+            total: totalData?.['ephemeral-storage'] ?? 0,
+            available: availableData?.['ephemeral-storage'] ?? 0,
+          },
+          gpus: availableData?.gpus?.map((gpu: any) => ({
+            name: gpu.name || gpu.gpu_id,
+            vram: gpu.vram,
+          })) ?? [],
+          total_gpu_vram: totalGpuVram,
+          available_gpu_vram: availableGpuVram,
         });
       });
 
       // Sort: not-ready first, then cordoned, then ready
       combined.sort((a, b) => {
-        const scoreA = (!a.ready ? 2 : 0) + (a.disabled ? 1 : 0);
-        const scoreB = (!b.ready ? 2 : 0) + (b.disabled ? 1 : 0);
+        const scoreA = (!a.ready ? 2 : 0) + (a.unschedulable ? 1 : 0);
+        const scoreB = (!b.ready ? 2 : 0) + (b.unschedulable ? 1 : 0);
         return scoreB - scoreA;
       });
+      
       setResources(combined);
     } catch (err) {
       setError(`Failed to load resources: ${err}`);
@@ -166,22 +164,6 @@ function ResourcesContent() {
     }
   };
 
-  const loadGpuMetrics = async () => {
-    setGpuMetricsLoading(true);
-    setGpuMetricsError(null);
-    try {
-      const result = await kalavaiApi.getGpuMetrics();
-      if (result?.error) {
-        setGpuMetricsError(`Error fetching GPU metrics: ${result.error}`);
-      } else {
-        setGpuMetrics(result || {});
-      }
-    } catch (err) {
-      setGpuMetricsError(`Failed to load GPU metrics: ${err}`);
-    } finally {
-      setGpuMetricsLoading(false);
-    }
-  };
 
   const handleCordonToggle = async (node: string, isDisabled: boolean) => {
     try {
@@ -210,28 +192,10 @@ function ResourcesContent() {
     setSelectedNode(nodeName);
     setNodeDetailLoading(true);
     setNodeLabels({});
-    setNodeResources({});
     try {
-      const [labelsResult, resourcesResult] = await Promise.all([
-        kalavaiApi.getNodeLabels([nodeName]),
-        kalavaiApi.fetchResources([nodeName]),
-      ]);
-
+      const labelsResult = await kalavaiApi.getNodeLabels([nodeName]);
       // Labels response: { labels: { nodeName: { key: value, ... } } }
       setNodeLabels(labelsResult?.labels?.[nodeName] ?? {});
-
-      // Resources response: { total: { cpu: x, memory: y, ... }, available: { ... } }
-      if (!resourcesResult?.error) {
-        const resMap: Record<string, { available: string; total: string }> = {};
-        RESOURCES_SHOWN.forEach((key) => {
-          const t = resourcesResult?.total?.[key];
-          const a = resourcesResult?.available?.[key];
-          if (t !== undefined || a !== undefined) {
-            resMap[key] = { available: String(a ?? 0), total: String(t ?? 0) };
-          }
-        });
-        setNodeResources(resMap);
-      }
     } catch (err) {
       showMsg('error', `Failed to load node details: ${err}`);
     } finally {
@@ -268,7 +232,7 @@ function ResourcesContent() {
           <h1 className="text-3xl font-bold">Resources</h1>
           <p className="text-muted-foreground">Available resources the pool is managing</p>
         </div>
-        <button onClick={() => activeTab === 'nodes' ? loadResources() : loadGpuMetrics()} className="flex items-center gap-2 px-3 py-2 border border-border rounded-md text-sm hover:bg-accent">
+        <button onClick={() => loadResources()} className="flex items-center gap-2 px-3 py-2 border border-border rounded-md text-sm hover:bg-accent">
           <RefreshCw className="w-4 h-4" /> Refresh
         </button>
       </div>
@@ -285,175 +249,117 @@ function ResourcesContent() {
         </div>
       )}
 
-      {/* Tab Navigation */}
-      <div className="flex items-center gap-1 border-b border-border">
-        <button
-          onClick={() => setActiveTab('nodes')}
-          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-            activeTab === 'nodes'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          Nodes
-        </button>
-        <button
-          onClick={() => setActiveTab('gpus')}
-          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-            activeTab === 'gpus'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          GPUs
-        </button>
-      </div>
-
-      {/* GPU Metrics Tab */}
-      {activeTab === 'gpus' && (
-        <div className="bg-card border border-border rounded-lg overflow-hidden">
-          {gpuMetricsLoading ? (
-            <div className="flex items-center justify-center h-64">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
-          ) : gpuMetricsError ? (
-            <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
-              <AlertTriangle className="w-4 h-4 shrink-0" /> {gpuMetricsError}
-            </div>
-          ) : Object.keys(gpuMetrics).length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">No GPU metrics found.</div>
-          ) : (
-            <table className="w-full">
-              <thead className="bg-muted">
-                <tr>
-                  <th className="px-4 py-3 text-left text-sm font-medium">GPU Name</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Node</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">vRAM Memory Used</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Workloads</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {Object.entries(gpuMetrics).map(([gpuId, gpu]) => {
-                  const memoryUsedGB = (gpu.hami_gpu_memory_allocated_bytes / (1024 ** 3)).toFixed(2);
-                  const memoryLimitGB = (gpu.hami_gpu_memory_limit_bytes / (1024 ** 3)).toFixed(2);
-                  const memoryUsagePercent = gpu.hami_gpu_memory_limit_bytes > 0
-                    ? Math.round((gpu.hami_gpu_memory_allocated_bytes / gpu.hami_gpu_memory_limit_bytes) * 100)
-                    : 0;
-
-                  return (
-                    <tr key={gpuId} className="hover:bg-muted/50">
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <Server className="w-4 h-4 text-muted-foreground shrink-0" />
-                          <span className="font-medium text-sm">{gpu.name}</span>
+      {/* Consolidated Resources Table */}
+      <div className="bg-card border border-border rounded-lg overflow-hidden">
+        {resources.length === 0 ? (
+          <div className="p-8 text-center text-muted-foreground">No resources found in the pool.</div>
+        ) : (
+          <table className="w-full">
+            <thead className="bg-muted">
+              <tr>
+                <th className="px-4 py-3 text-left text-sm font-medium">Node</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Available resources</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">GPUs</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {resources.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((resource) => (
+                <tr
+                  key={resource.node}
+                  className="hover:bg-muted/50"
+                >
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <Server className="w-4 h-4 text-muted-foreground shrink-0" />
+                      <span className="font-medium text-sm">{resource.node}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">
+                    <div className="space-y-1">
+                      <div className="text-xs">
+                        <span className="font-medium">CPU:</span> {resource.cpus.available} / {resource.cpus.total}
+                      </div>
+                      <div className="text-xs">
+                        <span className="font-medium">Memory:</span> {formatBytes(resource.memory.available)} / {formatBytes(resource.memory.total)}
+                      </div>
+                      <div className="text-xs">
+                        <span className="font-medium">Storage:</span> {formatBytes(resource.storage.available)} / {formatBytes(resource.storage.total)}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    {resource.gpus.length > 0 ? (
+                      <div className="space-y-2">
+                        <div className="space-y-1">
+                          {resource.gpus.map((gpu, idx) => (
+                            <div key={idx} className="text-xs text-muted-foreground">
+                              {gpu.name}
+                            </div>
+                          ))}
                         </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-muted-foreground">{gpu.node}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-primary rounded-full"
-                              style={{ width: `${memoryUsagePercent}%` }}
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>vRAM</span>
+                            <span>{formatBytes(resource.total_gpu_vram - resource.available_gpu_vram)} / {formatBytes(resource.total_gpu_vram)}</span>
+                          </div>
+                          <div className="w-full bg-muted rounded-full h-2">
+                            <div 
+                              className="bg-primary h-2 rounded-full transition-all"
+                              style={{ width: `${resource.total_gpu_vram > 0 ? ((resource.total_gpu_vram - resource.available_gpu_vram) / resource.total_gpu_vram) * 100 : 0}%` }}
                             />
                           </div>
-                          <span className="text-xs text-muted-foreground">
-                            {memoryUsedGB} / {memoryLimitGB} GB ({memoryUsagePercent}%)
-                          </span>
                         </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-muted-foreground">{gpu.workloads}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
-        </div>
-      )}
-
-      {/* Nodes Tab */}
-      {activeTab === 'nodes' && (
-      <div className="bg-card border border-border rounded-lg overflow-hidden">
-            {resources.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground">No resources found in the pool.</div>
-            ) : (
-              <table className="w-full">
-                <thead className="bg-muted">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Node</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">GPU Models</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">GPU Used</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {resources.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((resource) => (
-                    <tr
-                      key={resource.node}
-                      className="hover:bg-muted/50"
-                    >
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <Server className="w-4 h-4 text-muted-foreground shrink-0" />
-                          <span className="font-medium text-sm">{resource.node}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm whitespace-pre-line text-muted-foreground">{resource.models}</td>
-                      <td className="px-4 py-3">
-                        {resource.total > 0 ? (
-                          <div className="flex items-center gap-2">
-                            <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
-                              <div className="h-full bg-primary rounded-full" style={{ width: `${resource.used}%` }} />
-                            </div>
-                            <span className="text-xs text-muted-foreground">{resource.used}%</span>
-                          </div>
-                        ) : <span className="text-xs text-muted-foreground">—</span>}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-1 flex-wrap">
-                          {resource.ready ? (
-                            <span className="flex items-center gap-1 text-xs text-green-700 bg-green-100 px-2 py-0.5 rounded">
-                              <CheckCircle className="w-3 h-3" /> Ready
-                            </span>
-                          ) : (
-                            <span className="flex items-center gap-1 text-xs text-red-700 bg-red-100 px-2 py-0.5 rounded">
-                              <XCircle className="w-3 h-3" /> Not Ready
-                            </span>
-                          )}
-                          {resource.disabled && <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">Cordoned</span>}
-                          {resource.issues && <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded" title={resource.issues}>Issues</span>}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1 flex-wrap">
+                      {resource.ready ? (
+                        <span className="flex items-center gap-1 text-xs text-green-700 bg-green-100 px-2 py-0.5 rounded">
+                          <CheckCircle className="w-3 h-3" /> Ready
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 text-xs text-red-700 bg-red-100 px-2 py-0.5 rounded">
+                          <XCircle className="w-3 h-3" /> Not Ready
+                        </span>
+                      )}
+                      {resource.unschedulable && <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">Cordoned</span>}
+                      {resource.memory_pressure && <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded">Memory Pressure</span>}
+                      {resource.disk_pressure && <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded">Disk Pressure</span>}
+                      {resource.pid_pressure && <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded">PID Pressure</span>}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => loadNodeDetails(resource.node)} className="p-1.5 hover:bg-accent rounded" title="View details">
+                        <Settings className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => handleCordonToggle(resource.node, resource.unschedulable)} className="p-1.5 hover:bg-accent rounded" title={resource.unschedulable ? 'Uncordon' : 'Cordon'}>
+                        {resource.unschedulable ? <ToggleLeft className="w-4 h-4 text-yellow-500" /> : <ToggleRight className="w-4 h-4 text-green-500" />}
+                      </button>
+                      {deleteConfirm === resource.node ? (
                         <div className="flex items-center gap-1">
-                          <button onClick={() => loadNodeDetails(resource.node)} className="p-1.5 hover:bg-accent rounded" title="View details">
-                            <Settings className="w-4 h-4" />
-                          </button>
-                          <button onClick={() => handleCordonToggle(resource.node, resource.disabled)} className="p-1.5 hover:bg-accent rounded" title={resource.disabled ? 'Uncordon' : 'Cordon'}>
-                            {resource.disabled ? <ToggleLeft className="w-4 h-4 text-yellow-500" /> : <ToggleRight className="w-4 h-4 text-green-500" />}
-                          </button>
-                          {deleteConfirm === resource.node ? (
-                            <div className="flex items-center gap-1">
-                              <button onClick={() => handleDelete(resource.node)} className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700">Confirm</button>
-                              <button onClick={() => setDeleteConfirm(null)} className="px-2 py-1 text-xs border border-border rounded hover:bg-accent">Cancel</button>
-                            </div>
-                          ) : (
-                            <button onClick={() => setDeleteConfirm(resource.node)} className="p-1.5 hover:bg-accent rounded" title="Delete node">
-                              <Trash2 className="w-4 h-4 text-red-500" />
-                            </button>
-                          )}
+                          <button onClick={() => handleDelete(resource.node)} className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700">Confirm</button>
+                          <button onClick={() => setDeleteConfirm(null)} className="px-2 py-1 text-xs border border-border rounded hover:bg-accent">Cancel</button>
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-            <Pagination page={page} pageSize={PAGE_SIZE} total={resources.length} onPageChange={setPage} />
+                      ) : (
+                        <button onClick={() => setDeleteConfirm(resource.node)} className="p-1.5 hover:bg-accent rounded" title="Delete node">
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        <Pagination page={page} pageSize={PAGE_SIZE} total={resources.length} onPageChange={setPage} />
       </div>
-      )}
 
       {/* Node detail modal */}
       {selectedNode && (
@@ -475,22 +381,6 @@ function ResourcesContent() {
               </div>
             ) : (
               <div className="overflow-y-auto flex-1 p-5 space-y-5">
-                <div>
-                  <h3 className="text-xs font-semibold uppercase text-muted-foreground mb-2">Available Resources</h3>
-                  {Object.keys(nodeResources).length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No resource data</p>
-                  ) : (
-                    <div className="space-y-1">
-                      {Object.entries(nodeResources).map(([key, val]) => (
-                        <div key={key} className="text-sm bg-muted px-3 py-1.5 rounded flex justify-between">
-                          <span className="font-medium">{key}</span>
-                          <span className="text-muted-foreground">{val.available} / {val.total}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
                 <div>
                   <h3 className="text-xs font-semibold uppercase text-muted-foreground mb-2 flex items-center gap-1">
                     <Tag className="w-3 h-3" /> Device Labels

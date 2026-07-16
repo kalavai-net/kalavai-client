@@ -8,7 +8,6 @@ import {
   Cpu,
   Settings,
   Briefcase,
-  Server,
   LogOut,
   BarChart3,
   Users,
@@ -29,12 +28,11 @@ const getNavigationItems = () => {
 
   if (getFeatureFlag('SHOW_MONITORING')) {
     navigation.push({ name: 'Monitoring', href: '/monitoring', icon: BarChart3 });
+    navigation.push({ name: 'Usage', href: '/usage', icon: BarChart3 });
   }
 
   navigation.push(
-    { name: 'Usage', href: '/usage', icon: BarChart3 },
-    { name: 'Jobs', href: '/jobs', icon: Briefcase },
-    { name: 'Services', href: '/services', icon: Server }
+    { name: 'Jobs', href: '/jobs', icon: Briefcase }
   );
 
   if (getFeatureFlag('SHOW_USER_SPACES')) {

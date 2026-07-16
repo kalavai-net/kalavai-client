@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Dict, Union, Optional, Literal
+from typing import List, Dict, Union, Optional, Literal, Any
 from enum import Enum
 
 
@@ -89,6 +89,7 @@ class WorkerConfigRequest(BaseModel):
 class NodesActionRequest(BaseModel):
     nodes: list[str] = Field(None, description="List of node names to perform the action on, defaults to None")
     node_labels: dict[str, str] = Field(None, description="List of node labels to perform the action on, defaults to None")
+    detailed: bool = Field(False, description="Whether to return detailed resource information, defaults to False")
 
 class JoinPoolRequest(BaseModel):
     token: str = Field(description="Token to join the pool")
@@ -113,6 +114,7 @@ class DeployJobRequest(BaseModel):
     target_labels: Optional[Union[dict[str, Union[str, List]], None]] = Field(None, description="Optional target node labels")
     target_labels_ops: Optional[Literal["OR", "AND"]] = Field("AND", description="Optional target node labels operator")
     priority: Literal["kalavai-system-priority", "user-high-priority", "user-spot-priority", "test-low-priority", "test-high-priority"] = "user-spot-priority"
+    resources: Optional[Union[None, dict[str, Any]]] = Field(None, description="Optional resources to request")
     random_suffix: bool = Field(True, description="Whether to add a random suffix to the job name")
     
 class UpdateJobRequest(BaseModel):

@@ -23,9 +23,9 @@ interface Job {
 interface Template { name: string; }
 
 interface TemplateParam {
-  name: string; type: string; default: unknown;
+  name: string; type: string | string[]; default: unknown;
   description: string; required: boolean; options?: string[];
-  itemType?: string; // For arrays - the type of items in the array
+  itemType?: string | string[]; // For arrays - the type of items in the array
   properties?: Record<string, TemplateParam>; // For objects - nested properties
 }
 
@@ -33,7 +33,7 @@ interface TemplateData {
   values: Record<string, unknown>;
   schema: { 
     properties?: Record<string, { 
-      type: string; 
+      type: string | string[]; 
       description?: string; 
       enum?: unknown[];
       properties?: Record<string, any>;
@@ -48,6 +48,159 @@ interface TemplateData {
 function parseEndpointUrl(ep: { port: number | null; address: string; link: string } | string): string {
   if (typeof ep === 'string') return ep;
   return ep.link;
+}
+
+// Helper function to get the primary type from a union type (e.g., ["integer", null] -> "integer")
+function getPrimaryType(type: string | string[]): string {
+  if (Array.isArray(type)) {
+    // Return the first non-null type
+    return type.find(t => t !== null) || type[0];
+  }
+  return type;
+}
+
+// Helper function to check if a type includes a specific type in a union
+function hasType(type: string | string[], targetType: string): boolean {
+  if (Array.isArray(type)) {
+    return type.includes(targetType);
+  }
+  return type === targetType;
+}
+
+// Helper function to check if a type is nullable (includes null in union)
+function isNullable(type: string | string[]): boolean {
+  if (Array.isArray(type)) {
+    return type.includes('null');
+  }
+  return false;
+}
+
+// Helper function to cast a value to the appropriate type based on schema type
+function castValue(value: unknown, type: string | string[]): unknown {
+  const primaryType = getPrimaryType(type);
+  
+  // Handle empty/null values - if type is nullable, return null, otherwise return undefined
+  if (value === '' || value === null || value === undefined) {
+    if (isNullable(type)) {
+      return null;
+    }
+    return undefined;
+  }
+  
+  // Cast based on primary type
+  switch (primaryType) {
+    case 'integer':
+    case 'number':
+      return Number(value);
+    case 'boolean':
+      return Boolean(value);
+    case 'string':
+    default:
+      return String(value);
+  }
+}
+
+// Helper function to recursively cast all form values based on their schema types
+function castFormValues(values: Record<string, unknown>, params: Record<string, TemplateParam>): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  
+  Object.entries(params).forEach(([name, param]) => {
+    const value = values[name];
+    
+    if (hasType(param.type, 'object') && param.properties && typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      // Recursively cast nested object properties
+      result[name] = castFormValues(value as Record<string, unknown>, param.properties);
+    } else if (hasType(param.type, 'array') && Array.isArray(value)) {
+      // Cast array items based on itemType
+      if (param.itemType) {
+        result[name] = value.map(item => castValue(item, param.itemType || ''));
+      } else {
+        result[name] = value;
+      }
+    } else {
+      // Cast basic types
+      result[name] = castValue(value, param.type);
+    }
+  });
+  
+  return result;
+}
+
+// Helper function to process object properties recursively
+function processObjectProperties(
+  properties: Record<string, any>, 
+  values: Record<string, any> = {}, 
+  requiredFields: string[] = [],
+  depth: number = 0
+): Record<string, TemplateParam> {
+  const indent = '  '.repeat(depth);
+  console.log(`${indent}[processObjectProperties] depth=${depth}, properties:`, Object.keys(properties));
+  console.log(`${indent}[processObjectProperties] values:`, values);
+  console.log(`${indent}[processObjectProperties] requiredFields:`, requiredFields);
+  
+  const result: Record<string, TemplateParam> = {};
+  
+  Object.entries(properties).forEach(([name, schema]) => {
+    const value = values?.[name];
+    const isRequired = requiredFields.includes(name);
+    
+    console.log(`${indent}[processObjectProperties] Processing field: ${name}, type: ${schema.type}, value:`, value);
+    
+    // Handle nested object types
+    if (hasType(schema.type, 'object') && schema.properties) {
+      console.log(`${indent}[processObjectProperties] Found nested object: ${name}`);
+      const nestedRequired = (schema as any).required || [];
+      const nestedParams = processObjectProperties(schema.properties, value as any, nestedRequired, depth + 1);
+      
+      result[name] = {
+        name,
+        default: value,
+        type: 'object',
+        description: schema.description || '',
+        required: isRequired,
+        properties: nestedParams,
+      };
+      console.log(`${indent}[processObjectProperties] Added nested object ${name} with ${Object.keys(nestedParams).length} properties`);
+      return;
+    }
+    
+    // Handle array types
+    if (hasType(schema.type, 'array') && schema.items) {
+      const itemSchema = schema.items as any;
+      const itemType = itemSchema.enum ? 'enum' : getPrimaryType(itemSchema.type);
+      
+      result[name] = {
+        name,
+        default: value,
+        type: 'array',
+        description: schema.description || '',
+        required: isRequired,
+        itemType,
+        options: itemSchema.enum as string[] | undefined,
+      };
+      console.log(`${indent}[processObjectProperties] Added array: ${name}`);
+      return;
+    }
+    
+    // Handle basic types
+    if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+      console.log(`${indent}[processObjectProperties] Skipping object without schema: ${name}`);
+      return;
+    }
+    
+    result[name] = {
+      name,
+      default: value,
+      type: schema.enum ? 'enum' : getPrimaryType(schema.type),
+      description: schema.description || '',
+      required: isRequired,
+      options: schema.enum as string[] | undefined,
+    };
+    console.log(`${indent}[processObjectProperties] Added basic type: ${name} (${result[name].type})`);
+  });
+  
+  console.log(`${indent}[processObjectProperties] Returning result with ${Object.keys(result).length} properties:`, Object.keys(result));
+  return result;
 }
 
 function buildParams(data: TemplateData): Record<string, TemplateParam> {
@@ -66,83 +219,6 @@ function buildParams(data: TemplateData): Record<string, TemplateParam> {
   const params: Record<string, TemplateParam> = {};
   const required = data.schema?.required || [];
   
-  // Helper function to process object properties recursively
-  function processObjectProperties(
-    properties: Record<string, any>, 
-    values: Record<string, any> = {}, 
-    requiredFields: string[] = [],
-    depth: number = 0
-  ): Record<string, TemplateParam> {
-    const indent = '  '.repeat(depth);
-    console.log(`${indent}[processObjectProperties] depth=${depth}, properties:`, Object.keys(properties));
-    console.log(`${indent}[processObjectProperties] values:`, values);
-    console.log(`${indent}[processObjectProperties] requiredFields:`, requiredFields);
-    
-    const result: Record<string, TemplateParam> = {};
-    
-    Object.entries(properties).forEach(([name, schema]) => {
-      const value = values?.[name];
-      const isRequired = requiredFields.includes(name);
-      
-      console.log(`${indent}[processObjectProperties] Processing field: ${name}, type: ${schema.type}, value:`, value);
-      
-      // Handle nested object types
-      if (schema.type === 'object' && schema.properties) {
-        console.log(`${indent}[processObjectProperties] Found nested object: ${name}`);
-        const nestedRequired = (schema as any).required || [];
-        const nestedParams = processObjectProperties(schema.properties, value as any, nestedRequired, depth + 1);
-        
-        result[name] = {
-          name,
-          default: value,
-          type: 'object',
-          description: schema.description || '',
-          required: isRequired,
-          properties: nestedParams,
-        };
-        console.log(`${indent}[processObjectProperties] Added nested object ${name} with ${Object.keys(nestedParams).length} properties`);
-        return;
-      }
-      
-      // Handle array types
-      if (schema.type === 'array' && schema.items) {
-        const itemSchema = schema.items as any;
-        const itemType = itemSchema.enum ? 'enum' : itemSchema.type;
-        
-        result[name] = {
-          name,
-          default: value,
-          type: 'array',
-          description: schema.description || '',
-          required: isRequired,
-          itemType,
-          options: itemSchema.enum as string[] | undefined,
-        };
-        console.log(`${indent}[processObjectProperties] Added array: ${name}`);
-        return;
-      }
-      
-      // Handle basic types
-      if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
-        console.log(`${indent}[processObjectProperties] Skipping object without schema: ${name}`);
-        return;
-      }
-      
-      result[name] = {
-        name,
-        default: value,
-        type: schema.enum ? 'enum' : schema.type,
-        description: schema.description || '',
-        required: isRequired,
-        options: schema.enum as string[] | undefined,
-      };
-      console.log(`${indent}[processObjectProperties] Added basic type: ${name} (${result[name].type})`);
-    });
-    
-    console.log(`${indent}[processObjectProperties] Returning result with ${Object.keys(result).length} properties:`, Object.keys(result));
-    return result;
-  }
-  
   Object.entries(data.values || {}).forEach(([name, value]) => {
     const schema = data.schema?.properties?.[name];
     if (!schema) {
@@ -153,7 +229,7 @@ function buildParams(data: TemplateData): Record<string, TemplateParam> {
     console.log(`[buildParams] Processing top-level field: ${name}, type: ${schema.type}, value:`, value);
     
     // Handle object types
-    if (schema.type === 'object' && schema.properties) {
+    if (hasType(schema.type, 'object') && schema.properties) {
       console.log(`[buildParams] Found top-level object: ${name}`);
       const nestedRequired = (schema as any).required || [];
       const nestedParams = processObjectProperties(schema.properties, value as any, nestedRequired, 1);
@@ -171,9 +247,9 @@ function buildParams(data: TemplateData): Record<string, TemplateParam> {
     }
     
     // Handle array types
-    if (schema.type === 'array' && schema.items) {
+    if (hasType(schema.type, 'array') && schema.items) {
       const itemSchema = schema.items as any;
-      const itemType = itemSchema.enum ? 'enum' : itemSchema.type;
+      const itemType = itemSchema.enum ? 'enum' : getPrimaryType(itemSchema.type);
       
       params[name] = {
         name,
@@ -197,7 +273,7 @@ function buildParams(data: TemplateData): Record<string, TemplateParam> {
     params[name] = {
       name,
       default: value,
-      type: schema.enum ? 'enum' : schema.type,
+      type: schema.enum ? 'enum' : getPrimaryType(schema.type),
       description: schema.description || '',
       required: required.includes(name),
       options: schema.enum as string[] | undefined,
@@ -208,6 +284,28 @@ function buildParams(data: TemplateData): Record<string, TemplateParam> {
   console.log(`[buildParams] Final result:`, params);
   console.log(`[buildParams] Final result keys:`, Object.keys(params));
   console.log(`[buildParams] Object fields:`, Object.entries(params).filter(([_, p]) => p.type === 'object').map(([name, p]) => `${name} (${Object.keys(p.properties || {}).length} properties)`));
+  
+  return params;
+}
+
+function buildResourcesParams(data: TemplateData): Record<string, TemplateParam> {
+  const params: Record<string, TemplateParam> = {};
+  
+  // Check if resources property exists in schema
+  const resourcesSchema = data.schema?.properties?.['resources'];
+  
+  if (!resourcesSchema) {
+    return params;
+  }
+  
+  // If resources is an object with properties, parse those properties
+  if (resourcesSchema.type === 'object' && resourcesSchema.properties) {
+    const required = resourcesSchema.required || [];
+    const resourcesValues = data.values?.['resources'] as Record<string, unknown> || {};
+    
+    const processedParams = processObjectProperties(resourcesSchema.properties, resourcesValues, required, 1);
+    Object.assign(params, processedParams);
+  }
   
   return params;
 }
@@ -223,18 +321,18 @@ function ParamField({ param, value, onChange }: { param: TemplateParam; value: u
   const base = 'w-full px-3 py-2 border border-border rounded-md text-sm bg-background';
   
   // Handle array types
-  if (param.type === 'array') {
+  if (hasType(param.type, 'array')) {
     const arrayValue = Array.isArray(value) ? value : [];
     const stringValue = arrayValue.length > 0 ? String(arrayValue[0]) : '';
     
-    if (param.itemType === 'enum' && param.options) {
+    if (hasType(param.itemType || '', 'enum') && param.options) {
       return (
         <div className="space-y-2">
           <select 
             className={base} 
             value={stringValue} 
             onChange={e => {
-              const newValue = e.target.value ? [e.target.value] : [];
+              const newValue = e.target.value ? [castValue(e.target.value, param.itemType || '')] : [];
               onChange(newValue);
             }}
           >
@@ -246,7 +344,7 @@ function ParamField({ param, value, onChange }: { param: TemplateParam; value: u
       );
     }
     
-    if (param.itemType === 'integer' || param.itemType === 'number') {
+    if (hasType(param.itemType || '', 'integer') || hasType(param.itemType || '', 'number')) {
       return (
         <div className="space-y-2">
           <input 
@@ -254,28 +352,28 @@ function ParamField({ param, value, onChange }: { param: TemplateParam; value: u
             className={base} 
             value={stringValue}
             onChange={e => {
-              const numValue = e.target.value === '' ? '' : Number(e.target.value);
+              const numValue = castValue(e.target.value, param.itemType || '');
               onChange(numValue === '' ? [] : [numValue]);
             }} 
           />
-          <p className="text-xs text-muted-foreground">Array type - first item shown, empty = null</p>
+          <p className="text-xs text-muted-foreground">Array type - first item shown, empty array = null</p>
         </div>
       );
     }
     
-    if (param.itemType === 'boolean') {
+    if (hasType(param.itemType || '', 'boolean')) {
       return (
         <div className="space-y-2">
           <label className="flex items-center gap-2 cursor-pointer">
             <input 
               type="checkbox" 
               checked={arrayValue.length > 0 ? Boolean(arrayValue[0]) : false} 
-              onChange={e => onChange([e.target.checked])} 
+              onChange={e => onChange([castValue(e.target.checked, param.itemType || '')])} 
               className="w-4 h-4" 
             />
             <span className="text-sm">{arrayValue.length > 0 ? String(arrayValue[0]) : 'false'}</span>
           </label>
-          <p className="text-xs text-muted-foreground">Array type - first item shown, empty = null</p>
+          <p className="text-xs text-muted-foreground">Array type - first item shown, empty array = null</p>
         </div>
       );
     }
@@ -286,30 +384,30 @@ function ParamField({ param, value, onChange }: { param: TemplateParam; value: u
           type="text" 
           className={base} 
           value={stringValue} 
-          onChange={e => onChange(e.target.value ? [e.target.value] : [])} 
+          onChange={e => onChange(e.target.value ? [castValue(e.target.value, param.itemType || '')] : [])} 
         />
-        <p className="text-xs text-muted-foreground">Array type - first item shown, empty = null</p>
+        <p className="text-xs text-muted-foreground">Array type - first item shown, empty array = null</p>
       </div>
     );
   }
   
   // Existing logic for basic types
-  if (param.type === 'enum' && param.options) {
-    return <select className={base} value={String(value ?? param.default ?? '')} onChange={e => onChange(e.target.value)}>
+  if (hasType(param.type, 'enum') && param.options) {
+    return <select className={base} value={String(value ?? param.default ?? '')} onChange={e => onChange(castValue(e.target.value, param.type))}>
       {param.options.map(o => <option key={o} value={o}>{o}</option>)}
     </select>;
   }
-  if (param.type === 'integer' || param.type === 'number') {
+  if (hasType(param.type, 'integer') || hasType(param.type, 'number')) {
     return <input type="number" className={base} value={String(value ?? param.default ?? '')}
-      onChange={e => onChange(e.target.value === '' ? '' : Number(e.target.value))} />;
+      onChange={e => onChange(castValue(e.target.value, param.type))} />;
   }
-  if (param.type === 'boolean') {
+  if (hasType(param.type, 'boolean')) {
     return <label className="flex items-center gap-2 cursor-pointer">
-      <input type="checkbox" checked={Boolean(value ?? param.default)} onChange={e => onChange(e.target.checked)} className="w-4 h-4" />
+      <input type="checkbox" checked={Boolean(value ?? param.default)} onChange={e => onChange(castValue(e.target.checked, param.type))} className="w-4 h-4" />
       <span className="text-sm">{String(value ?? param.default)}</span>
     </label>;
   }
-  return <input type="text" className={base} value={String(value ?? param.default ?? '')} onChange={e => onChange(e.target.value)} />;
+  return <input type="text" className={base} value={String(value ?? param.default ?? '')} onChange={e => onChange(castValue(e.target.value, param.type))} />;
 }
 
 function ObjectParamField({ param, value, onChange }: { param: TemplateParam; value: unknown; onChange: (v: unknown) => void }) {
@@ -337,7 +435,7 @@ function ObjectParamField({ param, value, onChange }: { param: TemplateParam; va
           )}
           {Object.values(param.properties).map(nestedParam => (
             <div key={nestedParam.name}>
-              {nestedParam.type === 'object' ? (
+              {hasType(nestedParam.type, 'object') ? (
                 <ObjectParamField 
                   param={nestedParam} 
                   value={objectValue[nestedParam.name]} 
@@ -429,6 +527,10 @@ function JobsContent() {
   const [selectedLabels, setSelectedLabels] = useState<Record<string, string[]>>({});
   const [labelMode, setLabelMode] = useState<'AND' | 'OR'>('AND');
   const [randomSuffix, setRandomSuffix] = useState(true);
+  const [resourcesParams, setResourcesParams] = useState<Record<string, TemplateParam>>({});
+  const [resourcesValues, setResourcesValues] = useState<Record<string, unknown>>({});
+  const [maxResources, setMaxResources] = useState<Record<string, number>>({});
+  const [maxResourcesLoading, setMaxResourcesLoading] = useState(false);
 
   // Logs modal
   const [logsJob, setLogsJob] = useState<Job | null>(null);
@@ -524,6 +626,13 @@ function JobsContent() {
     loadJobs(namespaceFilter);
   }, [namespaceFilter]);
 
+  // Load max resources when deploy modal is open on step 1 (targets) and labels change
+  useEffect(() => {
+    if (deployOpen && deployStep === 1) {
+      loadMaxResources();
+    }
+  }, [deployOpen, deployStep, selectedLabels]);
+
   const loadJobs = async (ns: string | null) => {
     setIsLoading(true); setError(null);
     try {
@@ -540,10 +649,34 @@ function JobsContent() {
     finally { setIsLoading(false); }
   };
 
+  const loadMaxResources = async () => {
+    setMaxResourcesLoading(true);
+    try {
+      // Convert selectedLabels from Record<string, string[]> to Record<string, string>
+      // by taking the first value from each array
+      const nodeLabels: Record<string, string> = {};
+      Object.entries(selectedLabels).forEach(([key, values]) => {
+        if (values && values.length > 0) {
+          nodeLabels[key] = values[0];
+        }
+      });
+      console.log('[loadMaxResources] Calling API with nodeLabels:', nodeLabels);
+      const data = await kalavaiApi.getMaxResources(nodeLabels);
+      console.log('[loadMaxResources] Received data:', data);
+      setMaxResources(data || {});
+    } catch (err) {
+      console.error('[loadMaxResources] error:', err);
+      setMaxResources({});
+    } finally {
+      setMaxResourcesLoading(false);
+    }
+  };
+
   const openDeployModal = async () => {
     setDeployOpen(true); setDeployStep(0); setSelectedTemplate('');
     setTemplateData(null); setParams({}); setFormValues({});
     setJobName(''); setSelectedLabels({}); setRandomSuffix(true);
+    setMaxResources({});
     setTemplatesLoading(true);
     try {
       const data = await kalavaiApi.fetchJobTemplates();
@@ -585,6 +718,13 @@ function JobsContent() {
       const defaults: Record<string, unknown> = {};
       Object.entries(p).forEach(([k, v]) => { defaults[k] = v.default; });
       setFormValues(defaults);
+      
+      // Build resources params
+      const rp = buildResourcesParams(data);
+      setResourcesParams(rp);
+      const resourceDefaults: Record<string, unknown> = {};
+      Object.entries(rp).forEach(([k, v]) => { resourceDefaults[k] = v.default; });
+      setResourcesValues(resourceDefaults);
     } catch (err) { showMsg('error', `Failed to load template: ${err}`); }
     finally { setTemplateLoading(false); }
   };
@@ -609,16 +749,23 @@ function JobsContent() {
           .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
       );
       
+      // Cast all form values based on their schema types
+      const castedValues = castFormValues(formValues, params);
+      console.log('[handleDeploy] Casted values:', JSON.stringify(castedValues, null, 2));
+      
       const payload: Parameters<typeof kalavaiApi.deployJob>[0] = {
         name: jobName.toLowerCase().trim(),
         template_name: selectedTemplate,
-        values: formValues,
+        values: castedValues,
         force_namespace: namespaceFilter ?? undefined,
         random_suffix: randomSuffix,
       };
       if (Object.keys(selectedLabels).length > 0) {
         payload.target_labels = selectedLabels;
         payload.target_labels_ops = labelMode;
+      }
+      if (Object.keys(resourcesValues).length > 0) {
+        payload.resources = castFormValues(resourcesValues, resourcesParams);
       }
       const result = await kalavaiApi.deployJob(payload);
       if (result?.error) { showMsg('error', result.error); }
@@ -931,6 +1078,79 @@ function JobsContent() {
                     </select>
                     <button onClick={() => setSelectedLabels({})} className="px-3 py-2 border border-border rounded-md text-sm hover:bg-accent">Clear</button>
                   </div>
+                  
+                  {/* Resources section */}
+                  {Object.keys(resourcesParams).length > 0 && (
+                    <details className="border border-border rounded-md">
+                      <summary className="px-3 py-2 text-sm font-medium cursor-pointer hover:bg-muted">Resources</summary>
+                      <div className="px-3 pb-3 space-y-3 pt-2">
+                        {/* Max resources info panel */}
+                        {Object.keys(maxResources).length > 0 && (
+                          <div className="bg-muted/50 border border-border rounded-md p-3">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Info className="w-4 h-4 text-muted-foreground" />
+                              <p className="text-sm font-medium">Max worker resources (available)</p>
+                              {maxResourcesLoading && <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />}
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              {maxResources.cpu !== undefined && maxResources.cpu > 0 && (
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">CPU cores:</span>
+                                  <span className="font-medium">{maxResources.cpu}</span>
+                                </div>
+                              )}
+                              {maxResources.memory !== undefined && maxResources.memory > 0 && (
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">Memory:</span>
+                                  <span className="font-medium">{(maxResources.memory / (1024 ** 3)).toFixed(2)} GB</span>
+                                </div>
+                              )}
+                              {maxResources['ephemeral-storage'] !== undefined && maxResources['ephemeral-storage'] > 0 && (
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">Storage:</span>
+                                  <span className="font-medium">{(maxResources['ephemeral-storage'] / (1024 ** 3)).toFixed(2)} GB</span>
+                                </div>
+                              )}
+                              {maxResources.vram !== undefined && maxResources.vram > 0 && (
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">GPU memory:</span>
+                                  <span className="font-medium">{(maxResources.vram / (1024 ** 3)).toFixed(2)} GB</span>
+                                </div>
+                              )}
+                              {Object.keys(maxResources).length > 0 && Object.values(maxResources).every(v => v === 0) && (
+                                <div className="col-span-2 text-muted-foreground text-center">
+                                  No resource data available
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        {Object.entries(resourcesParams).map(([name, param]) => (
+                          <div key={name}>
+                            {param.type === 'object' ? (
+                              <ObjectParamField 
+                                param={param} 
+                                value={resourcesValues[name]} 
+                                onChange={v => setResourcesValues(prev => ({ ...prev, [name]: v }))} 
+                              />
+                            ) : (
+                              <>
+                                <label className="block text-sm font-medium mb-1">
+                                  {name} {param.required && <span className="text-red-500">*</span>}
+                                </label>
+                                <ParamField 
+                                  param={param} 
+                                  value={resourcesValues[name]} 
+                                  onChange={v => setResourcesValues(prev => ({ ...prev, [name]: v }))} 
+                                />
+                                {param.description && <p className="text-xs text-muted-foreground mt-1">{param.description}</p>}
+                              </>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
                 </div>
               )}
 

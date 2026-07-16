@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuthStore, useConnectionStore } from '@/stores';
 import { AppLayout } from '@/components/AppLayout';
 import { LoginForm } from '@/components/LoginForm';
+import { FeatureGate } from '@/components/FeatureGate';
 import { 
   BarChart3, 
   Cpu, 
@@ -637,7 +638,9 @@ export default function UsagePage() {
 
   return (
     <AppLayout>
-      <UsageContent />
+      <FeatureGate feature="SHOW_MONITORING" featureName="Usage">
+        <UsageContent />
+      </FeatureGate>
     </AppLayout>
   );
 }

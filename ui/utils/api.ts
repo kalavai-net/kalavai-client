@@ -120,14 +120,9 @@ class KalavaiApiClient {
     return this.post('fetch_nodes_metrics', data);
   }
 
-  async fetchResources(nodes?: string[]) {
-    console.log('fetchResources called with nodes:', nodes);
-    const payload = nodes ? { nodes } : {};
-    console.log('Sending payload:', payload);
-    const response = await this.client.post('/fetch_resources', {
-      data: payload,
-    });
-    console.log('fetchResources response:', response.data);
+  async fetchResources(nodes?: string[], detailed: boolean = false) {
+    const payload = nodes ? { nodes, detailed } : { detailed };
+    const response = await this.client.post('/fetch_resources', payload);
     return response.data;
   }
 
@@ -166,10 +161,6 @@ class KalavaiApiClient {
     return this.get('fetch_job_templates');
   }
 
-  async fetchPoolServices() {
-    return this.get('fetch_pool_services');
-  }
-
   async fetchTemplateAll(name: string) {
     return this.get('fetch_template_all', { params: { name } });
   }
@@ -195,6 +186,7 @@ class KalavaiApiClient {
     target_labels?: Record<string, string[]>;
     target_labels_ops?: string;
     random_suffix?: boolean;
+    resources?: Record<string, unknown>;
   }) {
     return this.post('deploy_job', data);
   }
@@ -282,6 +274,18 @@ class KalavaiApiClient {
       nodes.forEach((n) => params.append('nodes', n));
     }
     const response = await this.client.get('/get_node_labels', { params });
+    return response.data;
+  }
+
+  async getMaxResources(nodeLabels?: Record<string, string>, nodes?: string[]) {
+    const payload: Record<string, any> = {};
+    if (nodeLabels) {
+      payload.node_labels = nodeLabels;
+    }
+    if (nodes && nodes.length > 0) {
+      payload.nodes = nodes;
+    }
+    const response = await this.client.post('/fetch_max_resources', payload);
     return response.data;
   }
 

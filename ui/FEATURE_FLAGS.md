@@ -7,7 +7,7 @@ This document describes how to use the feature flags implemented in the Kalavai 
 The following feature flags are available:
 
 - `SHOW_RESOURCES` - Controls the visibility of the Resources page
-- `SHOW_MONITORING` - Controls the visibility of the Monitoring page  
+- `SHOW_MONITORING` - Controls the visibility of the Monitoring and Usage pages  
 - `SHOW_USER_SPACES` - Controls the visibility of the User Spaces page
 
 ## How to Use

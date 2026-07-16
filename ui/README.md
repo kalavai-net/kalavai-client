@@ -12,7 +12,6 @@ This project is a complete reimplementation of the original Python Reflex-based 
 - **Dashboard**: Resource monitoring with real-time gauges and statistics
 - **Resources**: Node management with GPU tracking, labeling, and cordoning
 - **Jobs**: Job deployment with template-based workflows and log viewing
-- **Services**: Core service monitoring and endpoint management
 - **Settings**: Theme customization (colors, radius, scaling)
 
 ## Technology Stack
@@ -69,7 +68,6 @@ ui/
 │   ├── dashboard/         # Dashboard page
 │   ├── jobs/              # Jobs management page
 │   ├── resources/         # Resources page
-│   ├── services/          # Services page
 │   ├── settings/          # Settings page
 │   ├── globals.css        # Global styles with Tailwind
 │   ├── layout.tsx         # Root layout

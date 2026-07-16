@@ -5,7 +5,7 @@ import { useConnectionStore } from '@/stores';
 import { AppLayout } from '@/components/AppLayout';
 import { LoginForm } from '@/components/LoginForm';
 import { useAuthStore } from '@/stores';
-import { Cpu, Monitor, MemoryStick, Server, Briefcase, AlertCircle, Loader2 } from 'lucide-react';
+import { Cpu, Monitor, MemoryStick, Server, Briefcase, AlertCircle, Loader2, HardDrive, Database } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import kalavaiApi from '@/utils/api';
 
@@ -18,6 +18,10 @@ interface ResourceData {
   online_gpus: number;
   total_ram: number;
   online_ram: number;
+  total_vram: number;
+  online_vram: number;
+  total_ephemeral_storage: number;
+  online_ephemeral_storage: number;
   total_devices: number;
   online_devices: number;
 }
@@ -122,6 +126,10 @@ function DashboardContent() {
     online_gpus: 0,
     total_ram: 0,
     online_ram: 0,
+    total_vram: 0,
+    online_vram: 0,
+    total_ephemeral_storage: 0,
+    online_ephemeral_storage: 0,
     total_devices: 0,
     online_devices: 0,
   });
@@ -135,7 +143,7 @@ function DashboardContent() {
     try {
       console.log('Dashboard: Loading data...');
       const [resourcesData, jobDetails] = await Promise.all([
-        kalavaiApi.fetchResources(),
+        kalavaiApi.fetchResources(undefined, false),
         kalavaiApi.fetchJobDetails(selectedUserSpace ?? undefined),
       ]);
 
@@ -165,6 +173,10 @@ function DashboardContent() {
         online_gpus: onlineGpus,
         total_ram: (resourcesData.total?.memory || 0) / 1000000000,
         online_ram: (resourcesData.available?.memory || 0) / 1000000000,
+        total_vram: (resourcesData.total?.vram || 0) / 1000000000,
+        online_vram: (resourcesData.available?.vram || 0) / 1000000000,
+        total_ephemeral_storage: (resourcesData.total?.['ephemeral-storage'] || 0) / 1000000000,
+        online_ephemeral_storage: (resourcesData.available?.['ephemeral-storage'] || 0) / 1000000000,
         total_devices: resourcesData.total?.n_nodes || 0,
         online_devices: resourcesData.available?.n_nodes || 0,
       });
@@ -214,7 +226,7 @@ function DashboardContent() {
 
       <div>
         <h2 className="text-lg font-semibold mb-4">Resources</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <GaugeCard
             title="CPUs"
             icon={Cpu}
@@ -234,6 +246,20 @@ function DashboardContent() {
             icon={MemoryStick}
             value={resources.online_ram}
             total={resources.total_ram}
+            unit="GB"
+          />
+          <GaugeCard
+            title="VRAM"
+            icon={HardDrive}
+            value={resources.online_vram}
+            total={resources.total_vram}
+            unit="GB"
+          />
+          <GaugeCard
+            title="Ephemeral Storage"
+            icon={Database}
+            value={resources.online_ephemeral_storage}
+            total={resources.total_ephemeral_storage}
             unit="GB"
           />
         </div>
