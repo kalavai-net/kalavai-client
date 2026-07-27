@@ -17,62 +17,26 @@ Kalavai is an **open source** platform that unlocks **computing from spare capac
 
 ## Core features
 
-Kalavai helps teams use GPU resources more efficiently. It acts as a **control plane for all your GPUs**, wherever they are: local, on prem and multi-cloud. 
+Kalavai helps teams use computing resources more efficiently. It acts as a **control plane for all your computing resources**, wherever they are: local, on prem and multi-cloud. 
 
+- Leverage **multi-platform computing resources**: ARM64 / AMD64 CPUs, GPUs (NVIDIA, AMD).
 - Increase GPU utilisation from your devices (fractional GPU).
-- Multi-node, multi-GPU and multi-architecture support (AMD and NVIDIA). 
-- **Aggregate** computing resources from **multiple sources**: home desktops, on premise servers<0>, multi cloud VMs, raspberry pi's, etc. Including our [own GPU fleets](https://platform.kalavai.net).
+- Multi-node, multi-GPU deployments. 
 - **Ready-made templates to deploy common AI building blocks**: model inference (vLLM, llama.cpp, SGLang), GPU clusters (Ray, GPUStack), automation workflows (n8n and Flowise), evaluation and monitoring tools (Langfuse), production dev tools (LiteLLM, OpenWebUI) and more.
 - [Easy to expand](https://github.com/kalavai-net/kalavai-templates) to custom workloads
 
-
-<details>
-
-**<summary>Powered by Kalavai</summary>**
-
-- [CoGen AI](https://cogenai.kalavai.net): A community hosted alternative to OpenAI API for unlimited inference.
-- [Create your own Free Cursor/Windsurf Clone](https://www.youtube.com/watch?v=6zHSo7oeCDQ&t=21s)
-
-
-</details>
-
-
-### Latest updates
-
-- November: Kalavai is now opening a managed service to create and manage AI workloads on a fleet of GPUs. We are inviting Beta Testers for early access. If you are interested [Apply here](https://kalavai.net/beta)
-- September: Kalavai now supports Ray clusters for massively distributed ML.
-- August 2025: Added support for AMD GPUs (experimental)
-- July 2025: Added support for GPUStack clusters for managed LLM deployments (experimental).
-- June 2025: Native support for Mac and Raspberry pi devices (ARM).
-- May 2025: Added support for diffusion pipelines (experimental)
-- April 2025: Added support for workflow automation engines n8n and Flowise (experimental)
-- March 2025: Added support for AI Gateway LiteLLM
-
-<details>
-<summary>More news</summary>
-
-- 20 February 2025: New shiny GUI interface to control LLM pools and deploy models- 31 January 2025: `kalavai-client` is now a [PyPI package](https://pypi.org/project/kalavai-client/), easier to install than ever!
-- 27 January 2025: Support for accessing pools from remote computers
-- 9 January 2025: Added support for [SGLang](https://github.com/aphrodite-engine/aphrodite-engine) models
-- 9 January 2025: Added support for [vLLM](https://github.com/aphrodite-engine/aphrodite-engine) models
-- 9 January 2025: Added support for [llama.cpp](https://github.com/aphrodite-engine/aphrodite-engine) models
-- 24 December 2024: Release of [public BOINC pool](/docs/docs/boinc.md) to donate computing to scientific projects
-- 23 December 2024: Release of [public petals swarm](/docs/docs/petals.md)
-- 24 November 2024: Common pools with private user spaces
-
-</details>
 
 ### Support for AI engines
 
 We currently support out of the box the following AI engines:
 
 - [vLLM](https://docs.vllm.ai/en/latest/): most popular GPU-based model inference.
+- [llama.cpp](https://github.com/ggerganov/llama.cpp): CPU-based GGUF model inference.
 - [Ray Clusters](https://docs.ray.io/en/latest/serve/index.html) inference.
-- [GPUstack](https://docs.gpustack.ai/0.4/overview/) (experimental)
 
 Coming soon:
 
-- [llama.cpp](https://github.com/ggerganov/llama.cpp): CPU-based GGUF model inference.
+- [GPUstack](https://docs.gpustack.ai/0.4/overview/) (experimental)
 - [SGLang](https://github.com/sgl-project/sglang): Super fast GPU-based model inference.
 - [n8n](https://n8n.io/) (experimental): no-code workload automation framework.
 - [Flowise](https://flowiseai.com/) (experimental): no-code agentic AI workload framework.
@@ -84,7 +48,6 @@ Coming soon:
 - [GPUstack](https://docs.gpustack.ai/0.4/overview/) (experimental)
 
 
-
 Not what you were looking for? [Tell us](https://github.com/kalavai-net/kalavai-client/issues) what engines you'd like to see.
 
 
@@ -93,7 +56,6 @@ Not what you were looking for? [Tell us](https://github.com/kalavai-net/kalavai-
 
 ## Want to know more?
 
-- Get a free [Kalavai account](https://platform.kalavai.net) and access unlimited AI.
 - Full [documentation](https://kalavai-net.github.io/kalavai-client/) for the project.
 - [Join our Substack](https://kalavainet.substack.com/) for updates and be part of our community
 - [Join our discord community](https://discord.gg/YN6ThTJKbM)
@@ -112,14 +74,15 @@ The `kalavai-client` is the main tool to interact with the Kalavai platform, to 
 <summary>Requirements</summary>
 
 For seed nodes:
-- A 64 bits x86 based Linux machine (laptop, desktop or VM)
+- A arm64 or amd64 linux machine (laptop, desktop or VM)
 - [Docker engine installed](https://docs.docker.com/engine/install/ubuntu/) with [privilege access](https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities).
 
 For workers sharing resources with the pool:
 
-- A laptop, desktop or Virtual Machine. Full support: Linux and Windows; x86 architecture. Limited support: Mac and ARM architecture.
-- If self-hosting, workers should be on the same network as the seed node. Looking for over-the-internet connectivity? Check out our [managed seeds](https://platform.kalavai.net)
-- Docker engine installed (for [linux](https://docs.docker.com/engine/install/ubuntu/), [Windows and MacOS](https://docs.docker.com/desktop/)) with [privilege access](https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities).
+- A laptop, desktop or Virtual Machine. Full support: Linux and Windows; amd64 / ARM architecture.
+- If self-hosting, workers should be on the same network as the seed node. 
+- Docker engine installed (for [linux](https://docs.docker.com/engine/install/ubuntu/), [Windows](https://docs.docker.com/desktop/)) with [privilege access](https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities).
+
 
 ### Compatibility matrix
 
@@ -130,7 +93,7 @@ If your system is not currently supported, [open an issue](https://github.com/ka
 
 ### Pre-requisites
 
-gcc compiler and python3-dev are required: 
+`gcc` compiler and `python3-dev` are required: 
 
 ```bash
 sudo apt install gcc g++ python3-dev
@@ -163,7 +126,7 @@ This will expose the GUI and the backend services in localhost. By default, the 
 
 ![Kalavai logo](docs/docs/assets/images/ui_dashboard_multiple.png)
 
-Check out our [getting started guide](./docs/docs/getting_started.md) for next steps on how to add more workers to your pool, or use our [managed platform](./docs/docs/managed/overview.md) for over-the-internet AI pools.
+Check out our [getting started guide](https://kalavai-net.github.io/kalavai-client/getting_started/) for next steps on how to add more workers to your pool.
 
 
 ## Enough already, let's run stuff!
@@ -184,7 +147,7 @@ Anything missing here? Give us a shout in the [discussion board](https://github.
 - Report [bugs, issues and new features](https://github.com/kalavai-net/kalavai-client/issues).
 - Help improve our [compatibility matrix](#compatibility-matrix) by testing on different operative systems.
 - [Follow our Substack channel](https://kalavainet.substack.com/) for news, guides and more.
-- [Community integrations](https://github.com/kalavai-net/kube-watcher/tree/main/templates) are template jobs built by Kalavai and the community that makes deploying distributed workflows easy for users. Anyone can extend them and contribute to the repo.
+- [Community integrations](https://github.com/kalavai-net/kalavai-templates) are template jobs built by Kalavai and the community that makes deploying distributed workflows easy for users. Anyone can extend them and contribute to the repo.
 
 ### Star History
 
