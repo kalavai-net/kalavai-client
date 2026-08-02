@@ -40,17 +40,6 @@ Once you have a pool running, you can deploy workloads using [template jobs](tem
 
 ---
 
-## Kalavai platform
-
-For a fully managed computing pool, consider [our managed service](https://platform.kalavai.net).
-
-- Managed seed instance for over-the-internet pools
-- Encrypted communication with VPN
-- Access to flexible and scalable GPUs fleet from Kalavai
-
-Check out our [documentation](./managed/overview.md) for more details.
-
-
 ## Want to be notified of the latest features? 
 
 Subscribe to our [substack channel](https://kalavainet.substack.com/), where we regularly publish news, articles and updates.

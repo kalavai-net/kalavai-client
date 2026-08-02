@@ -11,8 +11,7 @@ A unified LLM gateway API gives all your model deployments a single interface so
 
 ## 1. Pre-requisites
 
-- [Install kalavai CLI](getting_started.md#getting-started) on each machine
-- Set up a [2 machine LLM pool](getting_started.md), i.e. a seed node and one worker
+- Set up an [LLM pool](getting_started.md) with at least 1 node
 
 
 
@@ -41,21 +40,12 @@ Example virtual key: sk-rDCm0Vd5hDOigaNbQSSsEQ
 
 In this section, we'll look into how to deploy a model with another of our supported model engines: [llama.cpp](https://github.com/kalavai-net/kalavai-client/blob/main/templates/llamacpp/README.md). You can use the kalavai CLI to deploy jobs (via kalavai job deploy) but here we'll use the much simpler GUI route.
 
-Just like we did for LiteLLM and Playground, you can deploy a model by navigating to the Jobs page and clicking the `circle-plus` button. Select `llamacpp` as model template, and populate the following values:
-
-- `working_memory`: 10 (enough free space GBs to fit the model weights)
-- `workers`: 2 (this will distribute the model onto our 2 machines)
-- `repo_id`: Qwen/Qwen3-4B-GGUF (the [repo id](https://huggingface.co/Qwen/Qwen3-4B-GGUF) from Huggingface)
-- `model_filename`: Qwen3-4B-Q4_K_M.gguf (the [filename](https://huggingface.co/Qwen/Qwen3-4B-GGUF/tree/main) of the quantized version we want)
-- `hf_token`: <your Huggingface token> if using a gated model (in this case it's not needed)
-- `litellm_key`: sk-qoQC5lijoaBwXoyi_YP1xA (Advanced parameter; the virtual key generated above for LiteLLM. **This is key to make sure models are self registering to both LiteLLM and the playground.**)
-
-![Deploy llamacpp job](assets/images/deploy_qwen3_litellm.png)
+You can deploy a model by navigating to the `Jobs` page and clicking the `circle-plus` button. Select `llamacpp` as model template. See more details [here](model_deployment.md#cpu-only). Make sure you populate the `litellm_key` template parameter with your generated `API KEY` (in this case `sk-qoQC5lijoaBwXoyi_YP1xA`) **This is key to make sure models are self registering to LiteLLM gateway.**
 
 
 ## 4. Access your models
 
-Once they are donwloaded and loaded into memory, your models will be readily available both via the LiteLLM API as well as through the UI Playground. 
+Once they are donwloaded and loaded into memory, your models will be readily available via the LiteLLM API. 
 
 
 ### Single API endpoint
@@ -109,7 +99,7 @@ if __name__ == "__main__":
 
 ### Use models
 
-See inference section.
+See [inference section](../inference/overview.md) for code snippets.
 
 
 ## 5. Clean up

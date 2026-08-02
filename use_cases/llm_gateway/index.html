@@ -172,7 +172,7 @@
     
     
     <a class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5"
-        data-slot="button" href="../single_node_model/">
+        data-slot="button" href="../model_deployment/">
         Use cases
     </a>
     
@@ -180,7 +180,7 @@
     
     
     <a class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5"
-        data-slot="button" href="../../managed/overview/">
+        data-slot="button" href="../../deployer/platform_getting_started/">
         Deployer platform
     </a>
     
@@ -305,30 +305,11 @@
             
             <li data-slot="sidebar-menu-item" data-sidebar="menu-item" class="group/menu-item relative">
     <a data-slot="sidebar-menu-button" data-active="false" data-sidebar="menu-button"
-        data-size="default" href="../single_node_model/"
+        data-size="default" href="../model_deployment/"
         class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48">
 
         
-        Single node
-        
-
-        
-
-        
-
-        
-    </a>
-</li>
-            
-            
-            
-            <li data-slot="sidebar-menu-item" data-sidebar="menu-item" class="group/menu-item relative">
-    <a data-slot="sidebar-menu-button" data-active="false" data-sidebar="menu-button"
-        data-size="default" href="../multi_node_model/"
-        class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48">
-
-        
-        Multi node
+        Single and multi node
         
 
         
@@ -464,7 +445,7 @@
           
           <a data-slot="button" id="previous-button"
             class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 extend-touch-target size-8 shadow-none md:size-7"
-            href="../multi_node_model/">
+            href="../model_deployment/">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
               class="tabler-icon tabler-icon-arrow-left">
@@ -502,8 +483,7 @@
     <p>A unified LLM gateway API gives all your model deployments a single interface so client applications can reach all your models with the same endpoint. Furthermore, it also provides extra production features such as access control, budgeting, monitoring and tracing.</p>
 <h2 id="1-pre-requisites">1. Pre-requisites</h2>
 <ul>
-<li><a href="getting_started.md#getting-started">Install kalavai CLI</a> on each machine</li>
-<li>Set up a <a href="getting_started.md">2 machine LLM pool</a>, i.e. a seed node and one worker</li>
+<li>Set up an <a href="getting_started.md">LLM pool</a> with at least 1 node</li>
 </ul>
 <h3 id="unified-openai-like-api">Unified OpenAI-like API</h3>
 <p>Model templates deployed in LLM pools have an optional key parameter to register themselves with a LiteLLM instance. <a href="https://docs.litellm.ai/docs/">LiteLLM</a> is a powerful API that unifies all of your models into a single API, making developing apps with LLMs easier and more flexible.</p>
@@ -518,18 +498,9 @@
 <p><img alt="Create a virtual key" src="../assets/images/litellm_virtual_key.png" /></p>
 <h2 id="3-deploy-models-with-compatible-frameworks">3. Deploy models with compatible frameworks</h2>
 <p>In this section, we'll look into how to deploy a model with another of our supported model engines: <a href="https://github.com/kalavai-net/kalavai-client/blob/main/templates/llamacpp/README.md">llama.cpp</a>. You can use the kalavai CLI to deploy jobs (via kalavai job deploy) but here we'll use the much simpler GUI route.</p>
-<p>Just like we did for LiteLLM and Playground, you can deploy a model by navigating to the Jobs page and clicking the <code>circle-plus</code> button. Select <code>llamacpp</code> as model template, and populate the following values:</p>
-<ul>
-<li><code>working_memory</code>: 10 (enough free space GBs to fit the model weights)</li>
-<li><code>workers</code>: 2 (this will distribute the model onto our 2 machines)</li>
-<li><code>repo_id</code>: Qwen/Qwen3-4B-GGUF (the <a href="https://huggingface.co/Qwen/Qwen3-4B-GGUF">repo id</a> from Huggingface)</li>
-<li><code>model_filename</code>: Qwen3-4B-Q4_K_M.gguf (the <a href="https://huggingface.co/Qwen/Qwen3-4B-GGUF/tree/main">filename</a> of the quantized version we want)</li>
-<li><code>hf_token</code>: <your Huggingface token> if using a gated model (in this case it's not needed)</li>
-<li><code>litellm_key</code>: sk-qoQC5lijoaBwXoyi_YP1xA (Advanced parameter; the virtual key generated above for LiteLLM. <strong>This is key to make sure models are self registering to both LiteLLM and the playground.</strong>)</li>
-</ul>
-<p><img alt="Deploy llamacpp job" src="../assets/images/deploy_qwen3_litellm.png" /></p>
+<p>You can deploy a model by navigating to the <code>Jobs</code> page and clicking the <code>circle-plus</code> button. Select <code>llamacpp</code> as model template. See more details <a href="../model_deployment/#cpu-only">here</a>. Make sure you populate the <code>litellm_key</code> template parameter with your generated <code>API KEY</code> (in this case <code>sk-qoQC5lijoaBwXoyi_YP1xA</code>) <strong>This is key to make sure models are self registering to LiteLLM gateway.</strong></p>
 <h2 id="4-access-your-models">4. Access your models</h2>
-<p>Once they are donwloaded and loaded into memory, your models will be readily available both via the LiteLLM API as well as through the UI Playground. </p>
+<p>Once they are donwloaded and loaded into memory, your models will be readily available via the LiteLLM API. </p>
 <h3 id="single-api-endpoint">Single API endpoint</h3>
 <p>All interactions to models in the pool are brokered by a <a href="https://docs.litellm.ai/docs/">LiteLLM endpoint</a> that is installed in the system. To interact with it you need the following:</p>
 <ul>
@@ -573,7 +544,7 @@
 </code></pre></div>
 
 <h3 id="use-models">Use models</h3>
-<p>See inference section.</p>
+<p>See <a href="../../inference/overview/">inference section</a> for code snippets.</p>
 <h2 id="5-clean-up">5. Clean up</h2>
 <p>To remove any model deployment, navigate to the <code>Jobs</code> page, select the job (checkbox next to its name) and click the <code>bin</code> icon on top of the table. This will remove the deployment from any worker involved and free its resources.</p>
   </div>
@@ -588,7 +559,7 @@
     
     <a data-slot="button"
         class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-8 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5 shadow-none"
-        href="../multi_node_model/">
+        href="../model_deployment/">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
             class="tabler-icon tabler-icon-arrow-left ">
@@ -596,7 +567,7 @@
             <path d="M5 12l6 6"></path>
             <path d="M5 12l6 -6"></path>
         </svg>
-        <span class="max-[500px]:hidden">Multi node</span>
+        <span class="max-[500px]:hidden">Single and multi node</span>
     </a>
     
     
@@ -653,21 +624,15 @@
                     
                     <div class="flex flex-col gap-3">
                         
-                        <a class="text-2xl font-medium" href="../../managed/overview/">
-                            
-                            Overview
-                            
-                        </a>
-                        
-                        <a class="text-2xl font-medium" href="../../managed/architecture/">
-                            
-                            Architecture
-                            
-                        </a>
-                        
-                        <a class="text-2xl font-medium" href="../../managed/platform_getting_started/">
+                        <a class="text-2xl font-medium" href="../../deployer/platform_getting_started/">
                             
                             Getting started
+                            
+                        </a>
+                        
+                        <a class="text-2xl font-medium" href="../../deployer/multitenancy_llm/">
+                            
+                            Multi-tenancy LLM
                             
                         </a>
                         

@@ -49,6 +49,26 @@
          <lastmod>2026-08-02</lastmod>
     </url>
     <url>
+         <loc>https://kalavai-net.github.io/kalavai-client/deployer/architecture/</loc>
+         <lastmod>2026-08-02</lastmod>
+    </url>
+    <url>
+         <loc>https://kalavai-net.github.io/kalavai-client/deployer/jupyterhub/</loc>
+         <lastmod>2026-08-02</lastmod>
+    </url>
+    <url>
+         <loc>https://kalavai-net.github.io/kalavai-client/deployer/multitenancy_llm/</loc>
+         <lastmod>2026-08-02</lastmod>
+    </url>
+    <url>
+         <loc>https://kalavai-net.github.io/kalavai-client/deployer/overview/</loc>
+         <lastmod>2026-08-02</lastmod>
+    </url>
+    <url>
+         <loc>https://kalavai-net.github.io/kalavai-client/deployer/platform_getting_started/</loc>
+         <lastmod>2026-08-02</lastmod>
+    </url>
+    <url>
          <loc>https://kalavai-net.github.io/kalavai-client/inference/asr_inference/</loc>
          <lastmod>2026-08-02</lastmod>
     </url>
@@ -81,26 +101,6 @@
          <lastmod>2026-08-02</lastmod>
     </url>
     <url>
-         <loc>https://kalavai-net.github.io/kalavai-client/managed/architecture/</loc>
-         <lastmod>2026-08-02</lastmod>
-    </url>
-    <url>
-         <loc>https://kalavai-net.github.io/kalavai-client/managed/jupyterhub/</loc>
-         <lastmod>2026-08-02</lastmod>
-    </url>
-    <url>
-         <loc>https://kalavai-net.github.io/kalavai-client/managed/multitenancy_llm/</loc>
-         <lastmod>2026-08-02</lastmod>
-    </url>
-    <url>
-         <loc>https://kalavai-net.github.io/kalavai-client/managed/overview/</loc>
-         <lastmod>2026-08-02</lastmod>
-    </url>
-    <url>
-         <loc>https://kalavai-net.github.io/kalavai-client/managed/platform_getting_started/</loc>
-         <lastmod>2026-08-02</lastmod>
-    </url>
-    <url>
          <loc>https://kalavai-net.github.io/kalavai-client/use_cases/fine_tuning/</loc>
          <lastmod>2026-08-02</lastmod>
     </url>
@@ -113,15 +113,11 @@
          <lastmod>2026-08-02</lastmod>
     </url>
     <url>
-         <loc>https://kalavai-net.github.io/kalavai-client/use_cases/multi_node_model/</loc>
+         <loc>https://kalavai-net.github.io/kalavai-client/use_cases/model_deployment/</loc>
          <lastmod>2026-08-02</lastmod>
     </url>
     <url>
          <loc>https://kalavai-net.github.io/kalavai-client/use_cases/ray/</loc>
-         <lastmod>2026-08-02</lastmod>
-    </url>
-    <url>
-         <loc>https://kalavai-net.github.io/kalavai-client/use_cases/single_node_model/</loc>
          <lastmod>2026-08-02</lastmod>
     </url>
 </urlset>
