@@ -14,7 +14,7 @@
     
 
 
-<title>LLM Service</title>
+<title>Model gateway</title>
 
 
 
@@ -24,18 +24,18 @@
 
 
 
-<link rel="canonical" href="https://kalavai-net.github.io/kalavai-client/examples/llm_service_requests/">
+<link rel="canonical" href="https://kalavai-net.github.io/kalavai-client/use_cases/llm_gateway/">
 
 
 <!-- Open Graph (Facebook, LinkedIn) -->
 
-<meta property="og:title" content="LLM Service">
+<meta property="og:title" content="Model gateway">
 
 
 
 
 
-<meta property="og:url" content="https://kalavai-net.github.io/kalavai-client/examples/llm_service_requests/">
+<meta property="og:url" content="https://kalavai-net.github.io/kalavai-client/use_cases/llm_gateway/">
 
 
 
@@ -44,7 +44,7 @@
 
 <!-- Twitter Card -->
 
-<meta name="twitter:title" content="LLM Service">
+<meta name="twitter:title" content="Model gateway">
 
 
 
@@ -172,7 +172,7 @@
     
     
     <a class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5"
-        data-slot="button" href="../../use_cases/gpustack/">
+        data-slot="button" href="../single_node_model/">
         Use cases
     </a>
     
@@ -188,8 +188,8 @@
     
     
     <a class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5"
-        data-slot="button" href="../../cogenai/overview/">
-        CoGen AI
+        data-slot="button" href="../../inference/overview/">
+        Inference examples
     </a>
     
     
@@ -298,18 +298,18 @@
 <div data-slot="sidebar-group" data-sidebar="group" class="relative flex w-full min-w-0 flex-col p-2">
     <div data-slot="sidebar-group-label" data-sidebar="group-label"
         class="flex h-8 shrink-0 items-center rounded-md px-2 text-xs ring-sidebar-ring outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0 group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 font-medium text-muted-foreground">
-        GPU clusters</div>
+        Model deployment</div>
     <div data-slot="sidebar-group-content" data-sidebar="group-content" class="w-full text-sm">
         <ul data-slot="sidebar-menu" data-sidebar="menu" class="flex w-full min-w-0 flex-col gap-0.5">
             
             
             <li data-slot="sidebar-menu-item" data-sidebar="menu-item" class="group/menu-item relative">
     <a data-slot="sidebar-menu-button" data-active="false" data-sidebar="menu-button"
-        data-size="default" href="../../use_cases/gpustack/"
+        data-size="default" href="../single_node_model/"
         class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48">
 
         
-        Easy LLMs with GPUstack
+        Single node
         
 
         
@@ -324,7 +324,58 @@
             
             <li data-slot="sidebar-menu-item" data-sidebar="menu-item" class="group/menu-item relative">
     <a data-slot="sidebar-menu-button" data-active="false" data-sidebar="menu-button"
-        data-size="default" href="../../use_cases/ray/"
+        data-size="default" href="../multi_node_model/"
+        class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48">
+
+        
+        Multi node
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+            
+            
+            
+            <li data-slot="sidebar-menu-item" data-sidebar="menu-item" class="group/menu-item relative">
+    <a data-slot="sidebar-menu-button" data-active="true" data-sidebar="menu-button"
+        data-size="default" href="./"
+        class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48">
+
+        
+        Model gateway
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+            
+            
+        </ul>
+    </div>
+</div>
+
+
+
+<div data-slot="sidebar-group" data-sidebar="group" class="relative flex w-full min-w-0 flex-col p-2">
+    <div data-slot="sidebar-group-label" data-sidebar="group-label"
+        class="flex h-8 shrink-0 items-center rounded-md px-2 text-xs ring-sidebar-ring outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0 group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 font-medium text-muted-foreground">
+        GPU clusters</div>
+    <div data-slot="sidebar-group-content" data-sidebar="group-content" class="w-full text-sm">
+        <ul data-slot="sidebar-menu" data-sidebar="menu" class="flex w-full min-w-0 flex-col gap-0.5">
+            
+            
+            <li data-slot="sidebar-menu-item" data-sidebar="menu-item" class="group/menu-item relative">
+    <a data-slot="sidebar-menu-button" data-active="false" data-sidebar="menu-button"
+        data-size="default" href="../ray/"
         class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48">
 
         
@@ -356,113 +407,11 @@
             
             <li data-slot="sidebar-menu-item" data-sidebar="menu-item" class="group/menu-item relative">
     <a data-slot="sidebar-menu-button" data-active="false" data-sidebar="menu-button"
-        data-size="default" href="../../use_cases/fine_tuning/"
+        data-size="default" href="../fine_tuning/"
         class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48">
 
         
         Fine tune
-        
-
-        
-
-        
-
-        
-    </a>
-</li>
-            
-            
-        </ul>
-    </div>
-</div>
-
-
-
-<div data-slot="sidebar-group" data-sidebar="group" class="relative flex w-full min-w-0 flex-col p-2">
-    <div data-slot="sidebar-group-label" data-sidebar="group-label"
-        class="flex h-8 shrink-0 items-center rounded-md px-2 text-xs ring-sidebar-ring outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0 group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 font-medium text-muted-foreground">
-        Inference</div>
-    <div data-slot="sidebar-group-content" data-sidebar="group-content" class="w-full text-sm">
-        <ul data-slot="sidebar-menu" data-sidebar="menu" class="flex w-full min-w-0 flex-col gap-0.5">
-            
-            
-            <li data-slot="sidebar-menu-item" data-sidebar="menu-item" class="group/menu-item relative">
-    <a data-slot="sidebar-menu-button" data-active="false" data-sidebar="menu-button"
-        data-size="default" href="../../use_cases/multi_gpu_inference/"
-        class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48">
-
-        
-        Multi-GPU LLM
-        
-
-        
-
-        
-
-        
-    </a>
-</li>
-            
-            
-            
-            <li data-slot="sidebar-menu-item" data-sidebar="menu-item" class="group/menu-item relative">
-    <a data-slot="sidebar-menu-button" data-active="false" data-sidebar="menu-button"
-        data-size="default" href="../../use_cases/self_hosted_llm_pool/"
-        class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48">
-
-        
-        BYO Model Gateway
-        
-
-        
-
-        
-
-        
-    </a>
-</li>
-            
-            
-        </ul>
-    </div>
-</div>
-
-
-
-<div data-slot="sidebar-group" data-sidebar="group" class="relative flex w-full min-w-0 flex-col p-2">
-    <div data-slot="sidebar-group-label" data-sidebar="group-label"
-        class="flex h-8 shrink-0 items-center rounded-md px-2 text-xs ring-sidebar-ring outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0 group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 font-medium text-muted-foreground">
-        Examples</div>
-    <div data-slot="sidebar-group-content" data-sidebar="group-content" class="w-full text-sm">
-        <ul data-slot="sidebar-menu" data-sidebar="menu" class="flex w-full min-w-0 flex-col gap-0.5">
-            
-            
-            <li data-slot="sidebar-menu-item" data-sidebar="menu-item" class="group/menu-item relative">
-    <a data-slot="sidebar-menu-button" data-active="true" data-sidebar="menu-button"
-        data-size="default" href="./"
-        class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48">
-
-        
-        LLM Service
-        
-
-        
-
-        
-
-        
-    </a>
-</li>
-            
-            
-            
-            <li data-slot="sidebar-menu-item" data-sidebar="menu-item" class="group/menu-item relative">
-    <a data-slot="sidebar-menu-button" data-active="false" data-sidebar="menu-button"
-        data-size="default" href="../image_generation/"
-        class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48">
-
-        
-        Image Generation
         
 
         
@@ -496,12 +445,12 @@
     <div class="flex flex-col gap-2">
       <div id="page-header" class="flex items-start justify-between">
         <h1 class="scroll-m-20 text-4xl font-semibold tracking-tight sm:text-3xl xl:text-4xl">
-          LLM Service
+          Model gateway
         </h1>
 
         <div class="flex items-center gap-2 pt-1.5">
           <button
-    onclick="fetch(`https://kalavai-net.github.io/kalavai-client/examples/llm_service_requests.md`).then((r) => r.blob()).then((blob) => navigator.clipboard.write([new ClipboardItem({ 'text/plain': blob })]))"
+    onclick="fetch(`https://kalavai-net.github.io/kalavai-client/use_cases/llm_gateway.md`).then((r) => r.blob()).then((blob) => navigator.clipboard.write([new ClipboardItem({ 'text/plain': blob })]))"
     data-slot="button" class="secondary cursor-pointer">
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tabler-icon tabler-icon-copy ">
@@ -515,7 +464,7 @@
           
           <a data-slot="button" id="previous-button"
             class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 extend-touch-target size-8 shadow-none md:size-7"
-            href="../../use_cases/self_hosted_llm_pool/">
+            href="../multi_node_model/">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
               class="tabler-icon tabler-icon-arrow-left">
@@ -529,7 +478,7 @@
           
           <a data-slot="button" id="next-button"
             class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 extend-touch-target size-8 shadow-none md:size-7"
-            href="../image_generation/">
+            href="../ray/">
             <span class="sr-only">Next</span>
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -550,150 +499,83 @@
     </div>
   </div>
   <div class="typography w-full flex-1 *:data-[slot=alert]:first:mt-0">
-    <blockquote>
-<p>Work In progress</p>
-</blockquote>
-<h1 id="llm-service-requests-example">LLM Service Requests Example</h1>
-<p>This example shows how to make requests to the LLM service using the OpenAI compatible API.</p>
-<h2 id="installation">Installation</h2>
-<p>Install the required packages:</p>
-<div class="codehilite"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>openai
-</code></pre></div>
-
-<h2 id="configuration">Configuration</h2>
-<p>Substitute the following values with your own:</p>
+    <p>A unified LLM gateway API gives all your model deployments a single interface so client applications can reach all your models with the same endpoint. Furthermore, it also provides extra production features such as access control, budgeting, monitoring and tracing.</p>
+<h2 id="1-pre-requisites">1. Pre-requisites</h2>
 <ul>
-<li><code>MODEL</code>: The model ID of the model you want to use. Example: <code>Qwen/Qwen3-4B</code></li>
-<li><code>API_KEY</code>: Your API key (if authentication is required)</li>
-<li><code>API_URL</code>: The URL of the API. Example: <code>http://kalavai-api.public.kalavai.net/v1</code></li>
+<li><a href="getting_started.md#getting-started">Install kalavai CLI</a> on each machine</li>
+<li>Set up a <a href="getting_started.md">2 machine LLM pool</a>, i.e. a seed node and one worker</li>
 </ul>
-<h2 id="examples">Examples</h2>
-<h3 id="1-streaming-inference">1. Streaming Inference</h3>
-<p>A single request with streaming response to get the output tokens as soon as they are generated.</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openai</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAI</span>
-
-<span class="n">API_URL</span> <span class="o">=</span> <span class="s2">&quot;http://kalavai-api.public.kalavai.net/v1&quot;</span>
-<span class="n">API_KEY</span> <span class="o">=</span> <span class="s2">&quot;&lt;your-api-key&gt;&quot;</span>
-<span class="n">MODEL</span> <span class="o">=</span> <span class="s2">&quot;Qwen/Qwen3-4B&quot;</span>
-
-<span class="n">client</span> <span class="o">=</span> <span class="n">OpenAI</span><span class="p">(</span>
-    <span class="n">base_url</span><span class="o">=</span><span class="n">API_URL</span><span class="p">,</span>
-    <span class="n">api_key</span><span class="o">=</span><span class="n">API_KEY</span>
-<span class="p">)</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">stream_chat</span><span class="p">():</span>
-    <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">chat</span><span class="o">.</span><span class="n">completions</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-        <span class="n">model</span><span class="o">=</span><span class="n">MODEL</span><span class="p">,</span>
-        <span class="n">messages</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;Tell me a long story&quot;</span><span class="p">}],</span>
-        <span class="n">stream</span><span class="o">=</span><span class="kc">True</span>
-    <span class="p">)</span>
-
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Assistant:&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
-        <span class="n">delta</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">choices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">delta</span>
-        <span class="k">if</span> <span class="n">delta</span> <span class="ow">and</span> <span class="n">delta</span><span class="o">.</span><span class="n">content</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">delta</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--- Done ---&quot;</span><span class="p">)</span>
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">stream_chat</span><span class="p">()</span>
+<h3 id="unified-openai-like-api">Unified OpenAI-like API</h3>
+<p>Model templates deployed in LLM pools have an optional key parameter to register themselves with a LiteLLM instance. <a href="https://docs.litellm.ai/docs/">LiteLLM</a> is a powerful API that unifies all of your models into a single API, making developing apps with LLMs easier and more flexible.</p>
+<p>Our <a href="https://github.com/kalavai-net/kalavai-client/tree/main/templates/litellm">LiteLLM</a> template automates the deployment of the API across a pool, database included. To deploy it using the Kalavai GUI, navigate to <code>Jobs</code>, then click on the <code>circle-plus</code> button, in which you can select a <code>litellm</code> template.</p>
+<p><img alt="Deploy litellm" src="../assets/images/ui_deploy_litellm.png" /></p>
+<p>Once the deployment is complete, you can check the LiteLLM endpoint by navigating to <code>Jobs</code> and seeing the corresponding endpoint for the <code>litellm</code> job.</p>
+<p><img alt="Check LiteLLM endpoint" src="../assets/images/ui_litellm_status.png" /></p>
+<p>You will need a virtual key to register models with LiteLLM. For testing you can use the master key defined in your values.yaml under <code>master_key</code>, but it is recommended to generate a virtual one that does not have privilege access. The easiest way of doing so is via the admin UI, under http://192.168.68.67:30535/ui (see more details <a href="https://docs.litellm.ai/docs/proxy/virtual_keys">here</a>).</p>
+<div class="codehilite"><pre><span></span><code>Example virtual key: sk-rDCm0Vd5hDOigaNbQSSsEQ
 </code></pre></div>
 
-<h3 id="2-batched-inference">2. Batched Inference</h3>
-<p>Multiple requests submitted simultaneously. The results are displayed in bulk once all of them are completed.</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openai</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAI</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
-
-<span class="n">API_URL</span> <span class="o">=</span> <span class="s2">&quot;http://kalavai-api.public.kalavai.net/v1&quot;</span>
-<span class="n">API_KEY</span> <span class="o">=</span> <span class="s2">&quot;&lt;your-api-key&gt;&quot;</span>
-<span class="n">MODEL</span> <span class="o">=</span> <span class="s2">&quot;Qwen/Qwen3-4B&quot;</span>
-
-<span class="n">client</span> <span class="o">=</span> <span class="n">OpenAI</span><span class="p">(</span>
-    <span class="n">base_url</span><span class="o">=</span><span class="n">API_URL</span><span class="p">,</span>
-    <span class="n">api_key</span><span class="o">=</span><span class="n">API_KEY</span>
-<span class="p">)</span>
-
-<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">batched_inference_openai</span><span class="p">():</span>
-    <span class="n">prompts</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s2">&quot;What is the capital of France?&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;Explain quantum computing&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;Write a short poem&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;What are the benefits of exercise?&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;Describe the solar system&quot;</span>
-    <span class="p">]</span>
-
-    <span class="n">tasks</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">prompt</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">prompts</span><span class="p">):</span>
-        <span class="n">task</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">single_request</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">MODEL</span><span class="p">,</span> <span class="n">prompt</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
-        <span class="n">tasks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
-
-    <span class="n">results</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="n">tasks</span><span class="p">)</span>
-
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">results</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Response </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">result</span><span class="p">[:</span><span class="mi">100</span><span class="p">]</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
-
-<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">single_request</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">prompt</span><span class="p">,</span> <span class="n">request_id</span><span class="p">):</span>
-    <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">chat</span><span class="o">.</span><span class="n">completions</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-        <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
-        <span class="n">messages</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">prompt</span><span class="p">}],</span>
-        <span class="n">max_tokens</span><span class="o">=</span><span class="mi">100</span>
-    <span class="p">)</span>
-    <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">choices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">content</span>
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">batched_inference_openai</span><span class="p">())</span>
-</code></pre></div>
-
-<h3 id="3-custom-parameters">3. Custom parameters</h3>
-<p>Some models support custom parameters that can be passed in the <code>extra_body</code> field. For example, the Qwen model supports the <code>enable_thinking</code> parameter to disable reasoning mode.</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openai</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAI</span>
-
-<span class="n">API_URL</span> <span class="o">=</span> <span class="s2">&quot;http://kalavai-api.public.kalavai.net/v1&quot;</span>
-<span class="n">API_KEY</span> <span class="o">=</span> <span class="s2">&quot;&lt;your-api-key&gt;&quot;</span>
-<span class="n">MODEL</span> <span class="o">=</span> <span class="s2">&quot;Qwen/Qwen3-4B&quot;</span>
-
-<span class="n">client</span> <span class="o">=</span> <span class="n">OpenAI</span><span class="p">(</span>
-    <span class="n">base_url</span><span class="o">=</span><span class="n">API_URL</span><span class="p">,</span>
-    <span class="n">api_key</span><span class="o">=</span><span class="n">API_KEY</span>
-<span class="p">)</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">stream_chat</span><span class="p">():</span>
-    <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">chat</span><span class="o">.</span><span class="n">completions</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-        <span class="n">model</span><span class="o">=</span><span class="n">MODEL</span><span class="p">,</span>
-        <span class="n">messages</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;Who, Tell me a story&quot;</span><span class="p">}],</span>
-        <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">extra_body</span><span class="o">=</span><span class="p">{</span>
-            <span class="s2">&quot;chat_template_kwargs&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;enable_thinking&quot;</span><span class="p">:</span> <span class="kc">False</span>
-            <span class="p">}</span>
-        <span class="p">}</span>
-    <span class="p">)</span>
-
-    <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
-        <span class="n">delta</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">choices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">delta</span>
-        <span class="k">if</span> <span class="n">delta</span> <span class="ow">and</span> <span class="n">delta</span><span class="o">.</span><span class="n">content</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">delta</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">delta</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">delta</span><span class="p">,</span> <span class="s1">&#39;reasoning_content&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">delta</span><span class="o">.</span><span class="n">reasoning_content</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">delta</span><span class="o">.</span><span class="n">reasoning_content</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">delta</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">delta</span><span class="p">,</span> <span class="s1">&#39;reasoning&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">delta</span><span class="o">.</span><span class="n">reasoning</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">delta</span><span class="o">.</span><span class="n">reasoning</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--- Done ---&quot;</span><span class="p">)</span>
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">stream_chat</span><span class="p">()</span>
-</code></pre></div>
-
-<h2 id="openai-compatible-api">OpenAI compatible API</h2>
-<p>With the OpenAI compatible API, you can use the same code to interact with the LLM service as you would with the OpenAI API. This means that you can use the same code to interact with the service as you would with the OpenAI API, including methods and parameters to customise your inference calls.</p>
-<p>For a detailed view of the OpenAI compatible API, supported methods and parameters, see the <a href="https://litellm-api.up.railway.app/#/chat%2Fcompletions/chat_completion_v1_chat_completions_post">LiteLLM API Documentation</a>.</p>
-<h2 id="high-performance-notes">High-Performance notes</h2>
+<p><img alt="Create a virtual key" src="../assets/images/litellm_virtual_key.png" /></p>
+<h2 id="3-deploy-models-with-compatible-frameworks">3. Deploy models with compatible frameworks</h2>
+<p>In this section, we'll look into how to deploy a model with another of our supported model engines: <a href="https://github.com/kalavai-net/kalavai-client/blob/main/templates/llamacpp/README.md">llama.cpp</a>. You can use the kalavai CLI to deploy jobs (via kalavai job deploy) but here we'll use the much simpler GUI route.</p>
+<p>Just like we did for LiteLLM and Playground, you can deploy a model by navigating to the Jobs page and clicking the <code>circle-plus</code> button. Select <code>llamacpp</code> as model template, and populate the following values:</p>
 <ul>
-<li><strong>Streaming</strong>: Use <code>stream=True</code> for real-time response generation</li>
-<li><strong>Batching</strong>: Use async/await patterns for concurrent requests</li>
-<li><strong>Error Handling</strong>: Always include proper error handling for network requests</li>
+<li><code>working_memory</code>: 10 (enough free space GBs to fit the model weights)</li>
+<li><code>workers</code>: 2 (this will distribute the model onto our 2 machines)</li>
+<li><code>repo_id</code>: Qwen/Qwen3-4B-GGUF (the <a href="https://huggingface.co/Qwen/Qwen3-4B-GGUF">repo id</a> from Huggingface)</li>
+<li><code>model_filename</code>: Qwen3-4B-Q4_K_M.gguf (the <a href="https://huggingface.co/Qwen/Qwen3-4B-GGUF/tree/main">filename</a> of the quantized version we want)</li>
+<li><code>hf_token</code>: <your Huggingface token> if using a gated model (in this case it's not needed)</li>
+<li><code>litellm_key</code>: sk-qoQC5lijoaBwXoyi_YP1xA (Advanced parameter; the virtual key generated above for LiteLLM. <strong>This is key to make sure models are self registering to both LiteLLM and the playground.</strong>)</li>
 </ul>
+<p><img alt="Deploy llamacpp job" src="../assets/images/deploy_qwen3_litellm.png" /></p>
+<h2 id="4-access-your-models">4. Access your models</h2>
+<p>Once they are donwloaded and loaded into memory, your models will be readily available both via the LiteLLM API as well as through the UI Playground. </p>
+<h3 id="single-api-endpoint">Single API endpoint</h3>
+<p>All interactions to models in the pool are brokered by a <a href="https://docs.litellm.ai/docs/">LiteLLM endpoint</a> that is installed in the system. To interact with it you need the following:</p>
+<ul>
+<li>The <code>LITELLM_URL</code> is the endpoint displayed in the <code>Jobs</code> page for the <code>litellm</code> job.</li>
+<li>The <code>LITELLM_KEY</code> is the one you have generated above.</li>
+<li>The <code>MODEL_NAME</code> you want to use (the job name displayed in the <code>Jobs</code> page)</li>
+</ul>
+<p>In this example:</p>
+<ul>
+<li><code>LITELLM_URL=http://192.168.68.67:30535</code></li>
+<li><code>LITELLM_KEY=sk-qoQC5lijoaBwXoyi_YP1xA</code></li>
+<li><code>MODEL_NAME=qwen3_qwen3_4b_gguf_qwen3_4b_q4_k_m_gguf</code></li>
+</ul>
+<h3 id="check-available-llms">Check available LLMs</h3>
+<p>Using cURL:</p>
+<div class="codehilite"><pre><span></span><code>curl<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span><span class="s2">&quot;&lt;LITELLM_URL&gt;/v1/models&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s1">&#39;Authorization: Bearer &lt;LITELLM_KEY&gt;&#39;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;accept: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span>
+</code></pre></div>
+
+<p>Using python:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+
+<span class="n">LITELLM_URL</span> <span class="o">=</span> <span class="s2">&quot;http://192.168.68.67:30535&quot;</span>
+<span class="n">LITELLM_KEY</span> <span class="o">=</span> <span class="s2">&quot;sk-qoQC5lijoaBwXoyi_YP1xA&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">list_models</span><span class="p">():</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">LITELLM_URL</span><span class="si">}</span><span class="s2">/v1/models&quot;</span><span class="p">,</span>
+        <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="n">LITELLM_KEY</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">}</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="n">list_models</span><span class="p">()</span>
+    <span class="p">)</span>
+</code></pre></div>
+
+<h3 id="use-models">Use models</h3>
+<p>See inference section.</p>
+<h2 id="5-clean-up">5. Clean up</h2>
+<p>To remove any model deployment, navigate to the <code>Jobs</code> page, select the job (checkbox next to its name) and click the <code>bin</code> icon on top of the table. This will remove the deployment from any worker involved and free its resources.</p>
   </div>
   
   <script>
@@ -706,7 +588,7 @@
     
     <a data-slot="button"
         class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-8 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5 shadow-none"
-        href="../../use_cases/self_hosted_llm_pool/">
+        href="../multi_node_model/">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
             class="tabler-icon tabler-icon-arrow-left ">
@@ -714,14 +596,14 @@
             <path d="M5 12l6 6"></path>
             <path d="M5 12l6 -6"></path>
         </svg>
-        <span class="max-[500px]:hidden">BYO Model Gateway</span>
+        <span class="max-[500px]:hidden">Multi node</span>
     </a>
     
     
     <a data-slot="button"
         class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-8 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5 ml-auto shadow-none"
-        href="../image_generation/">
-        <span class="max-[500px]:hidden">Image Generation</span>
+        href="../ray/">
+        <span class="max-[500px]:hidden">Production GPU fleets</span>
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
             class="tabler-icon tabler-icon-arrow-right ">
@@ -794,47 +676,47 @@
                 </div>
                 
                 <div class="flex flex-col gap-4">
-                    <div class="text-muted-foreground text-sm font-medium">CoGen AI</div>
+                    <div class="text-muted-foreground text-sm font-medium">Inference examples</div>
                     
                     <div class="flex flex-col gap-3">
                         
-                        <a class="text-2xl font-medium" href="../../cogenai/overview/">
+                        <a class="text-2xl font-medium" href="../../inference/overview/">
                             
                             Overview
                             
                         </a>
                         
-                        <a class="text-2xl font-medium" href="../../cogenai/text_inference/">
+                        <a class="text-2xl font-medium" href="../../inference/text_inference/">
                             
                             Text inference
                             
                         </a>
                         
-                        <a class="text-2xl font-medium" href="../../cogenai/multimodal_inference/">
+                        <a class="text-2xl font-medium" href="../../inference/multimodal_inference/">
                             
                             Multimodal Inference
                             
                         </a>
                         
-                        <a class="text-2xl font-medium" href="../../cogenai/tts_inference/">
+                        <a class="text-2xl font-medium" href="../../inference/tts_inference/">
                             
                             Text-to-speech
                             
                         </a>
                         
-                        <a class="text-2xl font-medium" href="../../cogenai/asr_inference/">
+                        <a class="text-2xl font-medium" href="../../inference/asr_inference/">
                             
                             Speech Recognition
                             
                         </a>
                         
-                        <a class="text-2xl font-medium" href="../../cogenai/custom_params_inference/">
+                        <a class="text-2xl font-medium" href="../../inference/custom_params_inference/">
                             
                             Use custom parameters
                             
                         </a>
                         
-                        <a class="text-2xl font-medium" href="../../cogenai/response_metrics/">
+                        <a class="text-2xl font-medium" href="../../inference/response_metrics/">
                             
                             Get metrics
                             
@@ -861,62 +743,62 @@
         
         
         
-        <a href="#installation"
+        <a href="#1-pre-requisites"
             class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
-            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#installation');">
-            Installation
-        </a>
-        
-
-        
-        <a href="#configuration"
-            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
-            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#configuration');">
-            Configuration
-        </a>
-        
-
-        
-        <a href="#examples"
-            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
-            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#examples');">
-            Examples
+            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#1-pre-requisites');">
+            1. Pre-requisites
         </a>
         
         
-        <a href="#1-streaming-inference"
+        <a href="#unified-openai-like-api"
             class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
-            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#1-streaming-inference');">
-            1. Streaming Inference
-        </a>
-        
-        <a href="#2-batched-inference"
-            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
-            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#2-batched-inference');">
-            2. Batched Inference
-        </a>
-        
-        <a href="#3-custom-parameters"
-            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
-            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#3-custom-parameters');">
-            3. Custom parameters
+            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#unified-openai-like-api');">
+            Unified OpenAI-like API
         </a>
         
         
 
         
-        <a href="#openai-compatible-api"
+        <a href="#3-deploy-models-with-compatible-frameworks"
             class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
-            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#openai-compatible-api');">
-            OpenAI compatible API
+            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#3-deploy-models-with-compatible-frameworks');">
+            3. Deploy models with compatible frameworks
         </a>
         
 
         
-        <a href="#high-performance-notes"
+        <a href="#4-access-your-models"
             class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
-            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#high-performance-notes');">
-            High-Performance notes
+            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#4-access-your-models');">
+            4. Access your models
+        </a>
+        
+        
+        <a href="#single-api-endpoint"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#single-api-endpoint');">
+            Single API endpoint
+        </a>
+        
+        <a href="#check-available-llms"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#check-available-llms');">
+            Check available LLMs
+        </a>
+        
+        <a href="#use-models"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#use-models');">
+            Use models
+        </a>
+        
+        
+
+        
+        <a href="#5-clean-up"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#5-clean-up');">
+            5. Clean up
         </a>
         
 

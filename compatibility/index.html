@@ -172,7 +172,7 @@
     
     
     <a class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5"
-        data-slot="button" href="../use_cases/gpustack/">
+        data-slot="button" href="../use_cases/single_node_model/">
         Use cases
     </a>
     
@@ -188,8 +188,8 @@
     
     
     <a class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5"
-        data-slot="button" href="../cogenai/overview/">
-        CoGen AI
+        data-slot="button" href="../inference/overview/">
+        Inference examples
     </a>
     
     
@@ -577,13 +577,12 @@
   <div class="typography w-full flex-1 *:data-[slot=alert]:first:mt-0">
     <p>If your system is not currently supported, <a href="https://github.com/kalavai-net/kalavai-client/issues">open an issue</a> and request it. We are expanding this list constantly.</p>
 <h3 id="os-compatibility">OS compatibility</h3>
-<p>Currently <strong>seed nodes</strong> are supported exclusively on linux machines (x86_64 platform). However Kalavai supports mixed pools, i.e. having Windows and MacOS computers as workers.</p>
+<p>Currently <code>amd64</code> and <code>arm64</code> architectures are supported. Kalavai supports mixed pools, i.e. having Windows and MacOS computers as workers.</p>
 <p>Since <strong>worker nodes</strong> run inside docker, any machine that can run docker <strong>should</strong> be compatible with Kalavai. Here are instructions for <a href="https://docs.docker.com/engine/install/">linux</a>, <a href="https://docs.docker.com/desktop/setup/install/windows-install/">Windows</a> and <a href="https://docs.docker.com/desktop/setup/install/mac-install/">MacOS</a>.</p>
 <p>The kalavai client, which controls and access pools, can be installed on any machine that has python 3.10+.</p>
 <h3 id="hardware-compatibility">Hardware compatibility:</h3>
 <ul>
-<li><code>amd64</code> or <code>x86_64</code> CPU architecture for seed and worker nodes.</li>
-<li><code>arm64</code> CPU architecture for worker nodes. Note: not all workloads support arm64 workers.</li>
+<li><code>amd64</code> and <code>arm64</code> CPU architecture for seed and worker nodes.</li>
 <li>NVIDIA GPU or AMD GPUs</li>
 <li>Mac M series and Intel GPUs are currently not supported (<a href="https://kalavai-net.github.io/kalavai-client/compatibility/#help-testing-amd-gpus">interested in helping us test it?</a>)</li>
 </ul>
@@ -713,47 +712,47 @@ kalavai<span class="w"> </span>pool<span class="w"> </span>resources<span class=
                 </div>
                 
                 <div class="flex flex-col gap-4">
-                    <div class="text-muted-foreground text-sm font-medium">CoGen AI</div>
+                    <div class="text-muted-foreground text-sm font-medium">Inference examples</div>
                     
                     <div class="flex flex-col gap-3">
                         
-                        <a class="text-2xl font-medium" href="../cogenai/overview/">
+                        <a class="text-2xl font-medium" href="../inference/overview/">
                             
                             Overview
                             
                         </a>
                         
-                        <a class="text-2xl font-medium" href="../cogenai/text_inference/">
+                        <a class="text-2xl font-medium" href="../inference/text_inference/">
                             
                             Text inference
                             
                         </a>
                         
-                        <a class="text-2xl font-medium" href="../cogenai/multimodal_inference/">
+                        <a class="text-2xl font-medium" href="../inference/multimodal_inference/">
                             
                             Multimodal Inference
                             
                         </a>
                         
-                        <a class="text-2xl font-medium" href="../cogenai/tts_inference/">
+                        <a class="text-2xl font-medium" href="../inference/tts_inference/">
                             
                             Text-to-speech
                             
                         </a>
                         
-                        <a class="text-2xl font-medium" href="../cogenai/asr_inference/">
+                        <a class="text-2xl font-medium" href="../inference/asr_inference/">
                             
                             Speech Recognition
                             
                         </a>
                         
-                        <a class="text-2xl font-medium" href="../cogenai/custom_params_inference/">
+                        <a class="text-2xl font-medium" href="../inference/custom_params_inference/">
                             
                             Use custom parameters
                             
                         </a>
                         
-                        <a class="text-2xl font-medium" href="../cogenai/response_metrics/">
+                        <a class="text-2xl font-medium" href="../inference/response_metrics/">
                             
                             Get metrics
                             

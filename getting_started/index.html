@@ -172,7 +172,7 @@
     
     
     <a class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5"
-        data-slot="button" href="../use_cases/gpustack/">
+        data-slot="button" href="../use_cases/single_node_model/">
         Use cases
     </a>
     
@@ -188,8 +188,8 @@
     
     
     <a class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5"
-        data-slot="button" href="../cogenai/overview/">
-        CoGen AI
+        data-slot="button" href="../inference/overview/">
+        Inference examples
     </a>
     
     
@@ -576,26 +576,27 @@
   </div>
   <div class="typography w-full flex-1 *:data-[slot=alert]:first:mt-0">
     <p>The <code>kalavai</code> client is the main tool to interact with the Kalavai platform, to create and manage pools and also to interact with them (e.g. deploy models). Let's go over its installation. </p>
-<p>From release <strong>v0.5.0, you can now install <code>kalavai</code> client in non-worker computers</strong>. You can run a pool on a set of machines and have the client on a remote computer from which you access the LLM pool. Because the client only requires having python installed, this means more computers are now supported to run it.</p>
 <h3 id="requirements-to-run-the-client">Requirements to run the client</h3>
 <p>For seed nodes:</p>
 <ul>
-<li>A 64 bits x86 based Linux machine (laptop, desktop or VM)</li>
+<li>A 64 bits x86 / ARM64 based Linux-based machine (laptop, desktop or VM)</li>
 <li><a href="https://docs.docker.com/engine/install/ubuntu/">Docker engine installed</a> with <a href="https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities">privilege access</a>.</li>
 <li>Python 3.12+</li>
+<li><code>gcc</code> and <code>python3-dev</code> installed</li>
 </ul>
 <p>For workers sharing resources with the pool:</p>
 <ul>
 <li>A laptop, desktop or Virtual Machine (MacOS, Linux or Windows; ARM or x86)</li>
-<li>If self-hosting, workers should be on the same network as the seed node. Looking for over-the-internet connectivity? Check out our <a href="https://platform.kalavai.net">managed service</a></li>
+<li>Workers should be on the same network as the seed node (or a shared VPN).</li>
 <li>Docker engine installed (for <a href="https://docs.docker.com/engine/install/ubuntu/">linux</a>, <a href="https://docs.docker.com/desktop/">Windows and MacOS</a>) with <a href="https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities">privilege access</a>.</li>
 <li>Python 3.12+</li>
+<li><code>gcc</code> and <code>python3-dev</code> installed</li>
 </ul>
 <h4 id="ports">Ports</h4>
 <p>Once a machine is part of a pool, the following ports must be enabled and open to accept and process workloads:</p>
 <p><strong>Seed nodes</strong>:</p>
 <ul>
-<li>2379-2380 TCP inbound/outbound </li>
+<li>2379-2380 TCP inbound/outbound</li>
 <li>6443 TCP inbound</li>
 <li>8472 UDP inbound/outbound</li>
 <li>10250 TCP inbound/outbound</li>
@@ -615,10 +616,9 @@
 </code></pre></div>
 
 <h2 id="create-a-local-private-pool">Create a local, private pool</h2>
-<p>To create your own GPU pool, you will need at least one machine (the seed) and (optionally) one or more workers. See <a href="../#core-components">Kalavai concepts</a> for an overview of AI pool architecture. Note that <strong>seed machines should always be available for the platform to remain operational</strong>.</p>
-<p>You can create a seed by self-hosting the open source platform (limited to same network machines only) or using our managed pools service (pre-configured, hosted seed with over-the-internet workers from everywhere).</p>
-<h3 id="1a-self-hosted-create-a-seed">1a. [Self hosted] Create a seed</h3>
-<p><strong>Note: Currently seed nodes are only supported in Linux x86_64 machines.</strong> </p>
+<p>To create your own computing pool, you will need at least one machine (the seed) and (optionally) one or more workers. See <a href="../#core-components">Kalavai concepts</a> for an overview of AI pool architecture. Note that <strong>seed machines should always be available for the platform to remain operational</strong>.</p>
+<p>You can create a seed by self-hosting the open source platform, limited to same network machines only (or shared VPN).</p>
+<h3 id="1-create-a-seed">1. Create a seed</h3>
 <p>In any machine with the <code>kalavai</code> client installed, execute the following to start a seed node:</p>
 <div class="codehilite"><pre><span></span><code>kalavai<span class="w"> </span>pool<span class="w"> </span>start<span class="w"> </span>&lt;name&gt;
 </code></pre></div>
@@ -629,33 +629,20 @@
 <span class="o">[</span><span class="m">10</span>:11:13<span class="o">]</span><span class="w"> </span>Using<span class="w"> </span>ports:<span class="w"> </span><span class="o">[</span><span class="m">49152</span>,<span class="w"> </span><span class="m">49153</span>,<span class="w"> </span><span class="m">49154</span><span class="o">]</span><span class="w">                                </span>
 <span class="o">[</span>+<span class="o">]</span><span class="w"> </span>Running<span class="w"> </span><span class="m">2</span>/2
 <span class="w"> </span>✔<span class="w"> </span>Network<span class="w"> </span>kalavai_kalavai-net<span class="w">  </span>Created0.1s<span class="w">  </span>
-<span class="w"> </span>✔<span class="w"> </span>Container<span class="w"> </span>kalavai_gui<span class="w">        </span>Started0.4s<span class="w">  </span>
-<span class="w">           </span>Loading<span class="w"> </span>GUI,<span class="w"> </span>may<span class="w"> </span>take<span class="w"> </span>a<span class="w"> </span>few<span class="w"> </span>minutes.<span class="w"> </span>It<span class="w"> </span>will<span class="w"> </span>be<span class="w"> </span>available<span class="w"> </span>at<span class="w">       </span>
-<span class="w">           </span>http://localhost:49153
 </code></pre></div>
 
-<p>By default, the GUI is available via your browser at http://localhost:49153 (but note the port may change depending on port availability).</p>
-<h3 id="1b-managed-pools-create-a-seed">1b. [Managed pools] Create a seed</h3>
-<p>We offer a service to <a href="https://platform.kalavai.net">host and manage seed nodes</a> with the following advantages:
-- Connect worker nodes from anywhere (over-the-internet)
-- Always on to keep your AI pool operational.
-- Great if you don't have a linux x86_64 machine to use as a seed.</p>
-<p>Create a <a href="https://platform.kalavai.net">free account on our platform</a>. Then, navigate to <code>My Pools</code> to manage and create seed nodes for your pools:</p>
-<p><img alt="Managed seeds" src="../assets/images/managed_pools.png" /></p>
-<p>Once your seed is up and running and the status is <code>Healthy</code>, follow the on-screen instructions to access it via remote GUI.</p>
+<p>And then start the GUI locally:</p>
+<div class="codehilite"><pre><span></span><code>kalavai<span class="w"> </span>gui<span class="w"> </span>start
+</code></pre></div>
+
+<p>This will expose the GUI and the backend services in localhost. By default, the GUI is accessible via <a href="http://localhost:49153">http://localhost:49153</a>.</p>
 <h3 id="2-add-worker-nodes">2. Add worker nodes</h3>
 <blockquote>
-<p><strong>Important: if you are self hosting seed nodes, only nodes within the same network as the seed node can be added successfully. This limitation does not apply to our managed seeds</strong></p>
+<p><strong>Important: if you are self hosting seed nodes, only nodes within the same network as the seed node can be added successfully.</strong></p>
 </blockquote>
-<p>Increase the power of your GPU pool by adding resources from other devices. For that, you need to generate a joining token. You can do this by using the seed GUI or the CLI.</p>
-<p><strong>[On the seed node] Using the GUI</strong></p>
-<p>Use the navigation panel to go to <code>Devices</code>, and then click the <code>circle-plus</code> button to add new devices. You can select the <code>Access mode</code>, which determine the level of access new nodes will have over the pool:
-- <code>admin</code>: Same level of access than the seed node, including generating new joining tokens and deleting nodes.
-- <code>user</code>: Can deploy jobs, but lacks admin access over nodes.
-- <code>worker</code>: Workers carry on jobs, but cannot deploy their own jobs or manage devices.</p>
-<p><img alt="Invite others to join" src="../assets/images/ui_devices_invite.png" /></p>
+<p>Increase the power of your computing pool by adding resources from other devices. For that, you need to generate a joining token. You can do this by using the seed GUI or the CLI.</p>
 <p><strong>[On the seed node] Using the CLI</strong></p>
-<p><strong>Alternatively</strong>, if you do not want to use the GUI, you can join from the command-line. Run the following to obtain your joining token:</p>
+<p>In the terminal, run the following to obtain your joining token:</p>
 <div class="codehilite"><pre><span></span><code>kalavai<span class="w"> </span>pool<span class="w"> </span>token<span class="w"> </span>--worker
 </code></pre></div>
 
@@ -682,6 +669,7 @@
 <div class="codehilite"><pre><span></span><code>kalavai<span class="w"> </span>pool<span class="w"> </span>stop
 </code></pre></div>
 
+<p>You can also remove a worker node from the pool using the pool GUI by navigating to <code>Resources</code> and clicking the <code>x</code> button next to the device you want to remove.</p>
 <h2 id="whats-next">What's next</h2>
 <p>Now that you know how to get a pool up and running, check our <a href="self_hosted_llm_pool.md">end to end tutorial</a> on how to self-host an LLM Pool with OpenAI compatible API and a ChatGPT-like interface for all your LLM models.</p>
   </div>
@@ -784,47 +772,47 @@
                 </div>
                 
                 <div class="flex flex-col gap-4">
-                    <div class="text-muted-foreground text-sm font-medium">CoGen AI</div>
+                    <div class="text-muted-foreground text-sm font-medium">Inference examples</div>
                     
                     <div class="flex flex-col gap-3">
                         
-                        <a class="text-2xl font-medium" href="../cogenai/overview/">
+                        <a class="text-2xl font-medium" href="../inference/overview/">
                             
                             Overview
                             
                         </a>
                         
-                        <a class="text-2xl font-medium" href="../cogenai/text_inference/">
+                        <a class="text-2xl font-medium" href="../inference/text_inference/">
                             
                             Text inference
                             
                         </a>
                         
-                        <a class="text-2xl font-medium" href="../cogenai/multimodal_inference/">
+                        <a class="text-2xl font-medium" href="../inference/multimodal_inference/">
                             
                             Multimodal Inference
                             
                         </a>
                         
-                        <a class="text-2xl font-medium" href="../cogenai/tts_inference/">
+                        <a class="text-2xl font-medium" href="../inference/tts_inference/">
                             
                             Text-to-speech
                             
                         </a>
                         
-                        <a class="text-2xl font-medium" href="../cogenai/asr_inference/">
+                        <a class="text-2xl font-medium" href="../inference/asr_inference/">
                             
                             Speech Recognition
                             
                         </a>
                         
-                        <a class="text-2xl font-medium" href="../cogenai/custom_params_inference/">
+                        <a class="text-2xl font-medium" href="../inference/custom_params_inference/">
                             
                             Use custom parameters
                             
                         </a>
                         
-                        <a class="text-2xl font-medium" href="../cogenai/response_metrics/">
+                        <a class="text-2xl font-medium" href="../inference/response_metrics/">
                             
                             Get metrics
                             
@@ -882,16 +870,10 @@
         </a>
         
         
-        <a href="#1a-self-hosted-create-a-seed"
+        <a href="#1-create-a-seed"
             class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
-            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#1a-self-hosted-create-a-seed');">
-            1a. [Self hosted] Create a seed
-        </a>
-        
-        <a href="#1b-managed-pools-create-a-seed"
-            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
-            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#1b-managed-pools-create-a-seed');">
-            1b. [Managed pools] Create a seed
+            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#1-create-a-seed');">
+            1. Create a seed
         </a>
         
         <a href="#2-add-worker-nodes"

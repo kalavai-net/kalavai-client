@@ -172,7 +172,7 @@
     
     
     <a class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5"
-        data-slot="button" href="../use_cases/gpustack/">
+        data-slot="button" href="../use_cases/single_node_model/">
         Use cases
     </a>
     
@@ -188,8 +188,8 @@
     
     
     <a class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5"
-        data-slot="button" href="../cogenai/overview/">
-        CoGen AI
+        data-slot="button" href="../inference/overview/">
+        Inference examples
     </a>
     
     
@@ -642,11 +642,6 @@ Join<span class="w"> </span>token:<span class="w"> </span>&lt;token&gt;
 <div class="codehilite"><pre><span></span><code>kalavai<span class="w"> </span>pool<span class="w"> </span>join<span class="w"> </span>&lt;token&gt;
 </code></pre></div>
 
-<h3 id="attach-more-clients">Attach more clients</h3>
-<p>You can now connect to an existing pool from any computer -not just from worker nodes. To connect to a pool, run:</p>
-<div class="codehilite"><pre><span></span><code>kalavai<span class="w"> </span>pool<span class="w"> </span>attach<span class="w"> </span>&lt;token&gt;
-</code></pre></div>
-
 <h3 id="check-resources-in-the-pool">Check resources in the pool</h3>
 <p>List resources are available:</p>
 <div class="codehilite"><pre><span></span><code>$<span class="w"> </span>kalavai<span class="w"> </span>pool<span class="w"> </span>resources
@@ -672,31 +667,7 @@ $<span class="w"> </span>kalavai<span class="w"> </span>pool<span class="w"> </s
 └────────────────────┴───────┴──────────────────────────────────────────────────────┴───────────┴───────┘
 </code></pre></div>
 
-<h3 id="deploy-jobs">Deploy jobs</h3>
-<p>Deploy a job using a template:</p>
-<div class="codehilite"><pre><span></span><code>$<span class="w"> </span>kalavai<span class="w"> </span>job<span class="w"> </span>run<span class="w"> </span>aphrodite<span class="w"> </span>--values<span class="w"> </span>qwen2.5-1.5B.yaml
-
-<span class="o">[</span><span class="m">01</span>:42:07<span class="o">]</span><span class="w"> </span>SELECT<span class="w"> </span>Target<span class="w"> </span>GPUs<span class="w"> </span><span class="k">for</span><span class="w"> </span>the<span class="w"> </span>job<span class="w">          </span>
-<span class="o">[</span>KalavaiAuthClient<span class="o">]</span>Logged<span class="w"> </span><span class="k">in</span><span class="w"> </span>as<span class="w"> </span>carlosfm
-
-<span class="m">0</span><span class="o">)</span><span class="w"> </span>Any/None
-<span class="m">1</span><span class="o">)</span><span class="w"> </span>NVIDIA-NVIDIA<span class="w"> </span>GeForce<span class="w"> </span>RTX<span class="w"> </span><span class="m">2070</span><span class="w"> </span><span class="o">(</span>8GB<span class="o">)</span><span class="w"> </span><span class="o">(</span><span class="k">in</span><span class="w"> </span>use:<span class="w"> </span>False<span class="o">)</span>
-<span class="m">2</span><span class="o">)</span><span class="w"> </span>NVIDIA-NVIDIA<span class="w"> </span>GeForce<span class="w"> </span>RTX<span class="w"> </span><span class="m">3060</span><span class="w"> </span><span class="o">(</span>12GB<span class="o">)</span><span class="w"> </span><span class="o">(</span><span class="k">in</span><span class="w"> </span>use:<span class="w"> </span>False<span class="o">)</span>
-<span class="m">3</span><span class="o">)</span><span class="w"> </span>NVIDIA-NVIDIA<span class="w"> </span>GeForce<span class="w"> </span>RTX<span class="w"> </span><span class="m">3050</span><span class="w"> </span>Ti<span class="w"> </span>Laptop<span class="w"> </span>GPU<span class="w"> </span><span class="o">(</span>4GB<span class="o">)</span><span class="w"> </span><span class="o">(</span><span class="k">in</span><span class="w"> </span>use:<span class="w"> </span>False<span class="o">)</span>
---&gt;<span class="w">  </span>:<span class="w"> </span><span class="m">0</span>
-
-<span class="o">[</span><span class="m">01</span>:42:40<span class="o">]</span><span class="w"> </span>AVOID<span class="w"> </span>Target<span class="w"> </span>GPUs<span class="w"> </span><span class="k">for</span><span class="w"> </span>the<span class="w"> </span>job
-
-<span class="m">0</span><span class="o">)</span><span class="w"> </span>Any/None
-<span class="m">1</span><span class="o">)</span><span class="w"> </span>NVIDIA-NVIDIA<span class="w"> </span>GeForce<span class="w"> </span>RTX<span class="w"> </span><span class="m">2070</span><span class="w"> </span><span class="o">(</span>8GB<span class="o">)</span><span class="w"> </span><span class="o">(</span><span class="k">in</span><span class="w"> </span>use:<span class="w"> </span>False<span class="o">)</span>
-<span class="m">2</span><span class="o">)</span><span class="w"> </span>NVIDIA-NVIDIA<span class="w"> </span>GeForce<span class="w"> </span>RTX<span class="w"> </span><span class="m">3060</span><span class="w"> </span><span class="o">(</span>12GB<span class="o">)</span><span class="w"> </span><span class="o">(</span><span class="k">in</span><span class="w"> </span>use:<span class="w"> </span>False<span class="o">)</span>
-<span class="m">3</span><span class="o">)</span><span class="w"> </span>NVIDIA-NVIDIA<span class="w"> </span>GeForce<span class="w"> </span>RTX<span class="w"> </span><span class="m">3050</span><span class="w"> </span>Ti<span class="w"> </span>Laptop<span class="w"> </span>GPU<span class="w"> </span><span class="o">(</span>4GB<span class="o">)</span><span class="w"> </span><span class="o">(</span><span class="k">in</span><span class="w"> </span>use:<span class="w"> </span>False<span class="o">)</span>
---&gt;<span class="w">  </span>:<span class="w"> </span><span class="m">0</span>
-
-<span class="o">[</span><span class="m">01</span>:43:13<span class="o">]</span><span class="w"> </span>Template<span class="w"> </span>/home/carlosfm/.cache/kalavai/templates/aphrodite/template.yaml<span class="w"> </span>successfully<span class="w"> </span>deployed!
-<span class="o">[</span><span class="m">01</span>:43:15<span class="o">]</span><span class="w"> </span>Service<span class="w"> </span>deployed<span class="w">   </span>
-</code></pre></div>
-
+<h3 id="inspect-jobs-deployed">Inspect jobs deployed</h3>
 <p>List available jobs:</p>
 <div class="codehilite"><pre><span></span><code>$<span class="w"> </span>kalavai<span class="w"> </span>job<span class="w"> </span>list
 
@@ -809,47 +780,47 @@ $<span class="w"> </span>kalavai<span class="w"> </span>pool<span class="w"> </s
                 </div>
                 
                 <div class="flex flex-col gap-4">
-                    <div class="text-muted-foreground text-sm font-medium">CoGen AI</div>
+                    <div class="text-muted-foreground text-sm font-medium">Inference examples</div>
                     
                     <div class="flex flex-col gap-3">
                         
-                        <a class="text-2xl font-medium" href="../cogenai/overview/">
+                        <a class="text-2xl font-medium" href="../inference/overview/">
                             
                             Overview
                             
                         </a>
                         
-                        <a class="text-2xl font-medium" href="../cogenai/text_inference/">
+                        <a class="text-2xl font-medium" href="../inference/text_inference/">
                             
                             Text inference
                             
                         </a>
                         
-                        <a class="text-2xl font-medium" href="../cogenai/multimodal_inference/">
+                        <a class="text-2xl font-medium" href="../inference/multimodal_inference/">
                             
                             Multimodal Inference
                             
                         </a>
                         
-                        <a class="text-2xl font-medium" href="../cogenai/tts_inference/">
+                        <a class="text-2xl font-medium" href="../inference/tts_inference/">
                             
                             Text-to-speech
                             
                         </a>
                         
-                        <a class="text-2xl font-medium" href="../cogenai/asr_inference/">
+                        <a class="text-2xl font-medium" href="../inference/asr_inference/">
                             
                             Speech Recognition
                             
                         </a>
                         
-                        <a class="text-2xl font-medium" href="../cogenai/custom_params_inference/">
+                        <a class="text-2xl font-medium" href="../inference/custom_params_inference/">
                             
                             Use custom parameters
                             
                         </a>
                         
-                        <a class="text-2xl font-medium" href="../cogenai/response_metrics/">
+                        <a class="text-2xl font-medium" href="../inference/response_metrics/">
                             
                             Get metrics
                             
@@ -911,22 +882,16 @@ $<span class="w"> </span>kalavai<span class="w"> </span>pool<span class="w"> </s
             Add worker nodes
         </a>
         
-        <a href="#attach-more-clients"
-            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
-            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#attach-more-clients');">
-            Attach more clients
-        </a>
-        
         <a href="#check-resources-in-the-pool"
             class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
             data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#check-resources-in-the-pool');">
             Check resources in the pool
         </a>
         
-        <a href="#deploy-jobs"
+        <a href="#inspect-jobs-deployed"
             class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
-            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#deploy-jobs');">
-            Deploy jobs
+            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#inspect-jobs-deployed');">
+            Inspect jobs deployed
         </a>
         
         

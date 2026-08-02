@@ -14,7 +14,7 @@
     
 
 
-<title>Text-to-speech</title>
+<title>Multimodal Inference</title>
 
 
 
@@ -24,18 +24,18 @@
 
 
 
-<link rel="canonical" href="https://kalavai-net.github.io/kalavai-client/cogenai/tts_inference/">
+<link rel="canonical" href="https://kalavai-net.github.io/kalavai-client/inference/multimodal_inference/">
 
 
 <!-- Open Graph (Facebook, LinkedIn) -->
 
-<meta property="og:title" content="Text-to-speech">
+<meta property="og:title" content="Multimodal Inference">
 
 
 
 
 
-<meta property="og:url" content="https://kalavai-net.github.io/kalavai-client/cogenai/tts_inference/">
+<meta property="og:url" content="https://kalavai-net.github.io/kalavai-client/inference/multimodal_inference/">
 
 
 
@@ -44,7 +44,7 @@
 
 <!-- Twitter Card -->
 
-<meta name="twitter:title" content="Text-to-speech">
+<meta name="twitter:title" content="Multimodal Inference">
 
 
 
@@ -172,7 +172,7 @@
     
     
     <a class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5"
-        data-slot="button" href="../../use_cases/gpustack/">
+        data-slot="button" href="../../use_cases/single_node_model/">
         Use cases
     </a>
     
@@ -189,7 +189,7 @@
     
     <a class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5"
         data-slot="button" href="../overview/">
-        CoGen AI
+        Inference examples
     </a>
     
     
@@ -339,8 +339,8 @@
             
             
             <li data-slot="sidebar-menu-item" data-sidebar="menu-item" class="group/menu-item relative">
-    <a data-slot="sidebar-menu-button" data-active="false" data-sidebar="menu-button"
-        data-size="default" href="../multimodal_inference/"
+    <a data-slot="sidebar-menu-button" data-active="true" data-sidebar="menu-button"
+        data-size="default" href="./"
         class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48">
 
         
@@ -359,8 +359,8 @@
             
             
             <li data-slot="sidebar-menu-item" data-sidebar="menu-item" class="group/menu-item relative">
-    <a data-slot="sidebar-menu-button" data-active="true" data-sidebar="menu-button"
-        data-size="default" href="./"
+    <a data-slot="sidebar-menu-button" data-active="false" data-sidebar="menu-button"
+        data-size="default" href="../tts_inference/"
         class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48">
 
         
@@ -459,12 +459,12 @@
     <div class="flex flex-col gap-2">
       <div id="page-header" class="flex items-start justify-between">
         <h1 class="scroll-m-20 text-4xl font-semibold tracking-tight sm:text-3xl xl:text-4xl">
-          Text-to-speech
+          Multimodal Inference
         </h1>
 
         <div class="flex items-center gap-2 pt-1.5">
           <button
-    onclick="fetch(`https://kalavai-net.github.io/kalavai-client/cogenai/tts_inference.md`).then((r) => r.blob()).then((blob) => navigator.clipboard.write([new ClipboardItem({ 'text/plain': blob })]))"
+    onclick="fetch(`https://kalavai-net.github.io/kalavai-client/inference/multimodal_inference.md`).then((r) => r.blob()).then((blob) => navigator.clipboard.write([new ClipboardItem({ 'text/plain': blob })]))"
     data-slot="button" class="secondary cursor-pointer">
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tabler-icon tabler-icon-copy ">
@@ -478,7 +478,7 @@
           
           <a data-slot="button" id="previous-button"
             class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 extend-touch-target size-8 shadow-none md:size-7"
-            href="../multimodal_inference/">
+            href="../text_inference/">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
               class="tabler-icon tabler-icon-arrow-left">
@@ -492,7 +492,7 @@
           
           <a data-slot="button" id="next-button"
             class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 extend-touch-target size-8 shadow-none md:size-7"
-            href="../asr_inference/">
+            href="../tts_inference/">
             <span class="sr-only">Next</span>
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -513,84 +513,125 @@
     </div>
   </div>
   <div class="typography w-full flex-1 *:data-[slot=alert]:first:mt-0">
-    <p>This example shows how to make requests to the TTS service using the OpenAI compatible API.</p>
+    <p>This example shows how to make inference requests to a multimodal model using CoGen AI service.</p>
 <h2 id="installation">Installation</h2>
 <p>Install the required packages:</p>
-<div class="codehilite"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>openai<span class="w"> </span>requests
+<div class="codehilite"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>requests
 </code></pre></div>
 
 <h2 id="configuration">Configuration</h2>
 <p>Substitute the following values with your own:</p>
 <ul>
-<li><code>MODEL</code>: The TTS-enabled model ID of the model you want to use. Example: <code>Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice</code></li>
+<li><code>MODEL</code>: The model ID of the multimodal model you want to use. Example: <code>unsloth/NVIDIA-Nemotron-3-Nano-Omni-30B-A3B-Reasoning-Q4_K_M</code></li>
 <li><code>API_KEY</code>: Your API key</li>
 <li><code>API_URL</code>: The URL of the API. For CoGen AI inference, use: <code>https://cogenai-prod.spaces.klalavai.net/v1</code></li>
 </ul>
 <h2 id="examples">Examples</h2>
-<h3 id="1-text-to-speech-inference">1. Text-to-speech Inference</h3>
-<p>A single request to generate speech from text, with an option to add instructions for the voice style.</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<h3 id="single-inference-request">Single inference request</h3>
+<p>A single request containing an image and text:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">base64</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">openai</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAI</span>
-
-
+<span class="c1"># Configuration</span>
 <span class="n">API_URL</span> <span class="o">=</span> <span class="s2">&quot;https://cogenai-prod.spaces.klalavai.net/v1&quot;</span>
-<span class="n">API_KEY</span> <span class="o">=</span> <span class="s2">&quot;&lt;your key&gt;&quot;</span>
-<span class="n">MODEL_ID</span> <span class="o">=</span> <span class="s2">&quot;Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice&quot;</span>
+<span class="n">API_KEY</span> <span class="o">=</span> <span class="s2">&quot;&lt;api key&gt;&quot;</span>
+<span class="n">MODEL</span> <span class="o">=</span> <span class="s2">&quot;unsloth/NVIDIA-Nemotron-3-Nano-Omni-30B-A3B-Reasoning-Q4_K_M&quot;</span>
 
 
-<span class="c1"># Generate speech with style</span>
-<span class="n">client</span> <span class="o">=</span> <span class="n">OpenAI</span><span class="p">(</span><span class="n">base_url</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">API_URL</span><span class="si">}</span><span class="s2">/v1&quot;</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="n">API_KEY</span><span class="p">)</span>
 
-<span class="n">t</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-<span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">audio</span><span class="o">.</span><span class="n">speech</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-    <span class="n">model</span><span class="o">=</span><span class="n">MODEL_ID</span><span class="p">,</span>
-    <span class="n">voice</span><span class="o">=</span><span class="s2">&quot;Vivian&quot;</span><span class="p">,</span>
-    <span class="nb">input</span><span class="o">=</span><span class="s2">&quot;Hello, this is a test of the TTS system. What if the text is longer? Does the inference time worsen? Worst? OK, I got it now.&quot;</span><span class="p">,</span>
-    <span class="n">instructions</span><span class="o">=</span><span class="s2">&quot;Speak with great enthusiasm and energy.&quot;</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Inference time: </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">t</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="n">response</span><span class="o">.</span><span class="n">stream_to_file</span><span class="p">(</span><span class="s2">&quot;output.wav&quot;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">encode_image</span><span class="p">(</span><span class="n">image_path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Encode image file to base64 string&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">image_file</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">image_file</span><span class="o">.</span><span class="n">read</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Output saved to output.wav&quot;</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_image_mime_type</span><span class="p">(</span><span class="n">image_path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get MIME type for image file&quot;&quot;&quot;</span>
+    <span class="n">ext</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="n">mime_types</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;.jpg&#39;</span><span class="p">:</span> <span class="s1">&#39;image/jpeg&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;.jpeg&#39;</span><span class="p">:</span> <span class="s1">&#39;image/jpeg&#39;</span><span class="p">,</span> 
+        <span class="s1">&#39;.png&#39;</span><span class="p">:</span> <span class="s1">&#39;image/png&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;.gif&#39;</span><span class="p">:</span> <span class="s1">&#39;image/gif&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;.webp&#39;</span><span class="p">:</span> <span class="s1">&#39;image/webp&#39;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">mime_types</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ext</span><span class="p">,</span> <span class="s1">&#39;image/jpeg&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">create_multimodal_message</span><span class="p">(</span><span class="n">text_prompt</span><span class="p">,</span> <span class="n">image_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create message with text and optional image&quot;&quot;&quot;</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">text_prompt</span><span class="p">}]</span>
+
+    <span class="k">if</span> <span class="n">image_path</span><span class="p">:</span>
+        <span class="n">base64_image</span> <span class="o">=</span> <span class="n">encode_image</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
+        <span class="n">mime_type</span> <span class="o">=</span> <span class="n">get_image_mime_type</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
+
+        <span class="n">content</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;image_url&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;image_url&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;data:</span><span class="si">{</span><span class="n">mime_type</span><span class="si">}</span><span class="s2">;base64,</span><span class="si">{</span><span class="n">base64_image</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">}</span>
+        <span class="p">})</span>
+
+    <span class="k">return</span> <span class="n">content</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">chat_completion</span><span class="p">(</span><span class="n">api_url</span><span class="p">,</span> <span class="n">api_key</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">messages</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Send chat completion request to API&quot;&quot;&quot;</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="n">api_key</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">}</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="n">model</span><span class="p">,</span>
+        <span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="n">messages</span><span class="p">,</span>
+        <span class="s2">&quot;stream&quot;</span><span class="p">:</span> <span class="n">stream</span><span class="p">,</span>
+        <span class="s2">&quot;max_tokens&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+        <span class="s2">&quot;temperature&quot;</span><span class="p">:</span> <span class="mf">0.7</span>
+    <span class="p">}</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">api_url</span><span class="si">}</span><span class="s2">/chat/completions&quot;</span><span class="p">,</span>
+            <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
+            <span class="n">json</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+            <span class="n">stream</span><span class="o">=</span><span class="n">stream</span>
+        <span class="p">)</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">response</span>
+    <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">RequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Simple multimodal inference examples&quot;&quot;&quot;</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=== Simple Multimodal Inference ===</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Text + Image</span>
+    <span class="n">script_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span>
+    <span class="n">image_path</span> <span class="o">=</span> <span class="n">script_dir</span> <span class="o">/</span> <span class="s2">&quot;img&quot;</span> <span class="o">/</span> <span class="s2">&quot;job_progress.png&quot;</span>
+
+    <span class="k">if</span> <span class="n">image_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;2. Image analysis:&quot;</span><span class="p">)</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">create_multimodal_message</span><span class="p">(</span>
+            <span class="s2">&quot;What does this image show?&quot;</span><span class="p">,</span> 
+            <span class="nb">str</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">messages</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">content</span><span class="p">}]</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="n">chat_completion</span><span class="p">(</span><span class="n">API_URL</span><span class="p">,</span> <span class="n">API_KEY</span><span class="p">,</span> <span class="n">MODEL</span><span class="p">,</span> <span class="n">messages</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">response</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
 </code></pre></div>
-
-<p>For more examples on CustomVoice, check the <a href="https://docs.vllm.ai/projects/vllm-omni/en/latest/serving/speech_api/#customvoice-with-style-instruction">vLLM CustomVoice guide</a>.</p>
-<h3 id="2-voice-design-inference">2. Voice design Inference</h3>
-<p>A single request to design a custom voice.</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
-
-<span class="n">API_URL</span> <span class="o">=</span> <span class="s2">&quot;https://cogenai-prod.spaces.klalavai.net/v1&quot;</span>
-<span class="n">API_KEY</span> <span class="o">=</span> <span class="s2">&quot;&lt;your key&gt;&quot;</span>
-<span class="n">MODEL_ID</span> <span class="o">=</span> <span class="s2">&quot;Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign&quot;</span>
-
-
-<span class="c1"># Convert curl command to Python request</span>
-<span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">API_URL</span><span class="si">}</span><span class="s2">/v1/audio/speech&quot;</span>
-<span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="n">API_KEY</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-<span class="p">}</span>
-<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="n">MODEL_ID</span><span class="p">,</span>
-    <span class="s2">&quot;input&quot;</span><span class="p">:</span> <span class="s2">&quot;Annie, this is great!&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;task_type&quot;</span><span class="p">:</span> <span class="s2">&quot;VoiceDesign&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;instructions&quot;</span><span class="p">:</span> <span class="s2">&quot;A warm, friendly grandma voice with a gentle tone&quot;</span>
-<span class="p">}</span>
-
-<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
-
-<span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;designed.wav&quot;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Audio file saved as designed.wav&quot;</span><span class="p">)</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
-</code></pre></div>
-
-<p>For more examples on VoiceDesign, check the <a href="https://docs.vllm.ai/projects/vllm-omni/en/latest/serving/speech_api/#voicedesign-natural-language-voice-description">vLLM VoiceDesign guide</a>.</p>
   </div>
   
   <script>
@@ -603,7 +644,7 @@
     
     <a data-slot="button"
         class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-8 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5 shadow-none"
-        href="../multimodal_inference/">
+        href="../text_inference/">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
             class="tabler-icon tabler-icon-arrow-left ">
@@ -611,14 +652,14 @@
             <path d="M5 12l6 6"></path>
             <path d="M5 12l6 -6"></path>
         </svg>
-        <span class="max-[500px]:hidden">Multimodal Inference</span>
+        <span class="max-[500px]:hidden">Text inference</span>
     </a>
     
     
     <a data-slot="button"
         class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-8 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5 ml-auto shadow-none"
-        href="../asr_inference/">
-        <span class="max-[500px]:hidden">Speech Recognition</span>
+        href="../tts_inference/">
+        <span class="max-[500px]:hidden">Text-to-speech</span>
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
             class="tabler-icon tabler-icon-arrow-right ">
@@ -691,7 +732,7 @@
                 </div>
                 
                 <div class="flex flex-col gap-4">
-                    <div class="text-muted-foreground text-sm font-medium">CoGen AI</div>
+                    <div class="text-muted-foreground text-sm font-medium">Inference examples</div>
                     
                     <div class="flex flex-col gap-3">
                         
@@ -707,13 +748,13 @@
                             
                         </a>
                         
-                        <a class="text-2xl font-medium" href="../multimodal_inference/">
+                        <a class="text-2xl font-medium" href="./">
                             
                             Multimodal Inference
                             
                         </a>
                         
-                        <a class="text-2xl font-medium" href="./">
+                        <a class="text-2xl font-medium" href="../tts_inference/">
                             
                             Text-to-speech
                             
@@ -781,16 +822,10 @@
         </a>
         
         
-        <a href="#1-text-to-speech-inference"
+        <a href="#single-inference-request"
             class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
-            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#1-text-to-speech-inference');">
-            1. Text-to-speech Inference
-        </a>
-        
-        <a href="#2-voice-design-inference"
-            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
-            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#2-voice-design-inference');">
-            2. Voice design Inference
+            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#single-inference-request');">
+            Single inference request
         </a>
         
         
