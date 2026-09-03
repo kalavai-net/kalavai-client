@@ -193,6 +193,14 @@
     </a>
     
     
+    
+    
+    <a class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5"
+        data-slot="button" href="../../workshops/loco2026/">
+        Workshops
+    </a>
+    
+    
 </nav>
             
             <div class="ml-auto flex items-center gap-2 md:flex-1 md:justify-end">
@@ -497,7 +505,7 @@
 <li><code>litellm_key</code>: sk-qoQC5lijoaBwXoyi_YP1xA (Advanced parameter; the virtual key generated above for LiteLLM. <strong>This is key to make sure models are self registering to LiteLLM gateway.</strong>)</li>
 </ul>
 <p><img alt="Deploy llamacpp job" src="../assets/images/deploy_qwen3_litellm.png" /></p>
-<h2 id="gpu">GPU</h2>
+<h2 id="gpu-only">GPU-only</h2>
 <h2 id="multi-node">Multi node</h2>
 <p>Deploying across multiple devices, you can use any of the <a href="#model-self-hosting">available templates for model deployment</a>, and configure it to use more than one worker. This could be to use GPUs on multiple devices, or to increase the memory pool available by distributing the weight load across.</p>
 <h2 id="using-the-model">Using the model</h2>
@@ -646,6 +654,21 @@
                     
                 </div>
                 
+                <div class="flex flex-col gap-4">
+                    <div class="text-muted-foreground text-sm font-medium">Workshops</div>
+                    
+                    <div class="flex flex-col gap-3">
+                        
+                        <a class="text-2xl font-medium" href="../../workshops/loco2026/">
+                            
+                            LOCO 2026
+                            
+                        </a>
+                        
+                    </div>
+                    
+                </div>
+                
             </div>
             
             
@@ -671,10 +694,10 @@
         
 
         
-        <a href="#gpu"
+        <a href="#gpu-only"
             class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
-            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#gpu');">
-            GPU
+            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#gpu-only');">
+            GPU-only
         </a>
         
 

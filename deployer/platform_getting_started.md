@@ -1,15 +1,10 @@
 ---
 tags:
-  - managed platform
-  - getting started
+  - deployer
 ---
 
 | WIP |
 |-----|
 | This page is currently under development |
 
-Kalavai Managed Platform is available for selected users. If you are interested, consider joining our [beta program](./overview.md#beta-tester-program).
-
-We have a list of use cases that can guide you through the process of setting up your first deployment:
-
-- [Multi-GPU JupyterHub](./use_cases/jupyterhub.md)
+Kalavai Deployer is an advanced template that lets users create their own AI service, with multitenancy, access control, auto deployment and more. 

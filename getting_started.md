@@ -58,6 +58,8 @@ The client is a python package and can be installed with one command:
 pip install kalavai-client
 ```
 
+Check out specific pre-requisites for [NVIDIA](./nvidia_node.md), [Windows](./windows_node.md) and [AMD](./amd_node.md).
+
 
 ## Create a local, private pool
 
@@ -147,4 +149,4 @@ You can also remove a worker node from the pool using the pool GUI by navigating
 
 ## What's next
 
-Now that you know how to get a pool up and running, check our [end to end tutorial](self_hosted_llm_pool.md) on how to self-host an LLM Pool with OpenAI compatible API and a ChatGPT-like interface for all your LLM models.
+Now that you know how to get a pool up and running, check our [model deployment tutorial](use_cases/model_deployment.md) on how to self-host an LLM with OpenAI compatible API.

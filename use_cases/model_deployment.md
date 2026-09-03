@@ -34,7 +34,7 @@ You can deploy a model by navigating to the `Jobs` page and clicking the `circle
 ![Deploy llamacpp job](assets/images/deploy_qwen3_litellm.png)
 
 
-## GPU
+## GPU-only
 
 
 ## Multi node

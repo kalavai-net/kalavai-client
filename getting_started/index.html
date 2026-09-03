@@ -193,6 +193,14 @@
     </a>
     
     
+    
+    
+    <a class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[&gt;svg]:px-2.5"
+        data-slot="button" href="../workshops/loco2026/">
+        Workshops
+    </a>
+    
+    
 </nav>
             
             <div class="ml-auto flex items-center gap-2 md:flex-1 md:justify-end">
@@ -615,6 +623,7 @@
 <div class="codehilite"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>kalavai-client
 </code></pre></div>
 
+<p>Check out specific pre-requisites for <a href="../nvidia_node/">NVIDIA</a>, <a href="../windows_node/">Windows</a> and <a href="../amd_node/">AMD</a>.</p>
 <h2 id="create-a-local-private-pool">Create a local, private pool</h2>
 <p>To create your own computing pool, you will need at least one machine (the seed) and (optionally) one or more workers. See <a href="../#core-components">Kalavai concepts</a> for an overview of AI pool architecture. Note that <strong>seed machines should always be available for the platform to remain operational</strong>.</p>
 <p>You can create a seed by self-hosting the open source platform, limited to same network machines only (or shared VPN).</p>
@@ -671,7 +680,7 @@
 
 <p>You can also remove a worker node from the pool using the pool GUI by navigating to <code>Resources</code> and clicking the <code>x</code> button next to the device you want to remove.</p>
 <h2 id="whats-next">What's next</h2>
-<p>Now that you know how to get a pool up and running, check our <a href="self_hosted_llm_pool.md">end to end tutorial</a> on how to self-host an LLM Pool with OpenAI compatible API and a ChatGPT-like interface for all your LLM models.</p>
+<p>Now that you know how to get a pool up and running, check our <a href="../use_cases/model_deployment/">model deployment tutorial</a> on how to self-host an LLM with OpenAI compatible API.</p>
   </div>
   
   <script>
@@ -809,6 +818,21 @@
                         <a class="text-2xl font-medium" href="../inference/response_metrics/">
                             
                             Get metrics
+                            
+                        </a>
+                        
+                    </div>
+                    
+                </div>
+                
+                <div class="flex flex-col gap-4">
+                    <div class="text-muted-foreground text-sm font-medium">Workshops</div>
+                    
+                    <div class="flex flex-col gap-3">
+                        
+                        <a class="text-2xl font-medium" href="../workshops/loco2026/">
+                            
+                            LOCO 2026
                             
                         </a>
                         
