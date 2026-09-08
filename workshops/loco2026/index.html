@@ -388,8 +388,78 @@
     </div>
   </div>
   <div class="typography w-full flex-1 *:data-[slot=alert]:first:mt-0">
-    <p>Coming soon!</p>
+    <blockquote>
+<p>WIP: Coming soon!</p>
+</blockquote>
 <p>This page will contain the details for the upcoming <a href="https://lancaster-university.github.io/loco2026/programme">Kalavai workshop</a> at the 2nd International Workshop on Low Carbon Computing (LOCO'26). </p>
+<h1 id="circular-ai-infrastructure-repurposing-existing-compute-for-scalable-workloads">Circular AI Infrastructure: Repurposing Existing Compute for Scalable Workloads</h1>
+<p>Using the Kalavai platform, the session will demonstrate how existing resources can be repurposed to support modern AI workloads, including large language models and custom research pipelines. Attendees will gain practical insight into deploying and managing distributed compute across heterogeneous environments, while extending hardware lifetimes and reducing both cost and environmental impact. The tutorial is particularly relevant for researchers and practitioners seeking scalable AI solutions within constrained or sustainability-focused settings.</p>
+<h2 id="workshop-agenda">Workshop agenda:</h2>
+<p>Part 1:</p>
+<ul>
+<li>Introduction to Kalavai and circular AI infrastructure (multiplatform, arm/x86, nvidia/amd)</li>
+<li>Setting up the environment</li>
+<li>Connect to a Kalavai pool</li>
+</ul>
+<p>Part 2:</p>
+<ul>
+<li>Direct GUI LLM deployment (cpu/gpu)</li>
+<li>AI workbooks with JupyterHub</li>
+<li>Distributed GPU cluster with Ray</li>
+<li>Self-hosted OpenAI-like service (gateway api, access control, monitoring, auto-deployment)</li>
+</ul>
+<h2 id="internal-test-connectivity">[INTERNAL] Test connectivity</h2>
+<p>Requirements:</p>
+<ul>
+<li>OS: Linux (or WSL in Windows)</li>
+<li>
+<p>Python: 3.12+</p>
+</li>
+<li>
+<p>Install pre-requisites:</p>
+</li>
+</ul>
+<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>python3-dev
+</code></pre></div>
+
+<ol>
+<li>Install Kalavai</li>
+</ol>
+<div class="codehilite"><pre><span></span><code>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>kalavai
+<span class="nb">source</span><span class="w"> </span>kalavai/bin/activate
+pip<span class="w"> </span>install<span class="w"> </span>kalavai-client
+</code></pre></div>
+
+<ol>
+<li>Join the public pool</li>
+</ol>
+<div class="codehilite"><pre><span></span><code>kalavai<span class="w"> </span>pool<span class="w"> </span>join<span class="w"> </span>eyJjbHVzdGVyX2lwIjogIjUxLjE1OS4xNjguMTQzIiwgImNsdXN0ZXJfbmFtZSI6ICJrYWxhdmFpX2NsdXN0ZXIiLCAiY2x1c3Rlcl90b2tlbiI6ICJLMTBiODhmOTdhMzRkYmE2NzAyMmQyY2VlYmFkNWUzZWM1MjE5YTE0YjMxYTEwMjM1NzQ3Y2ZhNzg5ZThlNjFiZDAzOjpzZXJ2ZXI6OTQ5NmI3NDc1NzE1YmQyMWU1MmZmNjUwNTA4YjIzYzdcbiIsICJ3YXRjaGVyX2FkbWluX2tleSI6ICJhYWQyNWQyZi1iMjRjLTQyYzItOGEyYS0yYjJkZjFlYzhiYmYiLCAid2F0Y2hlcl9zZXJ2aWNlIjogIjUxLjE1OS4xNjguMTQzOjMwMDAxIiwgInB1YmxpY19sb2NhdGlvbiI6IG51bGx9<span class="w"> </span>--non-interactive
+</code></pre></div>
+
+<p>Wait for the handshake with the server and the containers to boot up.</p>
+<ol>
+<li>Test connectivity</li>
+</ol>
+<div class="codehilite"><pre><span></span><code>kalavai<span class="w"> </span>node<span class="w"> </span>list
+</code></pre></div>
+
+<p>The above command should show <code>&lt;your hostname&gt;-&lt;random_string&gt;</code> as a node in the pool.</p>
+<div class="codehilite"><pre><span></span><code>┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━┓
+┃ Node name                     ┃ Memory Pressure ┃ Disk pressure ┃ PID pressure ┃ Ready ┃ Unschedulable ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━┩
+│ carlosfm-hp-omnibook-7e492d9d │ False           │ False         │ False        │ True  │ False         │
+│ loco2026-serve-a80616a0       │ False           │ False         │ False        │ True  │ False         │
+└───────────────────────────────┴─────────────────┴───────────────┴──────────────┴───────┴───────────────┘
+</code></pre></div>
+
+<h2 id="part-1-join-a-kalavai-pool">Part 1: join a Kalavai pool</h2>
+<blockquote>
+<p>WIP</p>
+</blockquote>
+<h2 id="part-2-deploy-ai-workloads-across-available-compute">Part 2: Deploy AI workloads across available compute</h2>
+<blockquote>
+<p>WIP</p>
+</blockquote>
   </div>
   
   <script>
@@ -549,6 +619,44 @@
                                 <div id="toc" view-transition-name="toc" class="no-scrollbar overflow-y-auto px-8">
     <div class="flex flex-col gap-2 p-4 pt-0 text-sm">
         <p class="text-muted-foreground bg-background sticky top-0 h-6 text-xs">On This Page</p>
+        
+        
+        
+        
+        <a href="#workshop-agenda"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#workshop-agenda');">
+            Workshop agenda:
+        </a>
+        
+
+        
+        <a href="#internal-test-connectivity"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#internal-test-connectivity');">
+            [INTERNAL] Test connectivity
+        </a>
+        
+
+        
+        <a href="#part-1-join-a-kalavai-pool"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#part-1-join-a-kalavai-pool');">
+            Part 1: join a Kalavai pool
+        </a>
+        
+
+        
+        <a href="#part-2-deploy-ai-workloads-across-available-compute"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#part-2-deploy-ai-workloads-across-available-compute');">
+            Part 2: Deploy AI workloads across available compute
+        </a>
+        
+
+        
+        
+        
         
 
     </div>
