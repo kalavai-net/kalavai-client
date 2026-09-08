@@ -1224,7 +1224,7 @@ def join_pool(
         cluster_name=cluster_name,
         public_location=public_location,
         user_api_key=None,
-        kalavai_api_url=f"http://localhost:{kalavai_api_port}",
+        kalavai_api_url=f"http://{kalavai_seed_ip}:{kalavai_api_port}",
         kalavai_api_key=auth_key)
     
     try:

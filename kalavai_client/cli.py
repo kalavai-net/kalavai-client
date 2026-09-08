@@ -1113,6 +1113,9 @@ def node__list(*others):
         endpoint="/fetch_devices",
         json={}
     )
+    if "error" in devices:
+        console.log(f"[red]{devices}")
+        return
 
     try:
         rows = []

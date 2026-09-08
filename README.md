@@ -68,6 +68,8 @@ The `kalavai-client` is the main tool to interact with the Kalavai platform, to 
 - A seed node(s): one (or more for high availability deployments) machine that acts as central control plane 
 - One or many worker nodes: any machine connected to the seed node that can carry out workloads (generally with access to a GPU)
 
+Check our [getting started guide](https://kalavai-net.github.io/kalavai-client/getting_started/) for more details.
+
 
 <details>
 
@@ -133,11 +135,10 @@ Check out our [getting started guide](https://kalavai-net.github.io/kalavai-clie
 
 Check out our use cases documentation for inspiration on what you can do with Kalavai:
 
-- [Multi-GPU LLM](./docs/docs/use_cases/multi_gpu_inference.md)
-- [Fine tune](./docs/docs/use_cases/fine_tuning.md)
-- [BYO Model Gateway](./docs/docs/use_cases/self_hosted_llm_pool.md)
-- [Easy LLMs with GPUstack](./docs/docs/use_cases/gpustack.md)
-- [Production GPU fleets](./docs/docs/use_cases/ray.md)
+- Inference (cpu, gpu and multi gpu)
+- Fine tuning (ray and axolotl)
+- Unified model portal (Deployer)
+
 
 ## Contribute
 

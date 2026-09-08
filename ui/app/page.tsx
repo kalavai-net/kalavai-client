@@ -67,7 +67,7 @@ function HomeContent() {
           title="Interactive sessions with multi-GPUs"
           icon={Monitor}
           text="Launch JupyterHub sessions with multi-GPU support for interactive development"
-          href="https://kalavai-net.github.io/kalavai-client/managed/use_cases/jupyterhub/"
+          href="https://kalavai-net.github.io/kalavai-client/deployer/use_cases/jupyterhub/"
           isExternal
         />
         <IntroCard
