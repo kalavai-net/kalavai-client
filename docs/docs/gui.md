@@ -18,8 +18,14 @@ You can spin up the browser GUI on any machine connected to the pool --seed, wor
 
 ```bash
 $ kalavai gui start
-TODO
 ```
 
 Then open the browser and visit [http://localhost:49153](http://localhost:49153).
 
+## Stop
+
+You can stop the GUI container with:
+
+```bash
+$ kalavai gui stop
+```

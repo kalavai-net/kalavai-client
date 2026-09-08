@@ -16,33 +16,34 @@ nav:
       - Browser GUI: gui.md
       - Connect to remote pool: remote_pool.md 
   - Use cases:
+    - Model deployment:
+      - Single and multi node: use_cases/model_deployment.md
+      - Model gateway: use_cases/llm_gateway.md
     - GPU clusters:
-      - Easy LLMs with GPUstack: use_cases/gpustack.md 
+      #- Easy LLMs with GPUstack: use_cases/gpustack.md
       - Production GPU fleets: use_cases/ray.md
     - Tuning:
       - Fine tune: use_cases/fine_tuning.md
-    - Inference:
-      - Multi-GPU LLM: use_cases/multi_gpu_inference.md
-      - BYO Model Gateway: use_cases/self_hosted_llm_pool.md
-    - Examples:
-      - LLM Service: examples/llm_service_requests.md
-      - Image Generation: examples/image_generation.md
-  - Deployer platform:
-    - Overview: managed/overview.md
-    - Architecture: managed/architecture.md
-    - Getting started: managed/platform_getting_started.md
-    - Applications:
-      - Multi-GPU JupyterHub: managed/jupyterhub.md
-      - Multi-tenancy LLM: managed/multitenancy_llm.md
-  - CoGen AI:
-    - Overview: cogenai/overview.md
-    - Text inference: cogenai/text_inference.md
-    - Multimodal Inference: cogenai/multimodal_inference.md
-    - Text-to-speech: cogenai/tts_inference.md
-    - Speech Recognition: cogenai/asr_inference.md
-    - Use custom parameters: cogenai/custom_params_inference.md
-    - Get metrics: cogenai/response_metrics.md
-    #- Text-to-image: cogenai/image_generation.md
+  - Deployer platform: 
+    - Getting started: deployer/platform_getting_started.md
+    - Multi-tenancy LLM: deployer/multitenancy_llm.md
+    # - Overview: deployer/overview.md
+    # - Architecture: deployer/architecture.md
+    # - Getting started: deployer/platform_getting_started.md
+    # - Applications:
+    #   - Multi-GPU JupyterHub: deployer/jupyterhub.md
+    #   - Multi-tenancy LLM: deployer/multitenancy_llm.md
+  - Inference examples:
+    - Overview: inference/overview.md
+    - Text inference: inference/text_inference.md
+    - Multimodal Inference: inference/multimodal_inference.md
+    - Text-to-speech: inference/tts_inference.md
+    - Speech Recognition: inference/asr_inference.md
+    - Use custom parameters: inference/custom_params_inference.md
+    - Get metrics: inference/response_metrics.md
+    #- Text-to-image: inference/image_generation.md
+  - Workshops:
+    - LOCO 2026: workshops/loco2026.md
 
 theme:
   name: shadcn

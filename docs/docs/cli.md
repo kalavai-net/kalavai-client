@@ -86,14 +86,6 @@ Join token: <token>
 kalavai pool join <token>
 ```
 
-### Attach more clients
-
-You can now connect to an existing pool from any computer -not just from worker nodes. To connect to a pool, run:
-
-```bash
-kalavai pool attach <token>
-```
-
 ### Check resources in the pool
 
 List resources are available:
@@ -122,32 +114,7 @@ $ kalavai pool gpus
 └────────────────────┴───────┴──────────────────────────────────────────────────────┴───────────┴───────┘
 ```
 
-### Deploy jobs
-
-Deploy a job using a template:
-```bash
-$ kalavai job run aphrodite --values qwen2.5-1.5B.yaml
-
-[01:42:07] SELECT Target GPUs for the job          
-[KalavaiAuthClient]Logged in as carlosfm
-
-0) Any/None
-1) NVIDIA-NVIDIA GeForce RTX 2070 (8GB) (in use: False)
-2) NVIDIA-NVIDIA GeForce RTX 3060 (12GB) (in use: False)
-3) NVIDIA-NVIDIA GeForce RTX 3050 Ti Laptop GPU (4GB) (in use: False)
--->  : 0
-
-[01:42:40] AVOID Target GPUs for the job
-
-0) Any/None
-1) NVIDIA-NVIDIA GeForce RTX 2070 (8GB) (in use: False)
-2) NVIDIA-NVIDIA GeForce RTX 3060 (12GB) (in use: False)
-3) NVIDIA-NVIDIA GeForce RTX 3050 Ti Laptop GPU (4GB) (in use: False)
--->  : 0
-
-[01:43:13] Template /home/carlosfm/.cache/kalavai/templates/aphrodite/template.yaml successfully deployed!
-[01:43:15] Service deployed   
-```
+### Inspect jobs deployed
 
 List available jobs:
 
