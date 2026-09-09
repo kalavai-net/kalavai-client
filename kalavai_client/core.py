@@ -1230,7 +1230,7 @@ def join_pool(
     try:
         CLUSTER.start_worker_node()
     except Exception as e:
-        return {"error": f"Error connecting to {cluster_name} @ {kalavai_seed_ip}. Check with the admin if the token is still valid."}
+        return {"error": f"Error connecting to {cluster_name} @ {kalavai_seed_ip}. Check with the admin if the token is still valid. Error trace: {str(e)}"}
 
     # ensure we are connected
     while True:
