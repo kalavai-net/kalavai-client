@@ -2,9 +2,9 @@ from openai import OpenAI
 
 import time
 
-API_URL = "https://gemma-test-default-vllm.spaces.kalavai.net/v1" #"https://gateway-api-shadow-gateway.spaces.kalavai.net/v1/chat/completions" #"https://mistral-vllm-default-vllm.spaces.kalavai.net/v1/chat/completions" #"https://testme-default-litellm.spaces.kalavai.net/v1" #"https://api.cogenai.kalavai.net/v1" #"https://api.cogenai.kalavai.net/v1"  # Replace with your OpenAI-compatible API URL
-API_KEY = ""  # Replace with your actual API key
-MODEL = "unsloth/Ministral-3-3B-Instruct-2512-FP8"  # Replace with your model name
+API_URL = "http://100.97.111.1:30960/v1" # Replace with your OpenAI-compatible API URL
+API_KEY = "dummy"  # Replace with your actual API key
+MODEL = "Qwen/Qwen3.5-0.8B"  # Replace with your model name
 
 
 # point this to your vLLM API server

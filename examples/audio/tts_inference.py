@@ -1,20 +1,22 @@
 """
 TTS inference example
 
-Model for the task: Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice
+Model for the task: Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice
 
 Requires:
 
 pip install openai requests
+
+--omni --enforce-eager --trust-remote-code --max-model-len 4000
 """
 import time
 
 from openai import OpenAI
 
 
-API_URL = "https://gateway-cogenai-gateway.spaces.kalavai.net"
-API_KEY = ""
-MODEL_ID = "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"
+API_URL = "http://100.97.111.1:30145"
+API_KEY = "dummy"
+MODEL_ID = "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice"
 
 
 # Generate speech with style

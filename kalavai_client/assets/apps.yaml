@@ -315,7 +315,7 @@ releases:
   - name: kuberay-apiserver
     namespace: kuberay
     chart: kuberay/kuberay-apiserver
-    installed: true
+    installed: false # deprecated now 
   # - name: kalavai-pool
   #   namespace: kalavai
   #   chart: kalavai-templates/kalavai-pool
