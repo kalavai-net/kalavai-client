@@ -388,39 +388,41 @@
     </div>
   </div>
   <div class="typography w-full flex-1 *:data-[slot=alert]:first:mt-0">
-    <blockquote>
-<p>WIP: Coming soon!</p>
-</blockquote>
-<p>This page will contain the details for the upcoming <a href="https://lancaster-university.github.io/loco2026/programme">Kalavai workshop</a> at the 2nd International Workshop on Low Carbon Computing (LOCO'26). </p>
+    <p>This page contains the details for the <a href="https://lancaster-university.github.io/loco2026/programme">Kalavai workshop</a> at the 2nd International Workshop on Low Carbon Computing (LOCO'26). </p>
 <h1 id="circular-ai-infrastructure-repurposing-existing-compute-for-scalable-workloads">Circular AI Infrastructure: Repurposing Existing Compute for Scalable Workloads</h1>
 <p>Using the Kalavai platform, the session will demonstrate how existing resources can be repurposed to support modern AI workloads, including large language models and custom research pipelines. Attendees will gain practical insight into deploying and managing distributed compute across heterogeneous environments, while extending hardware lifetimes and reducing both cost and environmental impact. The tutorial is particularly relevant for researchers and practitioners seeking scalable AI solutions within constrained or sustainability-focused settings.</p>
 <h2 id="workshop-agenda">Workshop agenda:</h2>
-<p>Part 1:</p>
+<p>Slide deck available <a href="https://docs.google.com/presentation/d/1XP1xT30kTF4GIrf57Bev6WsbYR3dryQ6J6W_FdhHxoU/edit?usp=sharing">here</a>.</p>
+<p><a href="#part-1-using-the-pool">Part 1</a>:</p>
 <ul>
-<li>Introduction to Kalavai and circular AI infrastructure (multiplatform, arm/x86, nvidia/amd)</li>
+<li>Case studies</li>
+<li>distributed computing with Ray cluster</li>
+<li>multi-node self hosting of LLMs</li>
+</ul>
+<p><a href="#part-2-increasing-compute-resources">Part 2</a>:</p>
+<ul>
+<li>Increasing computing resources</li>
 <li>Setting up the environment</li>
 <li>Connect to a Kalavai pool</li>
-</ul>
-<p>Part 2:</p>
-<ul>
-<li>Direct GUI LLM deployment (cpu/gpu)</li>
-<li>AI workbooks with JupyterHub</li>
-<li>Distributed GPU cluster with Ray</li>
 <li>Self-hosted OpenAI-like service (gateway api, access control, monitoring, auto-deployment)</li>
+<li>Create users for deployer</li>
 </ul>
-<h2 id="internal-test-connectivity">[INTERNAL] Test connectivity</h2>
+<h2 id="prep-setting-up-the-pool">[PREP] Setting up the pool</h2>
+<p>This section is for setting up the pool that will be used during the workshop. In the interest of time, the actual workshop will use a pre-configured pool; these instructions are left here so future users can follow along within their own infrastructure.</p>
+<h3 id="on-both-seed-and-worker-nodes">On both seed and worker nodes</h3>
 <p>Requirements:</p>
 <ul>
 <li>OS: Linux (or WSL in Windows)</li>
 <li>Python: 3.12+</li>
+<li><a href="https://docs.docker.com/engine/install/">Docker</a> for your OS</li>
 <li>
-<p><a href="https://docs.docker.com/engine/install/">Docker</a> for your OS</p>
+<p><a href="https://docs.docker.com/compose/install/">Docker compose</a> for your OS</p>
 </li>
 <li>
 <p>Install pre-requisites:</p>
 </li>
 </ul>
-<div class="codehilite"><pre><span></span><code><span class="c1"># Python dev libraries</span>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Python dev libraries (assumed Ubuntu-based linux OS)</span>
 sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>python3-dev
 
 <span class="c1"># Docker for your system: https://docs.docker.com/engine/install/</span>
@@ -434,15 +436,32 @@ sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> <
 pip<span class="w"> </span>install<span class="w"> </span>kalavai-client
 </code></pre></div>
 
+<h3 id="on-the-seed-node">On the seed node</h3>
 <ol>
-<li>Join the public pool</li>
+<li>Start the pool</li>
 </ol>
-<div class="codehilite"><pre><span></span><code>kalavai<span class="w"> </span>pool<span class="w"> </span>join<span class="w"> </span>eyJjbHVzdGVyX2lwIjogIjUxLjE1OS4xNjguMTQzIiwgImNsdXN0ZXJfbmFtZSI6ICJrYWxhdmFpX2NsdXN0ZXIiLCAiY2x1c3Rlcl90b2tlbiI6ICJLMTBiODhmOTdhMzRkYmE2NzAyMmQyY2VlYmFkNWUzZWM1MjE5YTE0YjMxYTEwMjM1NzQ3Y2ZhNzg5ZThlNjFiZDAzOjpzZXJ2ZXI6OTQ5NmI3NDc1NzE1YmQyMWU1MmZmNjUwNTA4YjIzYzdcbiIsICJ3YXRjaGVyX2FkbWluX2tleSI6ICJhYWQyNWQyZi1iMjRjLTQyYzItOGEyYS0yYjJkZjFlYzhiYmYiLCAid2F0Y2hlcl9zZXJ2aWNlIjogIjUxLjE1OS4xNjguMTQzOjMwMDAxIiwgInB1YmxpY19sb2NhdGlvbiI6IG51bGx9<span class="w"> </span>--non-interactive
+<div class="codehilite"><pre><span></span><code>kalavai<span class="w"> </span>pool<span class="w"> </span>start<span class="w"> </span>--non-interactive
+</code></pre></div>
+
+<ol>
+<li>Generate a joining token for worker nodes</li>
+</ol>
+<div class="codehilite"><pre><span></span><code>kalavai<span class="w"> </span>pool<span class="w"> </span>token<span class="w"> </span>--admin
+</code></pre></div>
+
+<h3 id="on-the-worker-nodes">On the worker nodes</h3>
+<blockquote>
+<p>NOTE: For a fully functional pool, worker and seed nodes must be within the same network to be able to communicate with each other. This can be a local network, or a remote VPN.</p>
+</blockquote>
+<ol>
+<li>Join the public pool using the token generated in the seed node:</li>
+</ol>
+<div class="codehilite"><pre><span></span><code>kalavai<span class="w"> </span>pool<span class="w"> </span>join<span class="w"> </span>&lt;token&gt;<span class="w"> </span>--non-interactive
 </code></pre></div>
 
 <p>Wait for the handshake with the server and the containers to boot up.</p>
 <ol>
-<li>Test connectivity</li>
+<li>Test that the node has joined successfully:</li>
 </ol>
 <div class="codehilite"><pre><span></span><code>kalavai<span class="w"> </span>node<span class="w"> </span>list
 </code></pre></div>
@@ -456,14 +475,107 @@ pip<span class="w"> </span>install<span class="w"> </span>kalavai-client
 └───────────────────────────────┴─────────────────┴───────────────┴──────────────┴───────┴───────────────┘
 </code></pre></div>
 
-<h2 id="part-1-join-a-kalavai-pool">Part 1: join a Kalavai pool</h2>
+<h3 id="access-your-pool-from-any-node">Access your pool from any node</h3>
+<p>You can access and use your pool from any of the nodes (seed and worker). Both <a href="../../cli/">CLI</a> and <a href="../../gui/">GUI</a> access are supported. The GUI access is recommended. Start it with:</p>
+<div class="codehilite"><pre><span></span><code>kalavai<span class="w"> </span>gui<span class="w"> </span>start
+<span class="c1"># It will show the address of the GUI as well as the token to use to gain access</span>
+</code></pre></div>
+
+<p>The GUI is accessible via the browser, by default on address http://localhost:49153</p>
+<h2 id="part-1-using-the-pool">Part 1: using the pool</h2>
+<h3 id="multi-modal-llm-deployment">Multi-modal LLM deployment</h3>
+<p>To deploy a model on a single node, there are two available templates, based on your hardware, in the <code>Job</code> page:</p>
+<ul>
+<li>For CPU-only: llama.cpp</li>
+<li>For GPU (NVIDIA and AMD): vLLM</li>
+</ul>
+<p>In this tutorial we'll deploy a CPU-based model using llama.cpp template, and a GPU-based model using vLLM. Once you deploy models, the relevant endpoints will be displayed in the <code>Jobs</code> page.</p>
+<p><img alt="Model endpoints" src="../images/deployments.png" /></p>
+<h4 id="text-model-with-llamacpp">Text model with llama.cpp</h4>
+<p>In your Kalavai Pool GUI, go to <code>Jobs</code> and create a new job. Select <code>llama.cpp</code> as the template and configure the resources you need. Configure the following advanced parameters:</p>
+<ul>
+<li><code>hfToken</code>: Your Hugging Face token to access private models and uncapped downloads.</li>
+<li><code>llamacpp.repoId</code>: unsloth/Qwen3.5-0.8B-GGUF</li>
+<li><code>llamacpp.quant</code>: q4_k_m</li>
+</ul>
+<p>Once the deployment is completed, use the displayed endpoint in your code for inference. <a href="../../inference/text_inference/#1-streaming-inference">Here is a reference example of text inference</a>.</p>
+<h4 id="text-model-with-vllm">Text model with vLLM</h4>
+<p>In your Kalavai Pool GUI, go to <code>Jobs</code> and create a new job. Select <code>vLLM</code> as the template and configure the resources you need. Configure the following advanced parameters:</p>
+<ul>
+<li><code>hfToken</code>: Your Hugging Face token to access private models and uncapped downloads.</li>
+<li><code>modelId</code>: Qwen/Qwen3.5-0.8B</li>
+</ul>
+<p>Once the deployment is completed, use the displayed endpoint in your code for inference. <a href="../../inference/text_inference/#1-streaming-inference">Here is a reference example of text inference</a>.</p>
+<h4 id="text-to-speech-model-with-vllm">Text-to-speech model with vLLM</h4>
+<p>In your Kalavai Pool GUI, go to <code>Jobs</code> and create a new job. Select <code>vLLM</code> as the template and configure the resources you need. Configure the following advanced parameters:</p>
+<ul>
+<li><code>hfToken</code>: Your Hugging Face token to access private models and uncapped downloads.</li>
+<li><code>modelId</code>: Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice</li>
+<li><code>vllm.extra</code>: <code>--omni --enforce-eager --trust-remote-code --max-model-len 4000</code></li>
+</ul>
+<p>Once the deployment is completed, use the displayed endpoint in your code snippet for inference. <a href="../../inference/tts_inference/#1-text-to-speech-inference">Here is an example of how to do TTS</a>.</p>
+<h3 id="distributed-computing">Distributed computing</h3>
+<p><a href="https://docs.ray.io/en/latest/index.html">Ray</a> is a distributed framework for scaling Python and ML workloads. Kalavai’s managed Ray clusters let you launch distributed training or inference tasks without setting up or managing nodes.</p>
+<p><strong>To deploy</strong>: In your Kalavai Pool GUI, go to <code>Jobs</code> and create a new job. Select <code>Ray Cluster</code> as the template and configure the resources you need. The main default values are:</p>
+<ul>
+<li><code>ray.minNvidiaWorkers</code>: Used for autoscaling workers. Minimum NVIDIA GPU workers to always have running (can be 0). 1 worker == 1 GPU</li>
+<li><code>ray.maxNvidiaWorkers</code>: Used for autoscaling workers. Maximum NVIDIA GPU workers to scale up to when needed.</li>
+<li><code>deployment.cpus</code>: CPU cores per worker node.</li>
+<li><code>deployment.memory</code>: RAM memory (GB) per worker node.</li>
+<li><code>deployment.gpuMemory</code>: GPU vRAM memory (GB) per worker node.</li>
+</ul>
+<p>Once the deployment is completed, you'll have a series of endpoints to use and manage the Ray Cluster:</p>
+<ul>
+<li><code>client</code>: programming endpoint to submit Ray jobs to.</li>
+<li><code>dashboard</code>: GUI endpoint to see the Ray cluster dashboard in the browser.</li>
+</ul>
+<p>See <a href="../../use_cases/fine_tuning/">here an example of how to deploy a fine tuning job</a> on your Ray cluster.</p>
+<h3 id="interactive-ai-workloads">Interactive AI workloads</h3>
+<p><a href="https://jupyter.org/hub">JupyterHub</a> is a multi-user server for Jupyter notebooks. It allows multiple users to access Jupyter notebooks in a shared environment. It's great for AI development and an easy way to interact with GPU-based machines without the complexity of SSH connections.</p>
+<p><strong>To deploy</strong>: In your Kalavai Pool GUI, go to <code>Jobs</code> and create a new job. Select <code>JupyterHub</code> as the template and configure the GPU resources you need. The default values are:</p>
+<div class="codehilite"><pre><span></span><code># credentials to access JupyterHub instance
+username: user
+password: password
+</code></pre></div>
+
+<p><img alt="JupyterHub template" src="../images/deploy_jupyter.png" /></p>
+<p>More info <a href="../../deployer/jupyterhub/">here</a>.</p>
+<h2 id="part-2-create-the-first-loco-community-computing-pool">Part 2: Create the first LOCO community computing pool</h2>
 <blockquote>
-<p>WIP</p>
+<p>Note: the seed pool and all the worker nodes will only be available during the workshop!</p>
 </blockquote>
-<h2 id="part-2-deploy-ai-workloads-across-available-compute">Part 2: Deploy AI workloads across available compute</h2>
-<blockquote>
-<p>WIP</p>
-</blockquote>
+<p>Now that we know what Kalavai pools are and what we can do with them, let's attempt to pull all participant resources together in a single pool.</p>
+<p>First, make sure you have <a href="#on-both-seed-and-worker-nodes">configured and installed all pre-requisites</a> and make sure you have installed the <code>kalavai-client</code> with version &gt;= 0.10.6.</p>
+<p>Then you should be ready to join the pool with just one command:</p>
+<div class="codehilite"><pre><span></span><code>kalavai<span class="w"> </span>pool<span class="w"> </span>join<span class="w"> </span><span class="nv">eyJjbHVzdGVyX2lwIjogIjEwMC45Ny4xMTEuMSIsICJjbHVzdGVyX25hbWUiOiAia2FsYXZhaV9jbHVzdGVyIiwgImNsdXN0ZXJfdG9rZW4iOiAiSzEwZDE0OWIwZTY1MTEwYTM5N2M0YjI4Mzc3MGFlMDljMmNhNzA4NGEwNDdmZTEzNzdmMzdiNjBmM2EwYWZlYTU0Yjo6c2VydmVyOmFjZmZhNTk2YmY4NTNkZjZhODFiY2I1OTgzMmU0OTY3XG4iLCAid2F0Y2hlcl9hZG1pbl9rZXkiOiAiZGFhYWRiMDUtZDBlNS00MDEzLTliOTItMDExN2VkNGYxNjQyIiwgIndhdGNoZXJfc2VydmljZSI6ICIxMDAuOTcuMTExLjE6MzAwMDEiLCAicHVibGljX2xvY2F0aW9uIjogImV5SnpaWEoyWlhJaU9pSmhjR2t1ZG5CdUxtdGhiR0YyWVdrdWJtVjBJaXdpZG1Gc2RXVWlPaUpRTlU5RU4wOU9TRFV5VlU1WE5FZElORmMxVWxWTVZFNVZSbE5GTWpOV1R5SjkifQ</span><span class="o">==</span><span class="w"> </span>--non-interactive
+</code></pre></div>
+
+<p>If all has gone well, you can display the list of nodes in the pool, which should include your machine.</p>
+<div class="codehilite"><pre><span></span><code>kalavai<span class="w"> </span>node<span class="w"> </span>list
+</code></pre></div>
+
+<p>The above command should show <code>&lt;your hostname&gt;-&lt;random_string&gt;</code> as a node in the pool.</p>
+<div class="codehilite"><pre><span></span><code>┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━┓
+┃ Node name                     ┃ Memory Pressure ┃ Disk pressure ┃ PID pressure ┃ Ready ┃ Unschedulable ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━┩
+│ carlosfm-hp-omnibook-7e492d9d │ False           │ False         │ False        │ True  │ False         │
+│ loco2026-serve-a80616a0       │ False           │ False         │ False        │ True  │ False         │
+└───────────────────────────────┴─────────────────┴───────────────┴──────────────┴───────┴───────────────┘
+</code></pre></div>
+
+<p>Once you join, you can manage the pool via the browser GUI:</p>
+<div class="codehilite"><pre><span></span><code>kalavai<span class="w"> </span>gui<span class="w"> </span>start
+<span class="c1"># It will show the address of the GUI as well as the token to use to gain access</span>
+</code></pre></div>
+
+<p>The GUI is accessible via the browser, by default on address http://localhost:49153</p>
+<p><strong>Now we should be ready to deploy a large mode across all of our computers! (live only)</strong></p>
+<h3 id="clean-up">Clean up</h3>
+<p>Once you are done, you can remove your worker machine from the pool as follows:</p>
+<div class="codehilite"><pre><span></span><code>kalavai<span class="w"> </span>pool<span class="w"> </span>stop
+</code></pre></div>
+
+<p>This will disconnect you from the public pool and remove all running containers.</p>
   </div>
   
   <script>
@@ -635,27 +747,81 @@ pip<span class="w"> </span>install<span class="w"> </span>kalavai-client
         
 
         
-        <a href="#internal-test-connectivity"
+        <a href="#prep-setting-up-the-pool"
             class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
-            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#internal-test-connectivity');">
-            [INTERNAL] Test connectivity
+            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#prep-setting-up-the-pool');">
+            [PREP] Setting up the pool
         </a>
+        
+        
+        <a href="#on-both-seed-and-worker-nodes"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#on-both-seed-and-worker-nodes');">
+            On both seed and worker nodes
+        </a>
+        
+        <a href="#on-the-seed-node"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#on-the-seed-node');">
+            On the seed node
+        </a>
+        
+        <a href="#on-the-worker-nodes"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#on-the-worker-nodes');">
+            On the worker nodes
+        </a>
+        
+        <a href="#access-your-pool-from-any-node"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#access-your-pool-from-any-node');">
+            Access your pool from any node
+        </a>
+        
         
 
         
-        <a href="#part-1-join-a-kalavai-pool"
+        <a href="#part-1-using-the-pool"
             class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
-            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#part-1-join-a-kalavai-pool');">
-            Part 1: join a Kalavai pool
+            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#part-1-using-the-pool');">
+            Part 1: using the pool
         </a>
+        
+        
+        <a href="#multi-modal-llm-deployment"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#multi-modal-llm-deployment');">
+            Multi-modal LLM deployment
+        </a>
+        
+        <a href="#distributed-computing"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#distributed-computing');">
+            Distributed computing
+        </a>
+        
+        <a href="#interactive-ai-workloads"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#interactive-ai-workloads');">
+            Interactive AI workloads
+        </a>
+        
         
 
         
-        <a href="#part-2-deploy-ai-workloads-across-available-compute"
+        <a href="#part-2-create-the-first-loco-community-computing-pool"
             class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
-            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#part-2-deploy-ai-workloads-across-available-compute');">
-            Part 2: Deploy AI workloads across available compute
+            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#part-2-create-the-first-loco-community-computing-pool');">
+            Part 2: Create the first LOCO community computing pool
         </a>
+        
+        
+        <a href="#clean-up"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3" onClick="deferSetActiveTocLink('#clean-up');">
+            Clean up
+        </a>
+        
         
 
         

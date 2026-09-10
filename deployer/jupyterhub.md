@@ -77,7 +77,7 @@ Build your own image requirements:
 
 ## FAQs
 
-#### INstall specific version of python
+#### How to install a specific version of python
 
 Match Ray cluster version for ray and python:
 
