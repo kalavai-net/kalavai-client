@@ -541,8 +541,9 @@ password: password
 <p><img alt="JupyterHub template" src="../images/deploy_jupyter.png" /></p>
 <p>More info <a href="../../deployer/jupyterhub/">here</a>.</p>
 <h2 id="part-2-create-the-first-loco-community-computing-pool">Part 2: Create the first LOCO community computing pool</h2>
+<p><strong>The seed pool and all the worker nodes will only be available during the workshop!</strong></p>
 <blockquote>
-<p>Note: the seed pool and all the worker nodes will only be available during the workshop!</p>
+<p>Note: <code>kalavai</code> does not install in your system directly; it works as a series of docker containers that run semi-isolated from your system. However, note that those containers run in privilege mode to be able to access the GPU. When connecting to a public pool, new network interfaces are created to connect to a common VPN. These are destroyed once the <a href="#clean-up">clean up steps</a> are completed.</p>
 </blockquote>
 <p>Now that we know what Kalavai pools are and what we can do with them, let's attempt to pull all participant resources together in a single pool.</p>
 <p>First, make sure you have <a href="#on-both-seed-and-worker-nodes">configured and installed all pre-requisites</a> and make sure you have installed the <code>kalavai-client</code> with version &gt;= 0.10.6.</p>
