@@ -49,24 +49,10 @@ sudo apt update
 # (only if not present) install python dependencies
 sudo apt install python3-pip python3-venv python3-dev -y
 
-# install docker
+# install podman
 sudo add-apt-repository ppa:ubuntu-toolchain-r/test
 sudo apt-get update
-sudo apt-get install ca-certificates curl gcc-14 g++-14 -y
-sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-sudo chmod a+r /etc/apt/keyrings/docker.asc
-sudo tee /etc/apt/sources.list.d/docker.sources <<EOF
-Types: deb
-URIs: https://download.docker.com/linux/ubuntu
-Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
-Components: stable
-Signed-By: /etc/apt/keyrings/docker.asc
-EOF
-
-sudo apt update
-sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
-sudo usermod -aG docker $USER
+sudo apt-get -y install podman
 
 # install nvidia container runtime
 curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
@@ -80,8 +66,7 @@ sudo apt-get install -y \
     nvidia-container-toolkit-base=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
     libnvidia-container-tools=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
     libnvidia-container1=${NVIDIA_CONTAINER_TOOLKIT_VERSION}
-sudo nvidia-ctk runtime configure --runtime=docker
-sudo systemctl restart docker
+sudo nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml
 
 echo "REBOOT REQUIRED! Run: sudo shutdown -r now"
 ```

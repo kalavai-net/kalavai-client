@@ -18,23 +18,10 @@ Kalavai platform supports the use of both NVIDIA and AMD cards. To ensure full c
 In this example we are using Ubuntu 24.04 LTS as a base OS, but this will work with any debian-based distribution too.
 
 ```bash
-# install docker
+# install podman
 sudo apt-get update
 sudo apt-get install ca-certificates curl gcc-14 -y
-sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-sudo chmod a+r /etc/apt/keyrings/docker.asc
-sudo tee /etc/apt/sources.list.d/docker.sources <<EOF
-Types: deb
-URIs: https://download.docker.com/linux/ubuntu
-Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
-Components: stable
-Signed-By: /etc/apt/keyrings/docker.asc
-EOF
-
-sudo apt update
-sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
-sudo usermod -aG docker $USER
+sudo apt-get -y install podman
 
 # install python3.12+ (dev and venv)
 sudo apt install python3.12-dev python3.12-venv -y

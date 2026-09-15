@@ -41,7 +41,7 @@ if %errorlevel% neq 0 (
 
 :: Step 5: Start Docker Compose
 echo Starting worker with Docker Compose...
-docker compose -f worker.yaml up -d
+podman compose -f worker.yaml up -d
 if %errorlevel% neq 0 (
     echo Docker Compose failed
     exit /b 1

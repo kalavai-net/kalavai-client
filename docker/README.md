@@ -2,9 +2,9 @@
 
 ## Locally
 
-echo "YOUR_TOKEN" | docker login ghcr.io -u <username> --password-stdin
-docker build -t ghcr.io/kalavai-net/<image>:<tag> .
-docker push ghcr.io/kalavai-net/<image>:<tag>
+echo "YOUR_TOKEN" | podman login ghcr.io -u <username> --password-stdin
+podman build -t ghcr.io/kalavai-net/<image>:<tag> .
+podman push ghcr.io/kalavai-net/<image>:<tag>
 
 
 ## CI/CD
@@ -16,10 +16,10 @@ GitHub action.
 
 ### Netclient
 
-Move existing images from docker hub to GHCR to avoid quota limitations
+Move existing images from podman hub to GHCR to avoid quota limitations
 
 ```bash
-docker pull gravitl/netclient:v0.90.0
-docker tag gravitl/netclient:v0.90.0 ghcr.io/kalavai-net/netclient:v0.90.0
-docker push ghcr.io/kalavai-net/netclient:v0.90.0
+podman pull gravitl/netclient:v0.90.0
+podman tag gravitl/netclient:v0.90.0 ghcr.io/kalavai-net/netclient:v0.90.0
+podman push ghcr.io/kalavai-net/netclient:v0.90.0
 ```

@@ -282,10 +282,10 @@ def run_cmd(command, hide_output=False):
 
 def leave_vpn(container_name):
     try:
-        vpns = json.loads(run_cmd(f"docker exec {container_name} netclient list").decode())
+        vpns = json.loads(run_cmd(f"podman exec {container_name} netclient list").decode())
         left_vpns = [vpn['network'] for vpn in vpns]
         for vpn in left_vpns:
-            run_cmd(f"docker exec {container_name} netclient leave {vpn}")
+            run_cmd(f"podman exec {container_name} netclient leave {vpn}")
         return left_vpns
     except:
         return None
