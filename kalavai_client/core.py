@@ -77,6 +77,9 @@ from kalavai_client.api_models import (
     DeviceStatus
 )
 
+CONTAINER_CMD = "podman"
+
+
 def is_watcher_alive(server_creds=USER_LOCAL_SERVER_FILE, user_cookie=USER_COOKIE, timeout=30):
     try:
         request_to_server(
@@ -152,26 +155,22 @@ def init_user_workspace(user_id=None, node_name=None, force_namespace=None):
 def check_seed_compatibility():
     """Check required packages to start pools"""
     logs = []
-    # docker
     try:
-        run_cmd("docker ps", hide_output=True)
+        run_cmd(f"{CONTAINER_CMD} ps", hide_output=True)
     except:
-        logs.append("[red]Docker not installed. Install instructions:\n")
-        logs.append("   Linux: https://docs.docker.com/engine/install/\n")
-        logs.append("   Windows/MacOS: https://docs.docker.com/desktop/\n")
+        logs.append(f"[red]{CONTAINER_CMD} not installed. Install instructions:\n")
+        logs.append("   Windows / Linux / MacOS: https://podman.io/docs/installation\n")
     
     return {"issues": logs}
 
 def check_worker_compatibility():
     """Check required packages to join pools"""
     logs = []
-    # docker
     try:
-        run_cmd("docker ps", hide_output=True)
+        run_cmd(f"{CONTAINER_CMD} ps", hide_output=True)
     except:
-        logs.append("[red]Docker not installed. Install instructions:\n")
-        logs.append("   Linux: https://docs.docker.com/engine/install/\n")
-        logs.append("   Windows/MacOS: https://docs.docker.com/desktop/\n")
+        logs.append(f"[red]{CONTAINER_CMD} not installed. Install instructions:\n")
+        logs.append("   Windows / Linux / MacOS: https://podman.io/docs/installation\n")
     
     return {"issues": logs}
 
@@ -1081,7 +1080,7 @@ def attach_to_pool(token, node_name=None):
     
     # local agent join
     # 1. Generate local cache files
-    # Generate docker compose recipe
+    # Generate compose recipe
     generate_compose_config(
         role="",
         vpn_token=public_location,
@@ -1097,7 +1096,7 @@ def attach_to_pool(token, node_name=None):
         public_location=public_location,
         user_api_key=None)
     
-    run_cmd(f"docker compose -f {USER_COMPOSE_FILE} up -d")
+    run_cmd(f"{CONTAINER_CMD} compose -f {USER_COMPOSE_FILE} up -d")
     # ensure we are connected
     while True:
         time.sleep(30)
@@ -1136,7 +1135,7 @@ def generate_worker_package(
         STORAGE_CLASS_LABEL: "enabled" if storage_compatible else "disabled",
         NODE_ROLE_LABEL: "worker"
     }
-    # Generate docker compose recipe
+    # Generate compose recipe
     compose = generate_compose_config(
         target_platform=target_platform,
         write_to_file=False,
@@ -1197,7 +1196,7 @@ def join_pool(
         NODE_ROLE_LABEL: "worker" if not is_seed else "server"
     }  
     # local agent join
-    # Generate docker compose recipe
+    # Generate compose recipe
     generate_compose_config(
         target_platform=target_platform,
         role="agent" if not is_seed else "seed",
@@ -1311,7 +1310,7 @@ def create_pool(
     except Exception as e:
         return {"error": f"Error when loading pool config. Missing format? {str(e)}"}
 
-    # Generate docker compose recipe
+    # Generate compose recipe
     # TODO: chicken and egg problem with watcher URL?
         # it's required by the worker composer file,
         # but we only know the IP after having joined the VPN?

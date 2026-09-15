@@ -67,6 +67,7 @@ from kalavai_client.utils import (
 )
 
 
+CONTAINER_CMD = "podman"
 LOCAL_TEMPLATES_DIR = os.getenv("LOCAL_TEMPLATES_DIR", None)
 VERSION = 1
 RESOURCE_EXCLUDE = ["ephemeral-storage", "hugepages-1Gi", "hugepages-2Mi", "pods"]
@@ -230,7 +231,7 @@ def gui__start(
     *others,
     version="latest"
 ):
-    """Run GUI (docker) and kalavai core backend (api)"""
+    """Run GUI ({CONTAINER_CMD}) and kalavai core backend (api)"""
     # find 2 available ports
     ip = socket.gethostbyname (socket.gethostname())
     selected_port = -1
@@ -272,7 +273,7 @@ def gui__start(
     with open(USER_GUI_COMPOSE_FILE, "w") as f:
         f.write(compose_yaml)
     
-    run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} up -d")
+    run_cmd(f"{CONTAINER_CMD} compose --file {USER_GUI_COMPOSE_FILE} up -d")
 
     console.log(f"[green]Loading GUI, may take a few minutes. It will be available at http://localhost:{selected_port}")
     console.log("Run [yellow]kalavai gui stop[white] to stop running the GUI")
@@ -280,7 +281,7 @@ def gui__start(
 @arguably.command
 def gui__stop():
     try:
-        run_cmd(f"docker compose --file {USER_GUI_COMPOSE_FILE} down")
+        run_cmd(f"{CONTAINER_CMD} compose --file {USER_GUI_COMPOSE_FILE} down")
     except Exception as e:
         console.log(f"Error when stopping GUI: {str(e)}. IGNORE if GUI was not running before")
     
@@ -306,7 +307,7 @@ def logout(*others):
 @arguably.command
 def pool__package_worker(output_file, *others, platform="amd64", num_gpus=0, ip_address="0.0.0.0", node_name=None, storage_compatible=True):
     """
-    [AUTH]Package a worker for distribution (docker compose only)
+    [AUTH]Package a worker for distribution (podman compose only)
     """
 
     if not CLUSTER.is_seed_node():
@@ -446,7 +447,7 @@ def pool__start(
     # User acknowledgement
     if not non_interactive:
         option = user_confirm(
-            question="Kalavai will now create a pool and a local worker using docker. This won't modify your system. Are you happy to proceed?",
+            question=f"Kalavai will now create a pool and a local worker using {CONTAINER_CMD}. This won't modify your system. Are you happy to proceed?",
             options=["no", "yes"]
         )
         if option == 0:
@@ -871,7 +872,7 @@ def pool__attach(token, *others, node_name=None):
     )
     if option == 0:
         console.log("Manually deploy the worker with the following command:\n")
-        print(f"docker compose -f {USER_COMPOSE_FILE} up -d")
+        print(f"{CONTAINER_CMD} compose -f {USER_COMPOSE_FILE} up -d")
         return
     
     result = attach_to_pool(token=token, node_name=node_name)

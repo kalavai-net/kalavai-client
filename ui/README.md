@@ -213,12 +213,12 @@ The image installs dependencies at build time but runs `next build` at container
 
 **Build the image:**
 ```bash
-docker build -t ghcr.io/kalavai-net/kalavai-ui:latest .
+podman build -t ghcr.io/kalavai-net/kalavai-ui:latest .
 ```
 
 **Run the container**, passing env vars directly:
 ```bash
-docker run -p 3000:3000 \
+podman run -p 3000:3000 \
   -e NEXT_PUBLIC_KALAVAI_API_URL=http://your-api-server:49152 \
   -e NEXT_PUBLIC_ACCESS_KEY=your-access-key \
   ghcr.io/kalavai-net/kalavai-ui:latest

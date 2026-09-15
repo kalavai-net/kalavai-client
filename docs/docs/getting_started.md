@@ -16,7 +16,7 @@ The `kalavai` client is the main tool to interact with the Kalavai platform, to 
 For seed nodes:
 
 - A 64 bits x86 / ARM64 based Linux-based machine (laptop, desktop or VM)
-- [Docker engine installed](https://docs.docker.com/engine/install/ubuntu/) with [privilege access](https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities).
+- [Podman engine installed](https://podman.io/docs/installation).
 - Python 3.12+
 - `gcc` and `python3-dev` installed
 
@@ -24,7 +24,7 @@ For workers sharing resources with the pool:
 
 - A laptop, desktop or Virtual Machine (MacOS, Linux or Windows; ARM or x86)
 - Workers should be on the same network as the seed node (or a shared VPN).
-- Docker engine installed (for [linux](https://docs.docker.com/engine/install/ubuntu/), [Windows and MacOS](https://docs.docker.com/desktop/)) with [privilege access](https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities).
+- Podman engine installed (for [your OS](https://podman.io/docs/installation)).
 - Python 3.12+
 - `gcc` and `python3-dev` installed
 
@@ -75,7 +75,7 @@ In any machine with the `kalavai` client installed, execute the following to sta
 kalavai pool start <name>
 ```
 
-Where <name> is the name of the pool. This will deploy a series of docker containers to manage and interact with the platform. Once the seed is up and running, you can start the GUI manually to manage devices and workloads:
+Where <name> is the name of the pool. This will deploy a series of containers to manage and interact with the platform. Once the seed is up and running, you can start the GUI manually to manage devices and workloads:
 
 ```bash
 $ kalavai gui start

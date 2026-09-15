@@ -77,13 +77,13 @@ Check our [getting started guide](https://kalavai-net.github.io/kalavai-client/g
 
 For seed nodes:
 - A arm64 or amd64 linux machine (laptop, desktop or VM)
-- [Docker engine installed](https://docs.docker.com/engine/install/ubuntu/) with [privilege access](https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities).
+- [Podman engine installed](https://podman.io/docs/installation).
 
 For workers sharing resources with the pool:
 
 - A laptop, desktop or Virtual Machine. Full support: Linux and Windows; amd64 / ARM architecture.
 - If self-hosting, workers should be on the same network as the seed node. 
-- Docker engine installed (for [linux](https://docs.docker.com/engine/install/ubuntu/), [Windows](https://docs.docker.com/desktop/)) with [privilege access](https://docs.docker.com/engine/containers/run/#runtime-privilege-and-linux-capabilities).
+- Podman engine installed (for [your OS](https://podman.io/docs/installation)).
 
 
 ### Compatibility matrix

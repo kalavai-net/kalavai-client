@@ -80,7 +80,7 @@ class Cluster(ABC):
     def validate_cluster(self) -> bool:
         raise NotImplementedError
     
-class dockerCluster(Cluster):
+class podmanCluster(Cluster):
     def __init__(self, container_name, compose_file, kubeconfig_file, poolconfig_file, dependencies_file, kube_version="v1.31.1+k3s1", flannel_iface=None):
         self.kube_version = kube_version
         self.container_name = container_name
@@ -96,22 +96,22 @@ class dockerCluster(Cluster):
         
     def start_seed_node(self):
         
-        run_cmd(f"docker compose -f {self.compose_file} up -d")
+        run_cmd(f"podman compose -f {self.compose_file} up -d")
         # wait for container to be setup
         while True:
             try:
-                run_cmd(f"docker cp {self.container_name}:/etc/rancher/k3s/k3s.yaml {self.kubeconfig_file}", hide_output=True)
+                run_cmd(f"podman cp {self.container_name}:/etc/rancher/k3s/k3s.yaml {self.kubeconfig_file}", hide_output=True)
                 break
             except Exception:
                 pass
             time.sleep(5)
 
     def start_worker_node(self):
-        run_cmd(f"docker compose -f {self.compose_file} up -d")
+        run_cmd(f"podman compose -f {self.compose_file} up -d")
     
     def get_vpn_ip(self):
         command = populate_template(
-            template_str="docker exec {{container_name}} ifconfig {{iface_name}} | grep 'inet ' | awk '{gsub(/^addr:/, \"\", $2); print $2}'",
+            template_str="podman exec {{container_name}} ifconfig {{iface_name}} | grep 'inet ' | awk '{gsub(/^addr:/, \"\", $2); print $2}'",
             values_dict={"container_name": self.container_name, "iface_name": self.default_flannel_iface})
         return run_cmd(command).decode().strip()
 
@@ -130,7 +130,7 @@ class dockerCluster(Cluster):
                     release_cmd = "-l "+ ",".join([f"name={release}" for release in releases])
                 else:
                     release_cmd = ""
-                run_cmd(f"docker run --rm --net=host -v {home}:{target_path} ghcr.io/helmfile/helmfile:v0.169.2 helmfile {release_cmd} sync --file {dependencies_path} --kubeconfig {kubeconfig_path}", hide_output=not debug)
+                run_cmd(f"podman run --rm --net=host -v {home}:{target_path} ghcr.io/helmfile/helmfile:v0.169.2 helmfile {release_cmd} sync --file {dependencies_path} --kubeconfig {kubeconfig_path}", hide_output=not debug)
                 break
             except Exception as e:
                 if retries > 0:
@@ -141,7 +141,7 @@ class dockerCluster(Cluster):
 
     def remove_agent(self):
         try:
-            run_cmd(f'docker compose -f {self.compose_file} down --volumes')
+            run_cmd(f'podman compose -f {self.compose_file} down --volumes')
             return True
         except Exception:
             return False
@@ -150,13 +150,13 @@ class dockerCluster(Cluster):
         if not os.path.isfile(self.compose_file):
             return False
         try:
-            status = self.container_name in run_cmd(f"docker compose -f {self.compose_file} ps --services --status=running").decode()
+            status = self.container_name in run_cmd(f"podman compose -f {self.compose_file} ps --services --status=running").decode()
             if not status:
                 return False
             if "windows" in platform.system().lower():
-                status = (0 == os.system(f'docker exec {self.container_name} ps aux | findstr /n /c:"k3s server" /c:"k3s agent"'))
+                status = (0 == os.system(f'podman exec {self.container_name} ps aux | findstr /n /c:"k3s server" /c:"k3s agent"'))
             else:
-                status = (0 == os.system(f'docker exec {self.container_name} ps aux | grep -v grep | grep -E "k3s (server|agent)"'))
+                status = (0 == os.system(f'podman exec {self.container_name} ps aux | grep -v grep | grep -E "k3s (server|agent)"'))
             return status
         except Exception as e:
             print(f"Error when checking agent. Is Docker installed and running?\n\n{str(e)}")
@@ -168,7 +168,7 @@ class dockerCluster(Cluster):
         if not self.is_agent_running():
             return False
         try:
-            run_cmd(f"docker container exec {self.container_name} cat /var/lib/rancher/k3s/server/node-token", hide_output=True)
+            run_cmd(f"podman container exec {self.container_name} cat /var/lib/rancher/k3s/server/node-token", hide_output=True)
             return True
         except Exception:
             return False
@@ -177,7 +177,7 @@ class dockerCluster(Cluster):
         if not os.path.isfile(self.compose_file):
             return False
         try:
-            status = self.container_name in run_cmd(f"docker compose -f {self.compose_file} ps --services --all").decode()
+            status = self.container_name in run_cmd(f"podman compose -f {self.compose_file} ps --services --all").decode()
             return status
         except Exception as e:
             print(f"Error when checking cluster. Is Docker installed and running?\n\n{str(e)}")
@@ -186,7 +186,7 @@ class dockerCluster(Cluster):
     def pause_agent(self):
         status = False
         try:
-            run_cmd(f'docker compose -f {self.compose_file} stop')
+            run_cmd(f'podman compose -f {self.compose_file} stop')
             status = True
         except Exception:
             pass
@@ -194,7 +194,7 @@ class dockerCluster(Cluster):
 
     def restart_agent(self):
         try:
-            run_cmd(f'docker compose -f {self.compose_file} start')
+            run_cmd(f'podman compose -f {self.compose_file} start')
         except Exception:
             pass
         time.sleep(5)
@@ -202,7 +202,7 @@ class dockerCluster(Cluster):
 
     def get_cluster_token(self):
         if self.is_seed_node():
-            return run_cmd(f"docker container exec {self.container_name} cat /var/lib/rancher/k3s/server/node-token").decode()
+            return run_cmd(f"podman container exec {self.container_name} cat /var/lib/rancher/k3s/server/node-token").decode()
         else:
             return None
     
@@ -210,7 +210,7 @@ class dockerCluster(Cluster):
         # TODO: check cache files are in order
         # get cluster status
         if self.is_seed_node():
-            return run_cmd(f"docker exec {self.container_name} kubectl get pods -A -o wide").decode() + "\n\n" + run_cmd(f"docker exec {self.container_name} kubectl get nodes").decode()
+            return run_cmd(f"podman exec {self.container_name} kubectl get pods -A -o wide").decode() + "\n\n" + run_cmd(f"podman exec {self.container_name} kubectl get nodes").decode()
         else:
             return None
         
@@ -361,7 +361,7 @@ class k3sCluster(Cluster):
 ####################################################
 ####################################################
 
-CLUSTER = dockerCluster(
+CLUSTER = podmanCluster(
     container_name=DEFAULT_CONTAINER_NAME,
     kube_version=KUBE_VERSION,
     flannel_iface=DEFAULT_FLANNEL_IFACE,

@@ -47,8 +47,8 @@ Functionality is configured via environment variables:
 ## Build
 
 ```bash
-docker build -t ghcr.io/kalavai-net/kalavai-registrar:latest .
-docker push ghcr.io/kalavai-net/kalavai-registrar:latest
+podman build -t ghcr.io/kalavai-net/kalavai-registrar:latest .
+podman push ghcr.io/kalavai-net/kalavai-registrar:latest
 ```
 
 ## Notes
