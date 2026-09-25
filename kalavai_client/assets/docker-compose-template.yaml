@@ -46,6 +46,10 @@ services:
 {%if command %}
   {{service_name}}:
     image: ghcr.io/kalavai-net/kalavai-runner-{{target_platform}}:latest
+    {% if num_gpus and num_gpus > 0 %}
+    devices:
+    - nvidia.com/gpu=all # or nvidia.com/gpu=0 for a specific GPU
+    {% endif %}
     pull_policy: always
     container_name: {{service_name}}
     platform: linux/{{target_platform}}
@@ -97,13 +101,13 @@ services:
     # - {{k3s_path}}:/var/lib/rancher/k3s # Persist data
     # - {{etc_path}}:/etc/rancher/k3s # Config files
 
-  {% if num_gpus and num_gpus > 0 %}
-    deploy:
-      resources:
-        reservations:
-          devices:
-          - driver: nvidia
-            count: {{num_gpus}}
-            capabilities: [gpu]
-  {% endif %}
+  # {% if num_gpus and num_gpus > 0 %}
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #         - driver: nvidia
+  #           count: {{num_gpus}}
+  #           capabilities: [gpu]
+  # {% endif %}
 {% endif %}
