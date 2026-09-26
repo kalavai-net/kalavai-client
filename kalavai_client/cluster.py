@@ -96,7 +96,7 @@ class podmanCluster(Cluster):
         
     def start_seed_node(self):
         
-        run_cmd(f"podman-compose -f {self.compose_file} up -d")
+        run_cmd(f"podman compose -f {self.compose_file} up -d")
         # wait for container to be setup
         while True:
             try:
@@ -107,7 +107,7 @@ class podmanCluster(Cluster):
             time.sleep(5)
 
     def start_worker_node(self):
-        run_cmd(f"podman-compose -f {self.compose_file} up -d")
+        run_cmd(f"podman compose -f {self.compose_file} up -d")
     
     def get_vpn_ip(self):
         command = populate_template(
@@ -141,7 +141,7 @@ class podmanCluster(Cluster):
 
     def remove_agent(self):
         try:
-            run_cmd(f'podman-compose -f {self.compose_file} down --volumes')
+            run_cmd(f'podman compose -f {self.compose_file} down --volumes')
             return True
         except Exception:
             return False
@@ -150,7 +150,7 @@ class podmanCluster(Cluster):
         if not os.path.isfile(self.compose_file):
             return False
         try:
-            status = self.container_name in run_cmd(f"podman-compose -f {self.compose_file} ps --services --status=running").decode()
+            status = self.container_name in run_cmd(f"podman compose -f {self.compose_file} ps --services --status=running").decode()
             if not status:
                 return False
             if "windows" in platform.system().lower():
@@ -177,7 +177,7 @@ class podmanCluster(Cluster):
         if not os.path.isfile(self.compose_file):
             return False
         try:
-            status = self.container_name in run_cmd(f"podman-compose -f {self.compose_file} ps --services --all").decode()
+            status = self.container_name in run_cmd(f"podman compose -f {self.compose_file} ps --services --all").decode()
             return status
         except Exception as e:
             print(f"Error when checking cluster. Is Docker installed and running?\n\n{str(e)}")
@@ -186,7 +186,7 @@ class podmanCluster(Cluster):
     def pause_agent(self):
         status = False
         try:
-            run_cmd(f'podman-compose -f {self.compose_file} stop')
+            run_cmd(f'podman compose -f {self.compose_file} stop')
             status = True
         except Exception:
             pass
@@ -194,7 +194,7 @@ class podmanCluster(Cluster):
 
     def restart_agent(self):
         try:
-            run_cmd(f'podman-compose -f {self.compose_file} start')
+            run_cmd(f'podman compose -f {self.compose_file} start')
         except Exception:
             pass
         time.sleep(5)
