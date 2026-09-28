@@ -30,7 +30,8 @@ dependencies = [
     "fastapi-mcp==0.3.0",
     "public-ip==0.12",
     "pandas==3.0.3",
-    "clickhouse-connect==1.0.1"
+    "clickhouse-connect==1.0.1",
+    "podman-compose==1.6.0"
 ]
 
 [project.optional-dependencies]

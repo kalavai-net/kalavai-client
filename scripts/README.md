@@ -2,7 +2,7 @@
 
 ## Worker installers
 
-Individual scripts to setup workers on various platforms. Workers are docker compose recipes that run kalavai-runner and vpn containers to connect to a pool. They do not include the kalavai-client. Workers are useful in organisations where you want to increase the computational workforce in machines where the client is not required (cloud instances, worker-only nodes).
+Individual scripts to setup workers on various platforms. Workers are podman compose recipes that run kalavai-runner and vpn containers to connect to a pool. They do not include the kalavai-client. Workers are useful in organisations where you want to increase the computational workforce in machines where the client is not required (cloud instances, worker-only nodes).
 
 
 ## QCOW images
@@ -11,14 +11,14 @@ Kalavai client as a QCOW image
 
 Docker to QCOW: https://github.com/linka-cloud/d2vm
 
-docker pull linkacloud/d2vm:latest
-alias d2vm="docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock --privileged -v \$PWD:/d2vm -w /d2vm linkacloud/d2vm:latest"
+podman pull linkacloud/d2vm:latest
+alias d2vm="podman run --rm -it -v /var/run/podman.sock:/var/run/podman.sock --privileged -v \$PWD:/d2vm -w /d2vm linkacloud/d2vm:latest"
 
 For images:
 
 d2vm convert <repo>/<image_id>
 
-For dockerfiles:
+For podmanfiles:
 
 d2vm build . -f Dockerfile --size 500G --output kalavai.qcow2 --password <root_password>
 
@@ -63,7 +63,7 @@ qemu-system-x86_64 \
 Docker (single node):
 
 ```bash
-docker run --rm --gpus all \
+podman run --rm --gpus all \
   --shm-size=2g \
   --ulimit memlock=-1 \
   --ulimit stack=67108864 \
@@ -169,7 +169,7 @@ Results (4 GPUs):
 Docker (multi node):
 
 ```bash
-docker run --gpus all --net=host --shm-size=1g \
+podman run --gpus all --net=host --shm-size=1g \
   nvcr.io/nvidia/pytorch:24.01-py3 \
   mpirun -np 2 -H <node1_ip>:1,<node2_ip>:1 \
   /usr/local/bin/all_reduce_perf -b 8 -e 1G -f 2 -g 1

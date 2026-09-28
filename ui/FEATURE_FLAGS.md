@@ -85,12 +85,12 @@ SHOW_MONITORING=true
 SHOW_USER_SPACES=false
 ```
 
-### Using Docker
+### Using Podman
 
-When running with Docker, set the environment variables:
+When running with podman, set the environment variables:
 
 ```bash
-docker run -e SHOW_RESOURCES=false -e SHOW_MONITORING=true kalavai-ui
+podman run -e SHOW_RESOURCES=false -e SHOW_MONITORING=true kalavai-ui
 ```
 
 ### Using Docker Compose

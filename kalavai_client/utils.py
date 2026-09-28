@@ -27,10 +27,10 @@ from kalavai_client.env import (
     FORCE_WATCHER_API_KEY_URL,
     FORCE_WATCHER_API_URL,
     USER_LOCAL_SERVER_FILE,
+    CONTAINER_CMD,
     user_path
 )
 from kalavai_client.api_models import TokenType
-
 
 GITHUB_ORG = "kalavai-net"
 GITHUB_REPO = "kalavai-client"
@@ -282,10 +282,10 @@ def run_cmd(command, hide_output=False):
 
 def leave_vpn(container_name):
     try:
-        vpns = json.loads(run_cmd(f"docker exec {container_name} netclient list").decode())
+        vpns = json.loads(run_cmd(f"{CONTAINER_CMD} exec {container_name} netclient list").decode())
         left_vpns = [vpn['network'] for vpn in vpns]
         for vpn in left_vpns:
-            run_cmd(f"docker exec {container_name} netclient leave {vpn}")
+            run_cmd(f"{CONTAINER_CMD} exec {container_name} netclient leave {vpn}")
         return left_vpns
     except:
         return None

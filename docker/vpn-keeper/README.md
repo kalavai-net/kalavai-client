@@ -22,7 +22,7 @@ cat netmaker.env
 4. Run keeper:
 
 ```bash
-docker run -d \
+podman run -d \
     --net host \
     -e API_KEY=<your master key> \
     -e API_URL=<https://api.netmaker.YOUR.DOMAIN> \

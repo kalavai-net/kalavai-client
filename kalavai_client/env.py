@@ -35,6 +35,7 @@ def resource_path(relative_path: str):
 KALAVAI_TEMPLATE_REPOSITORIES = [
     ("kalavai-templates", "https://kalavai-net.github.io/kalavai-templates/")
 ]
+CONTAINER_CMD = "docker"
 TEMPLATE_LABEL = "kalavai.job.name"
 CORE_SERVICE_LABEL = "kalavai/service"
 KALAVAI_SERVICE_LABEL = "app"
