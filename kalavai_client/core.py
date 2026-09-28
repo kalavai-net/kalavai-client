@@ -159,7 +159,7 @@ def check_seed_compatibility():
         run_cmd(f"{CONTAINER_CMD} ps", hide_output=True)
     except:
         logs.append(f"[red]{CONTAINER_CMD} not installed. Install instructions:\n")
-        logs.append("   Windows / Linux / MacOS: https://podman.io/docs/installation\n")
+        logs.append("   Windows / Linux / MacOS: https://docs.docker.com/engine/install/\n")
     
     return {"issues": logs}
 
@@ -170,7 +170,7 @@ def check_worker_compatibility():
         run_cmd(f"{CONTAINER_CMD} ps", hide_output=True)
     except:
         logs.append(f"[red]{CONTAINER_CMD} not installed. Install instructions:\n")
-        logs.append("   Windows / Linux / MacOS: https://podman.io/docs/installation\n")
+        logs.append("   Windows / Linux / MacOS: https://docs.docker.com/engine/install/\n")
     
     return {"issues": logs}
 

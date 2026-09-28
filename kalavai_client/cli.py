@@ -307,7 +307,7 @@ def logout(*others):
 @arguably.command
 def pool__package_worker(output_file, *others, platform="amd64", num_gpus=0, ip_address="0.0.0.0", node_name=None, storage_compatible=True):
     """
-    [AUTH]Package a worker for distribution (podman compose only)
+    [AUTH]Package a worker for distribution
     """
 
     if not CLUSTER.is_seed_node():

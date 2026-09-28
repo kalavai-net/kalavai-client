@@ -81,7 +81,7 @@ class Cluster(ABC):
     def validate_cluster(self) -> bool:
         raise NotImplementedError
     
-class podmanCluster(Cluster):
+class containerCluster(Cluster):
     def __init__(self, container_name, compose_file, kubeconfig_file, poolconfig_file, dependencies_file, kube_version="v1.31.1+k3s1", flannel_iface=None):
         self.kube_version = kube_version
         self.container_name = container_name
@@ -364,7 +364,7 @@ class k3sCluster(Cluster):
 ####################################################
 ####################################################
 
-CLUSTER = podmanCluster(
+CLUSTER = containerCluster(
     container_name=DEFAULT_CONTAINER_NAME,
     kube_version=KUBE_VERSION,
     flannel_iface=DEFAULT_FLANNEL_IFACE,
