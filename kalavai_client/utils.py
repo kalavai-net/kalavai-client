@@ -31,7 +31,6 @@ from kalavai_client.env import (
 )
 from kalavai_client.api_models import TokenType
 
-
 GITHUB_ORG = "kalavai-net"
 GITHUB_REPO = "kalavai-client"
 GITHUB_TEMPLATE_PATH = "templates"

@@ -66,7 +66,8 @@ from kalavai_client.env import (
     DEFAULT_POOL_CONFIG_TEMPLATE,
     FORCE_WATCHER_API_URL,
     FORCE_WATCHER_API_KEY_URL,
-    KALAVAI_TEMPLATE_REPOSITORIES
+    KALAVAI_TEMPLATE_REPOSITORIES,
+    CONTAINER_CMD
     
 )
 from kalavai_client.api_models import (
@@ -77,7 +78,6 @@ from kalavai_client.api_models import (
     DeviceStatus
 )
 
-CONTAINER_CMD = "podman"
 
 
 def is_watcher_alive(server_creds=USER_LOCAL_SERVER_FILE, user_cookie=USER_COOKIE, timeout=30):

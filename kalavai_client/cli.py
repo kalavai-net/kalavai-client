@@ -26,6 +26,7 @@ from kalavai_client.env import (
     USER_TEMPLATES_FOLDER,
     DOCKER_COMPOSE_GUI,
     USER_GUI_COMPOSE_FILE,
+    CONTAINER_CMD,
     user_path,
     resource_path,
 )
@@ -67,7 +68,6 @@ from kalavai_client.utils import (
 )
 
 
-CONTAINER_CMD = "podman"
 LOCAL_TEMPLATES_DIR = os.getenv("LOCAL_TEMPLATES_DIR", None)
 VERSION = 1
 RESOURCE_EXCLUDE = ["ephemeral-storage", "hugepages-1Gi", "hugepages-2Mi", "pods"]

@@ -16,7 +16,7 @@ The `kalavai` client is the main tool to interact with the Kalavai platform, to 
 For seed nodes:
 
 - A 64 bits x86 / ARM64 based Linux-based machine (laptop, desktop or VM)
-- [Podman engine installed](https://podman.io/docs/installation).
+- [Podman engine installed](https://podman.io/docs/installation) with root access.
 - Python 3.12+
 - `gcc` and `python3-dev` installed
 
@@ -24,7 +24,7 @@ For workers sharing resources with the pool:
 
 - A laptop, desktop or Virtual Machine (MacOS, Linux or Windows; ARM or x86)
 - Workers should be on the same network as the seed node (or a shared VPN).
-- Podman engine installed (for [your OS](https://podman.io/docs/installation)).
+- Podman engine installed (for [your OS](https://podman.io/docs/installation)) with root access.
 - Python 3.12+
 - `gcc` and `python3-dev` installed
 
