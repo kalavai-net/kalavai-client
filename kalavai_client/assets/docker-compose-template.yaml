@@ -49,9 +49,6 @@ services:
     {% if num_gpus and num_gpus > 0 %}
     devices:
     - nvidia.com/gpu=all # or nvidia.com/gpu=0 for a specific GPU
-    environment:
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
     {% endif %}
     pull_policy: always
     container_name: {{service_name}}

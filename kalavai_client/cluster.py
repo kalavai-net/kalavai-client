@@ -151,6 +151,7 @@ class podmanCluster(Cluster):
             return False
         try:
             status = self.container_name in run_cmd(f"podman compose -f {self.compose_file} ps --services --status=running").decode()
+            #status = "true" in run_cmd(f"podman inspect --format='{{{{.State.Running}}}}' {self.container_name}").decode()
             if not status:
                 return False
             if "windows" in platform.system().lower():
@@ -159,7 +160,7 @@ class podmanCluster(Cluster):
                 status = (0 == os.system(f'podman exec {self.container_name} ps aux | grep -v grep | grep -E "k3s (server|agent)"'))
             return status
         except Exception as e:
-            print(f"Error when checking agent. Is Docker installed and running?\n\n{str(e)}")
+            print(f"Error when checking agent. Is Podman installed and running?\n\n{str(e)}")
             return False
 
     def is_seed_node(self):
@@ -178,9 +179,10 @@ class podmanCluster(Cluster):
             return False
         try:
             status = self.container_name in run_cmd(f"podman compose -f {self.compose_file} ps --services --all").decode()
+            #status = "true" in run_cmd(f"podman inspect --format='{{{{.State.Running}}}}' {self.container_name}").decode()
             return status
         except Exception as e:
-            print(f"Error when checking cluster. Is Docker installed and running?\n\n{str(e)}")
+            print(f"Error when checking cluster. Is Podman installed and running?\n\n{str(e)}")
             return False
 
     def pause_agent(self):

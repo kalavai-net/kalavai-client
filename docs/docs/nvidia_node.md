@@ -50,7 +50,7 @@ sudo apt update
 sudo apt install python3-pip python3-venv python3-dev -y
 
 # install podman
-sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
 sudo apt-get update
 sudo apt-get -y install podman
 
@@ -66,6 +66,14 @@ sudo apt-get install -y \
     nvidia-container-toolkit-base=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
     libnvidia-container-tools=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
     libnvidia-container1=${NVIDIA_CONTAINER_TOOLKIT_VERSION}
+
+sudo nvidia-ctk runtime configure --runtime=containerd
+sudo systemctl restart containerd
+
+sudo systemctl enable --now nvidia-cdi-refresh.path
+sudo systemctl enable --now nvidia-cdi-refresh.service
+
+sudo systemctl restart nvidia-cdi-refresh.service
 sudo nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml
 
 echo "REBOOT REQUIRED! Run: sudo shutdown -r now"
