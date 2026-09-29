@@ -9,6 +9,9 @@ services:
     environment:
     - NEXT_PUBLIC_KALAVAI_API_URL={{kalavai_api_url}}
     - PORT={{gui_frontend_port}}
+    - SHOW_RESOURCES=true
+    - SHOW_MONITORING=false
+    - SHOW_USER_SPACES=true
     {% if protected_access %}
     - NEXT_PUBLIC_ACCESS_KEY={{protected_access}}
     {% endif %}
