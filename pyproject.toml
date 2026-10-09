@@ -1,6 +1,6 @@
 [project]
 name            = "kalavai-client"
-version         = "0.11.0"
+version         = "0.11.1"
 authors = [
   {name = "Carlos Fernandez Musoles", email = "carlos@kalavai.net"}
 ]
@@ -31,7 +31,7 @@ dependencies = [
     "public-ip==0.12",
     "pandas==3.0.3",
     "clickhouse-connect==1.0.1",
-    "podman-compose==1.6.0"
+    #"podman-compose==1.6.0"
 ]
 
 [project.optional-dependencies]
