@@ -100,6 +100,63 @@ function castValue(value: unknown, type: string | string[]): unknown {
   }
 }
 
+// Returns true when a required field has no usable value.
+// false is valid for booleans, 0 is valid for numbers — only undefined/null/''/[] count as empty.
+function isEmptyValue(value: unknown, param: TemplateParam): boolean {
+  if (hasType(param.type, 'boolean')) {
+    return value === undefined || value === null;
+  }
+  if (hasType(param.type, 'array')) {
+    return !Array.isArray(value) || value.length === 0;
+  }
+  if (hasType(param.type, 'object')) {
+    if (value === undefined || value === null) return true;
+    if (typeof value !== 'object' || Array.isArray(value)) return true;
+    // Structured objects delegate emptiness to their nested required fields
+    if (param.properties) return false;
+    return Object.keys(value as Record<string, unknown>).length === 0;
+  }
+  if (hasType(param.type, 'integer') || hasType(param.type, 'number')) {
+    return value === undefined || value === null || value === '' || Number.isNaN(Number(value));
+  }
+  // string, enum and anything else
+  return value === undefined || value === null || String(value).trim() === '';
+}
+
+// Recursively collect dotted paths (e.g. "args.model") of required params with no value.
+function getMissingRequired(
+  params: Record<string, TemplateParam>,
+  values: Record<string, unknown> | undefined | null,
+  prefix = ''
+): string[] {
+  const missing: string[] = [];
+  const safeValues = (values as Record<string, unknown>) || {};
+  Object.values(params).forEach(p => {
+    const v = safeValues[p.name];
+    if (hasType(p.type, 'object') && p.properties) {
+      const nested = getMissingRequired(p.properties, (v as Record<string, unknown>) || {}, `${prefix}${p.name}.`);
+      missing.push(...nested);
+      // Required free-form object (no nested required) with no value counts as missing itself
+      if (p.required && nested.length === 0 && (v === undefined || v === null)) {
+        missing.push(`${prefix}${p.name}`);
+      }
+      return;
+    }
+    if (p.required && isEmptyValue(v, p)) {
+      missing.push(`${prefix}${p.name}`);
+    }
+  });
+  return missing;
+}
+
+// Count missing required fields inside a (possibly nested) object param, for badges.
+function countMissingInObject(param: TemplateParam, value: unknown): number {
+  if (!param.properties) {
+    return param.required && isEmptyValue(value, param) ? 1 : 0;
+  }
+  return getMissingRequired(param.properties, (value as Record<string, unknown>) || {}).length;
+}
+
 // Helper function to recursively cast all form values based on their schema types
 function castFormValues(values: Record<string, unknown>, params: Record<string, TemplateParam>): Record<string, unknown> {
   const result: Record<string, unknown> = {};
@@ -218,13 +275,11 @@ function buildParams(data: TemplateData): Record<string, TemplateParam> {
   
   const params: Record<string, TemplateParam> = {};
   const required = data.schema?.required || [];
-  
-  Object.entries(data.values || {}).forEach(([name, value]) => {
-    const schema = data.schema?.properties?.[name];
-    if (!schema) {
-      console.log(`[buildParams] No schema found for field: ${name}`);
-      return;
-    }
+  const schemaProps = data.schema?.properties || {};
+  const valuesRecord = (data.values || {}) as Record<string, unknown>;
+
+  Object.entries(schemaProps).forEach(([name, schema]) => {
+    const value = valuesRecord?.[name];
     
     console.log(`[buildParams] Processing top-level field: ${name}, type: ${schema.type}, value:`, value);
     
@@ -317,8 +372,8 @@ function statusBadge(status: string) {
   return <span className={`px-2 py-0.5 rounded text-xs font-medium ${cls}`}>{status || '—'}</span>;
 }
 
-function ParamField({ param, value, onChange }: { param: TemplateParam; value: unknown; onChange: (v: unknown) => void }) {
-  const base = 'w-full px-3 py-2 border border-border rounded-md text-sm bg-background';
+function ParamField({ param, value, onChange, invalid }: { param: TemplateParam; value: unknown; onChange: (v: unknown) => void; invalid?: boolean }) {
+  const base = `w-full px-3 py-2 border rounded-md text-sm bg-background ${invalid ? 'border-red-500 ring-1 ring-red-500' : 'border-border'}`;
   
   // Handle array types
   if (hasType(param.type, 'array')) {
@@ -411,53 +466,73 @@ function ParamField({ param, value, onChange }: { param: TemplateParam; value: u
 }
 
 function ObjectParamField({ param, value, onChange }: { param: TemplateParam; value: unknown; onChange: (v: unknown) => void }) {
-  const [expanded, setExpanded] = useState(false);
-  
-  if (!param.properties) return null;
-  
   const objectValue = (value as Record<string, unknown>) || {};
-  
+  const missing: string[] = param.properties ? getMissingRequired(param.properties, objectValue) : [];
+  const [expanded, setExpanded] = useState(missing.length > 0);
+  // Auto-expand when required fields inside are still empty so users can see what's left.
+  useEffect(() => {
+    if (missing.length > 0) setExpanded(true);
+  }, [param.name]);
+
+  if (!param.properties) return null;
+
+  const hasMissing = missing.length > 0;
+
   return (
-    <div className="border border-border rounded-md">
+    <div className={`border rounded-md ${hasMissing ? 'border-red-500' : 'border-border'}`}>
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
         className="w-full px-3 py-2 text-sm font-medium text-left hover:bg-muted flex items-center justify-between"
       >
-        <span>{param.name} {param.required && <span className="text-red-500">*</span>}</span>
+        <span>{param.name} {param.required && <span className="text-red-500">*</span>}
+          {hasMissing && (
+            <span className="ml-2 text-xs font-normal px-1.5 py-0.5 rounded bg-red-100 text-red-700">
+              {missing.length} required missing
+            </span>
+          )}
+        </span>
         <ChevronRight className={`w-4 h-4 transition-transform ${expanded ? 'rotate-90' : ''}`} />
       </button>
-      
+
       {expanded && (
         <div className="px-3 pb-3 space-y-3 border-t border-border">
           {param.description && (
             <p className="text-xs text-muted-foreground pt-2">{param.description}</p>
           )}
-          {Object.values(param.properties).map(nestedParam => (
-            <div key={nestedParam.name}>
-              {hasType(nestedParam.type, 'object') ? (
-                <ObjectParamField 
-                  param={nestedParam} 
-                  value={objectValue[nestedParam.name]} 
-                  onChange={v => onChange({ ...objectValue, [nestedParam.name]: v })} 
+          {Object.values(param.properties).map(nestedParam => {
+            const nestedValue = objectValue[nestedParam.name];
+            if (hasType(nestedParam.type, 'object')) {
+              return (
+                <ObjectParamField
+                  key={nestedParam.name}
+                  param={nestedParam}
+                  value={nestedValue}
+                  onChange={v => onChange({ ...objectValue, [nestedParam.name]: v })}
                 />
-              ) : (
-                <>
-                  <label className="block text-sm font-medium mb-1">
-                    {nestedParam.name} {nestedParam.required && <span className="text-red-500">*</span>}
-                  </label>
-                  <ParamField 
-                    param={nestedParam} 
-                    value={objectValue[nestedParam.name]} 
-                    onChange={v => onChange({ ...objectValue, [nestedParam.name]: v })} 
-                  />
-                  {nestedParam.description && (
-                    <p className="text-xs text-muted-foreground mt-1">{nestedParam.description}</p>
-                  )}
-                </>
-              )}
-            </div>
-          ))}
+              );
+            }
+            const nestedInvalid = nestedParam.required && isEmptyValue(nestedValue, nestedParam);
+            return (
+              <div key={nestedParam.name}>
+                <label className="block text-sm font-medium mb-1">
+                  {nestedParam.name} {nestedParam.required && <span className="text-red-500">*</span>}
+                </label>
+                <ParamField
+                  param={nestedParam}
+                  value={nestedValue}
+                  onChange={v => onChange({ ...objectValue, [nestedParam.name]: v })}
+                  invalid={nestedInvalid}
+                />
+                {nestedParam.description && (
+                  <p className="text-xs text-muted-foreground mt-1">{nestedParam.description}</p>
+                )}
+                {nestedInvalid && (
+                  <p className="text-xs text-red-600 mt-1">This field is required</p>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -826,8 +901,20 @@ function JobsContent() {
     );
   }
 
-  const requiredParams = Object.values(params).filter(p => p.required);
-  const optionalParams = Object.values(params).filter(p => !p.required);
+  // True when this param or any nested descendant is marked required in the schema.
+  // Used so objects containing required children stay in the visible Parameters
+  // section instead of being hidden under Advanced parameters.
+  const containsRequired = (p: TemplateParam): boolean => {
+    if (p.required) return true;
+    if (p.properties) return Object.values(p.properties).some(containsRequired);
+    return false;
+  };
+
+  const requiredParams = Object.values(params).filter(containsRequired);
+  const optionalParams = Object.values(params).filter(p => !containsRequired(p));
+  const missingRequired = getMissingRequired(params, formValues);
+  const missingResourcesRequired = getMissingRequired(resourcesParams, resourcesValues);
+  const canDeploy = jobName.trim() !== '' && missingRequired.length === 0 && missingResourcesRequired.length === 0;
 
   return (
     <div className="space-y-6">
@@ -1138,12 +1225,16 @@ function JobsContent() {
                                 <label className="block text-sm font-medium mb-1">
                                   {name} {param.required && <span className="text-red-500">*</span>}
                                 </label>
-                                <ParamField 
-                                  param={param} 
-                                  value={resourcesValues[name]} 
-                                  onChange={v => setResourcesValues(prev => ({ ...prev, [name]: v }))} 
+                                <ParamField
+                                  param={param}
+                                  value={resourcesValues[name]}
+                                  onChange={v => setResourcesValues(prev => ({ ...prev, [name]: v }))}
+                                  invalid={param.required && isEmptyValue(resourcesValues[name], param)}
                                 />
                                 {param.description && <p className="text-xs text-muted-foreground mt-1">{param.description}</p>}
+                                {param.required && isEmptyValue(resourcesValues[name], param) && (
+                                  <p className="text-xs text-red-600 mt-1">This field is required</p>
+                                )}
                               </>
                             )}
                           </div>
@@ -1160,8 +1251,11 @@ function JobsContent() {
                   <p className="text-sm font-medium">Populate template values</p>
                   <div>
                     <label className="block text-xs font-medium text-muted-foreground mb-1">Job name <span className="text-red-500">*</span></label>
-                    <input type="text" className="w-full px-3 py-2 border border-border rounded-md text-sm bg-background"
+                    <input type="text" className={`w-full px-3 py-2 border rounded-md text-sm bg-background ${!jobName.trim() ? 'border-red-500 ring-1 ring-red-500' : 'border-border'}`}
                       placeholder="my-job" value={jobName} onChange={e => setJobName(e.target.value)} />
+                    {!jobName.trim() && (
+                      <p className="text-xs text-red-600 mt-1">Job name is required</p>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <input 
@@ -1175,32 +1269,50 @@ function JobsContent() {
                       Add random suffix to job name
                     </label>
                   </div>
+                  {(missingRequired.length > 0 || missingResourcesRequired.length > 0) && (
+                    <div className="flex items-start gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
+                      <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-medium">Required fields missing: {missingRequired.length + missingResourcesRequired.length}</p>
+                        <p className="text-xs mt-0.5 break-all">{[...missingRequired, ...missingResourcesRequired.map(m => `resources.${m}`)].join(', ')}</p>
+                      </div>
+                    </div>
+                  )}
                   {requiredParams.length > 0 && (
                     <div className="space-y-3">
-                      <p className="text-xs font-semibold uppercase text-muted-foreground">Parameters</p>
-                      {requiredParams.map(p => (
-                        <div key={p.name}>
-                          {p.type === 'object' ? (
-                            <ObjectParamField 
-                              param={p} 
-                              value={formValues[p.name]} 
-                              onChange={v => setFormValues(prev => ({ ...prev, [p.name]: v }))} 
-                            />
-                          ) : (
-                            <>
-                              <label className="block text-sm font-medium mb-1">
-                                {p.name} <span className="text-red-500">*</span>
-                              </label>
-                              <ParamField 
-                                param={p} 
-                                value={formValues[p.name]} 
-                                onChange={v => setFormValues(prev => ({ ...prev, [p.name]: v }))} 
+                      <p className="text-xs font-semibold uppercase text-muted-foreground">Parameters <span className="normal-case font-normal">— fields marked <span className="text-red-500">*</span> are required</span></p>
+                      {requiredParams.map(p => {
+                        const invalid = hasType(p.type, 'object')
+                          ? countMissingInObject(p, formValues[p.name]) > 0
+                          : p.required && isEmptyValue(formValues[p.name], p);
+                        return (
+                          <div key={p.name}>
+                            {hasType(p.type, 'object') ? (
+                              <ObjectParamField
+                                param={p}
+                                value={formValues[p.name]}
+                                onChange={v => setFormValues(prev => ({ ...prev, [p.name]: v }))}
                               />
-                              {p.description && <p className="text-xs text-muted-foreground mt-1">{p.description}</p>}
-                            </>
-                          )}
-                        </div>
-                      ))}
+                            ) : (
+                              <>
+                                <label className="block text-sm font-medium mb-1">
+                                  {p.name} <span className="text-red-500">*</span>
+                                </label>
+                                <ParamField
+                                  param={p}
+                                  value={formValues[p.name]}
+                                  onChange={v => setFormValues(prev => ({ ...prev, [p.name]: v }))}
+                                  invalid={invalid}
+                                />
+                                {p.description && <p className="text-xs text-muted-foreground mt-1">{p.description}</p>}
+                                {invalid && (
+                                  <p className="text-xs text-red-600 mt-1">This field is required</p>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                   {optionalParams.length > 0 && (
@@ -1250,8 +1362,9 @@ function JobsContent() {
                     Next <ChevronRight className="w-4 h-4" />
                   </button>
                 ) : (
-                  <button onClick={handleDeploy} disabled={!jobName.trim() || deploying}
-                    className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 disabled:opacity-50">
+                  <button onClick={handleDeploy} disabled={!canDeploy || deploying}
+                    title={!canDeploy ? `Fill all required fields: ${[...missingRequired, ...missingResourcesRequired.map(m => `resources.${m}`)].join(', ') || 'job name'}` : 'Deploy job'}
+                    className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed">
                     {deploying && <Loader2 className="w-4 h-4 animate-spin" />} Deploy
                   </button>
                 )}
