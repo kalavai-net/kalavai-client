@@ -67,7 +67,8 @@ from kalavai_client.env import (
     FORCE_WATCHER_API_URL,
     FORCE_WATCHER_API_KEY_URL,
     KALAVAI_TEMPLATE_REPOSITORIES,
-    CONTAINER_CMD
+    CONTAINER_CMD,
+    NODE_LABEL_PREFIX
     
 )
 from kalavai_client.api_models import (
@@ -1612,7 +1613,7 @@ def add_node_labels(node_name: str, labels: dict):
     """
     data = {
         "node_name": node_name,
-        "labels": labels
+        "labels": {f"{NODE_LABEL_PREFIX}{k}": v for k, v in labels.items()}
     }
     try:
         result = request_to_server(
@@ -1656,7 +1657,7 @@ def get_node_labels(node_names: list[str] = None):
             user_cookie=USER_COOKIE
         )
         if result is not None:
-            return {"labels": result}
+            return {"labels": {node: {k: v for k, v in labels.items() if k.startswith(NODE_LABEL_PREFIX)} for node, labels in result.items()}}
         else:
             return {"error": "Failed to fetch node labels"}
     except Exception as e:
