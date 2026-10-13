@@ -6,6 +6,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { LoginForm } from '@/components/LoginForm';
 import { Loader2, Moon, Sun, RefreshCw, Database, AlertTriangle, CheckCircle, Settings } from 'lucide-react';
 import { kalavaiApi } from '@/utils/api';
+import { invalidateTemplateCache } from '@/utils/templateCache';
 import { getAllFeatureFlags } from '@/utils/featureFlags';
 
 function SettingsContent() {
@@ -26,6 +27,9 @@ function SettingsContent() {
       if (result?.error) {
         showMsg('error', `Failed to update repositories: ${result.error}`);
       } else {
+        // Templates may have changed — void the short-term template cache
+        // so the Jobs page refetches list + categories next time.
+        invalidateTemplateCache();
         showMsg('success', 'Repositories updated successfully');
       }
     } catch (err) {

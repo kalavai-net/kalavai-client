@@ -6,7 +6,8 @@ import { AppLayout } from '@/components/AppLayout';
 import { LoginForm } from '@/components/LoginForm';
 import { Pagination } from '@/components/Pagination';
 import kalavaiApi from '@/utils/api';
-import { Loader2, ExternalLink, Trash2, Plus, X, RefreshCw, ChevronLeft, ChevronRight, AlertTriangle, CheckCircle, Info, Filter } from 'lucide-react';
+import { getCachedTemplates, setCachedTemplates, updateCachedTemplateCategory } from '@/utils/templateCache';
+import { Loader2, ExternalLink, Trash2, Plus, X, RefreshCw, ChevronLeft, ChevronRight, AlertTriangle, CheckCircle, Check, Copy, Info, Filter } from 'lucide-react';
 
 interface Job {
   job_id: string;
@@ -20,7 +21,7 @@ interface Job {
   conditions?: Record<string, unknown>;
 }
 
-interface Template { name: string; }
+interface Template { name: string; category?: string; }
 
 interface TemplateParam {
   name: string; type: string | string[]; default: unknown;
@@ -42,7 +43,20 @@ interface TemplateData {
     }>; 
     required?: string[] 
   };
-  metadata: { name?: string; description?: string; icon?: string; sources?: string[]; version?: string };
+  metadata: { name?: string; description?: string; icon?: string; sources?: string[]; version?: string; annotations?: Record<string, string>; category?: string };
+}
+
+// Helm charts expose grouping via the `category` Chart.yaml annotation
+// (sometimes under annotations). Normalise all shapes to one string.
+function getTemplateCategory(metadata: TemplateData['metadata'] | undefined): string {
+  if (!metadata) return 'Other';
+  if (metadata.category && String(metadata.category).trim() !== '') return String(metadata.category).trim();
+  const annotations = metadata.annotations || {};
+  for (const key of ['category', 'kalavai/category', 'kalavai-category']) {
+    const v = annotations[key];
+    if (v && String(v).trim() !== '') return String(v).trim();
+  }
+  return 'Other';
 }
 
 function parseEndpointUrl(ep: { port: number | null; address: string; link: string } | string): string {
@@ -585,12 +599,18 @@ function JobsContent() {
   const [serviceLogs, setServiceLogs] = useState('');
   const [serviceLogsLoading, setServiceLogsLoading] = useState(false);
   const [serviceLogTail, setServiceLogTail] = useState(100);
+  const [copiedEndpoint, setCopiedEndpoint] = useState<string | null>(null);
 
   // Deploy modal
   const [deployOpen, setDeployOpen] = useState(false);
   const [deployStep, setDeployStep] = useState(0);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [templatesLoading, setTemplatesLoading] = useState(false);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [categoriesLoaded, setCategoriesLoaded] = useState(0);
+  const [categoriesTotal, setCategoriesTotal] = useState(0);
+  const categoriesRunRef = useRef(0);
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState('');
   const [templateData, setTemplateData] = useState<TemplateData | null>(null);
   const [templateLoading, setTemplateLoading] = useState(false);
@@ -674,6 +694,29 @@ function JobsContent() {
     setTimeout(() => setActionMsg(null), 4000);
   };
 
+  const copyEndpoint = async (jobId: string, name: string, url: string) => {
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        // Fallback for non-secure contexts where navigator.clipboard is unavailable
+        const ta = document.createElement('textarea');
+        ta.value = url;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      setCopiedEndpoint(`${jobId}:${name}`);
+      setTimeout(() => setCopiedEndpoint(null), 2000);
+      showMsg('success', `Copied ${name} endpoint to clipboard`);
+    } catch {
+      showMsg('error', 'Failed to copy endpoint to clipboard');
+    }
+  };
+
   // On mount: load connection state so userSpaces / selectedUserSpace are populated
   useEffect(() => {
     loadConnectionState();
@@ -748,26 +791,73 @@ function JobsContent() {
   };
 
   const openDeployModal = async () => {
-    setDeployOpen(true); setDeployStep(0); setSelectedTemplate('');
+    setDeployOpen(true); setDeployStep(0); setSelectedCategory(''); setSelectedTemplate('');
     setTemplateData(null); setParams({}); setFormValues({});
     setJobName(''); setSelectedLabels({}); setRandomSuffix(true);
     setMaxResources({});
-    setTemplatesLoading(true);
-    try {
-      const data = await kalavaiApi.fetchJobTemplates();
-      console.log('[fetchJobTemplates] raw response:', data);
-      if (data?.error) {
-        showMsg('error', `Failed to load templates: ${data.error}`);
+    // Reuse the short-term cache so reopening the modal doesn't refetch
+    // the template list + per-template metadata.
+    const cached = getCachedTemplates();
+    if (cached) {
+      setTemplates(cached);
+      setTemplatesLoading(false);
+      setCategoriesLoading(false); setCategoriesLoaded(cached.length); setCategoriesTotal(cached.length);
+    } else {
+      setTemplatesLoading(true);
+      setCategoriesLoading(false); setCategoriesLoaded(0); setCategoriesTotal(0);
+      try {
+        const data = await kalavaiApi.fetchJobTemplates();
+        console.log('[fetchJobTemplates] raw response:', data);
+        if (data?.error) {
+          showMsg('error', `Failed to load templates: ${data.error}`);
+          setTemplates([]);
+        } else {
+          const list: Template[] = Array.isArray(data) ? data : [];
+          setTemplates(list.map(t => ({ ...t })));
+          setCachedTemplates(list.map(t => ({ name: t.name })));
+          // Enrich with `category` annotation from chart metadata so templates can be grouped.
+          // Bounded concurrency (avoids N parallel requests) with progress tracking.
+          // Fire-and-forget: picker shows a loading indicator until all resolve.
+          const runId = ++categoriesRunRef.current;
+          setCategoriesLoading(list.length > 0);
+          setCategoriesLoaded(0);
+          setCategoriesTotal(list.length);
+          void (async () => {
+            const CONCURRENCY = 5;
+            let next = 0;
+            const worker = async () => {
+              while (categoriesRunRef.current === runId) {
+                const i = next++;
+                if (i >= list.length) return;
+                const t = list[i];
+                let category = 'Other';
+                try {
+                  const meta = await kalavaiApi.fetchTemplateMetadata(t.name);
+                  if (categoriesRunRef.current !== runId) return;
+                  category = getTemplateCategory(meta);
+                } catch {
+                  if (categoriesRunRef.current !== runId) return;
+                }
+                setTemplates(prev => prev.map(p => p.name === t.name ? { ...p, category } : p));
+                updateCachedTemplateCategory(t.name, category);
+                if (categoriesRunRef.current === runId) {
+                  setCategoriesLoaded(prev => prev + 1);
+                }
+              }
+            };
+            await Promise.all(Array.from({ length: Math.min(CONCURRENCY, list.length) }, () => worker()));
+            if (categoriesRunRef.current === runId) {
+              setCategoriesLoading(false);
+            }
+          })();
+        }
+      } catch (err) {
+        console.error('[fetchJobTemplates] error:', err);
+        showMsg('error', `Failed to load templates: ${err}`);
         setTemplates([]);
-      } else {
-        setTemplates(Array.isArray(data) ? data : []);
       }
-    } catch (err) {
-      console.error('[fetchJobTemplates] error:', err);
-      showMsg('error', `Failed to load templates: ${err}`);
-      setTemplates([]);
+      finally { setTemplatesLoading(false); }
     }
-    finally { setTemplatesLoading(false); }
     try {
       const devices = await kalavaiApi.fetchDevices();
       const nodeNames = (Array.isArray(devices) ? devices : []).map((d: { name: string }) => d.name);
@@ -788,6 +878,12 @@ function JobsContent() {
     try {
       const data = await kalavaiApi.fetchTemplateAll(name);
       setTemplateData(data);
+      // Sync resolved category back into the list entry (covers race where
+      // metadata enrichment hadn't finished before selection).
+      const category = getTemplateCategory(data?.metadata);
+      setTemplates(prev => prev.map(p => p.name === name ? { ...p, category } : p));
+      updateCachedTemplateCategory(name, category);
+      if (!selectedCategory) setSelectedCategory(category);
       const p = buildParams(data);
       setParams(p);
       const defaults: Record<string, unknown> = {};
@@ -916,6 +1012,16 @@ function JobsContent() {
   const missingResourcesRequired = getMissingRequired(resourcesParams, resourcesValues);
   const canDeploy = jobName.trim() !== '' && missingRequired.length === 0 && missingResourcesRequired.length === 0;
 
+  // Group templates by their Helm `category` annotation for the category-first picker.
+  const templateCategories = Array.from(new Set(templates.map(t => t.category || 'Other'))).sort((a, b) => {
+    if (a === 'Other') return 1;
+    if (b === 'Other') return -1;
+    return a.localeCompare(b);
+  });
+  const categoryTemplates = selectedCategory
+    ? templates.filter(t => (t.category || 'Other') === selectedCategory)
+    : [];
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -1042,12 +1148,22 @@ function JobsContent() {
                       <span className="text-xs text-muted-foreground">—</span>
                     ) : (
                       <div className="space-y-1">
-                        {Object.entries(job.endpoint).map(([name, url]) => (
-                          <a key={name} href={String(url)} target="_blank" rel="noopener noreferrer"
-                            className="flex items-center gap-1 text-sm text-primary hover:underline">
-                            {name} <ExternalLink className="w-3 h-3" />
-                          </a>
-                        ))}
+                        {Object.entries(job.endpoint).map(([name, url]) => {
+                          const href = String(url);
+                          const copied = copiedEndpoint === `${job.job_id}:${name}`;
+                          return (
+                            <div key={name} className="flex items-center gap-1">
+                              <a href={href} target="_blank" rel="noopener noreferrer"
+                                className="flex items-center gap-1 text-sm text-primary hover:underline min-w-0">
+                                <span className="truncate">{name}</span> <ExternalLink className="w-3 h-3 shrink-0" />
+                              </a>
+                              <button onClick={() => copyEndpoint(job.job_id, name, href)}
+                                className="p-1 hover:bg-accent rounded shrink-0" title={`Copy ${name} endpoint URL`}>
+                                {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5 text-muted-foreground" />}
+                              </button>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </td>
@@ -1101,11 +1217,39 @@ function JobsContent() {
                   {templatesLoading ? (
                     <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>
                   ) : (
-                    <select className="w-full px-3 py-2 border border-border rounded-md text-sm bg-background"
-                      value={selectedTemplate} onChange={e => { if (e.target.value) loadTemplateDetails(e.target.value); }}>
-                      <option value="">Select model engine…</option>
-                      {templates.map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
-                    </select>
+                    <>
+                      <div>
+                        <label className="block text-xs font-medium text-muted-foreground mb-1">Category</label>
+                        <select className="w-full px-3 py-2 border border-border rounded-md text-sm bg-background disabled:opacity-50"
+                          value={selectedCategory} disabled={categoriesLoading}
+                          onChange={e => {
+                            setSelectedCategory(e.target.value);
+                            setSelectedTemplate('');
+                            setTemplateData(null); setParams({}); setFormValues({});
+                          }}>
+                          <option value="">{categoriesLoading ? 'Loading categories…' : 'Select category…'}</option>
+                          {templateCategories.map(c => {
+                            const count = templates.filter(t => (t.category || 'Other') === c).length;
+                            return <option key={c} value={c}>{c} ({count})</option>;
+                          })}
+                        </select>
+                        {categoriesLoading && (
+                          <p className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1.5" role="status" aria-live="polite">
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
+                            Loading categories… {categoriesLoaded}/{categoriesTotal}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-muted-foreground mb-1">Template</label>
+                        <select className="w-full px-3 py-2 border border-border rounded-md text-sm bg-background disabled:opacity-50"
+                          value={selectedTemplate} disabled={!selectedCategory || categoriesLoading}
+                          onChange={e => { if (e.target.value) loadTemplateDetails(e.target.value); }}>
+                          <option value="">{selectedCategory ? 'Select template…' : 'Select a category first…'}</option>
+                          {categoryTemplates.map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
+                        </select>
+                      </div>
+                    </>
                   )}
                   {templateLoading && <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>}
                   {templateData?.metadata && !templateLoading && (
