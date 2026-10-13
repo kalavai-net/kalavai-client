@@ -607,6 +607,12 @@ def fetch_job_details(force_namespace=None):
                             "address": endpoint_address,
                             "link": f"http://{endpoint_address}:{active_port}"
                         }
+                        #  add internal address (service name + namespace + port) for internal access
+                        endpoints[f"{endpoint_name}-internal"] = {
+                            "port": active_port,
+                            "address": f"{name}.{namespace}.svc",
+                            "link": f"http://{name}.{namespace}:{active_port}"
+                        }
             else:
                 print("Skip service")
             # parse ingresses
