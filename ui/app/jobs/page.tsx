@@ -1,13 +1,14 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, createContext, useContext } from 'react';
+import type { ReactNode } from 'react';
 import { useAuthStore, useConnectionStore } from '@/stores';
 import { AppLayout } from '@/components/AppLayout';
 import { LoginForm } from '@/components/LoginForm';
 import { Pagination } from '@/components/Pagination';
 import kalavaiApi from '@/utils/api';
 import { getCachedTemplates, setCachedTemplates, updateCachedTemplateCategory } from '@/utils/templateCache';
-import { Loader2, ExternalLink, Trash2, Plus, X, RefreshCw, ChevronLeft, ChevronRight, AlertTriangle, CheckCircle, Check, Copy, Info, Filter } from 'lucide-react';
+import { Loader2, ExternalLink, Trash2, Plus, X, RefreshCw, ChevronLeft, ChevronRight, ChevronDown, AlertTriangle, CheckCircle, Check, Copy, Info, Filter, Boxes } from 'lucide-react';
 
 interface Job {
   job_id: string;
@@ -379,6 +380,44 @@ function buildResourcesParams(data: TemplateData): Record<string, TemplateParam>
   return params;
 }
 
+// ── Single-open accordion plumbing for template object blocks ──
+// Each sibling level gets its own group so opening one block closes the
+// others at the same level, without collapsing parents/children.
+const ObjectAccordionContext = createContext<{
+  openId: string | null;
+  setOpenId: (id: string | null) => void;
+} | null>(null);
+
+function SingleOpenGroup({
+  children,
+  defaultOpenId = null,
+}: {
+  children: ReactNode;
+  defaultOpenId?: string | null;
+}) {
+  const [openId, setOpenId] = useState<string | null>(defaultOpenId);
+  // Keep the default in sync when the template (hence the default) changes.
+  useEffect(() => {
+    setOpenId(defaultOpenId);
+  }, [defaultOpenId]);
+  return (
+    <ObjectAccordionContext.Provider value={{ openId, setOpenId }}>
+      {children}
+    </ObjectAccordionContext.Provider>
+  );
+}
+
+// Readable description block: icon + relaxed leading inside a soft callout,
+// so long Helm descriptions don't blend into labels/inputs.
+function ParamDescription({ text, className = '' }: { text: string; className?: string }) {
+  return (
+    <div className={`flex items-start gap-2 rounded-md border border-border/60 bg-muted/60 px-3 py-2 ${className}`}>
+      <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+      <p className="text-[13px] leading-relaxed text-foreground/80">{text}</p>
+    </div>
+  );
+}
+
 function statusBadge(status: string) {
   const cls = status === 'Running' ? 'bg-green-100 text-green-800' :
     status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
@@ -482,74 +521,130 @@ function ParamField({ param, value, onChange, invalid }: { param: TemplateParam;
 function ObjectParamField({ param, value, onChange }: { param: TemplateParam; value: unknown; onChange: (v: unknown) => void }) {
   const objectValue = (value as Record<string, unknown>) || {};
   const missing: string[] = param.properties ? getMissingRequired(param.properties, objectValue) : [];
-  const [expanded, setExpanded] = useState(missing.length > 0);
-  // Auto-expand when required fields inside are still empty so users can see what's left.
+  const group = useContext(ObjectAccordionContext);
+  const [localOpen, setLocalOpen] = useState(missing.length > 0);
+  const expanded = group ? group.openId === param.name : localOpen;
+  const toggle = () => {
+    if (group) {
+      group.setOpenId(expanded ? null : param.name);
+    } else {
+      setLocalOpen(v => !v);
+    }
+  };
+  // If this block becomes invalid while every sibling is closed, claim the
+  // open slot so the missing fields don't stay hidden. The group's
+  // defaultOpenId already handles the initial "first invalid wins" case.
+  const missingCount = missing.length;
   useEffect(() => {
-    if (missing.length > 0) setExpanded(true);
-  }, [param.name]);
+    if (missingCount > 0 && group && group.openId === null) {
+      group.setOpenId(param.name);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [param.name, missingCount]);
 
   if (!param.properties) return null;
 
   const hasMissing = missing.length > 0;
+  const entries = Object.values(param.properties);
+  const nestedObjects = entries.filter(n => hasType(n.type, 'object'));
+  const fieldCount = entries.length;
+  const defaultNestedOpen =
+    nestedObjects.find(n => countMissingInObject(n, objectValue[n.name]) > 0)?.name ?? null;
 
   return (
-    <div className={`border rounded-md ${hasMissing ? 'border-red-500' : 'border-border'}`}>
+    <section
+      className={`overflow-hidden rounded-lg border bg-card transition-colors ${
+        expanded
+          ? hasMissing
+            ? 'border-red-400 ring-1 ring-red-200 shadow-sm'
+            : 'border-primary/40 ring-1 ring-primary/20 shadow-sm'
+          : hasMissing
+            ? 'border-red-300 hover:border-red-400'
+            : 'border-border hover:border-muted-foreground/40'
+      }`}
+    >
       <button
         type="button"
-        onClick={() => setExpanded(!expanded)}
-        className="w-full px-3 py-2 text-sm font-medium text-left hover:bg-muted flex items-center justify-between"
+        onClick={toggle}
+        aria-expanded={expanded}
+        className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors ${
+          expanded ? 'bg-muted/60' : 'hover:bg-muted/50'
+        }`}
       >
-        <span>{param.name} {param.required && <span className="text-red-500">*</span>}
-          {hasMissing && (
-            <span className="ml-2 text-xs font-normal px-1.5 py-0.5 rounded bg-red-100 text-red-700">
-              {missing.length} required missing
+        <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md border ${
+          expanded ? 'border-primary/30 bg-primary/10 text-primary' : 'border-border bg-muted text-muted-foreground'
+        }`}>
+          <Boxes className="h-4 w-4" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <code className="truncate text-sm font-semibold text-foreground">{param.name}</code>
+            {param.required && <span className="text-sm font-bold text-red-500">*</span>}
+            <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+              {fieldCount} field{fieldCount !== 1 ? 's' : ''}
+            </span>
+            {hasMissing ? (
+              <span className="rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-semibold text-red-700">
+                {missing.length} required missing
+              </span>
+            ) : (
+              <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-medium text-green-700">
+                complete
+              </span>
+            )}
+          </span>
+          {/* Collapsed preview: one-line description so blocks stay scannable */}
+          {!expanded && param.description && (
+            <span className="mt-0.5 block truncate text-xs leading-relaxed text-muted-foreground">
+              {param.description}
             </span>
           )}
         </span>
-        <ChevronRight className={`w-4 h-4 transition-transform ${expanded ? 'rotate-90' : ''}`} />
+        <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
       </button>
 
       {expanded && (
-        <div className="px-3 pb-3 space-y-3 border-t border-border">
-          {param.description && (
-            <p className="text-xs text-muted-foreground pt-2">{param.description}</p>
-          )}
-          {Object.values(param.properties).map(nestedParam => {
-            const nestedValue = objectValue[nestedParam.name];
-            if (hasType(nestedParam.type, 'object')) {
+        <div className="space-y-4 border-t border-border bg-muted/30 px-4 py-4">
+          {param.description && <ParamDescription text={param.description} />}
+          <SingleOpenGroup defaultOpenId={defaultNestedOpen}>
+            {entries.map(nestedParam => {
+              const nestedValue = objectValue[nestedParam.name];
+              if (hasType(nestedParam.type, 'object')) {
+                return (
+                  <ObjectParamField
+                    key={nestedParam.name}
+                    param={nestedParam}
+                    value={nestedValue}
+                    onChange={v => onChange({ ...objectValue, [nestedParam.name]: v })}
+                  />
+                );
+              }
+              const nestedInvalid = nestedParam.required && isEmptyValue(nestedValue, nestedParam);
               return (
-                <ObjectParamField
-                  key={nestedParam.name}
-                  param={nestedParam}
-                  value={nestedValue}
-                  onChange={v => onChange({ ...objectValue, [nestedParam.name]: v })}
-                />
+                <div key={nestedParam.name} className="rounded-md border border-border/60 bg-card px-3 py-3">
+                  <label className="mb-1 block text-sm font-medium">
+                    <code className="font-semibold">{nestedParam.name}</code>{' '}
+                    {nestedParam.required && <span className="font-bold text-red-500">*</span>}
+                  </label>
+                  <ParamField
+                    param={nestedParam}
+                    value={nestedValue}
+                    onChange={v => onChange({ ...objectValue, [nestedParam.name]: v })}
+                    invalid={nestedInvalid}
+                  />
+                  {nestedParam.description && (
+                    <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">{nestedParam.description}</p>
+                  )}
+                  {nestedInvalid && (
+                    <p className="mt-1 text-xs font-medium text-red-600">This field is required</p>
+                  )}
+                </div>
               );
-            }
-            const nestedInvalid = nestedParam.required && isEmptyValue(nestedValue, nestedParam);
-            return (
-              <div key={nestedParam.name}>
-                <label className="block text-sm font-medium mb-1">
-                  {nestedParam.name} {nestedParam.required && <span className="text-red-500">*</span>}
-                </label>
-                <ParamField
-                  param={nestedParam}
-                  value={nestedValue}
-                  onChange={v => onChange({ ...objectValue, [nestedParam.name]: v })}
-                  invalid={nestedInvalid}
-                />
-                {nestedParam.description && (
-                  <p className="text-xs text-muted-foreground mt-1">{nestedParam.description}</p>
-                )}
-                {nestedInvalid && (
-                  <p className="text-xs text-red-600 mt-1">This field is required</p>
-                )}
-              </div>
-            );
-          })}
+            })}
+          </SingleOpenGroup>
         </div>
       )}
-    </div>
+    </section>
   );
 }
 
@@ -1356,33 +1451,47 @@ function JobsContent() {
                             </div>
                           </div>
                         )}
-                        {Object.entries(resourcesParams).map(([name, param]) => (
-                          <div key={name}>
-                            {param.type === 'object' ? (
-                              <ObjectParamField 
-                                param={param} 
-                                value={resourcesValues[name]} 
-                                onChange={v => setResourcesValues(prev => ({ ...prev, [name]: v }))} 
-                              />
-                            ) : (
-                              <>
-                                <label className="block text-sm font-medium mb-1">
-                                  {name} {param.required && <span className="text-red-500">*</span>}
-                                </label>
-                                <ParamField
-                                  param={param}
-                                  value={resourcesValues[name]}
-                                  onChange={v => setResourcesValues(prev => ({ ...prev, [name]: v }))}
-                                  invalid={param.required && isEmptyValue(resourcesValues[name], param)}
-                                />
-                                {param.description && <p className="text-xs text-muted-foreground mt-1">{param.description}</p>}
-                                {param.required && isEmptyValue(resourcesValues[name], param) && (
-                                  <p className="text-xs text-red-600 mt-1">This field is required</p>
-                                )}
-                              </>
-                            )}
-                          </div>
-                        ))}
+                        {(() => {
+                          const entries = Object.entries(resourcesParams);
+                          const objectEntries = entries.filter(([, p]) => hasType(p.type, 'object') && p.properties);
+                          const scalarEntries = entries.filter(([, p]) => !(hasType(p.type, 'object') && p.properties));
+                          return (
+                            <>
+                              {objectEntries.length > 0 && (
+                                <SingleOpenGroup key={`res-obj-${selectedTemplate}`} defaultOpenId={objectEntries[0][0]}>
+                                  {objectEntries.map(([name, param]) => (
+                                    <ObjectParamField
+                                      key={name}
+                                      param={param}
+                                      value={resourcesValues[name]}
+                                      onChange={v => setResourcesValues(prev => ({ ...prev, [name]: v }))}
+                                    />
+                                  ))}
+                                </SingleOpenGroup>
+                              )}
+                              {scalarEntries.map(([name, param]) => (
+                                <div key={name} className="rounded-lg border border-border/70 bg-card px-4 py-3">
+                                  <label className="mb-1.5 block text-sm font-medium">
+                                    <code className="font-semibold">{name}</code>{' '}
+                                    {param.required && <span className="font-bold text-red-500">*</span>}
+                                  </label>
+                                  <ParamField
+                                    param={param}
+                                    value={resourcesValues[name]}
+                                    onChange={v => setResourcesValues(prev => ({ ...prev, [name]: v }))}
+                                    invalid={param.required && isEmptyValue(resourcesValues[name], param)}
+                                  />
+                                  {param.description && (
+                                    <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">{param.description}</p>
+                                  )}
+                                  {param.required && isEmptyValue(resourcesValues[name], param) && (
+                                    <p className="mt-1 text-xs font-medium text-red-600">This field is required</p>
+                                  )}
+                                </div>
+                              ))}
+                            </>
+                          );
+                        })()}
                       </div>
                     </details>
                   )}
@@ -1425,65 +1534,99 @@ function JobsContent() {
                   {requiredParams.length > 0 && (
                     <div className="space-y-3">
                       <p className="text-xs font-semibold uppercase text-muted-foreground">Parameters <span className="normal-case font-normal">— fields marked <span className="text-red-500">*</span> are required</span></p>
-                      {requiredParams.map(p => {
-                        const invalid = hasType(p.type, 'object')
-                          ? countMissingInObject(p, formValues[p.name]) > 0
-                          : p.required && isEmptyValue(formValues[p.name], p);
+                      {(() => {
+                        const objectParams = requiredParams.filter(p => hasType(p.type, 'object') && p.properties);
+                        const scalarParams = requiredParams.filter(p => !(hasType(p.type, 'object') && p.properties));
+                        const defaultOpen =
+                          objectParams.find(p => countMissingInObject(p, formValues[p.name]) > 0)?.name
+                          ?? objectParams[0]?.name
+                          ?? null;
                         return (
-                          <div key={p.name}>
-                            {hasType(p.type, 'object') ? (
-                              <ObjectParamField
-                                param={p}
-                                value={formValues[p.name]}
-                                onChange={v => setFormValues(prev => ({ ...prev, [p.name]: v }))}
-                              />
-                            ) : (
-                              <>
-                                <label className="block text-sm font-medium mb-1">
-                                  {p.name} <span className="text-red-500">*</span>
-                                </label>
-                                <ParamField
-                                  param={p}
-                                  value={formValues[p.name]}
-                                  onChange={v => setFormValues(prev => ({ ...prev, [p.name]: v }))}
-                                  invalid={invalid}
-                                />
-                                {p.description && <p className="text-xs text-muted-foreground mt-1">{p.description}</p>}
-                                {invalid && (
-                                  <p className="text-xs text-red-600 mt-1">This field is required</p>
-                                )}
-                              </>
+                          <>
+                            {objectParams.length > 0 && (
+                              <SingleOpenGroup key={`req-obj-${selectedTemplate}`} defaultOpenId={defaultOpen}>
+                                {objectParams.map(p => (
+                                  <ObjectParamField
+                                    key={p.name}
+                                    param={p}
+                                    value={formValues[p.name]}
+                                    onChange={v => setFormValues(prev => ({ ...prev, [p.name]: v }))}
+                                  />
+                                ))}
+                              </SingleOpenGroup>
                             )}
-                          </div>
+                            {scalarParams.map(p => {
+                              const invalid = p.required && isEmptyValue(formValues[p.name], p);
+                              return (
+                                <div key={p.name} className="rounded-lg border border-border bg-card px-4 py-3">
+                                  <label className="block text-sm font-medium mb-1.5">
+                                    <code className="font-semibold">{p.name}</code>{' '}
+                                    <span className="font-bold text-red-500">*</span>
+                                  </label>
+                                  <ParamField
+                                    param={p}
+                                    value={formValues[p.name]}
+                                    onChange={v => setFormValues(prev => ({ ...prev, [p.name]: v }))}
+                                    invalid={invalid}
+                                  />
+                                  {p.description && (
+                                    <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">{p.description}</p>
+                                  )}
+                                  {invalid && (
+                                    <p className="text-xs font-medium text-red-600 mt-1">This field is required</p>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </>
                         );
-                      })}
+                      })()}
                     </div>
                   )}
                   {optionalParams.length > 0 && (
-                    <details className="border border-border rounded-md">
-                      <summary className="px-3 py-2 text-sm font-medium cursor-pointer hover:bg-muted">Advanced parameters</summary>
-                      <div className="px-3 pb-3 space-y-3 pt-2">
-                        {optionalParams.map(p => (
-                          <div key={p.name}>
-                            {p.type === 'object' ? (
-                              <ObjectParamField 
-                                param={p} 
-                                value={formValues[p.name]} 
-                                onChange={v => setFormValues(prev => ({ ...prev, [p.name]: v }))} 
-                              />
-                            ) : (
-                              <>
-                                <label className="block text-sm font-medium mb-1">{p.name}</label>
-                                <ParamField 
-                                  param={p} 
-                                  value={formValues[p.name]} 
-                                  onChange={v => setFormValues(prev => ({ ...prev, [p.name]: v }))} 
-                                />
-                                {p.description && <p className="text-xs text-muted-foreground mt-1">{p.description}</p>}
-                              </>
-                            )}
-                          </div>
-                        ))}
+                    <details className="overflow-hidden rounded-lg border border-border" open={false}>
+                      <summary className="cursor-pointer bg-muted/40 px-4 py-2.5 text-sm font-semibold hover:bg-muted/70">
+                        Advanced parameters
+                        <span className="ml-2 text-xs font-normal text-muted-foreground">
+                          {optionalParams.length} optional
+                        </span>
+                      </summary>
+                      <div className="space-y-3 px-4 py-4">
+                        {(() => {
+                          const objectParams = optionalParams.filter(p => hasType(p.type, 'object') && p.properties);
+                          const scalarParams = optionalParams.filter(p => !(hasType(p.type, 'object') && p.properties));
+                          return (
+                            <>
+                              {objectParams.length > 0 && (
+                                <SingleOpenGroup key={`opt-obj-${selectedTemplate}`} defaultOpenId={null}>
+                                  {objectParams.map(p => (
+                                    <ObjectParamField
+                                      key={p.name}
+                                      param={p}
+                                      value={formValues[p.name]}
+                                      onChange={v => setFormValues(prev => ({ ...prev, [p.name]: v }))}
+                                    />
+                                  ))}
+                                </SingleOpenGroup>
+                              )}
+                              {scalarParams.map(p => (
+                                <div key={p.name} className="rounded-lg border border-border/70 bg-card px-4 py-3">
+                                  <label className="mb-1.5 block text-sm font-medium">
+                                    <code className="font-semibold">{p.name}</code>
+                                  </label>
+                                  <ParamField
+                                    param={p}
+                                    value={formValues[p.name]}
+                                    onChange={v => setFormValues(prev => ({ ...prev, [p.name]: v }))}
+                                  />
+                                  {p.description && (
+                                    <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">{p.description}</p>
+                                  )}
+                                </div>
+                              ))}
+                            </>
+                          );
+                        })()}
                       </div>
                     </details>
                   )}
