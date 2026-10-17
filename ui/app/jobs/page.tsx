@@ -8,7 +8,12 @@ import { LoginForm } from '@/components/LoginForm';
 import { Pagination } from '@/components/Pagination';
 import kalavaiApi from '@/utils/api';
 import { getCachedTemplates, setCachedTemplates, updateCachedTemplateCategory } from '@/utils/templateCache';
-import { Loader2, ExternalLink, Trash2, Plus, X, RefreshCw, ChevronLeft, ChevronRight, ChevronDown, AlertTriangle, CheckCircle, Check, Copy, Info, Filter, Boxes } from 'lucide-react';
+import {
+  getCachedJobEndpoints,
+  setCachedJobEndpoints,
+  type CachedJobEndpoint,
+} from '@/utils/jobEndpointsCache';
+import { Loader2, ExternalLink, Trash2, Plus, X, RefreshCw, ChevronLeft, ChevronRight, ChevronDown, AlertTriangle, CheckCircle, Check, Copy, Info, Filter, Boxes, Link2, Search } from 'lucide-react';
 
 interface Job {
   job_id: string;
@@ -670,6 +675,152 @@ function ExpandableNodes({ nodes }: { nodes: string }) {
   );
 }
 
+async function copyTextToClipboard(text: string): Promise<boolean> {
+  try {
+    if (navigator?.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+    // Fallback for non-secure contexts where navigator.clipboard is unavailable
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// ── Pool endpoints quick reference ──
+// Collapsed by default so it never clutters the Parameters step. Reads the
+// snapshot cached by `loadJobs` (no extra API call) and offers one-click
+// copy of any service endpoint URL for pasting into template parameters.
+function PoolEndpointsReference({ onCopy }: { onCopy: (ok: boolean, label: string) => void }) {
+  // Read the cache when this panel first mounts (i.e. when the user reaches
+  // the Parameters step), so it reflects the latest job table load.
+  const [snapshot] = useState(() => getCachedJobEndpoints());
+  const [query, setQuery] = useState('');
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  const endpoints = snapshot?.endpoints ?? [];
+  const q = query.trim().toLowerCase();
+  const filtered = q
+    ? endpoints.filter(e =>
+        e.jobName.toLowerCase().includes(q) ||
+        e.service.toLowerCase().includes(q) ||
+        e.url.toLowerCase().includes(q)
+      )
+    : endpoints;
+
+  // Group by job for a scannable service → URL listing.
+  const groups = new Map<string, CachedJobEndpoint[]>();
+  for (const e of filtered) {
+    const list = groups.get(e.jobName) ?? [];
+    list.push(e);
+    groups.set(e.jobName, list);
+  }
+
+  const handleCopy = async (e: CachedJobEndpoint) => {
+    const ok = await copyTextToClipboard(e.url);
+    const key = `${e.jobName}:${e.service}`;
+    if (ok) {
+      setCopiedKey(key);
+      setTimeout(() => setCopiedKey(current => (current === key ? null : current)), 2000);
+    }
+    onCopy(ok, `${e.jobName} → ${e.service}`);
+  };
+
+  return (
+    <details className="overflow-hidden rounded-lg border border-border">
+      <summary className="flex cursor-pointer items-center gap-2 bg-muted/40 px-4 py-2.5 text-sm font-semibold hover:bg-muted/70">
+        <Link2 className="h-4 w-4 shrink-0 text-muted-foreground" />
+        <span>Existing services</span>
+        <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+          {endpoints.length} available
+        </span>
+        <span className="ml-auto text-xs font-normal text-muted-foreground">copy &amp; paste into parameters</span>
+      </summary>
+      <div className="space-y-3 px-4 py-4">
+        {endpoints.length === 0 ? (
+          <p className="rounded-md border border-dashed border-border px-3 py-4 text-center text-sm text-muted-foreground">
+            No service endpoints found in the cached job list. Deploy a job that exposes
+            endpoints, or refresh the jobs table to renew the snapshot.
+          </p>
+        ) : (
+          <>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                placeholder="Filter by job, service or URL…"
+                className="w-full rounded-md border border-border bg-background py-2 pl-9 pr-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+            {groups.size === 0 ? (
+              <p className="text-center text-sm text-muted-foreground">No endpoints match “{query.trim()}”.</p>
+            ) : (
+              <div className="max-h-72 space-y-3 overflow-y-auto pr-1">
+                {Array.from(groups.entries()).map(([jobName, list]) => (
+                  <div key={jobName} className="overflow-hidden rounded-md border border-border/70">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 bg-muted/50 px-3 py-1.5">
+                      <code className="text-xs font-semibold text-foreground">{jobName}</code>
+                      <span className="text-[11px] text-muted-foreground">ns: {list[0].owner}</span>
+                      {list[0].status && (
+                        <span className="text-[11px] text-muted-foreground">· {list[0].status}</span>
+                      )}
+                    </div>
+                    <ul className="divide-y divide-border/60">
+                      {list.map(e => {
+                        const key = `${e.jobName}:${e.service}`;
+                        const copied = copiedKey === key;
+                        return (
+                          <li key={key} className="flex items-center gap-2 px-3 py-1.5">
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-[13px] font-medium">{e.service}</p>
+                              <p className="truncate font-mono text-xs text-muted-foreground" title={e.url}>
+                                {e.url}
+                              </p>
+                            </div>
+                            <a
+                              href={e.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="shrink-0 rounded p-1.5 hover:bg-accent"
+                              title={`Open ${e.service} endpoint`}
+                            >
+                              <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => handleCopy(e)}
+                              className="flex shrink-0 items-center gap-1 rounded border border-border px-2 py-1 text-xs hover:bg-accent"
+                              title={`Copy ${e.service} URL`}
+                            >
+                              {copied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
+                              {copied ? 'Copied' : 'Copy'}
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </details>
+  );
+}
+
 function JobsContent() {
   const { userSpaces, selectedUserSpace, loadConnectionState } = useConnectionStore();
 
@@ -790,24 +941,12 @@ function JobsContent() {
   };
 
   const copyEndpoint = async (jobId: string, name: string, url: string) => {
-    try {
-      if (navigator?.clipboard?.writeText) {
-        await navigator.clipboard.writeText(url);
-      } else {
-        // Fallback for non-secure contexts where navigator.clipboard is unavailable
-        const ta = document.createElement('textarea');
-        ta.value = url;
-        ta.style.position = 'fixed';
-        ta.style.opacity = '0';
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-      }
+    const ok = await copyTextToClipboard(url);
+    if (ok) {
       setCopiedEndpoint(`${jobId}:${name}`);
       setTimeout(() => setCopiedEndpoint(null), 2000);
       showMsg('success', `Copied ${name} endpoint to clipboard`);
-    } catch {
+    } else {
       showMsg('error', 'Failed to copy endpoint to clipboard');
     }
   };
@@ -858,6 +997,26 @@ function JobsContent() {
         ),
       }));
       setJobs(formatted);
+      // Renew the endpoints snapshot so the Deploy modal's Parameters step can
+      // offer copy-paste of pool service endpoints without another API call.
+      const endpoints: CachedJobEndpoint[] = [];
+      for (const job of formatted) {
+        for (const [service, url] of Object.entries(job.endpoint || {})) {
+          const href = String(url ?? '').trim();
+          if (!href) continue;
+          endpoints.push({
+            jobName: job.name,
+            owner: job.owner,
+            service,
+            url: href,
+            status: job.status,
+          });
+        }
+      }
+      endpoints.sort((a, b) =>
+        a.jobName.localeCompare(b.jobName) || a.service.localeCompare(b.service)
+      );
+      setCachedJobEndpoints({ updatedAt: Date.now(), namespace: ns, endpoints });
     } catch (err) { setError(`Failed to load jobs: ${err}`); }
     finally { setIsLoading(false); }
   };
@@ -1522,6 +1681,11 @@ function JobsContent() {
                       Add random suffix to job name
                     </label>
                   </div>
+                  <PoolEndpointsReference
+                    onCopy={(ok, label) =>
+                      showMsg(ok ? 'success' : 'error', ok ? `Copied ${label} endpoint to clipboard` : 'Failed to copy endpoint to clipboard')
+                    }
+                  />
                   {(missingRequired.length > 0 || missingResourcesRequired.length > 0) && (
                     <div className="flex items-start gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
                       <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />

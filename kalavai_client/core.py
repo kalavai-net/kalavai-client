@@ -602,6 +602,7 @@ def fetch_job_details(force_namespace=None):
                             else:
                                 endpoint_name = port["name"]
                         active_port = port["nodePort"] if "nodePort" in port else port["targetPort"]
+                        target_port = port["targetPort"]
                         endpoints[endpoint_name] = {
                             "port": active_port,
                             "address": endpoint_address,
@@ -609,9 +610,9 @@ def fetch_job_details(force_namespace=None):
                         }
                         #  add internal address (service name + namespace + port) for internal access
                         endpoints[f"{endpoint_name}-internal"] = {
-                            "port": active_port,
+                            "port": target_port,
                             "address": f"{name}.{namespace}.svc",
-                            "link": f"http://{name}.{namespace}:{active_port}"
+                            "link": f"http://{name}.{namespace}:{target_port}"
                         }
             else:
                 print("Skip service")
@@ -652,58 +653,6 @@ def fetch_job_details(force_namespace=None):
                     host_nodes="\n".join(host_nodes))
             )
     return job_details
-
-    # for namespace, deployments in result.items():
-    #     """deployments --> "matched_label_value": {"pods": {}, "services": {}, "job": {}} }"""
-    #     for job_name, job in deployments.items():
-    #         workers_status = defaultdict(int)
-    #         workers = ""
-    #         restart_counts = 0
-    #         host_nodes = set()
-    #         # parse pods
-    #         if "pods" in job and job["pods"] is not None:
-    #             for name, values in job["pods"].items():
-    #                 if "conditions" in values and values["conditions"] is not None:
-    #                     restart_counts = sum([c["restart_count"] for c in values["conditions"]])
-    #                 workers_status[values["status"]] += 1
-    #                 # get nodes involved in deployment (needs kubewatcher)
-    #                 if "node_name" in values and values["node_name"] is not None:
-    #                     host_nodes.add(values["node_name"])
-    #                 workers = "\n".join([f"{k}: {v}" for k, v in workers_status.items()])
-    #                 if restart_counts > 0:
-    #                     workers += f"\n({restart_counts} restart)"
-    #         else:
-    #             print("Skip pods")
-    #         # parse services
-    #         node_ports = []
-    #         if "services" in job and job["services"] is not None:
-    #             for name, values in job["services"].items():
-    #                 node_ports.extend(
-    #                     [f"{port['node_port']}" for port in values["ports"]]
-    #                 )
-    #         else:
-    #             print("Skip service")
-    #         endpoint_address = urlparse(load_server_info(data_key=KALAVAI_API_URL_KEY, file=USER_LOCAL_SERVER_FILE)).hostname
-    #         urls = [f"http://{endpoint_address}:{node_port}" for node_port in node_ports]
-    #         if "Ready" in workers_status and len(workers_status) == 1:
-    #             status = "running"
-    #         elif any([st in workers_status for st in ["Failed"]]):
-    #             status = "error"
-    #         elif any([st in workers_status for st in ["Pending"]]) or len(workers_status) == 0:
-    #             status = "pending"
-    #         elif any([st in workers_status for st in ["Succeeded", "Completed"]]):
-    #             status = "completed"
-    #         else:
-    #             status = "working"
-    #         job_details.append(
-    #             Job(owner=namespace,
-    #                 name=job_name,
-    #                 workers=workers,
-    #                 endpoint="\n".join(urls),
-    #                 status=str(status),
-    #                 host_nodes="\n".join(host_nodes))
-    #         )
-    # return job_details
 
 def deploy_job(
     job_name,
@@ -822,25 +771,7 @@ def delete_job(name, force_namespace=None):
         return result
     except Exception as e:
         return {"error": str(e)}
-    # data = {
-    #     "label": TEMPLATE_LABEL, # this ensures that both lws template and services are deleted
-    #     "value": name
-    # }
-    # if force_namespace is not None:
-    #     data["force_namespace"] = force_namespace
-    # try:
-    #     result = request_to_server(
-    #         force_url=FORCE_WATCHER_API_URL,
-    #         force_key=FORCE_WATCHER_API_KEY_URL,
-    #         method="post",
-    #         endpoint="/v1/delete_labeled_resources",
-    #         data=data,
-    #         server_creds=USER_LOCAL_SERVER_FILE,
-    #         user_cookie=USER_COOKIE
-    #     )
-    #     return result
-    # except Exception as e:
-    #     return {"error": str(e)}
+    
 
 def fetch_devices(node_labels=None):
     """Load devices status info for all hosts"""
