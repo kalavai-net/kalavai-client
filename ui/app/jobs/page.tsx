@@ -1697,7 +1697,7 @@ function JobsContent() {
                   )}
                   {requiredParams.length > 0 && (
                     <div className="space-y-3">
-                      <p className="text-xs font-semibold uppercase text-muted-foreground">Parameters <span className="normal-case font-normal">— fields marked <span className="text-red-500">*</span> are required</span></p>
+                      <p className="text-xs font-semibold uppercase text-muted-foreground">Core Parameters <span className="normal-case font-normal">— fields marked <span className="text-red-500">*</span> are required</span></p>
                       {(() => {
                         const objectParams = requiredParams.filter(p => hasType(p.type, 'object') && p.properties);
                         const scalarParams = requiredParams.filter(p => !(hasType(p.type, 'object') && p.properties));
@@ -1750,7 +1750,7 @@ function JobsContent() {
                   {optionalParams.length > 0 && (
                     <details className="overflow-hidden rounded-lg border border-border" open={false}>
                       <summary className="cursor-pointer bg-muted/40 px-4 py-2.5 text-sm font-semibold hover:bg-muted/70">
-                        Advanced parameters
+                        Optional parameters
                         <span className="ml-2 text-xs font-normal text-muted-foreground">
                           {optionalParams.length} optional
                         </span>
