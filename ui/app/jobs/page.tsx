@@ -697,15 +697,16 @@ async function copyTextToClipboard(text: string): Promise<boolean> {
 }
 
 // ── Pool endpoints quick reference ──
-// Collapsed by default so it never clutters the Parameters step. Reads the
-// snapshot cached by `loadJobs` (no extra API call) and offers one-click
-// copy of any service endpoint URL for pasting into template parameters.
+// Sidebar companion for the Parameters step: sticky so scrolling template
+// parameters never moves it. Jobs are collapsed by default — expand one job
+// at a time to see only its services, with one-click copy of endpoint URLs.
 function PoolEndpointsReference({ onCopy }: { onCopy: (ok: boolean, label: string) => void }) {
   // Read the cache when this panel first mounts (i.e. when the user reaches
   // the Parameters step), so it reflects the latest job table load.
   const [snapshot] = useState(() => getCachedJobEndpoints());
   const [query, setQuery] = useState('');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [expandedJob, setExpandedJob] = useState<string | null>(null);
 
   const endpoints = snapshot?.endpoints ?? [];
   const q = query.trim().toLowerCase();
@@ -724,6 +725,14 @@ function PoolEndpointsReference({ onCopy }: { onCopy: (ok: boolean, label: strin
     list.push(e);
     groups.set(e.jobName, list);
   }
+  const jobNames = Array.from(groups.keys());
+
+  // Auto-expand when the filter narrows to a single job, collapse otherwise.
+  useEffect(() => {
+    if (q && jobNames.length === 1) {
+      setExpandedJob(jobNames[0]);
+    }
+  }, [q]);
 
   const handleCopy = async (e: CachedJobEndpoint) => {
     const ok = await copyTextToClipboard(e.url);
@@ -736,16 +745,16 @@ function PoolEndpointsReference({ onCopy }: { onCopy: (ok: boolean, label: strin
   };
 
   return (
-    <details className="overflow-hidden rounded-lg border border-border">
-      <summary className="flex cursor-pointer items-center gap-2 bg-muted/40 px-4 py-2.5 text-sm font-semibold hover:bg-muted/70">
+    <aside className="overflow-hidden rounded-lg border border-border bg-card flex flex-col max-h-[60vh] lg:max-h-none lg:sticky lg:top-0">
+      <div className="flex items-center gap-2 bg-muted/40 px-4 py-2.5 text-sm font-semibold border-b border-border">
         <Link2 className="h-4 w-4 shrink-0 text-muted-foreground" />
         <span>Existing services</span>
         <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
           {endpoints.length} available
         </span>
-        <span className="ml-auto text-xs font-normal text-muted-foreground">copy &amp; paste into parameters</span>
-      </summary>
-      <div className="space-y-3 px-4 py-4">
+      </div>
+      <div className="flex flex-col gap-3 px-4 py-3 overflow-y-auto">
+        <p className="text-xs text-muted-foreground">Copy &amp; paste into parameters</p>
         {endpoints.length === 0 ? (
           <p className="rounded-md border border-dashed border-border px-3 py-4 text-center text-sm text-muted-foreground">
             No service endpoints found in the cached job list. Deploy a job that exposes
@@ -766,58 +775,75 @@ function PoolEndpointsReference({ onCopy }: { onCopy: (ok: boolean, label: strin
             {groups.size === 0 ? (
               <p className="text-center text-sm text-muted-foreground">No endpoints match “{query.trim()}”.</p>
             ) : (
-              <div className="max-h-72 space-y-3 overflow-y-auto pr-1">
-                {Array.from(groups.entries()).map(([jobName, list]) => (
-                  <div key={jobName} className="overflow-hidden rounded-md border border-border/70">
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 bg-muted/50 px-3 py-1.5">
-                      <code className="text-xs font-semibold text-foreground">{jobName}</code>
-                      <span className="text-[11px] text-muted-foreground">ns: {list[0].owner}</span>
-                      {list[0].status && (
-                        <span className="text-[11px] text-muted-foreground">· {list[0].status}</span>
+              <div className="space-y-2">
+                {jobNames.map(jobName => {
+                  const list = groups.get(jobName)!;
+                  const expanded = expandedJob === jobName;
+                  return (
+                    <div key={jobName} className="overflow-hidden rounded-md border border-border/70">
+                      <button
+                        type="button"
+                        onClick={() => setExpandedJob(expanded ? null : jobName)}
+                        aria-expanded={expanded}
+                        className={`flex w-full items-center gap-2 px-3 py-2 text-left transition-colors ${expanded ? 'bg-muted/70' : 'hover:bg-muted/50'}`}
+                      >
+                        <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ${expanded ? 'rotate-180' : '-rotate-90'}`} />
+                        <code className="min-w-0 flex-1 truncate text-xs font-semibold text-foreground">{jobName}</code>
+                        <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                          {list.length} service{list.length !== 1 ? 's' : ''}
+                        </span>
+                      </button>
+                      {expanded && (
+                        <div className="border-t border-border/60">
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 px-3 pt-1.5 text-[11px] text-muted-foreground">
+                            <span>ns: {list[0].owner}</span>
+                            {list[0].status && <span>· {list[0].status}</span>}
+                          </div>
+                          <ul className="divide-y divide-border/60">
+                            {list.map(e => {
+                              const key = `${e.jobName}:${e.service}`;
+                              const copied = copiedKey === key;
+                              return (
+                                <li key={key} className="flex items-center gap-2 px-3 py-1.5">
+                                  <div className="min-w-0 flex-1">
+                                    <p className="truncate text-[13px] font-medium">{e.service}</p>
+                                    <p className="truncate font-mono text-xs text-muted-foreground" title={e.url}>
+                                      {e.url}
+                                    </p>
+                                  </div>
+                                  <a
+                                    href={e.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="shrink-0 rounded p-1.5 hover:bg-accent"
+                                    title={`Open ${e.service} endpoint`}
+                                  >
+                                    <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                                  </a>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleCopy(e)}
+                                    className="flex shrink-0 items-center gap-1 rounded border border-border px-2 py-1 text-xs hover:bg-accent"
+                                    title={`Copy ${e.service} URL`}
+                                  >
+                                    {copied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
+                                    {copied ? 'Copied' : 'Copy'}
+                                  </button>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
                       )}
                     </div>
-                    <ul className="divide-y divide-border/60">
-                      {list.map(e => {
-                        const key = `${e.jobName}:${e.service}`;
-                        const copied = copiedKey === key;
-                        return (
-                          <li key={key} className="flex items-center gap-2 px-3 py-1.5">
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-[13px] font-medium">{e.service}</p>
-                              <p className="truncate font-mono text-xs text-muted-foreground" title={e.url}>
-                                {e.url}
-                              </p>
-                            </div>
-                            <a
-                              href={e.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="shrink-0 rounded p-1.5 hover:bg-accent"
-                              title={`Open ${e.service} endpoint`}
-                            >
-                              <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
-                            </a>
-                            <button
-                              type="button"
-                              onClick={() => handleCopy(e)}
-                              className="flex shrink-0 items-center gap-1 rounded border border-border px-2 py-1 text-xs hover:bg-accent"
-                              title={`Copy ${e.service} URL`}
-                            >
-                              {copied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
-                              {copied ? 'Copied' : 'Copy'}
-                            </button>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </>
         )}
       </div>
-    </details>
+    </aside>
   );
 }
 
@@ -1446,7 +1472,7 @@ function JobsContent() {
       {/* ── Deploy Modal (3 steps) ── */}
       {deployOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-card border border-border rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+          <div className="bg-card border border-border rounded-lg shadow-xl w-full max-w-5xl mx-4 max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
             {/* Modal header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
               <div>
@@ -1661,6 +1687,8 @@ function JobsContent() {
               {deployStep === 2 && (
                 <div className="space-y-4">
                   <p className="text-sm font-medium">Populate template values</p>
+                  <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
+                    <div className="space-y-4 min-w-0">
                   <div>
                     <label className="block text-xs font-medium text-muted-foreground mb-1">Job name <span className="text-red-500">*</span></label>
                     <input type="text" className={`w-full px-3 py-2 border rounded-md text-sm bg-background ${!jobName.trim() ? 'border-red-500 ring-1 ring-red-500' : 'border-border'}`}
@@ -1681,11 +1709,6 @@ function JobsContent() {
                       Add random suffix to job name
                     </label>
                   </div>
-                  <PoolEndpointsReference
-                    onCopy={(ok, label) =>
-                      showMsg(ok ? 'success' : 'error', ok ? `Copied ${label} endpoint to clipboard` : 'Failed to copy endpoint to clipboard')
-                    }
-                  />
                   {(missingRequired.length > 0 || missingResourcesRequired.length > 0) && (
                     <div className="flex items-start gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
                       <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -1794,6 +1817,13 @@ function JobsContent() {
                       </div>
                     </details>
                   )}
+                    </div>
+                    <PoolEndpointsReference
+                      onCopy={(ok, label) =>
+                        showMsg(ok ? 'success' : 'error', ok ? `Copied ${label} endpoint to clipboard` : 'Failed to copy endpoint to clipboard')
+                      }
+                    />
+                  </div>
                 </div>
               )}
             </div>
