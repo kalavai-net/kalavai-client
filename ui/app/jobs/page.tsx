@@ -34,19 +34,21 @@ interface TemplateParam {
   description: string; required: boolean; options?: string[];
   itemType?: string | string[]; // For arrays - the type of items in the array
   properties?: Record<string, TemplateParam>; // For objects - nested properties
+  additionalProperties?: boolean; // For objects - allow arbitrary extra key-value pairs
 }
 
 interface TemplateData {
   values: Record<string, unknown>;
-  schema: { 
-    properties?: Record<string, { 
-      type: string | string[]; 
-      description?: string; 
+  schema: {
+    properties?: Record<string, {
+      type: string | string[];
+      description?: string;
       enum?: unknown[];
       properties?: Record<string, any>;
+      additionalProperties?: boolean | Record<string, any>;
       items?: any;
       required?: string[];
-    }>; 
+    }>;
     required?: string[] 
   };
   metadata: { name?: string; description?: string; icon?: string; sources?: string[]; version?: string; annotations?: Record<string, string>; category?: string };
@@ -133,7 +135,8 @@ function isEmptyValue(value: unknown, param: TemplateParam): boolean {
     if (value === undefined || value === null) return true;
     if (typeof value !== 'object' || Array.isArray(value)) return true;
     // Structured objects delegate emptiness to their nested required fields
-    if (param.properties) return false;
+    if (param.properties && Object.keys(param.properties).length > 0) return false;
+    if (param.additionalProperties) return false; // free-form: user manages keys
     return Object.keys(value as Record<string, unknown>).length === 0;
   }
   if (hasType(param.type, 'integer') || hasType(param.type, 'number')) {
@@ -184,9 +187,16 @@ function castFormValues(values: Record<string, unknown>, params: Record<string, 
   Object.entries(params).forEach(([name, param]) => {
     const value = values[name];
     
-    if (hasType(param.type, 'object') && param.properties && typeof value === 'object' && value !== null && !Array.isArray(value)) {
-      // Recursively cast nested object properties
-      result[name] = castFormValues(value as Record<string, unknown>, param.properties);
+    if (hasType(param.type, 'object') && (param.properties || param.additionalProperties) && typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      // Recursively cast nested object properties, preserving extra free-form keys
+      const casted = param.properties ? castFormValues(value as Record<string, unknown>, param.properties) : {};
+      if (param.additionalProperties) {
+        const defined = new Set(Object.keys(param.properties || {}));
+        for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+          if (!defined.has(k)) casted[k] = typeof v === 'string' ? v : v;
+        }
+      }
+      result[name] = casted;
     } else if (hasType(param.type, 'array') && Array.isArray(value)) {
       // Cast array items based on itemType
       if (param.itemType) {
@@ -217,18 +227,23 @@ function processObjectProperties(
   
   const result: Record<string, TemplateParam> = {};
   
-  Object.entries(properties).forEach(([name, schema]) => {
+  Object.entries(properties).forEach(([name, schema]: [string, any]) => {
     const value = values?.[name];
     const isRequired = requiredFields.includes(name);
     
     console.log(`${indent}[processObjectProperties] Processing field: ${name}, type: ${schema.type}, value:`, value);
     
     // Handle nested object types
-    if (hasType(schema.type, 'object') && schema.properties) {
-      console.log(`${indent}[processObjectProperties] Found nested object: ${name}`);
+    if (hasType(schema.type, 'object')) {
+      const hasNestedProps = !!schema.properties && typeof schema.properties === 'object';
+      const allowsAdditional = (schema as any).additionalProperties === true ||
+        (typeof (schema as any).additionalProperties === 'object' && (schema as any).additionalProperties !== null);
+      console.log(`${indent}[processObjectProperties] Found nested object: ${name} (additionalProperties=${allowsAdditional})`);
       const nestedRequired = (schema as any).required || [];
-      const nestedParams = processObjectProperties(schema.properties, value as any, nestedRequired, depth + 1);
-      
+      const nestedParams = hasNestedProps
+        ? processObjectProperties(schema.properties, value as any, nestedRequired, depth + 1)
+        : {};
+
       result[name] = {
         name,
         default: value,
@@ -236,6 +251,7 @@ function processObjectProperties(
         description: schema.description || '',
         required: isRequired,
         properties: nestedParams,
+        additionalProperties: allowsAdditional,
       };
       console.log(`${indent}[processObjectProperties] Added nested object ${name} with ${Object.keys(nestedParams).length} properties`);
       return;
@@ -298,17 +314,22 @@ function buildParams(data: TemplateData): Record<string, TemplateParam> {
   const schemaProps = data.schema?.properties || {};
   const valuesRecord = (data.values || {}) as Record<string, unknown>;
 
-  Object.entries(schemaProps).forEach(([name, schema]) => {
+  Object.entries(schemaProps).forEach(([name, schema]: [string, any]) => {
     const value = valuesRecord?.[name];
     
     console.log(`[buildParams] Processing top-level field: ${name}, type: ${schema.type}, value:`, value);
     
     // Handle object types
-    if (hasType(schema.type, 'object') && schema.properties) {
-      console.log(`[buildParams] Found top-level object: ${name}`);
+    if (hasType(schema.type, 'object')) {
+      const hasNestedProps = !!schema.properties && typeof schema.properties === 'object';
+      const allowsAdditional = (schema as any).additionalProperties === true ||
+        (typeof (schema as any).additionalProperties === 'object' && (schema as any).additionalProperties !== null);
+      console.log(`[buildParams] Found top-level object: ${name} (additionalProperties=${allowsAdditional})`);
       const nestedRequired = (schema as any).required || [];
-      const nestedParams = processObjectProperties(schema.properties, value as any, nestedRequired, 1);
-      
+      const nestedParams = hasNestedProps
+        ? processObjectProperties(schema.properties, value as any, nestedRequired, 1)
+        : {};
+
       params[name] = {
         name,
         default: value,
@@ -316,6 +337,7 @@ function buildParams(data: TemplateData): Record<string, TemplateParam> {
         description: schema.description || '',
         required: required.includes(name),
         properties: nestedParams,
+        additionalProperties: allowsAdditional,
       };
       console.log(`[buildParams] Added top-level object ${name} with ${Object.keys(nestedParams).length} properties`);
       return;
@@ -525,6 +547,14 @@ function ParamField({ param, value, onChange, invalid }: { param: TemplateParam;
 
 function ObjectParamField({ param, value, onChange }: { param: TemplateParam; value: unknown; onChange: (v: unknown) => void }) {
   const objectValue = (value as Record<string, unknown>) || {};
+  const definedKeys = new Set(Object.keys(param.properties || {}));
+  const extraEntries = param.additionalProperties
+    ? Object.entries(objectValue).filter(([k]) => !definedKeys.has(k))
+    : [];
+  const [newKey, setNewKey] = useState('');
+  const [newVal, setNewVal] = useState('');
+  const [keyError, setKeyError] = useState<string | null>(null);
+
   const missing: string[] = param.properties ? getMissingRequired(param.properties, objectValue) : [];
   const group = useContext(ObjectAccordionContext);
   const [localOpen, setLocalOpen] = useState(missing.length > 0);
@@ -547,12 +577,16 @@ function ObjectParamField({ param, value, onChange }: { param: TemplateParam; va
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [param.name, missingCount]);
 
-  if (!param.properties) return null;
+  // Objects that are purely free-form (no schema subproperties) still render
+  // as an extra-keys block rather than nothing.
+  if (!param.properties || Object.keys(param.properties).length === 0) {
+    if (!param.additionalProperties) return null;
+  }
 
   const hasMissing = missing.length > 0;
-  const entries = Object.values(param.properties);
+  const entries = Object.values(param.properties || {});
   const nestedObjects = entries.filter(n => hasType(n.type, 'object'));
-  const fieldCount = entries.length;
+  const fieldCount = entries.length + (param.additionalProperties ? extraEntries.length : 0);
   const defaultNestedOpen =
     nestedObjects.find(n => countMissingInObject(n, objectValue[n.name]) > 0)?.name ?? null;
 
@@ -647,6 +681,72 @@ function ObjectParamField({ param, value, onChange }: { param: TemplateParam; va
               );
             })}
           </SingleOpenGroup>
+          {param.additionalProperties && (
+            <div className="rounded-md border border-dashed border-border bg-card px-3 py-3">
+              <p className="text-sm font-medium">
+                Custom properties <span className="ml-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">{extraEntries.length} added</span>
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground">This object allows arbitrary key-value pairs alongside the schema fields above.</p>
+              {extraEntries.length > 0 && (
+                <ul className="mt-2 space-y-1.5">
+                  {extraEntries.map(([k, v]) => (
+                    <li key={k} className="flex items-center gap-2">
+                      <code className="min-w-0 flex-1 truncate text-xs font-semibold" title={k}>{k}</code>
+                      <input
+                        type="text"
+                        className="min-w-0 flex-[2] rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+                        value={typeof v === 'string' ? v : String(v ?? '')}
+                        onChange={e => onChange({ ...objectValue, [k]: e.target.value })}
+                        placeholder="value"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = { ...objectValue };
+                          delete next[k];
+                          onChange(next);
+                        }}
+                        className="shrink-0 rounded p-1.5 hover:bg-accent"
+                        title={`Remove ${k}`}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+                <input
+                  type="text"
+                  className="min-w-0 flex-1 rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+                  value={newKey}
+                  onChange={e => { setNewKey(e.target.value); setKeyError(null); }}
+                  placeholder="Key, e.g. HOST"
+                />
+                <input
+                  type="text"
+                  className="min-w-0 flex-1 rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+                  value={newVal}
+                  onChange={e => setNewVal(e.target.value)}
+                  placeholder="Value, e.g. 0.0.0.0"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const key = newKey.trim();
+                    if (!key) { setKeyError('Enter a key name.'); return; }
+                    if (definedKeys.has(key) || key in objectValue) { setKeyError(`"${key}" already exists.`); return; }
+                    onChange({ ...objectValue, [key]: newVal });
+                    setNewKey(''); setNewVal(''); setKeyError(null);
+                  }}
+                  className="flex shrink-0 items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                >
+                  <Plus className="h-4 w-4" /> Add
+                </button>
+              </div>
+              {keyError && <p className="mt-1 text-xs font-medium text-red-600">{keyError}</p>}
+            </div>
+          )}
         </div>
       )}
     </section>
