@@ -32,9 +32,5 @@ helm install nvidia-operator --wait \
 
 Build and push for arm64 (mac, raspberry pi)
 
-```bash
-podman build -t ghcr.io/kalavai-net/kalavai-runner-amd64:latest -f Dockerfile_amd64 .
-podman push ghcr.io/kalavai-net/kalavai-runner-amd64:latest
-podman buildx create --use --name arm64_builder
-podman buildx build --push -t ghcr.io/kalavai-net/kalavai-runner-arm64:latest --platform=linux/arm64 -f Dockerfile_arm64 .
-```
+bash build_images.sh --version v1.37.1-k3s1
+

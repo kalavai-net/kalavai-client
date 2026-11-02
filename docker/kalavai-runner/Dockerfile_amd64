@@ -1,4 +1,5 @@
-ARG K3S_TAG="v1.31.1-k3s1"
+#ARG K3S_TAG="v1.31.1-k3s1"
+ARG K3S_TAG="v1.37.1-k3s1"
 ARG CUDA_TAG="13.0.3-base-ubuntu24.04"
 
 FROM rancher/k3s:$K3S_TAG AS k3s

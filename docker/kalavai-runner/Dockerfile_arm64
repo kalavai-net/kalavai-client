@@ -1,4 +1,4 @@
-ARG K3S_TAG="v1.31.1-k3s1-arm64"
+ARG K3S_TAG="v1.37.1-k3s1-arm64"
 
 FROM rancher/k3s:$K3S_TAG AS k3s
 FROM arm64v8/ubuntu:24.04
