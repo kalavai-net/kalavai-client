@@ -103,7 +103,8 @@ services:
       --mtu={{mtu}}
     {% endif %}
 
-    # volumes:
+    volumes:
+    - /var/lib/longhorn:/var/lib/longhorn:shared
     # - /:{{host_root_path|default("/hostroot", true)}}:rshared
     # - {{k3s_path}}:/var/lib/rancher/k3s # Persist data
     # - {{etc_path}}:/etc/rancher/k3s # Config files
