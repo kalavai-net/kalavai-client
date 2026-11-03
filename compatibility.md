@@ -13,7 +13,7 @@ If your system is not currently supported, [open an issue](https://github.com/ka
 
 Currently `amd64` and `arm64` architectures are supported. Kalavai supports mixed pools, i.e. having Windows and MacOS computers as workers.
 
-Since **worker nodes** run inside docker, any machine that can run docker **should** be compatible with Kalavai. Here are instructions for [linux](https://docs.docker.com/engine/install/), [Windows](https://docs.docker.com/desktop/setup/install/windows-install/) and [MacOS](https://docs.docker.com/desktop/setup/install/mac-install/).
+Since **worker nodes** run inside containers, any machine that can run podman **should** be compatible with Kalavai. Here are instructions for [multiple OS](https://podman.io/docs/installation).
 
 The kalavai client, which controls and access pools, can be installed on any machine that has python 3.10+.
 

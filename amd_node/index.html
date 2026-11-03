@@ -351,6 +351,25 @@
             
             <li data-slot="sidebar-menu-item" data-sidebar="menu-item" class="group/menu-item relative">
     <a data-slot="sidebar-menu-button" data-active="false" data-sidebar="menu-button"
+        data-size="default" href="../pre_requisites/"
+        class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48">
+
+        
+        Pre-requisites
+        
+
+        
+
+        
+
+        
+    </a>
+</li>
+            
+            
+            
+            <li data-slot="sidebar-menu-item" data-sidebar="menu-item" class="group/menu-item relative">
+    <a data-slot="sidebar-menu-button" data-active="false" data-sidebar="menu-button"
         data-size="default" href="../compatibility/"
         class="peer/menu-button flex items-center gap-2 rounded-md p-2 text-left ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md data-[active=true]:border-accent data-[active=true]:bg-accent 3xl:fixed:w-full 3xl:fixed:max-w-48">
 
@@ -593,22 +612,41 @@
 <h2 id="installing-dependencies">Installing dependencies</h2>
 <p>In this example we are using Ubuntu 24.04 LTS as a base OS, but this will work with any debian-based distribution too.</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># install docker</span>
-sudo<span class="w"> </span>apt-get<span class="w"> </span>update
-sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>ca-certificates<span class="w"> </span>curl<span class="w"> </span>gcc-14<span class="w"> </span>-y
+<span class="c1"># Add Docker&#39;s official GPG key:</span>
+sudo<span class="w"> </span>apt<span class="w"> </span>update
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>ca-certificates<span class="w"> </span>curl<span class="w"> </span>-y
 sudo<span class="w"> </span>install<span class="w"> </span>-m<span class="w"> </span><span class="m">0755</span><span class="w"> </span>-d<span class="w"> </span>/etc/apt/keyrings
 sudo<span class="w"> </span>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://download.docker.com/linux/ubuntu/gpg<span class="w"> </span>-o<span class="w"> </span>/etc/apt/keyrings/docker.asc
 sudo<span class="w"> </span>chmod<span class="w"> </span>a+r<span class="w"> </span>/etc/apt/keyrings/docker.asc
+
+<span class="c1"># Add the repository to Apt sources:</span>
 sudo<span class="w"> </span>tee<span class="w"> </span>/etc/apt/sources.list.d/docker.sources<span class="w"> </span><span class="s">&lt;&lt;EOF</span>
 <span class="s">Types: deb</span>
 <span class="s">URIs: https://download.docker.com/linux/ubuntu</span>
 <span class="s">Suites: $(. /etc/os-release &amp;&amp; echo &quot;${UBUNTU_CODENAME:-$VERSION_CODENAME}&quot;)</span>
 <span class="s">Components: stable</span>
+<span class="s">Architectures: $(dpkg --print-architecture)</span>
 <span class="s">Signed-By: /etc/apt/keyrings/docker.asc</span>
 <span class="s">EOF</span>
 
 sudo<span class="w"> </span>apt<span class="w"> </span>update
 sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>docker-ce<span class="w"> </span>docker-ce-cli<span class="w"> </span>containerd.io<span class="w"> </span>docker-buildx-plugin<span class="w"> </span>docker-compose-plugin<span class="w"> </span>-y
-sudo<span class="w"> </span>usermod<span class="w"> </span>-aG<span class="w"> </span>docker<span class="w"> </span><span class="nv">$USER</span>
+
+<span class="c1"># install nvidia container runtime</span>
+curl<span class="w"> </span>-fsSL<span class="w"> </span>https://nvidia.github.io/libnvidia-container/gpgkey<span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>gpg<span class="w"> </span>--dearmor<span class="w"> </span>-o<span class="w"> </span>/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="o">&amp;&amp;</span><span class="w"> </span>curl<span class="w"> </span>-s<span class="w"> </span>-L<span class="w"> </span>https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>sed<span class="w"> </span><span class="s1">&#39;s#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>sudo<span class="w"> </span>tee<span class="w"> </span>/etc/apt/sources.list.d/nvidia-container-toolkit.list
+sudo<span class="w"> </span>apt-get<span class="w"> </span>update
+<span class="nb">export</span><span class="w"> </span><span class="nv">NVIDIA_CONTAINER_TOOLKIT_VERSION</span><span class="o">=</span><span class="m">1</span>.18.2-1
+sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>nvidia-container-toolkit<span class="o">=</span><span class="si">${</span><span class="nv">NVIDIA_CONTAINER_TOOLKIT_VERSION</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>nvidia-container-toolkit-base<span class="o">=</span><span class="si">${</span><span class="nv">NVIDIA_CONTAINER_TOOLKIT_VERSION</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>libnvidia-container-tools<span class="o">=</span><span class="si">${</span><span class="nv">NVIDIA_CONTAINER_TOOLKIT_VERSION</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>libnvidia-container1<span class="o">=</span><span class="si">${</span><span class="nv">NVIDIA_CONTAINER_TOOLKIT_VERSION</span><span class="si">}</span>
+
+sudo<span class="w"> </span>nvidia-ctk<span class="w"> </span>runtime<span class="w"> </span>configure<span class="w"> </span>--runtime<span class="o">=</span>docker
+sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>docker
 
 <span class="c1"># install python3.12+ (dev and venv)</span>
 sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>python3.12-dev<span class="w"> </span>python3.12-venv<span class="w"> </span>-y
