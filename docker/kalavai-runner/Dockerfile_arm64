@@ -3,8 +3,8 @@ ARG K3S_TAG="v1.37.1-k3s1-arm64"
 FROM rancher/k3s:$K3S_TAG AS k3s
 FROM arm64v8/ubuntu:24.04
 
-# Install the NVIDIA container toolkit
-RUN apt update && apt install wireguard -y
+# Install pre-requisites
+RUN apt update && apt install wireguard open-iscsi nfs-common -y
 
 COPY --from=k3s / / --exclude=/bin
 COPY --from=k3s /bin /bin

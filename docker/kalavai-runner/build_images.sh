@@ -1,6 +1,6 @@
 #!/bin/bash
 
-K3S_TAG="v1.34.1-k3s1"
+K3S_TAG="v1.37.1-k3s1"
 TEMPLATE_VERSION=1
 
 while [[ "$#" -gt 0 ]]; do
