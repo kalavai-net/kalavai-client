@@ -6,6 +6,7 @@ nav:
     - Quick intro:
       - Overview: index.md
       - Quick Start: getting_started.md
+      - Pre-requisites: pre_requisites.md
       - Compatibility: compatibility.md
     - Configure nodes:
       - NVIDIA: nvidia_node.md

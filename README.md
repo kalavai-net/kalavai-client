@@ -101,6 +101,16 @@ If your system is not currently supported, [open an issue](https://github.com/ka
 sudo apt install gcc g++ python3-dev
 ```
 
+If you want to use Longhorn distributed storage, you need to install and configure open-iscsi:
+
+```bash
+sudo apt install open-iscsi
+sudo modprobe iscsi_tcp
+sudo modprobe dm_mod
+echo "iscsi_tcp" | sudo tee -a /etc/modules-load.d/longhorn.conf
+echo "dm_mod" | sudo tee -a /etc/modules-load.d/longhorn.conf
+```
+
 ### Install the client
 
 The client is a python package and can be installed with one command:
