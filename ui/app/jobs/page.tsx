@@ -142,7 +142,10 @@ function isEmptyValue(value: unknown, param: TemplateParam): boolean {
   if (hasType(param.type, 'integer') || hasType(param.type, 'number')) {
     return value === undefined || value === null || value === '' || Number.isNaN(Number(value));
   }
-  // string, enum and anything else
+  // string, enum and anything else: nullable strings accept empty string (sent as null)
+  if (isNullable(param.type)) {
+    return value === undefined;
+  }
   return value === undefined || value === null || String(value).trim() === '';
 }
 
@@ -281,14 +284,19 @@ function processObjectProperties(
       return;
     }
     
-    result[name] = {
-      name,
-      default: value,
-      type: schema.enum ? 'enum' : getPrimaryType(schema.type),
-      description: schema.description || '',
-      required: isRequired,
-      options: schema.enum as string[] | undefined,
-    };
+  // Preserve union types (e.g. ["string", "null"]) so nullable info survives;
+  // fall back to primary-type/enum shorthand for plain schemas.
+  const preservedType = Array.isArray(schema.type)
+    ? schema.type
+    : (schema.enum ? 'enum' : getPrimaryType(schema.type));
+  result[name] = {
+    name,
+    default: value,
+    type: preservedType,
+    description: schema.description || '',
+    required: isRequired,
+    options: schema.enum as string[] | undefined,
+  };
     console.log(`${indent}[processObjectProperties] Added basic type: ${name} (${result[name].type})`);
   });
   
@@ -370,14 +378,16 @@ function buildParams(data: TemplateData): Record<string, TemplateParam> {
     params[name] = {
       name,
       default: value,
-      type: schema.enum ? 'enum' : getPrimaryType(schema.type),
+      type: Array.isArray(schema.type)
+        ? schema.type
+        : (schema.enum ? 'enum' : getPrimaryType(schema.type)),
       description: schema.description || '',
       required: required.includes(name),
       options: schema.enum as string[] | undefined,
     };
     console.log(`[buildParams] Added basic type: ${name} (${params[name].type})`);
   });
-  
+
   console.log(`[buildParams] Final result:`, params);
   console.log(`[buildParams] Final result keys:`, Object.keys(params));
   console.log(`[buildParams] Object fields:`, Object.entries(params).filter(([_, p]) => p.type === 'object').map(([name, p]) => `${name} (${Object.keys(p.properties || {}).length} properties)`));
@@ -541,6 +551,13 @@ function ParamField({ param, value, onChange, invalid }: { param: TemplateParam;
       <input type="checkbox" checked={Boolean(value ?? param.default)} onChange={e => onChange(castValue(e.target.checked, param.type))} className="w-4 h-4" />
       <span className="text-sm">{String(value ?? param.default)}</span>
     </label>;
+  }
+  // Nullable strings: an explicit null (cleared field) must stay visibly empty
+  // instead of falling back to the template default; undefined still shows default.
+  if (isNullable(param.type)) {
+    return <input type="text" className={base} placeholder="Empty = null"
+      value={value === null ? '' : value === undefined ? '' : String(value)}
+      onChange={e => onChange(e.target.value === '' ? null : castValue(e.target.value, param.type))} />;
   }
   return <input type="text" className={base} value={String(value ?? param.default ?? '')} onChange={e => onChange(castValue(e.target.value, param.type))} />;
 }
