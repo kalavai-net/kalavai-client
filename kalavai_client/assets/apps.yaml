@@ -50,9 +50,9 @@ releases:
     - name: defaultSettings.storageMinimalAvailablePercentage
       value: 10
     - name: defaultSettings.defaultReplicaCount
-      value: 2
-    - name: defaultSettings.defaultLonghornStaticStorageClass
-      value: "longhorn-static"
+      value: 3
+    - name: defaultSettings.defaultClassReplicaCount
+      value: 3
     - name: defaultSettings.guaranteedInstanceManagerCpu
       value: 10
   - name: sws-operator

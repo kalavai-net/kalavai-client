@@ -1,3 +1,18 @@
+# Storage classes
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: {{ longhorn_storage_class }}
+provisioner: driver.longhorn.io
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+parameters:
+  numberOfReplicas: "{{ longhorn_num_replicas }}"
+  staleReplicaTimeout: "2880"
+  fromBackup: ""
+  fsType: "ext4"
+---
 # PRIORITY CLASSES
 apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
