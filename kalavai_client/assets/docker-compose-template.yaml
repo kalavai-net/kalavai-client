@@ -104,7 +104,7 @@ services:
     {% endif %}
 
     volumes:
-    - /var/lib/longhorn:/var/lib/longhorn:shared
+    - /var/lib/longhorn:/var/lib/longhorn:rshared
     # - /:{{host_root_path|default("/hostroot", true)}}:rshared
     # - {{k3s_path}}:/var/lib/rancher/k3s # Persist data
     # - {{etc_path}}:/etc/rancher/k3s # Config files
