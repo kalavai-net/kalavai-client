@@ -1466,7 +1466,7 @@ def job__list(*others, force_namespace: str=None):
         console.log("[red]Error when querying backend")
 
 @arguably.command
-def job__logs(job_id, *others, pod_name=None, tail=100, force_namespace: str=None):
+def job__logs(job_id, *others, pod_name=None, tail=100, follow: bool=False, force_namespace: str=None):
     """
     Get logs for a specific job
     """
@@ -1484,32 +1484,70 @@ def job__logs(job_id, *others, pod_name=None, tail=100, force_namespace: str=Non
     }
     if force_namespace is not None:
         data["force_namespace"] = force_namespace
-    results = request_to_api(
-        method="GET",
-        endpoint="/fetch_job_logs",
-        params=data)
+    if follow:
+        # Stream live logs directly from the watcher SSE endpoint
+        from kalavai_client.core import stream_pod_logs, _extract_log_line
+        from kalavai_client.env import TEMPLATE_LABEL
+        try:
+            for event in stream_pod_logs(
+                labels={TEMPLATE_LABEL: job_id},
+                force_namespace=force_namespace,
+                tail=tail,
+                follow=True,
+            ):
+                if not isinstance(event, dict):
+                    console.log(f"[yellow]{event}")
+                    continue
+                pod, line, _node = _extract_log_line(event)
+                if line is not None:
+                    if pod_name is not None and pod_name != pod:
+                        continue
+                    console.log(f"[green][{pod}] {line}")
+                else:
+                    console.log(f"[yellow]{event}")
+        except KeyboardInterrupt:
+            console.log("[yellow]Stopped following logs")
+        except Exception as e:
+            console.log(f"[red]{e}")
+    else:
+        results = request_to_api(
+            method="GET",
+            endpoint="/fetch_job_logs",
+            params=data)
 
-    if "error" in results:
-        console.log(f"[red]{results}")
-        return
-    for label_match, data in results.items():
-        for pod, info in data.items():
+        if "error" in results:
+            console.log(f"[red]{results}")
+            return
+        # Snapshot shape is flat {pod: {"logs": ..., "describe": ...}},
+        # but tolerate legacy nested {label: {pod: {...}}} too.
+        pods: dict = {}
+        for key, value in (results or {}).items():
+            if isinstance(value, dict) and "logs" in value:
+                pods[key] = value
+            elif isinstance(value, dict):
+                for pod, info in value.items():
+                    if isinstance(info, dict) and "logs" in info:
+                        pods[pod] = info
+        if not pods:
+            console.log(f"[white] No logs yet for {job_id} (raw response: {results})")
+            return
+        for pod, info in pods.items():
             if pod_name is not None and pod_name != pod:
                 continue
             if "logs" not in info:
                 console.log(f"[white] Logs not ready for {pod}")
             else:
                 logs = info["logs"]
-                describe = info["describe"]
-                console.log(f"[yellow]Logs for {pod} in {describe['spec']['node_name']}")
+                node = (info.get("describe") or {}).get("spec", {}).get("node_name", "?")
+                console.log(f"[yellow]Logs for {pod} in {node}")
                 console.log(f"[green]{logs}")
             console.log("---------------------------")
             console.log("---------------------------")
             if "describe" not in info:
                 console.log(f"[white] Description not ready for {pod}")
             else:
-                console.log(f"[yellow]Status {pod} in {describe['spec']['node_name']}")
-                console.log(f"[green]{describe}")
+                console.log(f"[yellow]Status {pod} in {node}")
+                console.log(f"[green]{info['describe']}")
 
 def app():
     user_path("", create_path=True)

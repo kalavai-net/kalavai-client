@@ -10,13 +10,16 @@ from collections import defaultdict
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Depends, Query, Security
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security.api_key import APIKeyHeader
 from typing import Optional, List
 from fastapi_mcp import FastApiMCP
 from starlette.requests import Request
 import uvicorn
 
+from fastapi.responses import StreamingResponse
 from kalavai_client.core import Job
+from kalavai_client.core import stream_pod_logs
 from kalavai_client.env import (
     KALAVAI_SERVICE_LABEL,
     KALAVAI_SERVICE_LABEL_VALUE
@@ -135,6 +138,14 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     lifespan=lifespan,
+)
+# Allow browsers to call the API directly (needed for SSE log streaming,
+# which the Next.js rewrite proxy buffers instead of forwarding as a stream).
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 metrics_api = MetricsAPI(
     endpoint=CLICKHOUSE_ENDPOINT,
@@ -637,7 +648,7 @@ def job_details(force_namespace: str = Query(None), api_key: str = Depends(verif
 @app.get("/fetch_job_logs",
     operation_id="fetch_job_logs",
     summary="Get execution logs for a specific job",
-    description="Retrieves the execution logs for a specified job, providing real-time or historical output from the job's containers. Useful for debugging, monitoring progress, and understanding job behavior.",
+    description="Retrieves the execution logs for a specified job, providing real-time or historical output from the job's containers. Useful for debugging, monitoring progress, and understanding job behavior. Set follow=true to stream live logs as server-sent events.",
     tags=["info", "avoid"],
     response_description="Job logs")
 def job_logs(
@@ -645,6 +656,7 @@ def job_logs(
     force_namespace: str = Query(None),
     pod_name: str = Query(None),
     tail: int = Query(100),
+    follow: bool = Query(False),
     api_key: str = Depends(verify_api_key)
 ):
     """
@@ -654,7 +666,58 @@ def job_logs(
     - **force_namespace**: Optional namespace override
     - **pod_name**: Optional pod name
     - **tail**: Number of log lines to return
+    - **follow**: If true, stream live logs as SSE instead of returning a snapshot
     """
+    from kalavai_client.env import TEMPLATE_LABEL
+    if follow:
+        def event_gen():
+            import json
+            from kalavai_client.core import _extract_log_line
+            try:
+                # 1) Snapshot first so the UI has something to render immediately.
+                # Stream each line as it arrives (don't wait for full aggregation).
+                try:
+                    for event in stream_pod_logs(
+                        labels={TEMPLATE_LABEL: job_name},
+                        force_namespace=force_namespace,
+                        tail=tail,
+                        follow=False,
+                    ):
+                        if not isinstance(event, dict):
+                            continue
+                        pod, line, node = _extract_log_line(event)
+                        if line is None:
+                            continue
+                        if pod_name is not None and pod_name != pod:
+                            continue
+                        evt: dict = {"pod": pod, "log": line, "snapshot": True}
+                        if node:
+                            evt["node_name"] = node
+                        yield f"data: {json.dumps(evt)}\n\n"
+                except Exception as snap_err:
+                    yield f"data: {json.dumps({'warning': f'snapshot failed: {snap_err}'})}\n\n"
+                # 2) Live tail
+                for event in stream_pod_logs(
+                    labels={TEMPLATE_LABEL: job_name},
+                    force_namespace=force_namespace,
+                    tail=0,
+                    follow=True,
+                ):
+                    if not isinstance(event, dict):
+                        continue
+                    pod = event.get("pod") or event.get("pod_name")
+                    if pod_name is not None and pod is not None and pod_name != pod:
+                        continue
+                    yield f"data: {json.dumps(event)}\n\n"
+            except GeneratorExit:
+                raise
+            except Exception as e:
+                yield f"data: {json.dumps({'error': str(e)})}\n\n"
+        return StreamingResponse(
+            event_gen(),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        )
     return fetch_job_logs(
         job_name=job_name,
         force_namespace=force_namespace,

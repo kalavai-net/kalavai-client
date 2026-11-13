@@ -153,6 +153,87 @@ class KalavaiApiClient {
     });
   }
 
+  streamJobLogs(
+    job_name: string,
+    onEvent: (event: Record<string, unknown>) => void,
+    opts?: { force_namespace?: string; tail?: number; signal?: AbortSignal }
+  ): () => void {
+    const controller = new AbortController();
+    const signal = opts?.signal ?? controller.signal;
+    const params = new URLSearchParams({
+      job_name,
+      follow: 'true',
+      tail: String(opts?.tail ?? 100),
+    });
+    if (opts?.force_namespace) params.set('force_namespace', opts.force_namespace);
+    const headers: Record<string, string> = {};
+    if (ACCESS_KEY) headers['X-API-Key'] = ACCESS_KEY;
+    (async () => {
+      try {
+        // NOTE: dedicated streaming route, NOT the /api/kalavai rewrite —
+        // rewrites buffer chunked SSE; this route pipes frames through.
+        const res = await fetch(`/api/kalavai/stream_job_logs?${params.toString()}`, { headers, signal });
+        if (!res.ok) {
+          onEvent({ error: `Stream failed: ${res.status} ${await res.text().catch(() => '')}` });
+          return;
+        }
+        if (!res.body) {
+          onEvent({ error: 'Stream failed: empty response body (proxy may have buffered it)' });
+          return;
+        }
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('text/event-stream')) {
+          // Backend didn't stream (e.g. proxy buffered it into one JSON
+          // response). Parse it as a one-shot snapshot instead of hanging.
+          try {
+            const data = await res.json();
+            if (data && typeof data === 'object' && !Array.isArray(data)) {
+              for (const [pod, info] of Object.entries(data as Record<string, { logs?: string; node_name?: string }>)) {
+                if (pod === 'error') { onEvent({ error: String((info as unknown as { error?: unknown }).error ?? info) }); continue; }
+                const logs = typeof info?.logs === 'string' ? info.logs
+                  : typeof info === 'string' ? info : '';
+                if (!logs) continue;
+                for (const line of logs.split('\n')) {
+                  onEvent({ pod, log: line, snapshot: true });
+                }
+              }
+              onEvent({ end: true } as unknown as Record<string, unknown>);
+            } else {
+              onEvent({ error: `Unexpected non-stream response: ${JSON.stringify(data).slice(0, 200)}` });
+            }
+          } catch (e) {
+            onEvent({ error: `Stream failed: non-SSE response could not be parsed (${e})` });
+          }
+          return;
+        }
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          let idx: number;
+          while ((idx = buffer.indexOf('\n\n')) !== -1) {
+            const raw = buffer.slice(0, idx);
+            buffer = buffer.slice(idx + 2);
+            const lines = raw.split('\n').filter(l => l.startsWith('data:'));
+            if (!lines.length) continue;
+            const data = lines.map(l => l.slice(5).trim()).join('\n');
+            try {
+              onEvent(JSON.parse(data));
+            } catch {
+              onEvent({ raw: data });
+            }
+          }
+        }
+      } catch (err) {
+        if ((err as Error)?.name !== 'AbortError') onEvent({ error: String(err) });
+      }
+    })();
+    return () => controller.abort();
+  }
+
   async fetchServiceLogs(tail: number = 100) {
     return this.get('fetch_service_logs', { params: { tail } });
   }

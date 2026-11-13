@@ -862,26 +862,85 @@ def fetch_pool_services(force_namespace=None):
     except Exception as e:
         return {"error": str(e)}
 
-def fetch_pod_logs(labels, force_namespace=None, pod_name=None, tail=100):
-    data = {
-        "labels": labels,
-        "tail_lines": tail
-    }
-    if force_namespace is not None:
-        data["force_namespace"] = force_namespace
-    try:
-        # send tail as parameter (fetch only last _tail_ lines)
-        all_logs = request_to_server(
-            force_url=FORCE_WATCHER_API_URL,
-            force_key=FORCE_WATCHER_API_KEY_URL,
-            method="post",
-            endpoint="/v1/get_job_details",
-            data=data,
-            server_creds=USER_LOCAL_SERVER_FILE,
-            user_cookie=USER_COOKIE
-        )
-        return {pod: info for pod, info in all_logs.items() if pod_name is None or pod_name == pod}
+def _extract_log_line(event):
+    """Return (pod, line) from a watcher SSE event, tolerating field variants."""
+    if not isinstance(event, dict):
+        return None, None
+    for key in ("log", "logs", "line", "message", "content", "output"):
+        if key in event and event[key] not in (None, ""):
+            value = event[key]
+            if isinstance(value, list):
+                value = "\n".join(str(v) for v in value)
+            else:
+                value = str(value)
+            pod = event.get("pod") or event.get("pod_name") or event.get("name", "unknown")
+            node = event.get("node_name") or event.get("node")
+            return str(pod), value, node
+    return None, None, None
 
+def stream_pod_logs(labels, force_namespace=None, tail=100, follow=False, timeout=300):
+    """Yield SSE log events from watcher POST /v1/stream_logs_for_label.
+
+    Each yielded item is the parsed JSON dict of one SSE `data:` event
+    (e.g. {"pod": ..., "log": ...} or status/end events).
+    """
+    import json
+    import requests
+    from kalavai_client.utils import load_user_id
+    if FORCE_WATCHER_API_URL is None:
+        service_url = load_server_info(data_key=WATCHER_SERVICE_KEY, file=USER_LOCAL_SERVER_FILE)
+    else:
+        service_url = FORCE_WATCHER_API_URL
+    if FORCE_WATCHER_API_KEY_URL is None:
+        auth_key = load_server_info(data_key=AUTH_KEY, file=USER_LOCAL_SERVER_FILE)
+    else:
+        auth_key = FORCE_WATCHER_API_KEY_URL
+    headers = {"X-API-KEY": auth_key}
+    payload = {"labels": labels, "tail_lines": tail, "follow": follow}
+    if force_namespace is not None:
+        payload["force_namespace"] = force_namespace
+    with requests.post(
+        f"http://{service_url}/v1/stream_logs_for_label",
+        json=payload,
+        headers=headers,
+        stream=True,
+        timeout=timeout,
+    ) as response:
+        if response.status_code != 200:
+            raise ValueError(f"Error streaming logs: {response.status_code} {response.text[:500]}")
+        buffer = ""
+        for chunk in response.iter_content(chunk_size=1024, decode_unicode=True):
+            if not chunk:
+                continue
+            buffer += chunk
+            while "\n\n" in buffer:
+                raw_event, buffer = buffer.split("\n\n", 1)
+                lines = [l for l in raw_event.splitlines() if l.startswith("data:")]
+                if not lines:
+                    continue
+                data = "\n".join(l[len("data:"):].strip() for l in lines)
+                try:
+                    yield json.loads(data)
+                except Exception:
+                    yield {"raw": data}
+
+def fetch_pod_logs(labels, force_namespace=None, pod_name=None, tail=100):
+    try:
+        # Snapshot mode: open the streaming endpoint with follow=False and aggregate
+        pods = {}
+        for event in stream_pod_logs(
+            labels=labels, force_namespace=force_namespace, tail=tail, follow=False
+        ):
+            pod, line, node = _extract_log_line(event)
+            if line is None:
+                continue
+            if pod_name is not None and pod_name != pod:
+                continue
+            pods.setdefault(pod, {"logs": "", "describe": {}})
+            pods[pod]["logs"] += (line + ("" if line.endswith("\n") else "\n"))
+            if node:
+                pods[pod]["describe"] = {"spec": {"node_name": node}}
+        return pods
     except Exception as e:
         return {"error": str(e)}
     

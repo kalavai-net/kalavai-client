@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef, createContext, useContext } from 'react';
+import { useEffect, useLayoutEffect, useState, useRef, createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
 import { useAuthStore, useConnectionStore } from '@/stores';
 import { AppLayout } from '@/components/AppLayout';
@@ -1023,7 +1023,13 @@ function JobsContent() {
   const [jobMeta, setJobMeta] = useState('');
   const [jobStatus, setJobStatus] = useState('');
   const [logsLoading, setLogsLoading] = useState(false);
-  const [logTail, setLogTail] = useState(100);
+  const [followLogs, setFollowLogs] = useState(true);
+  const [autoScrollLogs, setAutoScrollLogs] = useState(true);
+  const logStreamStopRef = useRef<(() => void) | null>(null);
+  const logsScrollRef = useRef<HTMLDivElement | null>(null);
+  // Each pod's <pre> gets its own ref so auto-scroll targets the inner
+  // scrollable log box (which has max-h-80 overflow-y-auto), not the modal.
+  const podLogRefs = useRef<Map<string, HTMLPreElement>>(new Map());
 
   const allSelected = jobs.length > 0 && selectedIds.size === jobs.length;
   const toggleSelectAll = () => setSelectedIds(allSelected ? new Set() : new Set(jobs.map(j => j.job_id)));
@@ -1350,41 +1356,131 @@ function JobsContent() {
     } catch (err) { showMsg('error', `Delete failed: ${err}`); }
   };
 
-  const openLogs = async (job: Job) => {
-    setLogsJob(job); setLogsTab('job'); setJobLogs({});
-    setJobMeta(job.spec ? JSON.stringify(job.spec, null, 2) : 'Job spec pending...');
-    setJobStatus(job.conditions ? JSON.stringify(job.conditions, null, 2) : 'Status pending...');
+  const stopLogStream = () => {
+    logStreamStopRef.current?.();
+    logStreamStopRef.current = null;
+  };
+
+  const parseSnapshotLogs = (data: unknown): Record<string, string> => {
+    const parsed: Record<string, string> = {};
+    const root = (data as Record<string, unknown>) || {};
+    // Flat shape from /fetch_job_logs: {pod: {logs, describe}}
+    // (tolerate legacy nested {label: {pod: {logs}}} too)
+    for (const [key, value] of Object.entries(root)) {
+      if (key === 'error') continue;
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        const v = value as Record<string, unknown>;
+        if ('logs' in v || 'describe' in v) {
+          parsed[key] = typeof v.logs === 'string' ? v.logs : 'Logs not ready yet';
+          continue;
+        }
+      }
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        for (const [pod, info] of Object.entries(value as Record<string, { logs?: string }>)) {
+          parsed[pod] = typeof info?.logs === 'string' ? info.logs : 'Logs not ready yet';
+        }
+      }
+    }
+    return parsed;
+  };
+
+  const extractStreamLine = (event: unknown): { pod: string; line: string } | null => {
+    if (typeof event !== 'object' || event === null) return null;
+    const e = event as Record<string, unknown>;
+    if (e.end) return null; // terminal marker: stop spinning
+    for (const key of ['log', 'logs', 'line', 'message', 'content', 'output']) {
+      const v = e[key];
+      if (v === null || v === undefined || v === '') continue;
+      const line = Array.isArray(v) ? v.map(String).join('\n') : String(v);
+      const pod = String(e.pod ?? e.pod_name ?? e.name ?? 'unknown');
+      return { pod, line };
+    }
+    return null;
+  };
+
+  const startLogStream = (job: Job) => {
+    stopLogStream();
+    setLogsLoading(true);
+    // Safety: never spin forever if the watcher sends no frames
+    const safety = setTimeout(() => setLogsLoading(false), 15000);
+    logStreamStopRef.current = kalavaiApi.streamJobLogs(
+      job.job_id,
+      (event) => {
+        if (typeof event !== 'object' || event === null) return;
+        if ('error' in event || 'raw' in event) {
+          const msg = String((event as { error?: unknown; raw?: unknown }).error ?? (event as { raw?: unknown }).raw ?? 'Unknown stream error');
+          setJobLogs(prev => ({ ...prev, error: msg }));
+          setLogsLoading(false);
+          clearTimeout(safety);
+          return;
+        }
+        const parsed = extractStreamLine(event);
+        if (!parsed) { setLogsLoading(false); return; } // status/end frame: stop spinner, keep waiting
+        clearTimeout(safety);
+        setLogsLoading(false);
+        setJobLogs(prev => ({ ...prev, [parsed.pod]: `${prev[parsed.pod] ?? ''}${parsed.line}${parsed.line.endsWith('\n') ? '' : '\n'}` }));
+      },
+      { force_namespace: job.owner }
+    );
+  };
+
+  const loadSnapshotLogs = async (job: Job) => {
     setLogsLoading(true);
     try {
-      const data = await kalavaiApi.fetchJobLogs(job.job_id, job.owner, undefined, logTail);
+      const data = await kalavaiApi.fetchJobLogs(job.job_id, job.owner);
       if (data?.error) { setJobLogs({ error: data.error }); return; }
-      const parsed: Record<string, string> = {};
-      Object.values(data || {}).forEach((group) => {
-        Object.entries(group as Record<string, { logs?: string }>).forEach(([pod, info]) => {
-          parsed[pod] = info?.logs ?? 'Logs not ready yet';
-        });
-      });
-      setJobLogs(parsed);
+      setJobLogs(parseSnapshotLogs(data));
     } catch (err) { setJobLogs({ error: String(err) }); }
     finally { setLogsLoading(false); }
   };
 
+  const openLogs = (job: Job) => {
+    setLogsJob(job); setLogsTab('logs'); setJobLogs({});
+    setJobMeta(job.spec ? JSON.stringify(job.spec, null, 2) : 'Job spec pending...');
+    setJobStatus(job.conditions ? JSON.stringify(job.conditions, null, 2) : 'Status pending...');
+    // The effect below ([followLogs, logsJob?.job_id, logsTab]) starts the
+    // stream / snapshot load once logsJob is set. Don't start it here too,
+    // or two streams race and the first abort kills the second.
+  };
+
   const refreshLogs = async () => {
     if (!logsJob) return;
-    setLogsLoading(true);
-    try {
-      const data = await kalavaiApi.fetchJobLogs(logsJob.job_id, logsJob.owner, undefined, logTail);
-      if (data?.error) { setJobLogs({ error: data.error }); return; }
-      const parsed: Record<string, string> = {};
-      Object.values(data || {}).forEach((group) => {
-        Object.entries(group as Record<string, { logs?: string }>).forEach(([pod, info]) => {
-          parsed[pod] = info?.logs ?? 'Logs not ready yet';
-        });
-      });
-      setJobLogs(parsed);
-    } catch (err) { setJobLogs({ error: String(err) }); }
-    finally { setLogsLoading(false); }
+    stopLogStream();
+    setJobLogs({});
+    if (followLogs) startLogStream(logsJob);
+    else await loadSnapshotLogs(logsJob);
   };
+
+  // (Re)start or stop the stream when follow toggles or the modal job changes
+  useEffect(() => {
+    if (!logsJob || logsTab !== 'logs') { stopLogStream(); return; }
+    if (followLogs) startLogStream(logsJob);
+    else { stopLogStream(); void loadSnapshotLogs(logsJob); }
+    return stopLogStream;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [followLogs, logsJob?.job_id, logsTab]);
+
+  // Auto-scroll to newest lines while following (opt-in via checkbox).
+  // Scrolls each pod's own <pre> box, in a layout effect so it runs after
+  // the DOM updates with the new lines (plain useEffect can miss the paint).
+  // Uses rAF to run after the browser lays out the new content.
+  useLayoutEffect(() => {
+    if (!autoScrollLogs || logsTab !== 'logs') return;
+    const frame = requestAnimationFrame(() => {
+      for (const el of podLogRefs.current.values()) {
+        el.scrollTop = el.scrollHeight;
+      }
+      // Fallback: also keep the outer modal scrolled down
+      const outer = logsScrollRef.current;
+      if (outer) outer.scrollTop = outer.scrollHeight;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [jobLogs, autoScrollLogs, logsTab]);
+
+  // Stop the stream when the modal closes
+  useEffect(() => {
+    if (!logsJob) stopLogStream();
+  }, [logsJob]);
 
   if (isLoading) {
     return (
@@ -1984,10 +2080,17 @@ function JobsContent() {
               <div className="flex items-center gap-2">
                 {logsTab === 'logs' && (
                   <div className="flex items-center gap-2">
-                    <label className="text-xs text-muted-foreground">Lines:</label>
-                    <input type="number" value={logTail} onChange={e => setLogTail(Number(e.target.value))}
-                      className="w-20 px-2 py-1 border border-border rounded text-xs bg-background" />
-                    <button onClick={refreshLogs} className="p-1.5 hover:bg-accent rounded" title="Refresh logs">
+                    <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none">
+                      <input type="checkbox" checked={followLogs} onChange={e => setFollowLogs(e.target.checked)}
+                        className="w-3.5 h-3.5" />
+                      Follow
+                    </label>
+                    <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none">
+                      <input type="checkbox" checked={autoScrollLogs} onChange={e => setAutoScrollLogs(e.target.checked)}
+                        className="w-3.5 h-3.5" />
+                      Auto-scroll
+                    </label>
+                    <button onClick={refreshLogs} className="p-1.5 hover:bg-accent rounded" title={followLogs ? 'Restart stream' : 'Refresh logs'}>
                       <RefreshCw className={`w-4 h-4 ${logsLoading ? 'animate-spin' : ''}`} />
                     </button>
                   </div>
@@ -2006,7 +2109,7 @@ function JobsContent() {
               ))}
             </div>
 
-            <div className="overflow-y-auto flex-1 p-6">
+            <div ref={logsScrollRef} className="overflow-y-auto flex-1 p-6">
               {logsTab === 'job' && (
                 <pre className="text-xs font-mono bg-muted p-4 rounded-lg whitespace-pre-wrap break-all">{jobMeta}</pre>
               )}
@@ -2014,16 +2117,20 @@ function JobsContent() {
                 <pre className="text-xs font-mono bg-muted p-4 rounded-lg whitespace-pre-wrap break-all">{jobStatus}</pre>
               )}
               {logsTab === 'logs' && (
-                logsLoading ? (
-                  <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
-                ) : Object.keys(jobLogs).length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">No logs available</p>
+                Object.keys(jobLogs).length === 0 ? (
+                  logsLoading ? (
+                    <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-8">No logs available</p>
+                  )
                 ) : (
                   <div className="space-y-4">
                     {Object.entries(jobLogs).map(([pod, logs]) => (
                       <div key={pod}>
                         <p className="text-xs font-semibold text-muted-foreground mb-1">Pod: {pod}</p>
-                        <pre className="text-xs font-mono bg-muted p-4 rounded-lg whitespace-pre-wrap break-all max-h-80 overflow-y-auto">{logs}</pre>
+                        <pre
+                          ref={el => { if (el) podLogRefs.current.set(pod, el); else podLogRefs.current.delete(pod); }}
+                          className="text-xs font-mono bg-muted p-4 rounded-lg whitespace-pre-wrap break-all max-h-80 overflow-y-auto">{logs}</pre>
                       </div>
                     ))}
                   </div>
