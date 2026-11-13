@@ -4,7 +4,7 @@ server:
   location: null
   name: "kalavai_cluster"
   mtu: ""
-  watcher_image_tag: "2026.10.2"
+  watcher_image_tag: "2026.11.1"
   host_root_path: "/hostroot"
 
 core:
@@ -63,7 +63,4 @@ pool:
   dns_subdomain: "spaces.kalavai.net"
   dns_cert_manager_namespace: "cert-manager"
   dns_ingress_controller_namespace: "kube-system"
-  # Storage
-  longhorn_storage_class: kalavai-sc
-  longhorn_num_replicas: 3
   
