@@ -1487,10 +1487,10 @@ def job__logs(job_id, *others, pod_name=None, tail=100, follow: bool=False, forc
     if follow:
         # Stream live logs directly from the watcher SSE endpoint
         from kalavai_client.core import stream_pod_logs, _extract_log_line
-        from kalavai_client.env import TEMPLATE_LABEL
+        from kalavai_client.env import TEMPLATE_ID_LABEL
         try:
             for event in stream_pod_logs(
-                labels={TEMPLATE_LABEL: job_id},
+                labels={TEMPLATE_ID_LABEL: job_id},
                 force_namespace=force_namespace,
                 tail=tail,
                 follow=True,

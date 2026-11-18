@@ -37,7 +37,7 @@ KALAVAI_TEMPLATE_REPOSITORIES = [
 ]
 CONTAINER_CMD = "docker"
 NODE_LABEL_PREFIX = "kalavai/"
-TEMPLATE_LABEL = "kalavai.job.name"
+TEMPLATE_ID_LABEL = "kalavai.job.name"
 CORE_SERVICE_LABEL = "kalavai/service"
 KALAVAI_SERVICE_LABEL = "app"
 KALAVAI_SERVICE_LABEL_VALUE = "kalavai-watcher-app"

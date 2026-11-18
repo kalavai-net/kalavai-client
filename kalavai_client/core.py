@@ -45,7 +45,7 @@ from kalavai_client.utils import (
 from kalavai_client.env import (
     USER_COOKIE,
     USER_LOCAL_SERVER_FILE,
-    TEMPLATE_LABEL,
+    TEMPLATE_ID_LABEL,
     CORE_SERVICE_LABEL,
     SERVER_IP_KEY,
     USER_COMPOSE_FILE,
@@ -541,7 +541,7 @@ def fetch_job_names():
                 user_cookie=USER_COOKIE
             )
             for ns, ds in jobs.items():
-                all_jobs.extend([Job(owner=ns, name=d["metadata"]["labels"][TEMPLATE_LABEL]) for d in ds["items"]])
+                all_jobs.extend([Job(owner=ns, name=d["metadata"]["labels"][TEMPLATE_ID_LABEL]) for d in ds["items"]])
             
     except Exception as e:
         return {"error": str(e)}
@@ -552,7 +552,7 @@ def fetch_job_details(force_namespace=None):
     """Get jobs overview details (status and services)"""
     job_details = []
     # fetch all details at once
-    data = {"labels": [TEMPLATE_LABEL]}
+    data = {"labels": [TEMPLATE_ID_LABEL]}
     if force_namespace is not None:
         data["force_namespace"] = force_namespace
     result = request_to_server(
@@ -805,7 +805,7 @@ def fetch_devices(node_labels=None):
 
 def fetch_job_logs(job_name, force_namespace=None, pod_name=None, tail=100):
     return fetch_pod_logs(
-        labels={TEMPLATE_LABEL: job_name},
+        labels={TEMPLATE_ID_LABEL: job_name},
         pod_name=pod_name,
         force_namespace=force_namespace,
         tail=tail

@@ -668,7 +668,7 @@ def job_logs(
     - **tail**: Number of log lines to return
     - **follow**: If true, stream live logs as SSE instead of returning a snapshot
     """
-    from kalavai_client.env import TEMPLATE_LABEL
+    from kalavai_client.env import TEMPLATE_ID_LABEL
     if follow:
         def event_gen():
             import json
@@ -678,7 +678,7 @@ def job_logs(
                 # Stream each line as it arrives (don't wait for full aggregation).
                 try:
                     for event in stream_pod_logs(
-                        labels={TEMPLATE_LABEL: job_name},
+                        labels={TEMPLATE_ID_LABEL: job_name},
                         force_namespace=force_namespace,
                         tail=tail,
                         follow=False,
@@ -698,7 +698,7 @@ def job_logs(
                     yield f"data: {json.dumps({'warning': f'snapshot failed: {snap_err}'})}\n\n"
                 # 2) Live tail
                 for event in stream_pod_logs(
-                    labels={TEMPLATE_LABEL: job_name},
+                    labels={TEMPLATE_ID_LABEL: job_name},
                     force_namespace=force_namespace,
                     tail=0,
                     follow=True,
