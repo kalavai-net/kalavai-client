@@ -1330,6 +1330,7 @@ function JobsContent() {
       const payload: Parameters<typeof kalavaiApi.deployJob>[0] = {
         name: jobName.toLowerCase().trim(),
         template_name: selectedTemplate,
+        template_version: templateData?.metadata?.version ?? undefined,
         values: castedValues,
         force_namespace: namespaceFilter ?? undefined,
         random_suffix: randomSuffix,
@@ -1900,6 +1901,9 @@ function JobsContent() {
               {deployStep === 2 && (
                 <div className="space-y-4">
                   <p className="text-sm font-medium">Populate template values</p>
+                  {templateData?.metadata?.version && (
+                    <p className="text-s text-muted-foreground">Targeting template version: {templateData.metadata.version}</p>
+                  )}
                   <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
                     <div className="space-y-4 min-w-0">
                   <div>

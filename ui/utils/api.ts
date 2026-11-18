@@ -262,6 +262,7 @@ class KalavaiApiClient {
   async deployJob(data: {
     name: string;
     template_name: string;
+    template_version?: string;
     values: Record<string, unknown>;
     force_namespace?: string;
     target_labels?: Record<string, string[]>;
