@@ -287,6 +287,10 @@ class KalavaiApiClient {
     return this.post('delete_job', { name, force_namespace });
   }
 
+  async suspendJob(name: string, suspend: boolean, force_namespace?: string) {
+    return this.post('suspend_job', { name, suspend, force_namespace });
+  }
+
   // User Spaces
   async getAvailableUserSpaces() {
     return this.get('get_available_user_spaces');

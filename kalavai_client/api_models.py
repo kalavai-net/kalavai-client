@@ -44,6 +44,7 @@ class Job(BaseModel):
     endpoint: Optional[dict[str, dict]] = None
     status: Optional[str] = None
     host_nodes: Optional[str] = None
+    suspended: Optional[bool] = False
 
 class Service(BaseModel):
     name: Optional[str] = None
@@ -132,6 +133,11 @@ class CustomDeployJobRequest(BaseModel):
 class DeleteJobRequest(BaseModel):
     name: str = Field(description="Name of the job to delete")
     force_namespace: Optional[Union[str, None]] = Field(None, description="Optional namespace override")
+
+class SuspendJobRequest(BaseModel):
+    name: str = Field(description="Name of the job to suspend or resume")
+    force_namespace: Optional[Union[str, None]] = Field(None, description="Optional namespace override")
+    suspend: bool = Field(description="Set to 'True' for suspension, 'False' for resuming")
 
 class NodeLabelsRequest(BaseModel):
     node_name: str = Field(description="Name of the node to add labels to")

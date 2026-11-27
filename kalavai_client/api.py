@@ -43,7 +43,8 @@ from kalavai_client.api_models import (
     NodeLabelsRequest,
     WorkerConfigRequest,
     FetchDevicesRequest,
-    UserSpaceSecretRequest
+    UserSpaceSecretRequest,
+    SuspendJobRequest
 )
 from kalavai_client.core import (
     create_pool,
@@ -92,7 +93,8 @@ from kalavai_client.core import (
     get_compute_usage,
     get_nodes_metrics,
     set_user_space_secret,
-    fetch_user_space_secret
+    fetch_user_space_secret,
+    suspend_job
 )
 from kalavai_client.utils import (
     apply_cutoff_date_delta
@@ -885,6 +887,26 @@ def job_delete(request: DeleteJobRequest, api_key: str = Depends(verify_api_key)
     result = delete_job(
         name=request.name,
         force_namespace=request.force_namespace
+    )
+    return result
+
+@app.post("/suspend_job",
+    operation_id="suspend_job",
+    summary="Suspends or resumes a job from the pool",
+    description="Temporarily suspends or resumes a running job in the Kalavai pool. If suspend=true, it will stop all containers associated with the job and free up the resources they were using.",
+    tags=["job_management"],
+    response_description="Result of job suspension")
+def job_suspend(request: SuspendJobRequest, api_key: str = Depends(verify_api_key)):
+    """
+    Suspend or resume a job with the following parameters:
+    
+    - **name**: Name of the job to suspend or resume
+    - **force_namespace**: Optional namespace override
+    """
+    result = suspend_job(
+        name=request.name,
+        force_namespace=request.force_namespace,
+        suspend=request.suspend
     )
     return result
 

@@ -13,13 +13,14 @@ import {
   setCachedJobEndpoints,
   type CachedJobEndpoint,
 } from '@/utils/jobEndpointsCache';
-import { Loader2, ExternalLink, Trash2, Plus, X, RefreshCw, ChevronLeft, ChevronRight, ChevronDown, AlertTriangle, CheckCircle, Check, Copy, Info, Filter, Boxes, Link2, Search } from 'lucide-react';
+import { Loader2, ExternalLink, Trash2, Plus, X, RefreshCw, ChevronLeft, ChevronRight, ChevronDown, AlertTriangle, CheckCircle, Check, Copy, Info, Filter, Boxes, Link2, Search, Pause, Play } from 'lucide-react';
 
 interface Job {
   job_id: string;
   name: string;
   owner: string;
   status: string;
+  suspended?: boolean;
   workers: string;
   host_nodes: string;
   endpoint: Record<string, { port: number | null; address: string; link: string } | string>;
@@ -455,7 +456,10 @@ function ParamDescription({ text, className = '' }: { text: string; className?: 
   );
 }
 
-function statusBadge(status: string) {
+function statusBadge(status: string, suspended?: boolean) {
+  if (suspended || status === 'suspended' || status === 'Suspended') {
+    return <span className="px-2 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-700">Suspended</span>;
+  }
   const cls = status === 'Running' ? 'bg-green-100 text-green-800' :
     status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
     status === 'Error' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800';
@@ -1357,6 +1361,24 @@ function JobsContent() {
     } catch (err) { showMsg('error', `Delete failed: ${err}`); }
   };
 
+  const [suspendingIds, setSuspendingIds] = useState<Set<string>>(new Set());
+
+  const handleSuspendToggle = async (job: Job) => {
+    const suspend = !(job.suspended ?? (String(job.status).toLowerCase() === 'suspended'));
+    setSuspendingIds(prev => new Set(prev).add(job.job_id));
+    try {
+      const result = await kalavaiApi.suspendJob(job.name, suspend, job.owner);
+      if (result?.error) { showMsg('error', result.error); }
+      else {
+        showMsg('success', suspend ? `Job "${job.name}" suspended` : `Job "${job.name}" resumed`);
+        await loadJobs(namespaceFilter ?? null);
+      }
+    } catch (err) { showMsg('error', `${suspend ? 'Suspend' : 'Resume'} failed: ${err}`); }
+    finally {
+      setSuspendingIds(prev => { const s = new Set(prev); s.delete(job.job_id); return s; });
+    }
+  };
+
   const stopLogStream = () => {
     logStreamStopRef.current?.();
     logStreamStopRef.current = null;
@@ -1629,7 +1651,7 @@ function JobsContent() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="space-y-1">
-                      {statusBadge(job.status)}
+                      {statusBadge(job.status, job.suspended)}
                       {job.workers && (
                         <p className="text-xs text-muted-foreground mt-1">
                           <span className="font-medium text-foreground/60">workers:</span> {job.workers}
@@ -1663,6 +1685,24 @@ function JobsContent() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1">
+                      {(() => {
+                        const isSuspended = job.suspended ?? (String(job.status).toLowerCase() === 'suspended');
+                        const busy = suspendingIds.has(job.job_id);
+                        return (
+                          <button
+                            onClick={() => handleSuspendToggle(job)}
+                            disabled={busy}
+                            className="p-1.5 hover:bg-accent rounded disabled:opacity-50"
+                            title={isSuspended ? 'Resume job' : 'Suspend job'}
+                          >
+                            {busy
+                              ? <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                              : isSuspended
+                                ? <Play className="w-4 h-4 text-green-600" />
+                                : <Pause className="w-4 h-4 text-amber-600" />}
+                          </button>
+                        );
+                      })()}
                       {deleteConfirm === job.job_id ? (
                         <>
                           <button onClick={() => handleDelete(job)} className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700">Confirm</button>
@@ -2079,7 +2119,7 @@ function JobsContent() {
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
               <div className="flex items-center gap-3">
                 <h2 className="font-semibold">Job: {logsJob.name}</h2>
-                {statusBadge(logsJob.status)}
+                {statusBadge(logsJob.status, logsJob.suspended)}
               </div>
               <div className="flex items-center gap-2">
                 {logsTab === 'logs' && (

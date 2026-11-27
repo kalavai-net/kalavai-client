@@ -250,7 +250,9 @@ export const useConnectionStore = create<ConnectionState>()((set, get) => ({
       });
       
       if (Array.isArray(spaces) && spaces.length > 0 && !get().selectedUserSpace) {
-        await get().setUserSpace(spaces[0]);
+        const sorted = [...spaces].sort((a, b) => a.localeCompare(b));
+        const initial = spaces.includes('default') ? 'default' : sorted[0];
+        await get().setUserSpace(initial);
       }
     } catch (error) {
       console.error('Error loading connection state:', error);

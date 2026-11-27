@@ -7,6 +7,8 @@ repositories:
   - name: rocm
     url: https://rocm.github.io/gpu-operator
   {% endif %}
+  - name: cnpg
+    url: https://cloudnative-pg.github.io/charts
   - name: kuberay
     url: https://ray-project.github.io/kuberay-helm/
   - name: kalavai
@@ -66,7 +68,7 @@ releases:
   - name: job-operator
     namespace: kalavai
     chart: kalavai-job-operator/kalavai-job-operator
-    version: 0.2.3
+    version: 0.2.6
     installed: true
     needs:
     - flux-system/flux
@@ -74,6 +76,10 @@ releases:
     set:
     - name: nodeSelector.{{kalavai_role_label}}
       value: server
+  - name: cnpg
+    namespace: cnpg
+    chart: cnpg/cloudnative-pg
+    version: 0.29.2
   - name: istio-base
     namespace: istio-system
     chart: istio/base
@@ -171,19 +177,6 @@ releases:
     chart: rocm/gpu-operator-charts
     installed: {{deploy_rocm|default("false", true)}}
     version: "1.4.0"
-  - name: lago
-    namespace: kalavai
-    chart: kalavai/lago
-    installed: {{deploy_lago|default("false", true)}}
-    set:
-    - name: external.api.nodePort
-      value: 32000
-    - name: external.front.nodePort
-      value: 30080
-    - name: apiUrl
-      value: http://{{cluster_ip}}:32000
-    - name: frontUrl
-      value: http://{{cluster_ip}}:30080
   - name: prometheus
     namespace: {{prometheus_namespace}}
     chart: prometheus-community/kube-prometheus-stack #prometheus/prometheus
@@ -316,7 +309,7 @@ releases:
   - name: volcano-sh
     namespace: volcano-system
     chart: volcano-sh/volcano
-    installed: true
+    installed: false
     version: "1.13.0"
     values:
     - custom:

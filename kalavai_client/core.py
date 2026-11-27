@@ -640,6 +640,16 @@ def fetch_job_details(force_namespace=None):
                 status = "completed"
             else:
                 status = "working"
+            # parse suspend state (set in job spec/details by watcher; check several shapes)
+            job_spec = job.get("spec", {}) or {}
+            job_status_raw = job.get("status", {}) or {}
+            suspended = bool(
+                job_spec.get("suspend", False)
+                or job_status_raw.get("suspend", False)
+                or job.get("suspend", False)
+            )
+            if suspended:
+                status = "suspended"
             job_details.append(
                 Job(
                     job_id=job_id,
@@ -650,7 +660,8 @@ def fetch_job_details(force_namespace=None):
                     workers=workers,
                     endpoint=endpoints, #"\n".join(urls),
                     status=str(status),
-                    host_nodes="\n".join(host_nodes))
+                    host_nodes="\n".join(host_nodes),
+                    suspended=suspended)
             )
     return job_details
 
@@ -752,7 +763,27 @@ def deploy_test_job(template_str, values_dict, default_values, target_labels=Non
         return result
     except Exception as e:
         return {"error": str(e)}
-    
+
+def suspend_job(name, suspend, force_namespace=None):
+    data = {
+        "name": name,
+        "force_namespace": force_namespace,
+        "suspend": suspend
+    }
+    try:
+        result = request_to_server(
+            force_url=FORCE_WATCHER_API_URL,
+            force_key=FORCE_WATCHER_API_KEY_URL,
+            method="post",
+            endpoint="/v1/suspend_template",
+            data=data,
+            server_creds=USER_LOCAL_SERVER_FILE,
+            user_cookie=USER_COOKIE
+        )
+        return result
+    except Exception as e:
+        return {"error": str(e)}
+
 def delete_job(name, force_namespace=None):
     data = {
         "name": name,
